@@ -30,7 +30,7 @@ fkit-coder
 given in the `fkit lead` session and relayed by `fkit-lead`.** The owner asked for *"a task"* for the
 next sprint and called it *"important — we need to create some incentives for users to actually buy
 citizenship"*. ⚠️ The owner asked for the work; they did **not** rule the benefit list, the copy, the
-rank, or the split into two briefs (this one + [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md)).
+rank, or the split into two briefs (this one + [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md)).
 Those are open questions below. ⛔ Not producer precedent.
 
 ### 📌 OWNER RULINGS, 2026-09-26 — rank and order (read before *Dependencies*)
@@ -38,8 +38,8 @@ Those are open questions below. ⛔ Not producer precedent.
 Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned
 `fkit-producer` with no owner channel (ADR-021; the relay named each ruling, ADR-037 §3); ⛔ not producer
 precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board](../../../sprints/plan-sprint-6.md).
-- **This task is rank 5**, after [`0307`](../0307-security-review-of-every-player-name-path-injection-and-validation/brief.md),
-  [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
+- **This task is rank 5**, after [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md),
+  [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
   and [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
 - **It now DEPENDS ON `0302` and `0248`** — the popup describes their perks. On `0302`, the owner:
   *"it should be the 2nd priority for the Sprint 6, because the "funnel/explanation" of the perks would
@@ -61,7 +61,7 @@ Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-le
 2 features in the same deploy. As a "temporary" solution, we can show a simple popup with information that
 this feature is only for citizens, without the "buy" button, but later when we do the better "what is
 citizenship + buy it" popu, this simple solution will be removed."*
-- **This task REMOVES [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md)'s interim "citizens
+- **This task REMOVES [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md)'s interim "citizens
   only" popup** (code, translation keys in `en.json` + `ru.json`, and its element in both HTML templates if
   it has one) **and points the locked private-lobby tap at this explainer**, with the locked-feature
   source in the *opened* event.
@@ -78,7 +78,7 @@ citizenship + buy it" popu, this simple solution will be removed."*
 > citizenship"*
 
 The locked-feature half of the same request (*"show it as locked … if a non-citizen clicks on that …
-show them the same pop-up"*) is [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md). It
+show them the same pop-up"*) is [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md). It
 reuses the popup this task builds.
 
 ### What is live today (citizenship went live 2026-09-26, game 0.0.154)
@@ -102,7 +102,7 @@ The owner said: *"I'm actually not sure if we have any of them right now."* This
 | Personal inbox (system messages) | **Yes** — `0012` ✅ Done | `src/client/Inbox.ts` — server 403s non-citizens | Weak as a *selling* point (it mostly delivers the name-change result) — owner call |
 | **No interstitial ads** (paid citizens) | ❌ **NO** | No citizen check anywhere in the ad path — see [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) | ⛔ **NO** — owner condition, below |
 | **Full emoji set** | ❌ **NO** | One flat emoji table for everyone — see [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) | ⛔ **NO** — owner condition, below |
-| **Private lobbies** | ❌ **NO** — not gated, and **hidden for everyone** on Yandex | See below | ⛔ **NO** until [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md) ships |
+| **Private lobbies** | ❌ **NO** — not gated, and **hidden for everyone** on Yandex | See below | ⛔ **NO** until [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) ships |
 | Match history / archive | ❌ **NO** — archiving is a no-op | `src/server/Archive.ts:18-19`; [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) | ⛔ **NO** |
 | Nickname styling, map voting, replay access, custom flags | ❌ **NO** — not built | Sprint 6 rows *Nickname Styling System*, *Map Voting for Verified Players*, *Replay Access as Premium Feature*, *Custom Uploaded Flags & Patterns* (no briefs yet) | ⛔ **NO** |
 
@@ -223,7 +223,7 @@ never an inline string. At minimum:
 
 ## Notes
 
-- **Depends on:** [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md) and
+- **Depends on:** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) and
   [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — OWNER RULINGS 2026-09-26 (see
   *Owner rulings* above): the popup describes their perks. ⚠️ Through `0248`, this also waits on
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md). *Struck, not deleted — true
@@ -231,7 +231,7 @@ never an inline string. At minimum:
   the task.)
 - 🚢 **Release coupling (owner ruling 2026-09-26):** ships in the **same deploy** as `0302` — see *Owner
   ruling (second set)* above. Removing `0302`'s interim popup is part of this task.
-- **Blocks:** nothing. ~~[`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md) — it reuses this
+- **Blocks:** nothing. ~~[`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) — it reuses this
   popup and its analytics source shape.~~ *Reversed 2026-09-26:* `0302` now ships first. When this task
   ships, it re-points `0302`'s locked-button tap to this popup and adds the locked-feature *opened* event
   source (whatever `0302` open question 5 settles for the interim). ✅ *Settled 2026-09-26:* the interim

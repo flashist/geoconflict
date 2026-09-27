@@ -17,6 +17,7 @@ import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
 import "./CitizenshipCard";
+import "./CitizensOnlyModal";
 import "./TenureGrantModal";
 import {
   CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
@@ -46,6 +47,7 @@ import "./Matchmaking";
 import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
+import { PrivateLobbyAccess } from "./PrivateLobbyAccess";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { startProfileSession } from "./ProfileSession";
 import "./PublicLobby";
@@ -487,12 +489,19 @@ class Client {
     }
     const hostLobbyButton = document.getElementById("host-lobby-button");
     if (hostLobbyButton === null) throw new Error("Missing host-lobby-button");
+    // Task 0302: the row is hidden unless the private_lobbies switch and the
+    // citizenship surfaces are both on; Create is a citizen perk (locked for
+    // everyone else), Join stays free.
+    const privateLobbyAccess = new PrivateLobbyAccess();
+    void privateLobbyAccess.start();
     hostLobbyButton.addEventListener("click", () => {
       this.fireFirstAction();
-      if (this.usernameInput?.isValid()) {
-        hostModal.open();
-        this.publicLobby.leaveLobby();
-      }
+      privateLobbyAccess.onCreateTap(() => {
+        if (this.usernameInput?.isValid()) {
+          hostModal.open();
+          this.publicLobby.leaveLobby();
+        }
+      });
     });
 
     this.joinModal = document.querySelector(

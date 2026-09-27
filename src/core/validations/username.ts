@@ -13,7 +13,7 @@ import {
   MAX_USERNAME_LENGTH,
   MIN_USERNAME_LENGTH,
   checkUsernameRules,
-  validUsernamePattern,
+  sanitizeUsername,
   type UsernameRuleViolation,
 } from "./usernameRules";
 
@@ -29,9 +29,7 @@ const matcher = new RegExpMatcher({
 // Re-exported so every existing importer of this module keeps working unchanged;
 // the rules themselves now live in ./usernameRules (dependency-free, so the
 // profile server can share them — task 0067).
-export { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH };
-
-const validPattern = validUsernamePattern;
+export { MAX_USERNAME_LENGTH, MIN_USERNAME_LENGTH, sanitizeUsername };
 
 const shadowNames = [
   "NicePeopleOnly",
@@ -71,6 +69,44 @@ const VIOLATION_PARAMS: Record<
 };
 
 /**
+ * The translated message for one broken rule, with its `{min}`/`{max}` filled in
+ * (task 0307). The ONE place those params are passed — the citizenship card used
+ * to translate `username.<violation>` without them and showed a raw `{max}`.
+ */
+export function usernameViolationMessage(
+  violation: UsernameRuleViolation,
+): string {
+  const params = VIOLATION_PARAMS[violation];
+  return params === undefined
+    ? translateText(`username.${violation}`)
+    : translateText(`username.${violation}`, params);
+}
+
+/**
+ * The whole name rule in one sentence (`username.rules_hint`), shown while a
+ * name is being edited and after every rule error (task 0307, owner ruling Q-C).
+ * The numbers come from the shared constants, so the text cannot drift from the
+ * rule the server enforces. Task 0308 owns the character set: when it changes,
+ * it edits `username.rules_hint` and `username.invalid_chars` with it.
+ */
+export function usernameRulesHint(): string {
+  return translateText("username.rules_hint", {
+    min: MIN_USERNAME_LENGTH,
+    max: MAX_USERNAME_LENGTH,
+  });
+}
+
+/**
+ * What a player sees when their name breaks the rule: the specific problem, then
+ * the full rule — so every error explains what IS allowed (task 0307).
+ */
+export function usernameRuleErrorMessage(
+  violation: UsernameRuleViolation,
+): string {
+  return `${usernameViolationMessage(violation)} ${usernameRulesHint()}`;
+}
+
+/**
  * Thin translating wrapper over `checkUsernameRules` (task 0067). Same signature,
  * same message keys, same params, same ordering as before the extraction — the
  * rules moved, the client-visible behavior did not.
@@ -83,20 +119,5 @@ export function validateUsername(username: string): {
   if (violation === null) {
     return { isValid: true };
   }
-  const params = VIOLATION_PARAMS[violation];
-  return {
-    isValid: false,
-    error:
-      params === undefined
-        ? translateText(`username.${violation}`)
-        : translateText(`username.${violation}`, params),
-  };
-}
-
-export function sanitizeUsername(str: string): string {
-  const sanitized = Array.from(str)
-    .filter((ch) => validPattern.test(ch))
-    .join("")
-    .slice(0, MAX_USERNAME_LENGTH);
-  return sanitized.padEnd(MIN_USERNAME_LENGTH, "x");
+  return { isValid: false, error: usernameViolationMessage(violation) };
 }

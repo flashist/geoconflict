@@ -262,7 +262,10 @@ export class NameLayer implements Layer {
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "player-name-span";
-    nameSpan.innerHTML = player.name();
+    // textContent, never innerHTML (task 0307): a name is plain text. innerHTML
+    // was safe only because PlayerImpl runs sanitizeUsername on every name — this
+    // no longer depends on that rule staying narrow.
+    nameSpan.textContent = player.name();
     nameDiv.appendChild(nameSpan);
     element.appendChild(nameDiv);
 
@@ -374,7 +377,7 @@ export class NameLayer implements Layer {
     nameDiv.style.color = render.fontColor;
     const span = nameDiv.querySelector(".player-name-span");
     if (span) {
-      span.innerHTML = render.player.name();
+      span.textContent = render.player.name();
     }
     if (flagDiv) {
       flagDiv.style.height = `${render.fontSize}px`;

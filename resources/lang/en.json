@@ -87,6 +87,14 @@
     "body": "Thank you for playing Geoconflict! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
     "cta": "Great!"
   },
+  "locked_feature": {
+    "citizens_only": "Citizens only"
+  },
+  "citizens_only_modal": {
+    "title": "Citizens only",
+    "body": "This feature is available only to citizens.",
+    "close": "Close"
+  },
   "inbox": {
     "empty": "No personal messages yet.",
     "templates": {
@@ -327,7 +335,8 @@
     "not_string": "Username must be a string.",
     "too_short": "Username must be at least {min} characters long.",
     "too_long": "Username must not exceed {max} characters.",
-    "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets]."
+    "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets].",
+    "rules_hint": "{min}–{max} characters: letters, numbers, spaces, _ and [ ]."
   },
   "host_modal": {
     "title": "Private Lobby",
@@ -351,7 +360,8 @@
     "players": "Players",
     "waiting": "Waiting for players...",
     "start": "Start Game",
-    "host_badge": "Host"
+    "host_badge": "Host",
+    "start_failed": "Couldn't start the game. Please try again."
   },
   "team_colors": {
     "red": "Red",

@@ -16,7 +16,7 @@ directly below `0308`**, because it is player-facing name UX in the same area as
 annoying rather than harmful — nothing is lost or wrong, the card just keeps saying "rejected".
 
 ## Status
-🔲 Backlog
+🔄 In progress — driven by `/fkit-sprint-ship-loop` (fkit-lead), 2026-09-27
 
 ## Owner
 fkit-coder
@@ -73,10 +73,10 @@ uniqueness frees the old name.
 ## Notes
 
 - **Depends on:** nothing
-- **Related:** [`0312`](../0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
+- **Related:** [`0312`](../../done/0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
   (an operator "clear" action rides its command shape — if both run, do `0312` first) ·
   [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
-  and [`0307`](../0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) (same
+  and [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) (same
   name paths) · [`0067`](../../done/0067-name-change-citizens-only/brief.md) (original state machine) ·
   [`0311`](../0311-remove-the-game-name-from-player-facing-texts/brief.md) (no game name in new copy).
 - **Privacy/secrets:** a clear-name action touches personal data (a chosen name); log the action, never the

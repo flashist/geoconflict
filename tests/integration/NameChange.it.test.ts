@@ -12,8 +12,16 @@
 import { Pool } from "pg";
 import request from "supertest";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
-import { countPendingNameChanges } from "../../src/profile-server/NameChangeDigest";
-import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
+import { parseDecideInput } from "../../src/profile-server/NameChangeDecideCommand";
+import {
+  PENDING_LIST_CAP,
+  countPendingNameChanges,
+  listPendingNameChanges,
+} from "../../src/profile-server/NameChangeDigest";
+import {
+  NameChangeRepository,
+  buildDecideCommandBody,
+} from "../../src/profile-server/NameChangeRepository";
 import { createApp } from "../../src/profile-server/Routes";
 import {
   TEST_SESSION_CONFIG,
@@ -431,6 +439,110 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect(await displayName(CITIZEN)).toBe("Padded");
   });
 
+  // ── Task 0307 — hostile input on the SQL paths, over a real Postgres ─────
+  describe("hostile input on the SQL paths (task 0307)", () => {
+    const tableCount = async () =>
+      Number(
+        (
+          await pool.query(
+            `SELECT count(*)::int AS n FROM information_schema.tables
+             WHERE table_schema = 'public'`,
+          )
+        ).rows[0].n,
+      );
+
+    it("stores a SQL-injection rejection reason byte-identical, and every table survives", async () => {
+      const reason = "'); DROP TABLE players; --";
+      const tablesBefore = await tableCount();
+      await submit(CITIZEN, "BadName").expect(200);
+      await decide(CITIZEN, { decision: "reject", reason }).expect(200, {
+        status: "ok",
+      });
+      expect((await rows(CITIZEN))[0].rejection_reason).toBe(reason);
+      expect(await tableCount()).toBe(tablesBefore);
+      const players = await pool.query(
+        "SELECT count(*)::int AS n FROM players",
+      );
+      expect(Number(players.rows[0].n)).toBe(3);
+      const messages = await waitForMessages(pool, ids[CITIZEN], 1);
+      expect(messages[0].template_params).toEqual({ name: "BadName", reason });
+    });
+
+    it.each([
+      ["a no-break space", "Iv\u00A0an"],
+      ["a Cyrillic look-alike", "Iv\u0430n Two"],
+    ])(
+      "stores and reads back a name with %s byte-identical",
+      async (_label, name) => {
+        await submit(CITIZEN, name).expect(200);
+        expect((await rows(CITIZEN))[0].new_display_name).toBe(name);
+        const profile = await request(app)
+          .get("/v1/profile")
+          .set("Authorization", callerFor(CITIZEN))
+          .expect(200);
+        expect(profile.body.name_change.requested_name).toBe(name);
+        await decide(CITIZEN, {
+          decision: "approve",
+          expectedName: name,
+        }).expect(200);
+        expect(await displayName(CITIZEN)).toBe(name);
+      },
+    );
+
+    // ⚠️ OWNER-ACCEPTED RESIDUAL (0307 Q2, 2026-09-26 "Accept for now"): the
+    // uniqueness check is lower(display_name) with no normalization, so a
+    // look-alike of a held name is NOT a duplicate. Pinned as it is today;
+    // re-raise only if approved names start being shown to other players.
+    it("pins today's uniqueness: a Cyrillic look-alike of a held name is accepted", async () => {
+      // OTHER already holds 'Ivan' (Latin); this one's 'а' is Cyrillic.
+      await submit(CITIZEN, "Iv\u0430n").expect(200, { status: "ok" });
+      await decide(CITIZEN, { decision: "approve" }).expect(200);
+      expect(await displayName(CITIZEN)).toBe("Iv\u0430n");
+      expect(await displayName(OTHER)).toBe("Ivan");
+    });
+
+    // F2 end to end: the pure-ASCII body the operator's pasted command sends is
+    // turned back into the EXACT stored name by the route's JSON parser, so the
+    // expectedName binding still matches.
+    it("the operator command's ASCII-escaped body approves the exact name", async () => {
+      const name = "Iv\u00A0an";
+      await submit(CITIZEN, name).expect(200);
+      const body = buildDecideCommandBody(ids[CITIZEN], name);
+      expect(body).toMatch(/^[\x20-\x7E]*$/);
+      await request(app)
+        .post("/internal/v1/name-change/decide")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .set("Content-Type", "application/json")
+        .send(body)
+        .expect(200, { status: "ok" });
+      expect(await displayName(CITIZEN)).toBe(name);
+    });
+
+    // Task 0312 end to end: the Reject line's body, read by the decide command
+    // exactly as on the box (parseDecideInput), is accepted by the real route and
+    // records the operator's reason on the bound request.
+    it("the decide command's parsed Reject body rejects the exact name with the reason", async () => {
+      const name = "Iv an";
+      await submit(CITIZEN, name).expect(200);
+      const input = parseDecideInput(
+        buildDecideCommandBody(ids[CITIZEN], name, "reject"),
+        "reason",
+      );
+      if (!input.ok) throw new Error(input.error);
+      await request(app)
+        .post("/internal/v1/name-change/decide")
+        .set("Authorization", `Bearer ${TOKEN}`)
+        .set("Content-Type", "application/json")
+        .send(JSON.stringify(input.request))
+        .expect(200, { status: "ok" });
+      const history = await rows(CITIZEN);
+      expect(history[0].moderation_status).toBe("rejected");
+      expect(history[0].rejection_reason).toBe("reason");
+      expect(history[0].decided_at).not.toBeNull();
+      expect(await displayName(CITIZEN)).toBeNull();
+    });
+  });
+
   // ── Review R1 — the decision is bound to the name the operator saw ───────
   describe("expectedName binding (review R1, owner ruling A)", () => {
     const cancel = (yandexId: string) =>
@@ -562,6 +674,42 @@ RUN("citizen name change over real Postgres (integration)", () => {
       await expect(countPendingNameChanges(pool)).resolves.toBe(1);
       await decide(OTHER, { decision: "reject", reason: "taken" }).expect(200);
       await expect(countPendingNameChanges(pool)).resolves.toBe(0);
+    });
+
+    // Task 0315: the list message reads the same real schema. Decided history rows must
+    // not be listed, the order is oldest request first, and the id is the INTERNAL one.
+    it("lists exactly the pending requests, oldest first, by internal id (task 0315)", async () => {
+      await submit(CITIZEN, "WaitingOne").expect(200);
+      await submit(OTHER, "WaitingTwo").expect(200);
+      const settled = await createYandexPlayer(pool, "yandex-nc-settled");
+      await history(settled, "OldOne", "approved");
+      await history(settled, "OldTwo", "rejected");
+      // Make the order unambiguous rather than relying on two now() calls differing.
+      await pool.query(
+        `UPDATE player_name_history SET changed_at = now() - interval '2 hours'
+         WHERE player_id = $1 AND moderation_status = 'pending'`,
+        [ids[OTHER]],
+      );
+
+      const { total, entries: listed } = await listPendingNameChanges(
+        pool,
+        PENDING_LIST_CAP,
+      );
+      expect(total).toBe(2);
+      expect(listed.map((e) => [e.playerId, e.requestedName])).toEqual([
+        [ids[OTHER], "WaitingTwo"],
+        [ids[CITIZEN], "WaitingOne"],
+      ]);
+      for (const entry of listed) {
+        expect(entry.requestedAt).toBeInstanceOf(Date);
+        expect(Number.isNaN(entry.requestedAt.getTime())).toBe(false);
+        expect(entry.playerId).not.toContain("yandex");
+      }
+      // Review R3: `count(*) OVER ()` is computed BEFORE `LIMIT` on the real planner, so
+      // a capped read still carries the full total — what "…and M more" is built from.
+      const capped = await listPendingNameChanges(pool, 1);
+      expect(capped.entries).toHaveLength(1);
+      expect(capped.total).toBe(2);
     });
   });
 });

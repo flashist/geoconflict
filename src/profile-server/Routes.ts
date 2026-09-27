@@ -1282,16 +1282,23 @@ export function createApp(
   // Internal, service-authenticated moderation decision — the brief's "minimal
   // admin endpoint", same PROFILE_INTERNAL_TOKEN posture as /internal/v1/credit.
   // No moderation UI exists by owner ruling (a); the operator is notified of new
-  // pending requests over Telegram and decides with a curl. Never CORS-enabled.
+  // pending requests over Telegram and decides by pasting that message's Approve or
+  // Reject line ON THE PROFILE BOX: it runs `npm run name-change:decide` inside the
+  // running profile-api container, which posts here on 127.0.0.1 with the container's
+  // own token (task 0312; src/profile-server/decideNameChange.ts; runbook:
+  // ai-agents/knowledge-base/name-change-digest-runbook.md). Nginx allows /internal/
+  // only from the game and monitoring boxes (task 0276), so a laptop curl gets 403 —
+  // correct, keep it. Never CORS-enabled.
   //
   //   Request (JSON) — addressed by the INTERNAL playerId (a uuid, task 0270), which
   //   is what the Telegram notification carries; Yandex ids no longer go there:
   //     { "playerId": "…", "decision": "approve", "expectedName": "…" }
   //     { "playerId": "…", "decision": "reject", "reason": "…" }  // reason REQUIRED
-  //   `expectedName` is OPTIONAL but is what the Telegram notification's
-  //   ready-to-paste command sends, and it is what makes deciding from that
-  //   message safe — see NameChangeContract. Omitting it decides on whatever is
-  //   pending right now, which is the pre-existing behavior.
+  //   `expectedName` is OPTIONAL on the wire but is what the Telegram notification's
+  //   ready-to-paste commands send (the decide command refuses to run without it),
+  //   and it is what makes deciding from that message safe — see
+  //   NameChangeContract. Omitting it decides on whatever is pending right now,
+  //   which is the pre-existing behavior.
   //   Responses: 200 { "status": "ok" } · 400 bad_request (schema, not a uuid, or a
   //   reject with no/blank reason) · 401 unauthorized · 404 no_pending · 409 name_taken
   //   (the name was claimed between request and approval — the request stays
@@ -1299,11 +1306,10 @@ export function createApp(
   //   name is not the one you passed; nothing was applied, and the response
   //   carries `pending_name` so the command can be re-issued) · 503
   //   name_change_unavailable · 500 internal_error.
-  //   Example:
-  //     curl -sS -X POST "$PROFILE_API_URL/internal/v1/name-change/decide" \
-  //       -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" \
-  //       -H "Content-Type: application/json" \
-  //       -d '{"playerId":"<player uuid>","decision":"approve","expectedName":"<name>"}'
+  //   Example (on the profile box; the Telegram message carries both lines ready-made):
+  //     docker compose -f <profile dir>/docker-compose.yml exec -T \
+  //       -e NAME_CHANGE_DECISION='{"playerId":"<player uuid>","decision":"reject","expectedName":"<name>"}' \
+  //       -e NAME_CHANGE_REASON='<reason>' profile-api npm run -s name-change:decide
   app.post(
     "/internal/v1/name-change/decide",
     internalAuth,

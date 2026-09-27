@@ -82,3 +82,12 @@ investigate the options.** Two were named by the owner as examples:
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md), `0014`, ADR-103, ADR-112,
   [`0268`](../0268-remove-tenure-xp-claim-logic-after-60-days/brief.md).
 - No secrets in the report — never paste the secret key or a real player id.
+- 📌 **Cross-reference added 2026-09-27 (append-only; status, priority and owner unchanged)** — by a
+  spawned `fkit-producer` on an OWNER RULING given live in the `fkit lead` session and relayed by
+  `fkit-lead`. [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md)
+  now tracks one concrete hole this investigation's fix must close: an unverified (`vfy:false`) login
+  lets anyone who knows a Yandex id read that player's pending name (`GET /v1/profile`) and act on the
+  name-change routes — `0067` residual (b), Codex X4 (medium) in `0307`. Its old hand-off pointed at
+  `0014`, which is closed. **Ask of this investigation:** item 5's route list should name
+  `GET /v1/profile` and both `/v1/profile/name-change-*` routes. `0319` depends on this task; this task
+  does not depend on `0319`.

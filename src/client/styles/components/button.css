@@ -170,3 +170,15 @@
   color: #98989f;
   opacity: 1;
 }
+
+/* Locked citizen perk (task 0302): still clickable — the tap opens the
+   citizenship popup — but visibly dimmed, with a lock before the title. */
+.c-button--locked {
+  opacity: 0.75;
+}
+
+.c-button__lock {
+  margin-right: 6px;
+  font-size: 0.9em;
+  line-height: 1;
+}

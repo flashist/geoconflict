@@ -1,9 +1,19 @@
-import { ClientJoinMessageSchema } from "../src/core/Schemas";
+import {
+  Difficulty,
+  GameMapSize,
+  GameMapType,
+  GameMode,
+  GameType,
+} from "../src/core/game/Game";
+import {
+  ClientJoinMessageSchema,
+  GameStartInfoSchema,
+} from "../src/core/Schemas";
 
 // A minimal join message whose other fields satisfy their schemas:
 // - clientID / gameID: 8-char alphanumeric (ID schema)
 // - token: a UUID literal (TokenSchema accepts a UUID via PersistentIdSchema)
-// - username: a plain SafeString
+// - username: a name that passes the shared name rule (task 0307)
 function baseJoinMessage(): Record<string, unknown> {
   return {
     type: "join",
@@ -68,5 +78,93 @@ describe("ClientJoinMessageSchema yandexPlayerId", () => {
       yandexPlayerId: "x".repeat(257),
     });
     expect(result.success).toBe(false);
+  });
+});
+
+// Task 0307 (F4): the game server now enforces the name rule on the JOIN name —
+// before this it took any SafeString of up to 1000 characters, including the
+// right-to-left override, and relayed it raw to every other player's lobby list.
+describe("ClientJoinMessageSchema username (task 0307)", () => {
+  const withName = (username: unknown) =>
+    ClientJoinMessageSchema.safeParse({ ...baseJoinMessage(), username });
+
+  test.each([
+    ["an HTML tag", "<script>"],
+    ["a single quote", "O'Brien"],
+    ["the right-to-left override U+202E", "ab\u202Ecd"],
+    ["a zero-width space", "ab\u200Bcd"],
+    ["28 characters", "a".repeat(28)],
+    ["a too-short name", "ab"],
+    ["the empty name", ""],
+    ["an emoji", "Cat\u{1F408}User"],
+    ["a non-string", 12345],
+  ])("refuses %s", (_label, username) => {
+    expect(withName(username).success).toBe(false);
+  });
+
+  test.each([
+    ["Cyrillic", "Привет123"],
+    ["underscore, brackets and a space", "Name_1 [TAG]"],
+    ["exactly 27 characters", "a".repeat(27)],
+    ["exactly 3 characters", "abc"],
+    ["a generated guest name", "Anon1234"],
+  ])("accepts %s, unchanged", (_label, username) => {
+    const result = withName(username);
+    expect(result.success).toBe(true);
+    expect(result.data?.username).toBe(username);
+  });
+
+  // 0307 review R2: the join check trims first, like the name input and the
+  // profile server. Untrimmed, "   " is three characters of `\s` and passed.
+  test.each([
+    ["three spaces", "   "],
+    ["a tab and spaces", " \t "],
+    ["a name that is too short once trimmed", "  ab  "],
+    ["28 letters behind an edge space", " " + "a".repeat(28)],
+  ])("refuses %s", (_label, username) => {
+    expect(withName(username).success).toBe(false);
+  });
+
+  test.each([
+    [" Bob", "Bob"],
+    ["Bob ", "Bob"],
+    ["  Name_1 [TAG]  ", "Name_1 [TAG]"],
+    [" " + "a".repeat(27) + " ", "a".repeat(27)],
+  ])(
+    "trims %j to %j before checking, and keeps the trimmed name",
+    (username, trimmed) => {
+      const result = withName(username);
+      expect(result.success).toBe(true);
+      expect(result.data?.username).toBe(trimmed);
+    },
+  );
+
+  // Only the JOIN is narrowed. Bot, nation and archived names travel in
+  // PlayerSchema / AiPlayerSchema, and a game start must never fail over a name.
+  test("GameStartInfo still accepts bot/nation names the join schema refuses", () => {
+    const result = GameStartInfoSchema.safeParse({
+      gameID: "game1234",
+      config: {
+        gameMap: GameMapType.World,
+        difficulty: Difficulty.Medium,
+        donateGold: false,
+        donateTroops: false,
+        gameType: GameType.Private,
+        gameMode: GameMode.FFA,
+        gameMapSize: GameMapSize.Normal,
+        disableNPCs: false,
+        bots: 0,
+        infiniteGold: false,
+        infiniteTroops: false,
+        instantBuild: false,
+      },
+      players: [{ clientID: "aaaa1111", username: "Player One" }],
+      aiPlayers: [
+        { clientID: "bbbb2222", username: "Côte d'Ivoire" },
+        { clientID: "cccc3333", username: "ab" },
+      ],
+    });
+    expect(result.success).toBe(true);
+    expect(withName("Côte d'Ivoire").success).toBe(false);
   });
 });

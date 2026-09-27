@@ -12,22 +12,25 @@ describe("LangSelector.applyTranslation re-render list", () => {
     jest.restoreAllMocks();
   });
 
-  it.each(["tenure-grant-modal", "citizenship-card", "game-starting-modal"])(
-    "re-renders <%s>",
-    (tag) => {
-      jest.spyOn(console, "warn").mockImplementation(() => {});
-      const element = document.createElement(tag);
-      const requestUpdate = jest.fn();
-      Object.assign(element, { requestUpdate });
-      document.body.appendChild(element);
+  it.each([
+    "tenure-grant-modal",
+    "citizenship-card",
+    "game-starting-modal",
+    // Task 0302: the interim citizens-only notice.
+    "citizens-only-modal",
+  ])("re-renders <%s>", (tag) => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    const element = document.createElement(tag);
+    const requestUpdate = jest.fn();
+    Object.assign(element, { requestUpdate });
+    document.body.appendChild(element);
 
-      // Constructor skipped: applyTranslation only needs the prototype.
-      const selector = Object.create(LangSelector.prototype) as {
-        applyTranslation(): void;
-      };
-      selector.applyTranslation();
+    // Constructor skipped: applyTranslation only needs the prototype.
+    const selector = Object.create(LangSelector.prototype) as {
+      applyTranslation(): void;
+    };
+    selector.applyTranslation();
 
-      expect(requestUpdate).toHaveBeenCalled();
-    },
-  );
+    expect(requestUpdate).toHaveBeenCalled();
+  });
 });

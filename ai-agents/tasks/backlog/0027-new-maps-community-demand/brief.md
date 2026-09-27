@@ -4,7 +4,11 @@
 0027
 
 ## Sprint
-Sprint 6 — Backlog (revisit when Sprint 5 is underway)
+Sprint 7
+
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-27** — OWNER RULING given live in the `fkit lead` session as the owner's own typed message, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*. [Sprint 7](../../../sprints/plan-sprint-7.md) is a new board, `🔲 Backlog` — **not started**. Record: the 2026-09-27 addendum under [Sprint 6](../../../sprints/plan-sprint-6.md)'s status table. `## Status` unchanged; no folder moved; no mover run. ⚠️ This brief feeds Tasks 1 and 2 (the map work), which **stay on Sprint 6** — flagged for the owner, not settled.
+
+*(Earlier value, kept as history — true until 2026-09-27:)* ~~Sprint 6 — Backlog (revisit when Sprint 5 is underway)~~
 
 📌 **2026-09-26 — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent:** asked when the map briefs should be written, the owner chose, verbatim, **"After the
 launch (Recommended)"**. Effect: *"when Sprint 5 is underway"* in this brief now means **after the

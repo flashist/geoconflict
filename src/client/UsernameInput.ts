@@ -5,9 +5,13 @@ import { translateText } from "../client/Utils";
 import { UserSettings } from "../core/game/UserSettings";
 import {
   MAX_USERNAME_LENGTH,
-  sanitizeUsername,
-  validateUsername,
+  usernameRuleErrorMessage,
+  usernameRulesHint,
 } from "../core/validations/username";
+import {
+  checkUsernameRules,
+  sanitizeUsernameForJoin,
+} from "../core/validations/usernameRules";
 import {
   flashist_logErrorToAnalytics,
   flashist_logErrorTypes,
@@ -18,9 +22,16 @@ const usernameKey: string = "username";
 
 @customElement("username-input")
 export class UsernameInput extends LitElement {
+  // What the input shows — the player's draft, which may break the rule.
   @state() private username: string = "";
   @property({ type: String }) validationError: string = "";
+  // True while the input has focus: the rule hint shows then (task 0307, Q-C).
+  @state() private isEditing: boolean = false;
   private _isValid: boolean = true;
+  // The last name that PASSED the rule — the only name ever handed out to join a
+  // game (task 0307, owner ruling Q-B). A half-typed invalid draft stays in the
+  // input with its error, but is never sent: the server now refuses it (1002).
+  private lastValidUsername: string = "";
   private userSettings: UserSettings = new UserSettings();
 
   // Remove static styles since we're using Tailwind
@@ -30,8 +41,17 @@ export class UsernameInput extends LitElement {
     return this;
   }
 
+  /**
+   * The name to play under: the last one that passed the rule (Q-B), never an
+   * invalid draft. Before the stored name has loaded there is no accepted name
+   * yet; the sanitized draft stands in ("xxx" for an empty one — what PlayerImpl
+   * used to show for the empty name this path sent before task 0307), so even
+   * that window never produces a name the server refuses.
+   */
   public getCurrentUsername(): string {
-    return this.username;
+    return this.lastValidUsername !== ""
+      ? this.lastValidUsername
+      : sanitizeUsernameForJoin(this.username);
   }
 
   // Flashist Adaptation
@@ -42,6 +62,9 @@ export class UsernameInput extends LitElement {
     // Flashist Adaptation
     // this.username = this.getStoredUsername();
     this.username = await this.getStoredUsername();
+    // getStoredUsername always returns a name that passes the rule
+    // (sanitizeUsernameForJoin's output, or a generated Anon####).
+    this.lastValidUsername = this.username;
     this.dispatchUsernameEvent();
   }
 
@@ -52,6 +75,8 @@ export class UsernameInput extends LitElement {
         .value=${this.username}
         @input=${this.handleChange}
         @change=${this.handleChange}
+        @focus=${this.handleFocus}
+        @blur=${this.handleBlur}
         placeholder="${translateText("username.enter_username")}"
         maxlength="${MAX_USERNAME_LENGTH}"
         class="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm text-2xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-300/60 dark:bg-gray-700 dark:text-white"
@@ -63,21 +88,44 @@ export class UsernameInput extends LitElement {
           >
             ${this.validationError}
           </div>`
-        : null}
+        : this.isEditing
+          ? html`<div
+              id="username-rules-hint"
+              class="absolute z-10 w-full mt-2 px-3 py-1 text-lg border rounded bg-white text-gray-600 border-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-300/60"
+            >
+              ${usernameRulesHint()}
+            </div>`
+          : null}
     `;
+  }
+
+  // Explicit requestUpdate() after each change — the codebase convention (see
+  // CitizenshipCard): the decorator transform does not reliably schedule
+  // updates under the test build.
+  private handleFocus() {
+    this.isEditing = true;
+    this.requestUpdate();
+  }
+
+  private handleBlur() {
+    this.isEditing = false;
+    this.requestUpdate();
   }
 
   private handleChange(e: Event) {
     const input = e.target as HTMLInputElement;
     this.username = input.value.trim();
-    const result = validateUsername(this.username);
-    this._isValid = result.isValid;
-    if (result.isValid) {
+    const violation = checkUsernameRules(this.username);
+    this._isValid = violation === null;
+    if (violation === null) {
+      this.lastValidUsername = this.username;
       this.storeUsername(this.username);
       this.validationError = "";
     } else {
-      this.validationError = result.error ?? "";
+      // The specific problem AND the full rule (task 0307, Q-C).
+      this.validationError = usernameRuleErrorMessage(violation);
     }
+    this.requestUpdate();
   }
 
   // Flashist Adaptation
@@ -102,9 +150,12 @@ export class UsernameInput extends LitElement {
       }
     }
 
-    // Make sure the username is always checked for being correct
+    // Make sure the username is always checked for being correct — cleaned AND
+    // trimmed, because the server's join check trims before the rule (0307
+    // review R2): a Yandex name like "★ A ★" must not become a blank-edged name
+    // the server then refuses.
     if (result) {
-      result = sanitizeUsername(result);
+      result = sanitizeUsernameForJoin(result);
     }
     // Make sure the edge cases are handled when due to some reason we don't have a user name
     if (!result) {

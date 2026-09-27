@@ -7,10 +7,28 @@
 const telegramSend = jest.fn();
 jest.mock("../../src/core/notifications/TelegramNotifier", () => ({
   sendTelegramMessage: (...args: unknown[]) => telegramSend(...args),
-  escapeTelegramHtml: (text: string) => text,
+  // The REAL escaper (task 0312): the decide lines are checked for valid Telegram
+  // HTML below, which an identity stub would make vacuous.
+  escapeTelegramHtml: jest.requireActual(
+    "../../src/core/notifications/TelegramNotifier",
+  ).escapeTelegramHtml,
 }));
 
-import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
+import { spawnSync } from "child_process";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import {
+  DECIDE_NPM_SCRIPT,
+  REASON_PLACEHOLDER,
+} from "../../src/profile-server/NameChangeDecideCommand";
+import {
+  NameChangeRepository,
+  buildDecideCommandBody,
+  buildOperatorNotificationText,
+  decideCommandLines,
+  describeRequestedNameForModerator,
+} from "../../src/profile-server/NameChangeRepository";
 
 type Handler = (params: unknown[]) => { rows?: unknown[]; rowCount?: number };
 
@@ -326,9 +344,34 @@ describe("requestNameChange", () => {
       const text = telegramSend.mock.calls[0][1] as string;
       expect(text).toContain('"expectedName":"NewName"');
       expect(text).toContain('"decision":"approve"');
-      // Shell variables, never values — no secret goes into a chat message.
-      expect(text).toContain("$PROFILE_INTERNAL_TOKEN");
+      // Task 0312: the command runs on the profile box and reads the token from
+      // the container — no secret, URL, host or IP goes into a chat message.
+      expect(text).toContain(`npm run -s ${DECIDE_NPM_SCRIPT}`);
       expect(text).not.toContain("placeholder-bot-token-fixture");
+      expect(text).not.toContain("PROFILE_INTERNAL_TOKEN");
+      expect(text).not.toContain("PROFILE_API_URL");
+      expect(text).not.toMatch(/https?:/i);
+      expect(text).not.toMatch(/\b\d{1,3}(\.\d{1,3}){3}\b/);
+      expect(text).not.toContain("curl");
+    });
+
+    // Task 0312, verification 2: this fails on the pre-0312 code, which carried
+    // an Approve line only.
+    it("carries BOTH an Approve and a Reject command, each bound to the name", async () => {
+      const db = okPool();
+      const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+      await repo.requestNameChange(PLAYER_ID, "NewName");
+      const text = telegramSend.mock.calls[0][1] as string;
+      expect(text).toContain("<b>Approve</b>");
+      expect(text).toContain("<b>Reject</b>");
+      expect(text).toContain(
+        buildDecideCommandBody(PLAYER_ID, "NewName", "approve"),
+      );
+      expect(text).toContain(
+        buildDecideCommandBody(PLAYER_ID, "NewName", "reject"),
+      );
+      expect(text).toContain(`NAME_CHANGE_REASON='${REASON_PLACEHOLDER}'`);
+      expect(text.match(/<pre>/g)).toHaveLength(2);
     });
 
     it("omits the command for a player id that would break shell quoting", async () => {
@@ -339,7 +382,9 @@ describe("requestNameChange", () => {
       // break the quoting is still never emitted.
       await repo.requestNameChange("p'; rm -rf /", "NewName");
       const text = telegramSend.mock.calls[0][1] as string;
-      expect(text).not.toContain("curl");
+      expect(text).not.toContain("docker compose");
+      expect(text).not.toContain(DECIDE_NPM_SCRIPT);
+      expect(text).not.toContain("<pre>");
       // Still reports the request — only the convenience is dropped.
       expect(text).toContain("NewName");
     });
@@ -401,6 +446,386 @@ describe("requestNameChange", () => {
         citizen = true;
         await repo.requestNameChange("p1", "NewName");
         expect(telegramSend).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe("a decision clears the slot (task 0313)", () => {
+      /**
+       * One fake serving the whole request → decide → withdraw → request flow.
+       * Stateful on purpose: a decide finds the row the last request wrote, and
+       * a decision or a withdraw clears it, as the real table would.
+       *
+       * fakePool takes the FIRST needle that matches, so each needle here must
+       * match only its own statement. Checked against every statement it could
+       * collide with: `lower(display_name)` is only in the taken-check (the lock
+       * reads `SELECT display_name FROM players`), and the FOR UPDATE needle
+       * carries `\nFOR UPDATE`, which the withdraw's DELETE (also filtered on
+       * `'pending'`) does not have.
+       */
+      function lifecyclePool(
+        options: {
+          applyError?: Error;
+          // Review R2: the COMMIT fails, and the transaction's writes are undone
+          // (the row the decide marked is pending again), as Postgres would.
+          commitError?: Error;
+          // Review R2: runs once the COMMIT is applied but BEFORE its reply
+          // reaches the repository — the window a player's new request can
+          // land in.
+          onCommitApplied?: () => Promise<void>;
+        } = {},
+      ) {
+        type PendingRow = { id: number; name: string } | null;
+        let pending: PendingRow = null;
+        let pendingAtBegin: PendingRow = null;
+        let nextId = 1;
+        const decided = () => {
+          pending = null;
+          return { rowCount: 1 };
+        };
+        const fake = fakePool([
+          ["SELECT is_citizen", CITIZEN],
+          ["lower(display_name)", NAME_FREE],
+          [
+            "INSERT INTO player_name_history",
+            (params) => {
+              if (pending !== null) {
+                throw pgError("23505", "player_name_history_one_pending_uq");
+              }
+              pending = { id: nextId++, name: String(params[1]) };
+              return { rows: [{ id: pending.id }] };
+            },
+          ],
+          [
+            "DELETE FROM player_name_history",
+            () => {
+              const had = pending !== null;
+              pending = null;
+              return { rowCount: had ? 1 : 0 };
+            },
+          ],
+          [
+            "moderation_status = 'pending'\nFOR UPDATE",
+            () => ({
+              rows:
+                pending === null
+                  ? []
+                  : [{ id: pending.id, new_display_name: pending.name }],
+            }),
+          ],
+          [
+            "SELECT display_name FROM players",
+            () => ({ rows: [{ display_name: "OldName" }] }),
+          ],
+          [
+            "UPDATE players SET display_name",
+            () => {
+              if (options.applyError !== undefined) {
+                throw options.applyError;
+              }
+              return { rowCount: 1 };
+            },
+          ],
+          ["moderation_status = 'approved'", decided],
+          ["moderation_status = 'rejected'", decided],
+        ]);
+        const answer = fake.query.getMockImplementation();
+        if (answer === undefined) {
+          throw new Error("fakePool has no query implementation");
+        }
+        fake.query.mockImplementation(async (sql, params) => {
+          if (/^\s*BEGIN\s*$/i.test(sql)) {
+            pendingAtBegin = pending;
+          }
+          if (/^\s*COMMIT\s*$/i.test(sql)) {
+            if (options.commitError !== undefined) {
+              pending = pendingAtBegin;
+              throw options.commitError;
+            }
+            await options.onCommitApplied?.();
+          }
+          return answer(sql, params);
+        });
+        return fake;
+      }
+
+      // Every step below happens at the same instant — well inside the window —
+      // so any second notification is the decision's doing, not the clock's.
+      let clock: jest.SpyInstance<number, []>;
+      beforeEach(() => {
+        const start = Date.now();
+        clock = jest.spyOn(Date, "now").mockReturnValue(start);
+      });
+      afterEach(() => clock.mockRestore());
+
+      it("request → APPROVE → request notifies twice, the 2nd with the new name", async () => {
+        const repo = new NameChangeRepository(
+          lifecyclePool().pool,
+          inbox,
+          TELEGRAM,
+        );
+        expect(await repo.requestNameChange("p1", "FirstName")).toMatchObject({
+          status: "ok",
+        });
+        expect(
+          await repo.decideNameChange("p1", "approve", undefined, "FirstName"),
+        ).toEqual({ status: "ok" });
+        expect(await repo.requestNameChange("p1", "SecondName")).toMatchObject({
+          status: "ok",
+        });
+        expect(telegramSend).toHaveBeenCalledTimes(2);
+        expect(telegramSend.mock.calls[1][1]).toContain("SecondName");
+      });
+
+      it("request → REJECT → request notifies twice", async () => {
+        const repo = new NameChangeRepository(
+          lifecyclePool().pool,
+          inbox,
+          TELEGRAM,
+        );
+        expect(await repo.requestNameChange("p1", "FirstName")).toMatchObject({
+          status: "ok",
+        });
+        expect(
+          await repo.decideNameChange(
+            "p1",
+            "reject",
+            "impersonation",
+            "FirstName",
+          ),
+        ).toEqual({ status: "ok" });
+        expect(await repo.requestNameChange("p1", "SecondName")).toMatchObject({
+          status: "ok",
+        });
+        expect(telegramSend).toHaveBeenCalledTimes(2);
+        expect(telegramSend.mock.calls[1][1]).toContain("SecondName");
+      });
+
+      it("request → WITHDRAW → request inside the window still notifies ONCE (R1 holds)", async () => {
+        const repo = new NameChangeRepository(
+          lifecyclePool().pool,
+          inbox,
+          TELEGRAM,
+        );
+        await repo.requestNameChange("p1", "FirstName");
+        expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+        expect(await repo.requestNameChange("p1", "SecondName")).toMatchObject({
+          status: "ok",
+        });
+        expect(telegramSend).toHaveBeenCalledTimes(1);
+      });
+
+      describe("a decide that decided nothing keeps the slot", () => {
+        // Each: request → decide that is NOT a decision → withdraw → request.
+        // Only an actual approve/reject may reset; otherwise this is R1's loop.
+        async function requestAfter(
+          repo: NameChangeRepository,
+          failedDecide: () => Promise<unknown>,
+        ): Promise<void> {
+          await repo.requestNameChange("p1", "FirstName");
+          await failedDecide();
+          expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+          expect(
+            await repo.requestNameChange("p1", "SecondName"),
+          ).toMatchObject({ status: "ok" });
+          expect(telegramSend).toHaveBeenCalledTimes(1);
+        }
+
+        it("name_mismatch (a stale expectedName)", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool().pool,
+            inbox,
+            TELEGRAM,
+          );
+          await requestAfter(repo, async () =>
+            expect(
+              await repo.decideNameChange("p1", "approve", undefined, "Other"),
+            ).toEqual({ status: "name_mismatch", pendingName: "FirstName" }),
+          );
+        });
+
+        it("name_taken (the approve-time race — the row stays pending)", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool({
+              applyError: pgError("23505", "players_display_name_uq"),
+            }).pool,
+            inbox,
+            TELEGRAM,
+          );
+          await requestAfter(repo, async () =>
+            expect(
+              await repo.decideNameChange(
+                "p1",
+                "approve",
+                undefined,
+                "FirstName",
+              ),
+            ).toEqual({ status: "name_taken" }),
+          );
+        });
+
+        it("a decide that throws", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool({ applyError: pgError("08006") }).pool,
+            inbox,
+            TELEGRAM,
+          );
+          await requestAfter(repo, () =>
+            expect(
+              repo.decideNameChange("p1", "approve", undefined, "FirstName"),
+            ).rejects.toThrow(),
+          );
+        });
+
+        it("no_pending (the player already withdrew)", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool().pool,
+            inbox,
+            TELEGRAM,
+          );
+          await repo.requestNameChange("p1", "FirstName");
+          expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+          expect(await repo.decideNameChange("p1", "approve")).toEqual({
+            status: "no_pending",
+          });
+          await repo.requestNameChange("p1", "SecondName");
+          expect(telegramSend).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it("after a decision the fresh slot still limits the withdraw loop", async () => {
+        const repo = new NameChangeRepository(
+          lifecyclePool().pool,
+          inbox,
+          TELEGRAM,
+        );
+        await repo.requestNameChange("p1", "FirstName");
+        await repo.decideNameChange("p1", "approve", undefined, "FirstName");
+        await repo.requestNameChange("p1", "SecondName");
+        expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+        expect(await repo.requestNameChange("p1", "ThirdName")).toMatchObject({
+          status: "ok",
+        });
+        expect(telegramSend).toHaveBeenCalledTimes(2);
+      });
+
+      it("a decision for one player does not reset another player's slot", async () => {
+        const repo = new NameChangeRepository(
+          lifecyclePool().pool,
+          inbox,
+          TELEGRAM,
+        );
+        // p2 used its slot; p1's decision must not hand it back. (The fake
+        // holds one pending row at a time, so p2 withdraws before p1 asks.)
+        await repo.requestNameChange("p2", "OtherName");
+        await repo.cancelNameChange("p2");
+        await repo.requestNameChange("p1", "FirstName");
+        await repo.decideNameChange("p1", "approve", undefined, "FirstName");
+        expect(await repo.requestNameChange("p2", "LaterName")).toMatchObject({
+          status: "ok",
+        });
+        expect(telegramSend).toHaveBeenCalledTimes(2);
+        expect(telegramSend.mock.calls[0][1]).toContain("OtherName");
+        expect(telegramSend.mock.calls[1][1]).toContain("FirstName");
+      });
+
+      describe("the id's letter case does not matter (review R1)", () => {
+        // The decide route and the session token both accept a UUID in any
+        // case (the regexes are /i), and Postgres matches either. The slot must
+        // too, or a decide typed in uppercase commits but frees nothing.
+        const UPPER_ID = PLAYER_ID.toUpperCase();
+
+        it("approve with the UPPERCASE uuid → the next request sends a 2nd alert", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool().pool,
+            inbox,
+            TELEGRAM,
+          );
+          await repo.requestNameChange(PLAYER_ID, "FirstName");
+          expect(
+            await repo.decideNameChange(
+              UPPER_ID,
+              "approve",
+              undefined,
+              "FirstName",
+            ),
+          ).toEqual({ status: "ok" });
+          expect(
+            await repo.requestNameChange(PLAYER_ID, "SecondName"),
+          ).toMatchObject({ status: "ok" });
+          expect(telegramSend).toHaveBeenCalledTimes(2);
+          expect(telegramSend.mock.calls[1][1]).toContain("SecondName");
+        });
+
+        it("the same player in two cases shares ONE slot (R1's withdraw loop holds)", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool().pool,
+            inbox,
+            TELEGRAM,
+          );
+          await repo.requestNameChange(UPPER_ID, "FirstName");
+          expect(await repo.cancelNameChange(UPPER_ID)).toEqual({
+            status: "ok",
+          });
+          expect(
+            await repo.requestNameChange(PLAYER_ID, "SecondName"),
+          ).toMatchObject({ status: "ok" });
+          expect(telegramSend).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      describe("the slot is freed before the COMMIT (review R2)", () => {
+        it("a request landing between COMMIT applied and its reply still notifies", async () => {
+          // Fails if the release moves after the COMMIT (or out of the try):
+          // this request would find the slot still held and be dropped.
+          const outcomes: unknown[] = [];
+          // The hook only runs during the decide below, after `repo` exists.
+          const fake = lifecyclePool({
+            onCommitApplied: async () => {
+              outcomes.push(await repo.requestNameChange("p1", "SecondName"));
+            },
+          });
+          const repo = new NameChangeRepository(fake.pool, inbox, TELEGRAM);
+          await repo.requestNameChange("p1", "FirstName");
+          expect(
+            await repo.decideNameChange(
+              "p1",
+              "approve",
+              undefined,
+              "FirstName",
+            ),
+          ).toEqual({ status: "ok" });
+          expect(outcomes).toEqual([expect.objectContaining({ status: "ok" })]);
+          expect(telegramSend).toHaveBeenCalledTimes(2);
+          expect(telegramSend.mock.calls[1][1]).toContain("SecondName");
+        });
+
+        it("COMMIT fails: decide throws, the row stays pending, and the cost is one extra alert", async () => {
+          const repo = new NameChangeRepository(
+            lifecyclePool({ commitError: pgError("08006") }).pool,
+            inbox,
+            TELEGRAM,
+          );
+          await repo.requestNameChange("p1", "FirstName");
+          await expect(
+            repo.decideNameChange("p1", "approve", undefined, "FirstName"),
+          ).rejects.toThrow("pg 08006");
+          // Nothing was decided: the player is not told, and the row is still
+          // pending, so a new request is refused and sends nothing.
+          expect(inbox.sendTemplate).not.toHaveBeenCalled();
+          expect(
+            await repo.requestNameChange("p1", "SecondName"),
+          ).toMatchObject({ status: "pending_exists" });
+          expect(telegramSend).toHaveBeenCalledTimes(1);
+          // The documented cost: the slot was already freed, so withdraw →
+          // request inside the window sends ONE extra alert — at most one, as
+          // the fresh slot then holds again.
+          expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+          await repo.requestNameChange("p1", "ThirdName");
+          expect(telegramSend).toHaveBeenCalledTimes(2);
+          expect(await repo.cancelNameChange("p1")).toEqual({ status: "ok" });
+          await repo.requestNameChange("p1", "FourthName");
+          expect(telegramSend).toHaveBeenCalledTimes(2);
+        });
       });
     });
   });
@@ -738,5 +1163,379 @@ describe("getLatestState", () => {
       requested_name: "NewName",
       decided_at: null,
     });
+  });
+});
+
+// ── Task 0307 — hostile names on the name-change path ──────────────────────
+describe("hostile requested names (task 0307)", () => {
+  it.each([
+    ["'", "ab'cd", "invalid_chars"],
+    ['"', 'ab"cd', "invalid_chars"],
+    [";", "ab;cd", "invalid_chars"],
+    ["--", "ab--cd", "invalid_chars"],
+    ["' OR 1=1 --", "' OR 1=1 --", "invalid_chars"],
+    ["\\", "ab\\cd", "invalid_chars"],
+    ["<script>", "<script>", "invalid_chars"],
+    ["<img onerror>", "<img onerror=x>", "invalid_chars"],
+    ["&lt;", "&lt;abc", "invalid_chars"],
+    ["<b>", "<b>abc</b>", "invalid_chars"],
+    ["<a href>", "<a href=x>abc</a>", "invalid_chars"],
+    ["$(…)", "$(touch x)", "invalid_chars"],
+    ["backticks", "`id`abc", "invalid_chars"],
+    ["zero-width space", "ab\u200Bcd", "invalid_chars"],
+    ["zero-width joiner", "ab\u200Dcd", "invalid_chars"],
+    ["right-to-left override", "ab\u202Ecd", "invalid_chars"],
+    ["isolate", "ab\u2066cd", "invalid_chars"],
+    ["emoji", "Cat\u{1F408}User", "invalid_chars"],
+    ["combining mark", "abe\u0301", "invalid_chars"],
+    ["28 characters", "a".repeat(28), "too_long"],
+    ["27 astral letters", "\u{1D400}".repeat(27), "too_long"],
+    ["all spaces (trimmed first)", "     ", "too_short"],
+  ])(
+    "refuses %s (%j) with the expected violation, inserting nothing",
+    async (_l, name, rule) => {
+      const db = fakePool([["SELECT is_citizen", CITIZEN]]);
+      const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+      await expect(repo.requestNameChange("p1", name)).resolves.toEqual({
+        status: "invalid",
+        violation: rule,
+      });
+      expect(db.sqlFor("INSERT INTO player_name_history")).toHaveLength(0);
+      expect(telegramSend).not.toHaveBeenCalled();
+    },
+  );
+});
+
+// F2 (owner ruling Q4): the approve command is safe for ANY name, not just the
+// ones the rule lets through today. These drive the pure builder with names the
+// rule REFUSES on purpose — that is the point: if task 0308 ever widens the rule,
+// the shell line must already be safe on its own.
+describe("buildDecideCommandBody — the pasted shell line (task 0307, F2)", () => {
+  const HOSTILE_NAMES = [
+    "O'Brien",
+    "'; touch PWNED; '",
+    "$(touch PWNED)",
+    "`touch PWNED`",
+    "a\u00A0b", // no-break space
+    "a\uFEFFb", // invisible U+FEFF
+    "a\nb\tc\u2028d",
+    "ab\u202Ecd",
+    "Привет",
+    "\u{1D400}\u{1F408}",
+    'back\\slash "quote"',
+    "<b>&amp;</b>",
+    "\u007F",
+  ];
+
+  it.each(HOSTILE_NAMES.map((n) => [JSON.stringify(n), n]))(
+    "%s → a pure-ASCII body with no single quote that parses back to the exact name",
+    (_label, name) => {
+      const body = buildDecideCommandBody(PLAYER_ID, name);
+      expect(body).toMatch(/^[\x20-\x7E]*$/);
+      expect(body).not.toContain("'");
+      expect(JSON.parse(body)).toEqual({
+        playerId: PLAYER_ID,
+        decision: "approve",
+        expectedName: name,
+      });
+    },
+  );
+
+  it("keeps a plain name readable in the body", () => {
+    expect(buildDecideCommandBody(PLAYER_ID, "NewName")).toBe(
+      `{"playerId":"${PLAYER_ID}","decision":"approve","expectedName":"NewName"}`,
+    );
+  });
+
+  it("puts that body inside the '…' of BOTH decide lines (task 0312)", () => {
+    const lines = decideCommandLines(PLAYER_ID, "O'Brien").join("\n");
+    for (const decision of ["approve", "reject"] as const) {
+      expect(lines).toContain(
+        `-e NAME_CHANGE_DECISION='${buildDecideCommandBody(PLAYER_ID, "O'Brien", decision)}'`,
+      );
+    }
+  });
+
+  it("the reject body parses to decision reject with the exact name (task 0312)", () => {
+    for (const name of HOSTILE_NAMES) {
+      const body = buildDecideCommandBody(PLAYER_ID, name, "reject");
+      expect(body).toMatch(/^[\x20-\x7E]*$/);
+      expect(body).not.toContain("'");
+      expect(JSON.parse(body)).toEqual({
+        playerId: PLAYER_ID,
+        decision: "reject",
+        expectedName: name,
+      });
+    }
+  });
+
+  // The real proof: hand the quoted body to an actual bash, the way an operator's
+  // paste does. Nothing expands, nothing runs, and the bytes come back unchanged.
+  it("survives a real bash: nothing expands or runs, bytes come back exact", () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nc-0307-"));
+    try {
+      for (const name of HOSTILE_NAMES) {
+        const body = buildDecideCommandBody(PLAYER_ID, name);
+        const result = spawnSync("bash", ["-c", `printf '%s' '${body}'`], {
+          cwd: dir,
+          encoding: "utf8",
+        });
+        expect(result.status).toBe(0);
+        expect(result.stdout).toBe(body);
+        expect(JSON.parse(result.stdout).expectedName).toBe(name);
+      }
+      expect(fs.readdirSync(dir)).toEqual([]);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+// ── Task 0312 — the Approve/Reject lines as the operator pastes them ───────
+describe("decideCommandLines — the box commands (task 0312)", () => {
+  const HOSTILE_NAMES = [
+    "O'Brien",
+    "'; touch PWNED; '",
+    "$(touch PWNED)",
+    "`touch PWNED`",
+    "a\u00A0b",
+    "a\uFEFFb",
+    "a\nb\tc\u2028d",
+    "ab\u202Ecd",
+    "Привет",
+    "\u{1D400}\u{1F408}",
+    'back\\slash "quote"',
+    "<b>&amp;</b>",
+    "\u007F",
+    "a=b==c", // docker splits -e on the FIRST `=` only
+    "!!x!$", // history expansion does not happen inside '…' (harness turns it ON)
+    "Ivan",
+  ];
+
+  // `bash -c` is non-interactive, so history expansion is OFF by default and a `!`
+  // case would pass even if '…' did not protect it (review 0312 R2). Turn it on and
+  // prime the history, as an operator's interactive shell has it: an unprotected
+  // `!!` / `!$` would now expand (or fail "event not found") and change the args.
+  const HISTORY_ON = "set -o history -H\n: primed history\n";
+
+  /** The <pre> commands, turned back from Telegram HTML into what the operator pastes. */
+  function pastedCommands(lines: string[]): string[] {
+    return lines
+      .map((line) => /^<pre>(.*)<\/pre>$/.exec(line))
+      .filter((m): m is RegExpExecArray => m !== null)
+      .map((m) =>
+        m[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&"),
+      );
+  }
+
+  it("emits exactly two commands, Approve then Reject", () => {
+    const lines = decideCommandLines(PLAYER_ID, "Ivan");
+    expect(lines[0]).toContain("<b>Approve</b>");
+    expect(lines[2]).toContain("<b>Reject</b>");
+    expect(pastedCommands(lines)).toEqual([
+      `docker compose -f /opt/profile/docker-compose.yml exec -T -e NAME_CHANGE_DECISION='${buildDecideCommandBody(PLAYER_ID, "Ivan", "approve")}' profile-api npm run -s name-change:decide`,
+      `docker compose -f /opt/profile/docker-compose.yml exec -T -e NAME_CHANGE_DECISION='${buildDecideCommandBody(PLAYER_ID, "Ivan", "reject")}' -e NAME_CHANGE_REASON='REPLACE-WITH-REASON' profile-api npm run -s name-change:decide`,
+    ]);
+  });
+
+  // The real proof: run each pasted line through an actual bash, with a stub
+  // `docker` first on PATH that records its arguments. Nothing may expand or run,
+  // and docker must receive exactly the intended argument list.
+  it("survives a real bash: docker gets exactly the intended arguments, nothing else runs", () => {
+    const work = fs.mkdtempSync(path.join(os.tmpdir(), "nc-0312-cwd-"));
+    const tools = fs.mkdtempSync(path.join(os.tmpdir(), "nc-0312-bin-"));
+    const argsFile = path.join(tools, "args");
+    fs.writeFileSync(
+      path.join(tools, "docker"),
+      '#!/bin/bash\nprintf \'%s\\0\' "$@" > "$DOCKER_ARGS_FILE"\n',
+      { mode: 0o755 },
+    );
+    try {
+      for (const name of HOSTILE_NAMES) {
+        const commands = pastedCommands(decideCommandLines(PLAYER_ID, name));
+        expect(commands).toHaveLength(2);
+        commands.forEach((command, index) => {
+          const decision = index === 0 ? "approve" : "reject";
+          fs.rmSync(argsFile, { force: true });
+          const result = spawnSync("bash", ["-c", HISTORY_ON + command], {
+            cwd: work,
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              PATH: `${tools}:${process.env.PATH ?? ""}`,
+              DOCKER_ARGS_FILE: argsFile,
+            },
+          });
+          expect(result.status).toBe(0);
+          expect(result.stderr).toBe("");
+          const args = fs.readFileSync(argsFile, "utf8").split("\0");
+          args.pop(); // trailing NUL
+          const body = buildDecideCommandBody(PLAYER_ID, name, decision);
+          expect(args).toEqual([
+            "compose",
+            "-f",
+            "/opt/profile/docker-compose.yml",
+            "exec",
+            "-T",
+            "-e",
+            `NAME_CHANGE_DECISION=${body}`,
+            ...(decision === "reject"
+              ? ["-e", "NAME_CHANGE_REASON=REPLACE-WITH-REASON"]
+              : []),
+            "profile-api",
+            "npm",
+            "run",
+            "-s",
+            "name-change:decide",
+          ]);
+          // What the container will see after docker splits on the first `=`.
+          const value = args[6].slice(args[6].indexOf("=") + 1);
+          expect(JSON.parse(value)).toEqual({
+            playerId: PLAYER_ID,
+            decision,
+            expectedName: name,
+          });
+        });
+      }
+      expect(fs.readdirSync(work)).toEqual([]);
+    } finally {
+      fs.rmSync(work, { recursive: true, force: true });
+      fs.rmSync(tools, { recursive: true, force: true });
+    }
+  });
+
+  // Control for the harness above: the same preamble DOES expand an unquoted-by-'…'
+  // `!!`, so the "!!x!$" case is a real check, not a vacuous one.
+  it("control: the harness's bash really has history expansion on", () => {
+    const result = spawnSync(
+      "bash",
+      ["-c", `${HISTORY_ON}printf '%s' "!!x!$"`],
+      { encoding: "utf8" },
+    );
+    expect(result.stdout).toBe(": primed historyxhistory");
+  });
+
+  it.each(HOSTILE_NAMES.map((n) => [JSON.stringify(n), n]))(
+    "%s → valid Telegram HTML: no raw < or > and no stray & inside <pre>",
+    (_label, name) => {
+      for (const line of decideCommandLines(PLAYER_ID, name)) {
+        const pre = /^<pre>(.*)<\/pre>$/.exec(line);
+        if (pre === null) {
+          continue;
+        }
+        expect(pre[1]).not.toMatch(/[<>]/);
+        expect(pre[1]).not.toMatch(/&(?!(amp|lt|gt);)/);
+      }
+    },
+  );
+
+  it("a worst-case 128-unit hostile name keeps the whole message under Telegram's 4096 limit", () => {
+    // Raw markup length is an UPPER bound on what Telegram counts (it counts the
+    // text after parsing the tags and entities), so passing here is conservative.
+    const worst = [
+      "\u00A0".repeat(128), // each: ⟨U+00A0⟩ in the text + \u00A0 in two bodies
+      "&".repeat(128), // each: ⟨U+0026⟩ + &amp; in two bodies
+      "\u{1F408}".repeat(64), // astral: two UTF-16 units each
+      "\u202E".repeat(128),
+    ];
+    for (const name of worst) {
+      expect(name.length).toBe(128);
+      const text = buildOperatorNotificationText(
+        PLAYER_ID,
+        name,
+        "2026-09-27T00:00:00.000Z",
+      );
+      expect(text).toContain("<b>Reject</b>");
+      expect(text.length).toBeLessThan(4096);
+    }
+  });
+});
+
+// F3 (owner ruling Q1): the moderator SEES a hidden character instead of reading
+// a clean-looking name.
+describe("describeRequestedNameForModerator (task 0307, F3)", () => {
+  it.each([
+    ["a no-break space", "Iv\u00A0an", "Iv⟨U+00A0⟩an"],
+    ["an invisible U+FEFF", "Iv\uFEFFan", "Iv⟨U+FEFF⟩an"],
+    ["a newline", "Iv\nan", "Iv⟨U+000A⟩an"],
+    ["a tab", "Iv\tan", "Iv⟨U+0009⟩an"],
+    ["a carriage return", "Iv\ran", "Iv⟨U+000D⟩an"],
+    ["a line separator", "Iv\u2028an", "Iv⟨U+2028⟩an"],
+    ["an ideographic space", "Iv\u3000an", "Iv⟨U+3000⟩an"],
+    ["an astral character (one code, not two)", "a\u{1F408}b", "a⟨U+1F408⟩b"],
+    // 0307 review R1: invisible "letters" (category Lo) that pass the name rule
+    // and `\p{L}`, yet draw as blank space.
+    ["the Hangul filler U+3164", "Bob\u3164", "Bob⟨U+3164⟩"],
+    ["the Hangul choseong filler U+115F", "Bo\u115Fb", "Bo⟨U+115F⟩b"],
+    ["the Hangul jungseong filler U+1160", "Bo\u1160b", "Bo⟨U+1160⟩b"],
+    ["the halfwidth Hangul filler U+FFA0", "Bo\uFFA0b", "Bo⟨U+FFA0⟩b"],
+    [
+      "a name made only of fillers",
+      "\u3164\u3164\u3164",
+      "⟨U+3164⟩⟨U+3164⟩⟨U+3164⟩",
+    ],
+  ])("shows %s as a visible code", (_label, name, shown) => {
+    expect(describeRequestedNameForModerator(name)).toEqual({
+      html: shown,
+      hasHiddenCharacters: true,
+    });
+  });
+
+  it.each(["Ivan", "Привет 123", "[Clan] Name_1", "한국어 이름", "ㄱㄴㄷ"])(
+    "leaves a plain name (%s) untouched, with no warning",
+    (name) => {
+      expect(describeRequestedNameForModerator(name)).toEqual({
+        html: name,
+        hasHiddenCharacters: false,
+      });
+    },
+  );
+
+  it("the Telegram message shows the code and a warning line — and the command still carries the REAL name", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["lower(display_name)", NAME_FREE],
+      ["INSERT INTO player_name_history", () => ({ rows: [{ id: 3 }] })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    await repo.requestNameChange(PLAYER_ID, "Iv\u00A0an");
+    const text = telegramSend.mock.calls[0][1] as string;
+    expect(text).toContain("<b>Requested:</b> Iv⟨U+00A0⟩an");
+    expect(text).toContain("hidden or unusual characters");
+    // The stored name (what expectedName must match) is the real one.
+    const insert = db.sqlFor("INSERT INTO player_name_history")[0];
+    expect(insert.params).toEqual([PLAYER_ID, "Iv\u00A0an"]);
+    expect(text).toContain('"expectedName":"Iv\\u00a0an"');
+  });
+
+  it("warns about a name hiding a Hangul filler, which the name rule accepts (review R1)", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["lower(display_name)", NAME_FREE],
+      ["INSERT INTO player_name_history", () => ({ rows: [{ id: 3 }] })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    // Accepted by the rule today (which characters are allowed is 0308's).
+    expect(await repo.requestNameChange(PLAYER_ID, "Bob\u3164")).toEqual(
+      expect.objectContaining({ status: "ok" }),
+    );
+    const text = telegramSend.mock.calls[0][1] as string;
+    expect(text).toContain("<b>Requested:</b> Bob⟨U+3164⟩");
+    expect(text).toContain("hidden or unusual characters");
+    const insert = db.sqlFor("INSERT INTO player_name_history")[0];
+    expect(insert.params).toEqual([PLAYER_ID, "Bob\u3164"]);
+  });
+
+  it("adds no warning line for a plain name", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["lower(display_name)", NAME_FREE],
+      ["INSERT INTO player_name_history", () => ({ rows: [{ id: 3 }] })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    await repo.requestNameChange(PLAYER_ID, "Ivan");
+    const text = telegramSend.mock.calls[0][1] as string;
+    expect(text).toContain("<b>Requested:</b> Ivan");
+    expect(text).not.toContain("hidden or unusual characters");
   });
 });

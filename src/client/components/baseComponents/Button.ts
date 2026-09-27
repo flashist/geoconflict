@@ -15,6 +15,10 @@ export class OButton extends LitElement {
   @property({ type: Boolean }) block = false;
   @property({ type: Boolean }) blockDesktop = false;
   @property({ type: Boolean }) disable = false;
+  // A citizen perk shown to a non-citizen (task 0302): lock icon + "citizens
+  // only" subtitle. Deliberately NOT disabled — the tap must still reach the
+  // click handler, which opens the citizenship popup instead of the feature.
+  @property({ type: Boolean }) locked = false;
 
   createRenderRoot() {
     return this;
@@ -30,6 +34,7 @@ export class OButton extends LitElement {
           "c-button--secondary": this.secondary,
           "c-button--disabled": this.disable,
           "c-button--menuRow": this.menuRow,
+          "c-button--locked": this.locked,
         })}
         ?disabled=${this.disable}
       >
@@ -38,17 +43,24 @@ export class OButton extends LitElement {
           : html`<span class="c-button__icon" aria-hidden="true"
               >${this.icon}</span
             >`}
+        ${this.locked
+          ? html`<span class="c-button__lock" aria-hidden="true">🔒</span>`
+          : nothing}
         <span class="c-button__text">
           <span class="c-button__title"
             >${`${this.translationKey}` === ""
               ? `${this.title}`
               : `${translateText(this.translationKey)}`}</span
           >
-          ${`${this.subtitleTranslationKey}` === ""
-            ? nothing
-            : html`<span class="c-button__subtitle"
-                >${translateText(this.subtitleTranslationKey)}</span
-              >`}
+          ${this.locked
+            ? html`<span class="c-button__subtitle"
+                >${translateText("locked_feature.citizens_only")}</span
+              >`
+            : `${this.subtitleTranslationKey}` === ""
+              ? nothing
+              : html`<span class="c-button__subtitle"
+                  >${translateText(this.subtitleTranslationKey)}</span
+                >`}
         </span>
         ${this.chevron
           ? html`<span class="c-button__chevron" aria-hidden="true">›</span>`

@@ -75,7 +75,7 @@ moderation step for to be the name other players see.
 - **Depends on:** nothing
 - **Blocks:** the in-match-name implementation briefs this investigation will propose.
 - ⚠️ Any implementation it proposes will likely depend on
-  [`0307`](../0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) and
+  [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) and
   [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md);
   the investigation itself need not wait for them, but must read their current state.
 - **Related:** [`0067`](../../done/0067-name-change-citizens-only/brief.md) (ruling (b)) ·

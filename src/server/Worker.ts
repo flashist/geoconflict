@@ -57,6 +57,11 @@ const playlist = new MapPlaylist(false);
 // side auto-destroys after the body is read) — neither is usable here.
 export const REQUESTER_SETTLE_MS = 10;
 
+// Task 0302. How long `start_game` waits for a private-lobby creator's profile
+// resolve before refusing. The resolve's own retries can take ~30 s; the host is
+// waiting on a button, so this caps it.
+const PRIVATE_LOBBY_START_CITIZEN_WAIT_MS = 5000;
+
 interface SocketState {
   destroyed: boolean;
 }
@@ -254,7 +259,9 @@ export async function startWorker() {
     log.info(`starting private lobby with id ${req.params.id}`);
     const game = gm.game(req.params.id);
     if (!game) {
-      return;
+      // Task 0302, review R3: answer, so the host modal shows its generic
+      // "couldn't start" line instead of waiting on a request that never ends.
+      return res.status(404).json({ error: "Game not found" });
     }
     if (game.isPublic()) {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -263,6 +270,17 @@ export async function startWorker() {
         `cannot start public game ${game.id}, game is public, ip: ${ipAnonymize(clientIP)}`,
       );
       return;
+    }
+    // Task 0302: a private match starts only if its creator is a citizen.
+    if (
+      !(await game.creatorMayStartPrivateLobby(
+        PRIVATE_LOBBY_START_CITIZEN_WAIT_MS,
+      ))
+    ) {
+      log.info(
+        `refused to start private lobby ${game.id}: creator not a citizen`,
+      );
+      return res.status(403).json({ error: "citizens_only" });
     }
     game.start();
     res.status(200).json({ success: true });

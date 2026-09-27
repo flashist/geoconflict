@@ -7,6 +7,7 @@ import {
   type NameChangeRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
+import { NameChangeRepository } from "../../src/profile-server/NameChangeRepository";
 import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
 const TOKEN = "test-internal-token";
@@ -145,6 +146,59 @@ describe("name-change routes", () => {
         .set("Authorization", CALLER)
         .send({ requestedName: "ab" })
         .expect(400, { error: "invalid", violation: "too_short" });
+    });
+
+    // Task 0307: the same outcomes through the REAL repository — its trim and
+    // its rule check — over a pool that knows only the citizen gate. Any other
+    // query (the uniqueness check, the INSERT) throws, so a hostile name that got
+    // past validation would fail the test with a 500, not quietly pass.
+    describe("hostile names through the real repository (task 0307)", () => {
+      function realNameChange() {
+        const query = jest.fn(async (sql: string) => {
+          if (sql.includes("SELECT is_citizen")) {
+            return { rows: [{ is_citizen: true }], rowCount: 1 };
+          }
+          throw new Error(`unexpected SQL: ${sql}`);
+        });
+        return {
+          repo: new NameChangeRepository({ query } as never),
+          query,
+        };
+      }
+      const post = (repo: NameChangeRepository, requestedName: string) =>
+        request(appWith(repo))
+          .post("/v1/profile/name-change-request")
+          .set("Authorization", CALLER)
+          .send({ requestedName });
+
+      it.each([
+        ["<script>", "<script>alert(1)</script>"],
+        ["' OR 1=1 --", "' OR 1=1 --"],
+      ])(
+        "400s %s as invalid_chars, reaching no other SQL",
+        async (_l, name) => {
+          const { repo, query } = realNameChange();
+          await post(repo, name).expect(400, {
+            error: "invalid",
+            violation: "invalid_chars",
+          });
+          expect(query).toHaveBeenCalledTimes(1);
+        },
+      );
+
+      it("400s the empty name as bad_request, before the repository", async () => {
+        const { repo, query } = realNameChange();
+        await post(repo, "").expect(400, { error: "bad_request" });
+        expect(query).not.toHaveBeenCalled();
+      });
+
+      it("400s an all-space name as too_short (the server trims first)", async () => {
+        const { repo } = realNameChange();
+        await post(repo, "     ").expect(400, {
+          error: "invalid",
+          violation: "too_short",
+        });
+      });
     });
 
     it("409s a taken name and a second concurrent request", async () => {

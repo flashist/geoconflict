@@ -444,3 +444,134 @@ describe("FlashistFacade citizenship kill switch (task 0236)", () => {
     });
   });
 });
+
+// Task 0302: the private_lobbies switch and the tester marker.
+describe("FlashistFacade private_lobbies switch + tester marker (task 0302)", () => {
+  const TESTER_KEY = "geoconflict_tester";
+
+  function makeFlagsFacade(getFlags: jest.Mock): FlashistFacade {
+    return Object.assign(Object.create(FlashistFacade.prototype), {
+      yandexInitPromise: Promise.resolve(),
+      yandexGamesSDK: { getFlags },
+      hasLoggedExperimentEvents: true,
+    }) as FlashistFacade;
+  }
+
+  const fetchFlags = (facade: FlashistFacade): Promise<void> =>
+    (
+      facade as unknown as { fetchExperimentFlags(): Promise<void> }
+    ).fetchExperimentFlags();
+
+  let originalGameEnv: string | undefined;
+
+  beforeEach(() => {
+    localStorage.clear();
+    originalGameEnv = process.env.GAME_ENV;
+    delete process.env.GAME_ENV;
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    jest.restoreAllMocks();
+    if (originalGameEnv === undefined) {
+      delete process.env.GAME_ENV;
+    } else {
+      process.env.GAME_ENV = originalGameEnv;
+    }
+  });
+
+  it("calls getFlags() with NO parameters when the marker is not set", async () => {
+    const getFlags = jest.fn().mockResolvedValue({});
+    await fetchFlags(makeFlagsFacade(getFlags));
+
+    expect(getFlags).toHaveBeenCalledTimes(1);
+    expect(getFlags.mock.calls[0]).toEqual([]);
+  });
+
+  it("calls getFlags() with NO parameters for any other marker value", async () => {
+    localStorage.setItem(TESTER_KEY, "true");
+    const getFlags = jest.fn().mockResolvedValue({});
+    await fetchFlags(makeFlagsFacade(getFlags));
+
+    expect(getFlags.mock.calls[0]).toEqual([]);
+  });
+
+  it('sends clientFeatures tester=1 only when the marker is "1"', async () => {
+    localStorage.setItem(TESTER_KEY, "1");
+    const getFlags = jest.fn().mockResolvedValue({});
+    await fetchFlags(makeFlagsFacade(getFlags));
+
+    expect(getFlags).toHaveBeenCalledWith({
+      clientFeatures: [{ name: "tester", value: "1" }],
+    });
+  });
+
+  it("a throwing localStorage does not break the flag fetch", async () => {
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("SecurityError");
+    });
+    const getFlags = jest
+      .fn()
+      .mockResolvedValue({ private_lobbies: "enabled" });
+    const facade = makeFlagsFacade(getFlags);
+
+    await fetchFlags(facade);
+
+    expect(getFlags.mock.calls[0]).toEqual([]);
+    expect(
+      (facade as unknown as { yandexExperimentFlags: unknown })
+        .yandexExperimentFlags,
+    ).toEqual({ private_lobbies: "enabled" });
+  });
+
+  function makeCheckFacade(flags: unknown): FlashistFacade {
+    return Object.assign(Object.create(FlashistFacade.prototype), {
+      yandexInitPromise: Promise.resolve(),
+      yandexGamesSDK: {},
+      yandexInitExperimentsPromise: Promise.resolve(),
+      yandexExperimentFlags: flags,
+      hasLoggedExperimentEvents: true,
+    }) as FlashistFacade;
+  }
+
+  it("isPrivateLobbiesEnabled is true only for exactly private_lobbies=enabled", async () => {
+    await expect(
+      makeCheckFacade({ private_lobbies: "enabled" }).isPrivateLobbiesEnabled(),
+    ).resolves.toBe(true);
+    await expect(
+      makeCheckFacade({
+        private_lobbies: "disabled",
+      }).isPrivateLobbiesEnabled(),
+    ).resolves.toBe(false);
+    await expect(
+      makeCheckFacade({ private_lobbies: "Enabled" }).isPrivateLobbiesEnabled(),
+    ).resolves.toBe(false);
+    // A different flag being on never turns this one on.
+    await expect(
+      makeCheckFacade({ citizenship_ui: "enabled" }).isPrivateLobbiesEnabled(),
+    ).resolves.toBe(false);
+  });
+
+  it("isPrivateLobbiesEnabled is false when the flags are missing (degraded boot / non-Yandex page)", async () => {
+    await expect(
+      makeCheckFacade(undefined).isPrivateLobbiesEnabled(),
+    ).resolves.toBe(false);
+  });
+
+  it("logLockedFeatureTapEvent sends LockedFeature:Tap:{featureId}", () => {
+    const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const facade = Object.create(FlashistFacade.prototype) as FlashistFacade;
+
+    facade.logLockedFeatureTapEvent(
+      flashistConstants.lockedFeatureIds.privateLobby,
+    );
+
+    // Outside prod the event goes to the console instead of GameAnalytics.
+    expect(log).toHaveBeenCalledWith(
+      expect.any(String),
+      "LockedFeature:Tap:PrivateLobby",
+      expect.any(String),
+      undefined,
+    );
+  });
+});

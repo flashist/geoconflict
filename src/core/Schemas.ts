@@ -21,6 +21,7 @@ import {
 } from "./game/Game";
 import { PlayerStatsSchema } from "./StatsSchemas";
 import { flattenedEmojiTable } from "./Util";
+import { checkUsernameRules } from "./validations/usernameRules";
 
 export type GameID = string;
 export type ClientID = string;
@@ -232,6 +233,31 @@ export const ID = z
 export const AllPlayersStatsSchema = z.record(ID, PlayerStatsSchema);
 
 export const UsernameSchema = SafeString;
+
+// Task 0307: the name a client JOINS with must pass the same rule the name input
+// enforces (length 3–27 in UTF-16 units, the shared character set). Before this
+// the server took any SafeString — up to 1000 characters, including the
+// right-to-left override U+202E and zero-width characters — and relayed it raw
+// to every other player's lobby list.
+//
+// Used ONLY by ClientJoinMessageSchema. PlayerSchema / AiPlayerSchema /
+// GameStartInfo keep the wide UsernameSchema on purpose: bot, nation and
+// archived names must never be able to fail a game start. An unmodified client
+// never sends a name that fails this (UsernameInput hands out only the last
+// accepted name, and sanitizeUsernameForJoin's output always passes); a refusal gets
+// the existing 1002 close in Worker.ts / GameServer.ts.
+//
+// TRIM FIRST, then the rule (0307 review R2) — exactly what the name input
+// (UsernameInput.handleChange) and the profile server (NameChangeRepository)
+// do. Checked untrimmed, "   " is three characters of `\s` and passed, so a
+// modified client could join with a blank name. The trimmed name is also what
+// the server keeps and relays to every other player.
+export const JoinUsernameSchema = z
+  .string()
+  .trim()
+  .refine((name) => checkUsernameRules(name) === null, {
+    message: "Username breaks the name rule",
+  });
 const countryCodes = countries.filter((c) => !c.restricted).map((c) => c.code);
 
 export const QuickChatKeySchema = z.enum(
@@ -638,7 +664,7 @@ export const ClientJoinMessageSchema = z.object({
   token: TokenSchema, // WARNING: PII
   gameID: ID,
   lastTurn: z.number(), // The last turn the client saw.
-  username: UsernameSchema,
+  username: JoinUsernameSchema,
   // Server replaces the refs with the actual cosmetic data.
   cosmetics: PlayerCosmeticRefsSchema.optional(),
   // UNTRUSTED: client-asserted Yandex player ID (null for guests). NOT identity-verified —

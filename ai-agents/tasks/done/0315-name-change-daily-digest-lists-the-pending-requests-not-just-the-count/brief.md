@@ -16,7 +16,7 @@ directly below `0313`**, because it is the safety net for any request the per-re
 it is small and optional — if `0313` ships, the need drops.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -59,11 +59,11 @@ Keep the "zero pending" behaviour `0283` settled.
 
 - **Depends on:** nothing
 - **Related:** [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) (the digest) ·
-  [`0313`](../0313-name-change-a-new-request-after-a-decision-or-withdraw-must-reach-the-operator/brief.md)
+  [`0313`](../../done/0313-name-change-a-new-request-after-a-decision-or-withdraw-must-reach-the-operator/brief.md)
   (fixes the main cause of missed requests) ·
-  [`0312`](../0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
+  [`0312`](../../done/0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
   (command shape, if option (b)) ·
-  [`0307`](../0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) (names in
+  [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) (names in
   Telegram are in its scope).
 - **Privacy/secrets:** internal player ids only, never Yandex ids; no tokens.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

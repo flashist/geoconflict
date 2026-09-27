@@ -35,7 +35,9 @@ jest.mock("../../src/core/configuration/ConfigLoader", () => ({
     .mockResolvedValue({ workerPath: () => "w1" }),
 }));
 
+import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
 import { HostLobbyModal } from "../../src/client/HostLobbyModal";
+import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 
 describe("HostLobbyModal private-lobby URLs (task 0198)", () => {
   let fetchMock: jest.Mock;
@@ -103,5 +105,352 @@ describe("HostLobbyModal private-lobby URLs (task 0198)", () => {
       "https://geoconflict.ru/yandex-games_iframe.html#join=TESTLOBBY",
     );
     expect(written[0]).not.toContain(".html/#join=");
+  });
+});
+
+// Task 0302: a refused start (403 citizens_only, or any other failure) keeps the
+// host in the lobby with a generic inline line; only a successful start closes.
+describe("HostLobbyModal start result (task 0302)", () => {
+  let modal: HostLobbyModal;
+  let close: jest.Mock;
+
+  const startFailedLine = () => modal.querySelector("#host-lobby-start-failed");
+
+  async function start(): Promise<void> {
+    await (
+      modal as unknown as { startGame: () => Promise<unknown> }
+    ).startGame();
+    await modal.updateComplete;
+  }
+
+  function respondToStart(response: unknown): void {
+    global.fetch = jest.fn((url: string) =>
+      url.includes("start_game")
+        ? response instanceof Error
+          ? Promise.reject(response)
+          : Promise.resolve(response)
+        : Promise.resolve({ ok: true, status: 200, json: async () => ({}) }),
+    ) as unknown as typeof fetch;
+  }
+
+  beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    document.body.innerHTML = "";
+    modal = new HostLobbyModal();
+    (modal as unknown as { lobbyId: string }).lobbyId = "TESTLOBBY";
+    close = jest.fn();
+    (modal as unknown as { close: () => void }).close = close;
+    document.body.appendChild(modal);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("an OK start closes the modal and shows no error", async () => {
+    respondToStart({ ok: true, status: 200, statusText: "OK" });
+
+    await start();
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(startFailedLine()).toBeNull();
+  });
+
+  it("a 403 keeps the modal open and shows host_modal.start_failed", async () => {
+    respondToStart({ ok: false, status: 403, statusText: "Forbidden" });
+
+    await start();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+    expect(startFailedLine()!.textContent).toContain("host_modal.start_failed");
+  });
+
+  it("any other non-OK start also keeps it open with the same line", async () => {
+    respondToStart({ ok: false, status: 500, statusText: "Server Error" });
+
+    await start();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+  });
+
+  it("a network failure keeps it open with the same line", async () => {
+    respondToStart(new Error("network down"));
+
+    await start();
+
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+  });
+
+  it("a successful retry clears the error line", async () => {
+    respondToStart({ ok: false, status: 403, statusText: "Forbidden" });
+    await start();
+    expect(startFailedLine()).not.toBeNull();
+
+    respondToStart({ ok: true, status: 200, statusText: "OK" });
+    await start();
+
+    expect(startFailedLine()).toBeNull();
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  // Review R4 (owner ruling 2026-09-27, "Fix in 0302"): a failed or throwing
+  // settings save shows the same line and does not start.
+  function startCalls(): string[] {
+    return (global.fetch as jest.Mock).mock.calls
+      .map((c) => c[0] as string)
+      .filter((u) => u.includes("start_game"));
+  }
+
+  function respondToConfigSave(response: unknown): void {
+    global.fetch = jest.fn((url: string, init?: { method?: string }) =>
+      init?.method === "PUT"
+        ? response instanceof Error
+          ? Promise.reject(response)
+          : Promise.resolve(response)
+        : Promise.resolve({ ok: true, status: 200, json: async () => ({}) }),
+    ) as unknown as typeof fetch;
+  }
+
+  it("a non-OK settings save shows the line and does not start", async () => {
+    respondToConfigSave({ ok: false, status: 400, statusText: "Bad Request" });
+
+    await start();
+
+    expect(startCalls()).toEqual([]);
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+  });
+
+  it("a throwing settings save shows the line and does not start", async () => {
+    respondToConfigSave(new Error("network down"));
+
+    await start();
+
+    expect(startCalls()).toEqual([]);
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+  });
+
+  it("a throwing server-config read shows the line and does not start", async () => {
+    respondToStart({ ok: true, status: 200, statusText: "OK" });
+    (getServerConfigFromClient as jest.Mock).mockRejectedValueOnce(
+      new Error("env unreachable"),
+    );
+
+    await start();
+
+    expect(startCalls()).toEqual([]);
+    expect(close).not.toHaveBeenCalled();
+    expect(startFailedLine()).not.toBeNull();
+  });
+
+  // Review R3: a second tap while a start is in flight is ignored.
+  it("a double tap starts once and disables Start while in flight", async () => {
+    let finishStart: (value: unknown) => void = () => {};
+    global.fetch = jest.fn((url: string) =>
+      url.includes("start_game")
+        ? new Promise((resolve) => (finishStart = resolve))
+        : Promise.resolve({ ok: true, status: 200, json: async () => ({}) }),
+    ) as unknown as typeof fetch;
+    (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
+    const showInterstitial = FlashistFacade.instance
+      .showInterstitial as jest.Mock;
+    showInterstitial.mockClear();
+    const startGame = (
+      modal as unknown as { startGame: () => Promise<unknown> }
+    ).startGame.bind(modal);
+
+    const first = startGame();
+    const second = startGame();
+    await expect(second).resolves.toBeNull();
+    for (let i = 0; i < 10 && startCalls().length === 0; i++) {
+      await Promise.resolve();
+    }
+    await modal.updateComplete;
+
+    const startButton = modal.querySelector(
+      ".start-game-button",
+    ) as HTMLButtonElement;
+    expect(startButton.disabled).toBe(true);
+    expect(startCalls()).toHaveLength(1);
+    expect(showInterstitial).toHaveBeenCalledTimes(1);
+
+    finishStart({ ok: true, status: 200, statusText: "OK" });
+    await first;
+    await modal.updateComplete;
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(startButton.disabled).toBe(false);
+  });
+
+  // Review R7: open() resets a Start left hanging in an earlier opening, and
+  // that stale Start never goes on to act on the new lobby.
+  it("reopening re-enables Start, and a late ad from the old opening starts nothing", async () => {
+    respondToStart({ ok: true, status: 200, statusText: "OK" });
+    (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
+    let finishOldAd: () => void = () => {};
+    const showInterstitial = FlashistFacade.instance
+      .showInterstitial as jest.Mock;
+    showInterstitial.mockReturnValueOnce(
+      new Promise<void>((resolve) => (finishOldAd = resolve)),
+    );
+    const startGame = (
+      modal as unknown as { startGame: () => Promise<unknown> }
+    ).startGame.bind(modal);
+    const startButton = () =>
+      modal.querySelector(".start-game-button") as HTMLButtonElement;
+
+    const stale = startGame();
+    await modal.updateComplete;
+    expect(startButton().disabled).toBe(true);
+
+    modal.open();
+    clearInterval(
+      (modal as unknown as { playersInterval: NodeJS.Timeout }).playersInterval,
+    );
+    await modal.updateComplete;
+    expect(startButton().disabled).toBe(false);
+
+    const callsBefore = (global.fetch as jest.Mock).mock.calls.length;
+    finishOldAd();
+    await expect(stale).resolves.toBeNull();
+    await modal.updateComplete;
+
+    // No settings save and no start from the stale attempt.
+    const staleCalls = (global.fetch as jest.Mock).mock.calls
+      .slice(callsBefore)
+      .map((c) => c[0] as string)
+      .filter((u) => u.includes("/api/game/") || u.includes("start_game"));
+    expect(staleCalls).toEqual([]);
+    expect(close).not.toHaveBeenCalled();
+
+    // A fresh tap in the new opening starts normally.
+    await startGame();
+    expect(startCalls()).toHaveLength(1);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("a stale Start finishing late does not clear the new opening's in-flight flag", async () => {
+    (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
+    let finishOldStart: (value: unknown) => void = () => {};
+    let finishNewStart: (value: unknown) => void = () => {};
+    let startRequests = 0;
+    global.fetch = jest.fn((url: string) => {
+      if (!url.includes("start_game")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({}),
+        });
+      }
+      startRequests++;
+      return new Promise((resolve) =>
+        startRequests === 1
+          ? (finishOldStart = resolve)
+          : (finishNewStart = resolve),
+      );
+    }) as unknown as typeof fetch;
+    const startGame = (
+      modal as unknown as { startGame: () => Promise<unknown> }
+    ).startGame.bind(modal);
+    const startButton = () =>
+      modal.querySelector(".start-game-button") as HTMLButtonElement;
+    const flush = async () => {
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+      await modal.updateComplete;
+    };
+
+    const stale = startGame();
+    await flush();
+    modal.open();
+    clearInterval(
+      (modal as unknown as { playersInterval: NodeJS.Timeout }).playersInterval,
+    );
+    const fresh = startGame();
+    await flush();
+    expect(startButton().disabled).toBe(true);
+
+    finishOldStart({ ok: true, status: 200, statusText: "OK" });
+    await stale;
+    await flush();
+    expect(startButton().disabled).toBe(true);
+
+    finishNewStart({ ok: true, status: 200, statusText: "OK" });
+    await fresh;
+    await flush();
+    expect(startButton().disabled).toBe(false);
+  });
+
+  // Review R6: the max-timer field matches the schema's min(1).
+  describe("max timer value (review R6)", () => {
+    function timerInput(): HTMLInputElement {
+      return modal.querySelector("#end-timer-value") as HTMLInputElement;
+    }
+
+    async function showTimer(): Promise<void> {
+      (modal as unknown as { maxTimer: boolean }).maxTimer = true;
+      modal.requestUpdate();
+      await modal.updateComplete;
+    }
+
+    function typeTimer(value: string): void {
+      timerInput().value = value;
+      (
+        modal as unknown as { handleMaxTimerValueChanges: (e: Event) => void }
+      ).handleMaxTimerValueChanges({
+        target: timerInput(),
+      } as unknown as Event);
+    }
+
+    const timerValue = () =>
+      (modal as unknown as { maxTimerValue: number | undefined }).maxTimerValue;
+    const puts = () =>
+      (global.fetch as jest.Mock).mock.calls.filter(
+        (c) => (c[1] as { method?: string } | undefined)?.method === "PUT",
+      );
+
+    beforeEach(() => {
+      respondToStart({ ok: true, status: 200, statusText: "OK" });
+    });
+
+    it("the field's minimum is 1", async () => {
+      await showTimer();
+      expect(timerInput().min).toBe("1");
+      expect(timerInput().max).toBe("120");
+    });
+
+    it("0 is ignored: no new value, no settings save", async () => {
+      await showTimer();
+      typeTimer("5");
+      await Promise.resolve();
+      const putsAfterFive = puts().length;
+
+      typeTimer("0");
+      await Promise.resolve();
+
+      expect(timerValue()).toBe(5);
+      expect(puts()).toHaveLength(putsAfterFive);
+    });
+
+    it.each([
+      ["1", 1],
+      ["120", 120],
+    ])("%s is accepted", async (typed, expected) => {
+      await showTimer();
+      typeTimer(typed);
+
+      expect(timerValue()).toBe(expected);
+    });
+
+    it("121 is still ignored", async () => {
+      await showTimer();
+      typeTimer("121");
+
+      expect(timerValue()).toBeUndefined();
+    });
   });
 });

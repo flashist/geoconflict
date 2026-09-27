@@ -362,6 +362,19 @@ Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizens
 > considered citizenship and declined is indistinguishable from one who never engaged past the
 > impression. If a Learn-more surface is ever designed, the event returns **with** it — and only then.
 
+### Locked Feature Events
+
+A citizen perk shown **locked** to a non-citizen (task `0302`). One event per tap on the locked control.
+
+| Enum Key / Id                                                   | Event String                   | When Fired                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LOCKED_FEATURE_TAP_FIRST_PART` + `lockedFeatureIds.privateLobby` | `LockedFeature:Tap:PrivateLobby` | Player taps the **locked** "Create Lobby" button on the Multiplayer tab. The button is locked for anything but a confirmed citizen — guest, non-citizen, profile still loading or unreadable. Fires before the "citizens only" popup opens (the popup itself does nothing while the citizenship kill switch is off). Never fires for a citizen, and never while the row is hidden (the `private_lobbies` switch off, or citizenship surfaces off) |
+
+> **Convention:** `LockedFeature:Tap:{FeatureId}`. Prefix `flashistConstants.analyticEvents.LOCKED_FEATURE_TAP_FIRST_PART`; ids in
+> `flashistConstants.lockedFeatureIds` (PascalCase). Fire only through `onLockedFeatureTap(featureId)` in
+> `src/client/LockedFeature.ts`, which `FlashistFacade.logLockedFeatureTapEvent()` backs. Later perks add their own id. The
+> "explainer opened" event belongs to task `0301`.
+
 ### Profile Session Events
 
 The client's login session against the profile backend (task `0273`, S4; ADR-113). One
@@ -494,6 +507,12 @@ Fired once per session immediately after Yandex experiment flags are loaded — 
 The event string is built at runtime from the raw Yandex flag key and value. No enum constant needed — events fire automatically for all flags returned by Yandex via `FlashistFacade.logExperimentEvent(name, value)`, called inside `initExperimentFlags()` as soon as the flags response arrives.
 
 **Firing point:** inside `FlashistFacade.initExperimentFlags()` in `src/client/flashist/FlashistFacade.ts`, immediately after `this.yandexExperimentFlags` is populated. No manual call sites required — adding a new flag in the Yandex dashboard is sufficient.
+
+**Flags in use that gate a feature (not an A/B test):** `citizenship_ui` (citizenship kill switch, task `0236`) and
+`private_lobbies` (task `0302` — shows the private-lobby row; value `enabled` → `Experiment:private_lobbies:enabled`). The raw flag
+name carries an underscore; that is the Yandex key, not an event-naming exception. `private_lobbies` may be enabled only for
+testers via the Yandex **client feature** `tester=1`, which the page sends to `getFlags()` only when `localStorage`
+`geoconflict_tester` is `"1"` — so its cohort event can be tester-only.
 
 **Example funnels enabled by experiment events:**
 

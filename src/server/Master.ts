@@ -316,8 +316,10 @@ app.post(
       const lines = [
         `<b>[${d.category}] Feedback</b>`,
         d.text ? `\n${esc(d.text)}` : "",
-        `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${d.platform}`,
-        `<b>Yandex:</b> ${d.yandexStatus}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
+        // platform / yandexStatus are free client strings (the schema only caps
+        // their length), so they are escaped like every other field (task 0307).
+        `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${esc(d.platform)}`,
+        `<b>Yandex:</b> ${esc(d.yandexStatus)}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}`,
         ...(d.recentMatchIds?.length

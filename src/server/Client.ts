@@ -15,11 +15,16 @@ export class Client {
    * resolve the server already makes at join (task 0272), and defaulted here rather
    * than passed in so the construction site needs no change.
    *
-   * DISPLAY ONLY, and deliberately NOT an entitlement gate: it is derived from the
-   * UNTRUSTED `yandexPlayerId` below, so nothing of value may ever be gated on it.
-   * The profile server's own SQL stays the authority for every real benefit, as it
-   * already is for the inbox. Fail-soft: `false` means "citizen unknown OR not a
-   * citizen" — a lookup failure is indistinguishable from a non-citizen by design.
+   * Derived from the UNTRUSTED `yandexPlayerId` below. Display-only, with ONE
+   * owner-accepted exception: since task 0302 it gates starting a private match
+   * (`GameServer.creatorMayStartPrivateLobby`) — a convenience perk, not money or
+   * data. A forged citizen id passes that gate; the owner accepted this 2026-09-26
+   * (real fix: task 0267). Re-raise if private lobbies gain value beyond convenience
+   * (rewards, ranked, anything paid or scarce) or abuse is seen. Nothing else of
+   * value may be gated on it: the profile server's own SQL stays the authority for
+   * every real benefit, as it already is for the inbox. Fail-soft: `false` means
+   * "citizen unknown OR not a citizen" — a lookup failure is indistinguishable from
+   * a non-citizen by design.
    */
   public isCitizen: boolean = false;
 

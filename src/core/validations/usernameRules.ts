@@ -58,3 +58,48 @@ export function checkUsernameRules(
   }
   return null;
 }
+
+/**
+ * Clean ANY string into a name that passes `checkUsernameRules` — used where a
+ * name must never be refused (a stored or Yandex-supplied name on load, every
+ * in-game name in PlayerImpl). Keeps only the characters the rule allows, then
+ * pads a too-short result with "x".
+ *
+ * Moved here from ./username (task 0307) so it sits next to the rule it must
+ * satisfy; ./username re-exports it, so existing importers are unchanged.
+ *
+ * The length cap counts UTF-16 units, exactly as the rule does, but it cuts at a
+ * WHOLE character: the old `.slice(0, MAX_USERNAME_LENGTH)` could stop between
+ * the two halves of an "astral" letter (one stored as two units), leaving half a
+ * character the rule then refused. Only names of ≥14 astral letters are affected;
+ * every other name cleans exactly as before. `tests/UsernameHostileInputs.test.ts`
+ * pins that the output always passes the rule.
+ */
+export function sanitizeUsername(str: string): string {
+  let sanitized = "";
+  for (const ch of str) {
+    if (!validUsernamePattern.test(ch)) {
+      continue;
+    }
+    if (sanitized.length + ch.length > MAX_USERNAME_LENGTH) {
+      break;
+    }
+    sanitized += ch;
+  }
+  return sanitized.padEnd(MIN_USERNAME_LENGTH, "x");
+}
+
+/**
+ * `sanitizeUsername`, trimmed — for the name a client JOINS a game with (0307
+ * review R2). The server's join check trims, then applies the rule (like the
+ * name input and the profile server), but `sanitizeUsername` keeps edge spaces:
+ * "★ A ★" cleans to " A ", which trims to a too-short "A" the server refuses,
+ * and "   " stays a blank name. So: clean, trim, then clean once more to re-pad a
+ * now-short name. The output always passes the rule AND equals its own trim.
+ *
+ * `sanitizeUsername` itself is unchanged — PlayerImpl runs it on every in-game
+ * name, and how the cleaner treats characters is task 0308's.
+ */
+export function sanitizeUsernameForJoin(str: string): string {
+  return sanitizeUsername(sanitizeUsername(str).trim());
+}

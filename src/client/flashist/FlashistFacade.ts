@@ -117,6 +117,10 @@ export const flashistConstants = {
 
     UI_TAP_FIRST_PART: "UI:Tap:",
 
+    // Tap on a feature shown LOCKED to a non-citizen (task 0302). The suffix is
+    // a lockedFeatureIds value, e.g. LockedFeature:Tap:PrivateLobby.
+    LOCKED_FEATURE_TAP_FIRST_PART: "LockedFeature:Tap:",
+
     CITIZENSHIP_SURFACE_SEEN: "Citizenship:Seen",
     // Fired client-side when a re-fetched profile first shows the server-side
     // earned-citizenship grant (citizenship_earned_at set) — task 0017, spec
@@ -201,6 +205,12 @@ export const flashistConstants = {
     purchaseCitizenship: "PurchaseCitizenship",
   },
 
+  // Citizen perks shown locked to everyone else (task 0302). One id per perk;
+  // later perks (0249, 0030, ...) add theirs here.
+  lockedFeatureIds: {
+    privateLobby: "PrivateLobby",
+  },
+
   progressionEventStatus: {
     Undefined: 0,
     Start: 1,
@@ -220,6 +230,22 @@ export const flashistConstants = {
     VK_LINK_ENABLED_VALUE: "enabled",
     CITIZENSHIP_UI_FLAG_NAME: "citizenship_ui",
     CITIZENSHIP_UI_ENABLED_VALUE: "enabled",
+    // Remote on/off switch for the private-lobby row (task 0302). Separate from
+    // citizenship_ui. It only decides whether the row is VISIBLE — the server
+    // never sees Yandex flags, so security is the server's citizens-only start
+    // check, which runs whether this is on or off.
+    PRIVATE_LOBBIES_FLAG_NAME: "private_lobbies",
+    PRIVATE_LOBBIES_ENABLED_VALUE: "enabled",
+  },
+
+  // Tester marker (task 0302). When this localStorage key equals "1", getFlags()
+  // is sent the client feature tester=1, so a Yandex console condition can turn
+  // a flag on for testers only. Not a secret and carries no id or personal data.
+  testerMarker: {
+    STORAGE_KEY: "geoconflict_tester",
+    STORAGE_VALUE: "1",
+    CLIENT_FEATURE_NAME: "tester",
+    CLIENT_FEATURE_VALUE: "1",
   },
 
   features: {
@@ -241,6 +267,29 @@ export const flashistConstants = {
     },
   },
 };
+
+/**
+ * The client features to send with getFlags(), or null to call it with no
+ * parameters exactly as before (task 0302). Only the tester marker is ever sent.
+ * Never throws: storage that is blocked or throws (private mode, iframe policy)
+ * just means "not a tester".
+ */
+export function readTesterClientFeatures(): Array<{
+  name: string;
+  value: string;
+}> | null {
+  const marker = flashistConstants.testerMarker;
+  try {
+    if (localStorage.getItem(marker.STORAGE_KEY) !== marker.STORAGE_VALUE) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  return [
+    { name: marker.CLIENT_FEATURE_NAME, value: marker.CLIENT_FEATURE_VALUE },
+  ];
+}
 
 // Working with analytics logs
 export const flashist_logEventAnalytics = (event: string, value?: number) => {
@@ -867,8 +916,11 @@ export class FlashistFacade {
         // pending forever — flag checks made later in the session await it.
         // One attempt; on timeout the session keeps default (absent) flags,
         // same as a failed fetch. No refetch.
+        const clientFeatures = readTesterClientFeatures();
         experiments = await Promise.race([
-          this.yandexGamesSDK.getFlags(),
+          clientFeatures === null
+            ? this.yandexGamesSDK.getFlags()
+            : this.yandexGamesSDK.getFlags({ clientFeatures }),
           new Promise((_, reject) =>
             setTimeout(
               () => reject(new Error("getFlags timed out")),
@@ -951,6 +1003,13 @@ export class FlashistFacade {
     return this.checkExperimentFlag(
       flashistConstants.experiments.VK_LINK_FLAG_NAME,
       flashistConstants.experiments.VK_LINK_ENABLED_VALUE,
+    );
+  }
+
+  public async isPrivateLobbiesEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.PRIVATE_LOBBIES_FLAG_NAME,
+      flashistConstants.experiments.PRIVATE_LOBBIES_ENABLED_VALUE,
     );
   }
 
@@ -1193,6 +1252,13 @@ export class FlashistFacade {
   public logUiTapEvent(elementId: string): void {
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.UI_TAP_FIRST_PART + elementId,
+    );
+  }
+
+  public logLockedFeatureTapEvent(featureId: string): void {
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.LOCKED_FEATURE_TAP_FIRST_PART +
+        featureId,
     );
   }
 

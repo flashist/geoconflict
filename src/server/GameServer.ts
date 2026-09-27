@@ -913,6 +913,59 @@ export class GameServer {
     return this.LobbyCreatorID === clientID;
   }
 
+  /**
+   * Task 0302 (owner ruling 2026-09-27, Q1). Creating a private lobby is a citizen
+   * perk, and a private match only starts if its CREATOR is a citizen (earned or
+   * paid). This is the enforcement; the page's locked button is only a hint, and the
+   * `private_lobbies` Yandex switch is never visible here — the check runs whether
+   * it is on or off.
+   *
+   * False when the lobby has no creator, or the creator is not connected. True at
+   * once for a known citizen. Otherwise waits for the creator's profile resolve —
+   * capped at `timeoutMs`, because the resolve's own retries can take ~30 s — and
+   * re-reads the flag. Fails CLOSED: a profile-API outage means a citizen cannot
+   * start a private match (the page shows a generic error and keeps the lobby).
+   *
+   * The identity is read only through `getCreditableYandexId` (via
+   * `resolveProfilePlayer`), the single funnel of ADR-103. ⚠️ That id is
+   * client-asserted: a forged citizen id passes this check. Owner-accepted residual
+   * (2026-09-26); the real fix is task 0267.
+   *
+   * Dev only: always true (review R2, owner ruling 2026-09-27, "Dev-only bypass") —
+   * the standalone dev page has no Yandex identity, so without this nobody could host
+   * a private lobby locally. Needs BOTH the dev config AND `GAME_ENV` explicitly
+   * "dev": an unset `GAME_ENV` also selects the dev config (ConfigLoader's fallback),
+   * and must keep the check ON (owner ruling 2026-09-27, "Harden it").
+   */
+  public async creatorMayStartPrivateLobby(
+    timeoutMs: number,
+  ): Promise<boolean> {
+    if (
+      isPrivateLobbyCitizenGateBypassed(this.config.env(), process.env.GAME_ENV)
+    ) {
+      return true;
+    }
+    const creatorID = this.LobbyCreatorID;
+    if (creatorID === undefined) {
+      return false;
+    }
+    const creator = this.activeClients.find((c) => c.clientID === creatorID);
+    if (creator === undefined) {
+      return false;
+    }
+    if (creator.isCitizen) {
+      return true;
+    }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      this.resolveProfilePlayer(creator),
+      new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, timeoutMs);
+      }),
+    ]).finally(() => clearTimeout(timer));
+    return creator.isCitizen;
+  }
+
   phase(): GamePhase {
     const now = Date.now();
     const alive: Client[] = [];
@@ -1617,4 +1670,19 @@ export class GameServer {
     }
     this.creditFromParticipationClaim(client.clientID, claim);
   }
+}
+
+/**
+ * Task 0302, review R2 (owner ruling 2026-09-27, "Dev-only bypass"): in dev only, a
+ * private match starts without the creator-citizen check. Requires the dev config
+ * AND `GAME_ENV` set explicitly to "dev". A missing `GAME_ENV` falls back to the dev
+ * config (`getServerConfigFromServer`'s `?? "dev"`), so the config alone is not
+ * enough — unset keeps the check ON (owner ruling 2026-09-27, "Harden it"). False
+ * for preprod and prod.
+ */
+export function isPrivateLobbyCitizenGateBypassed(
+  env: GameEnv,
+  gameEnvSetting: string | undefined,
+): boolean {
+  return env === GameEnv.Dev && gameEnvSetting === "dev";
 }

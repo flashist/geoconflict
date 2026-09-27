@@ -16,7 +16,7 @@ directly below `0312`**, because a silently-missed request means a paying citize
 aware of it, and it touches the same notification code as `0312`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -77,7 +77,7 @@ fires exactly once.
 ## Notes
 
 - **Depends on:** nothing
-- **Related:** [`0312`](../0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
+- **Related:** [`0312`](../../done/0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
   (same message; if both are in flight, build on one branch) ·
   [`0067`](../../done/0067-name-change-citizens-only/brief.md) (R1 and option A) ·
   [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) · `0315` (digest listing

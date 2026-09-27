@@ -17,7 +17,7 @@ only command the operator is handed does not work from where they read it; it si
 both change the same operator command and should land together or in sequence.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -105,12 +105,12 @@ still valid Telegram HTML. If option (b), test the script's argument handling th
 ## Notes
 
 - **Depends on:** nothing
-- **Coordinate with:** [`0307`](../0307-security-review-of-every-player-name-path-injection-and-validation/brief.md)
+- **Coordinate with:** [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md)
   — same command, same injection question (see Context). Whichever lands second re-checks the other.
 - **Related:** [`0067`](../../done/0067-name-change-citizens-only/brief.md) (the moderation flow and
   option A) · [`0276`](../../done/0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
   (the `/internal/` allowlist that makes the laptop `curl` fail — correct, keep it) ·
-  [`0279`](../0279-profile-internal-routes-no-rate-limiter-no-auth-failure-log/brief.md) (same internal
+  [`0279`](../../backlog/0279-profile-internal-routes-no-rate-limiter-no-auth-failure-log/brief.md) (same internal
   routes) · [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) (digest) ·
   [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md) (Telegram
   delivery — today's arrival is first live evidence it works per request) · `0313`, `0314`, `0315` (the

@@ -198,7 +198,10 @@
         <div>
           <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
         </div>
-        <div class="container__row container__row--equal">
+        <!-- Flashist Adaptation: task 0302 — hidden by default; PrivateLobbyAccess.ts
+             shows it only when the private_lobbies switch and the citizenship
+             surfaces are both on. -->
+        <div id="private-lobby-row" class="container__row container__row--equal" style="display: none;">
           <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
             secondary></o-button>
           <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
@@ -318,6 +321,7 @@
   <win-modal></win-modal>
   <game-starting-modal></game-starting-modal>
   <tenure-grant-modal></tenure-grant-modal>
+  <citizens-only-modal></citizens-only-modal>
   <email-subscribe-modal></email-subscribe-modal>
   <game-top-bar></game-top-bar>
   <unit-display></unit-display>

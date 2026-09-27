@@ -85,6 +85,20 @@
       "reason": "The login-creation switch (task 0274). Optional by design and fail-OPEN (owner ruling D3): unset, blank or unrecognised leaves creation ENABLED (src/profile-server/LoginCreationSwitch.ts), so an absent value is the normal state and never an outage. INERT in Phase 1: forwarded at both profile hops, so no name rule can fire. Its VALUE is reported on every deploy by setup-profile.sh (an unrecognised value is a FINDING there), not by this name-only checker."
     },
     {
+      "name": "NAME_CHANGE_DECISION",
+      "pipeline": "profile",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Set per run by the operator's `docker compose exec -e` when pasting a name-change Approve/Reject line from Telegram on the profile box (task 0312); read only by the one-shot src/profile-server/decideNameChange.ts, never by the server. Never a deploy input."
+    },
+    {
+      "name": "NAME_CHANGE_REASON",
+      "pipeline": "profile",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "The rejection reason the operator types into the Reject line's `docker compose exec -e` on the profile box (task 0312); read only by the one-shot src/profile-server/decideNameChange.ts, never by the server. Never a deploy input."
+    },
+    {
       "name": "STORAGE_ENDPOINT",
       "pipeline": "game",
       "class": "optional",

@@ -67,6 +67,10 @@ import {
 } from "../../src/client/CitizenshipCard";
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
+  getCitizenshipStatus,
+  resetCitizenshipStatusForTests,
+} from "../../src/client/CitizenshipStatus";
+import {
   FlashistFacade,
   flashist_logEventAnalytics,
   flashistConstants,
@@ -78,6 +82,7 @@ import {
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 import { maybeClaimTenureGrant } from "../../src/client/TenureGrantClaim";
+import { translateText } from "../../src/client/Utils";
 
 const isYandexDegraded = FlashistFacade.instance.isYandexDegraded as jest.Mock;
 const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
@@ -139,6 +144,7 @@ describe("CitizenshipCard", () => {
     cancelNameChange.mockResolvedValue({ status: "ok" });
     claimTenureGrant.mockResolvedValue({ status: "skipped" });
     resetCitizenshipSeenReportedForTests();
+    resetCitizenshipStatusForTests();
   });
 
   afterEach(() => {
@@ -847,6 +853,61 @@ describe("CitizenshipCard", () => {
   });
 
   // ── Name change (task 0067, citizens only) ───────────────────────────────
+  // Task 0302: the card is the page's only citizenship reader; perk locks (the
+  // private-lobby row) follow the status it publishes.
+  describe("publishes citizenship status (task 0302)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button") as HTMLButtonElement | null;
+
+    it("publishes citizen for an authoritative citizen profile", async () => {
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        isCitizen: true,
+      });
+      await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("citizen");
+    });
+
+    it("publishes not_citizen for an authoritative non-citizen", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("not_citizen");
+    });
+
+    it("publishes not_citizen for a guest", async () => {
+      loadProfile.mockResolvedValue(null);
+      await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("not_citizen");
+    });
+
+    it("publishes nothing (stays unknown) while the card is disabled", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        isCitizen: true,
+      });
+      await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("unknown");
+    });
+
+    it("publishes citizen right after a server-confirmed grant, before the re-fetch settles", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("not_citizen");
+      runPurchase.mockResolvedValue("granted");
+      // The follow-up re-fetch never settles: only the publish made at the
+      // moment of the confirmed grant can unlock the perk.
+      loadProfile.mockReturnValue(new Promise(() => {}));
+
+      buyButton(card)!.click();
+      await flushMicrotasks();
+      await flushLit(card);
+
+      expect(getCitizenshipStatus()).toBe("citizen");
+    });
+  });
+
   describe("name change", () => {
     const CITIZEN_PROFILE = {
       displayName: "Игрок_7734",
@@ -973,6 +1034,61 @@ describe("CitizenshipCard", () => {
         await flushMicrotasks();
         await flushLit(card);
         expect(nameError(card)!.textContent).toContain("username.too_short");
+      });
+
+      // Task 0307: the card translated `username.<violation>` WITHOUT params, so
+      // a too-long name showed the raw text "{max}". Driven with the real en
+      // text and `{param}` substitution, to read what a player reads.
+      describe("the name rule, stated in full (task 0307)", () => {
+        const en = jest.requireActual("../../resources/lang/en.json") as Record<
+          string,
+          Record<string, string>
+        >;
+        beforeEach(() => {
+          (translateText as jest.Mock).mockImplementation(
+            (key: string, params: Record<string, string | number> = {}) => {
+              const [section, name] = key.split(".");
+              let text = en[section]?.[name] ?? key;
+              for (const [param, value] of Object.entries(params)) {
+                text = text.replace(`{${param}}`, String(value));
+              }
+              return text;
+            },
+          );
+        });
+        afterEach(() => {
+          (translateText as jest.Mock).mockImplementation((key: string) => key);
+        });
+
+        it("a too-long error shows 27, never the raw {max}, and states the full rule", async () => {
+          loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+          submitNameChange.mockResolvedValue({
+            status: "invalid",
+            violation: "too_long",
+          });
+          const card = await openEditor(await appendCard({ visible: true }));
+          await typeName(card, "a".repeat(27));
+          nameSubmit(card)!.click();
+          await flushLit(card);
+          await flushMicrotasks();
+          await flushLit(card);
+          const text = nameError(card)!.textContent ?? "";
+          expect(text).toContain("Username must not exceed 27 characters.");
+          expect(text).toContain(
+            "3–27 characters: letters, numbers, spaces, _ and [ ].",
+          );
+          expect(text).not.toContain("{");
+        });
+
+        it("shows the rule hint under the input while editing, and caps it at 27", async () => {
+          loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+          const card = await openEditor(await appendCard({ visible: true }));
+          expect(nameInput(card)!.getAttribute("maxlength")).toBe("27");
+          expect(
+            card.querySelector("#citizenship-name-change-rules-hint")!
+              .textContent,
+          ).toContain("3–27 characters: letters, numbers, spaces, _ and [ ].");
+        });
       });
 
       it.each([

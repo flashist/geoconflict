@@ -29,12 +29,20 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
-> 📌 **2026-09-26, later — NO SPRINT IS ACTIVE.** Sprint 5 was closed that day by `/fkit-sprint-done`
+> 🔄 **2026-09-26 — SPRINT 6 IS IN PROGRESS.** [Sprint 6](plan-sprint-6.md)'s line-3 banner now reads
+> `🔄 In progress — 2026-09-26` (was `🔲 Backlog — 2026-09-23`). **OWNER RULING given live in the `fkit lead`
+> session via `AskUserQuestion` on 2026-09-26, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037);
+> ⛔ not producer precedent** — answer: *"Start Sprint 6, then drive (Recommended)"*, driving from `0307` with the
+> owner approving each task's plan before any code. Supersedes the struck note directly below and an earlier
+> same-day start attempt the owner stopped before anything was written. No row, rank or brief changed.
+>
+> ~~📌 **2026-09-26, later — NO SPRINT IS ACTIVE.** Sprint 5 was closed that day by `/fkit-sprint-done`
 > *(agent-closed — not owner-verified)*: its line-3 banner reads `✅ Done — 2026-09-26` and the board now lives
 > in [`done/plan-sprint-5.md`](done/plan-sprint-5.md). [Sprint 6](plan-sprint-6.md) is pre-scoped and **not
 > started** (owner ruling; its banner stays `🔲 Backlog`). Checked 2026-09-26: `dashboard.sh select-active`
 > reports `active none`. *(Correction recorded 2026-09-26 at the owner's request, relayed by `fkit-lead` to a
-> spawned `fkit-producer`.)*
+> spawned `fkit-producer`.)*~~ *(Struck 2026-09-26, not deleted — true until Sprint 6 started later the same
+> day. The Sprint 5 close it records still stands.)*
 >
 > ~~🔄 **THE ACTIVE SPRINT IS SPRINT 5 — started 2026-09-26** (owner ruling, live via `AskUserQuestion`, relayed
 > to a spawned `fkit-producer`): it now carries only the profile/citizenship launch; its other rows moved to
@@ -68,7 +76,8 @@ Features are **excluded** from experiments if:
 | [plan-sprint-4b.md](done/plan-sprint-4b.md) | Sprint 4b — Interim Game Variety Update *(closed; in `done/`)* | Intermission while the citizenship track paused: compact maps, Duos/Trios/Quads modes, weird-setting modifiers in public matchmaking |
 | [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
 | [plan-sprint-5.md](done/plan-sprint-5.md) | **Sprint 5 — Citizenship Launch** ~~Full F2P Loop & Social Features~~ *(renamed 2026-09-26, owner ruling)* ~~🔄 **ACTIVE since 2026-09-26**~~ ✅ **Done 2026-09-26** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; in `done/`)* ~~*(pre-scoped, not in work)*~~ | ~~Long-term engagement and monetization systems~~ Now the profile/citizenship launch only (owner ruling 2026-09-26); the F2P / social items moved to Sprint 6 |
-| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* *(pre-scoped, not in work)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
+| [plan-sprint-6.md](plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* ~~*(pre-scoped, not in work)*~~ 🔄 **In progress since 2026-09-26** *(owner ruling; see the 🔄 note above)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
+| [plan-sprint-7.md](plan-sprint-7.md) | Sprint 7 *(no theme name yet — the owner has not named it)* 🔲 **Backlog — created 2026-09-27, not started** *(owner ruling, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*)* | ⚠️ No goal set yet (owner's call). Holds the five rows moved out of Sprint 6 on 2026-09-27: `0027`, `0030`, `0032`, `0219`, `0221` |
 
 ---
 

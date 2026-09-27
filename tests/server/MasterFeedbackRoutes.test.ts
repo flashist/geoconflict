@@ -413,3 +413,27 @@ describe("error detail is bounded, never a formatted error (defence in depth)", 
     expect(allMessages()).not.toContain(TOKEN);
   });
 });
+
+// Task 0307 (F5) — NEW behaviour, not characterization: platform and yandexStatus
+// are free client strings (the schema only caps their length), yet they went into
+// the HTML-mode Telegram message unescaped, beside the escaped username.
+describe("POST /api/feedback — every free field is HTML-escaped (task 0307)", () => {
+  it("escapes <b> and <a href> in platform and yandexStatus", async () => {
+    const app = telegramOnly();
+    await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        platform: "<b>x</b>",
+        yandexStatus: '<a href="http://x">y</a>',
+        username: "<i>n</i>",
+      });
+    const text = JSON.parse(telegramCalls()[0][1].body).text as string;
+    expect(text).toContain("<b>Platform:</b> &lt;b&gt;x&lt;/b&gt;");
+    expect(text).toContain(
+      '<b>Yandex:</b> &lt;a href="http://x"&gt;y&lt;/a&gt;',
+    );
+    expect(text).toContain("<b>Username:</b> &lt;i&gt;n&lt;/i&gt;");
+    expect(text).not.toContain("<a href");
+  });
+});

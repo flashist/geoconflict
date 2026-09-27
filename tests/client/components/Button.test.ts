@@ -67,6 +67,52 @@ describe("OButton subtitle support", () => {
   });
 });
 
+// Task 0302: a citizen perk shown to a non-citizen.
+describe("OButton locked look", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("adds the locked class, the lock icon and the citizens-only subtitle", async () => {
+    const button = await appendButton((element) => {
+      element.translationKey = "main.create_lobby";
+      element.locked = true;
+    });
+
+    const inner = button.querySelector(".c-button")!;
+    expect(inner.classList.contains("c-button--locked")).toBe(true);
+    expect(button.querySelector(".c-button__lock")!.textContent).toContain(
+      "🔒",
+    );
+    expect(button.querySelector(".c-button__subtitle")!.textContent).toContain(
+      "locked_feature.citizens_only",
+    );
+  });
+
+  it("stays clickable — never disabled — so the tap reaches the handler", async () => {
+    const onClick = jest.fn();
+    const button = await appendButton((element) => {
+      element.title = "Create";
+      element.locked = true;
+    });
+    button.addEventListener("click", onClick);
+
+    const inner = button.querySelector("button")!;
+    expect(inner.disabled).toBe(false);
+    inner.click();
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("is not locked by default", async () => {
+    const button = await appendButton((element) => {
+      element.title = "Create";
+    });
+
+    expect(button.querySelector(".c-button--locked")).toBeNull();
+    expect(button.querySelector(".c-button__lock")).toBeNull();
+  });
+});
+
 async function appendButton(
   configure: (button: OButton) => void,
 ): Promise<OButton> {

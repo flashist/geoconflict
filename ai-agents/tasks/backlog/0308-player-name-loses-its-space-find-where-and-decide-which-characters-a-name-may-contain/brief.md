@@ -7,14 +7,18 @@
 Sprint 6
 
 ## Priority
-6
+35
+
+⬇️ **35 — PARKED AT THE BOTTOM OF SPRINT 6 BY OWNER RULING, 2026-09-27** — the owner's own free-text answer live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Let's come back to this task later, decrease the priority and put it to the end of the current sprint"*. Rank 35 is the next append rank below `0297` (34). See the *PARK 2026-09-27* addendum on the Sprint 6 board. *Earlier value, kept:* ~~6~~ —
 
 ✅ **6 — OWNER-RULED later on 2026-09-26** by a third OWNER RULING (R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner chose order *A* — `0307`, `0302`, `0312`, `0313`, `0315`, **`0308`**, `0314`, `0317`, … — which **closes the "open to owner correction" note below**. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~3~~ —
 
 **Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. ⚠️ **Slot 3 is `fkit-lead`'s reconciliation, open to owner correction:** the owner put this task *"right below"* `0307` (Q1) and separately made `0302` *"the 2nd priority"* (Q3); the owner never ranked `0308` against `0302` directly. ~~23~~ was the append rank until then.
 
 ## Status
-🔲 Backlog
+🔲 Backlog *(parked by owner ruling 2026-09-27; approved plan.md kept; resume from Step 0)*
+
+*Earlier value, kept:* ~~🔄 In progress — driven by `/fkit-sprint-ship-loop` (fkit-lead), 2026-09-27~~ — the build had not started and no source changed when the task was parked.
 
 ## Owner
 fkit-coder
@@ -135,3 +139,76 @@ not be the cause of **this** missing space.
 **Unchanged:** the rest of the task stands. The character-rule question — which symbols `sanitizeUsername`
 deletes today (`-`, `.`, `'`, zero-width characters, emoji, combining accents) — is still valid on its own
 and is still **the owner's decision in step 2**. Step 3 still waits on `0307`.
+
+## Addendum 2026-09-27 — what `0307` hands to this task
+
+**Appended by a spawned `fkit-producer` with no owner channel (ADR-021), closing `0307` for
+`/fkit-sprint-ship-loop` (driver `fkit-lead`). Append-only (ADR-035); Status, Priority and Sprint
+unchanged.** The hand-offs below come from `0307`'s owner-approved plan (*"Hand to other tasks (via
+fkit-producer; no new briefs)"*, 2026-09-26) and its review rulings (2026-09-27). ⛔ Not producer precedent.
+
+Source: [`0307`'s findings report](../../../knowledge-base/reports/2026-09-26-0307-player-name-path-security-review.md)
+(findings rows 9 and 15, and its §8 *Hand-offs*) · [`0307` brief](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md).
+
+What `0307` leaves for `0308` to decide or do:
+- **(a) Narrowing `\s`.** Today's rule accepts newline, tab, no-break space, U+2028, U+3000 and U+FEFF
+  in a name. Owner ruling Q1 (2026-09-26) put this whitespace question here, not in `0307`.
+- **(b) Delete vs replace in `sanitizeUsername`.** Whether the cleaner deletes a refused character or
+  swaps it for something (for example a space). This is the same question as this task's step 2.
+- **(c) Invisible Hangul filler letters.** The rule allows U+115F, U+1160, U+3164 and U+FFA0, so a
+  name made only of invisible characters is possible. `0307` only made them *visible to the moderator*
+  (F3, review R1). Whether names may contain them at all is this task's call.
+- **(d) `sanitizeUsernameForJoin` cuts before it trims.** It runs `sanitizeUsername` (which cuts to 27)
+  and only then trims, so a name that starts with 27 or more spaces loses all its letters and becomes
+  the `xxx` filler. Checked by reading `src/core/validations/usernameRules.ts`, not by running it.
+- **(e) Tests meant to flip here.** The characterization tests in `tests/UsernameHostileInputs.test.ts`
+  (the "accepted today" cases) pin today's behaviour on purpose. When `0308` changes the rule, those
+  tests should fail and be updated. That is expected, not a regression.
+- **(f) Player-facing texts.** `username.rules_hint` and `username.invalid_chars` (in both `en.json`
+  and `ru.json`) describe the rule. Any change to which characters are allowed must edit them too.
+
+**Still true from the Notes:** any *wider* rule is a security change and needs `0307`'s path map
+re-checked (the report's hop table). `0307` fixed the operator's curl line (F2) so it no longer depends on
+the rule refusing `'`, but re-check each hop anyway.
+
+## Addendum 2026-09-27 — parked by owner ruling; Step 0 partial evidence; the approved plan is kept
+
+**Appended by a spawned `fkit-producer` with no owner channel (ADR-021), on an OWNER RULING given
+2026-09-27 live in the `fkit lead` session via `AskUserQuestion` (the owner's own free-text answer),
+relayed by `fkit-lead` (ADR-021/037).** ⛔ Not producer precedent. Append-only (ADR-035).
+
+**The owner, verbatim:**
+> *"Let's come back to this task later, decrease the priority and put it to the end of the current sprint"*
+
+**Effect.** `## Status` reset from `🔄 In progress` to `🔲 Backlog`; `## Priority` 6 → **35**, the bottom of
+[Sprint 6](../../../sprints/plan-sprint-6.md) (below `0297`, 34). Sprint unchanged (Sprint 6). At the time of
+parking the build had **not** started and **no source file had changed**.
+
+### The approved `plan.md` is kept
+
+- [`plan.md`](plan.md) in this folder (git blob `f7a579d`) is the owner-approved plan, carrying the owner's
+  rulings Q0–Q4. It was **not deleted and not re-authored**.
+- ⚠️ **A later run must re-present it to the owner at the plan gate before building** (the ship-loop rule).
+  Approval given on 2026-09-27 does not carry over to a resumed run on its own. Code, rules or evidence may
+  have moved in the meantime; the plan may need a refresh before it is shown again.
+- **Resume from Step 0.**
+
+### Step 0 partial evidence (2026-09-27)
+
+Read by `fkit-lead` in the owner's Chrome, on the Yandex Games page. **Shapes only — no real name is written
+anywhere** (privacy note above).
+
+- **Which account:** probably the owner's **SECOND** Yandex account — the citizenship card showed a citizen
+  at 0/100 XP and a Cyrillic Yandex name. Not proven to be the second account; inferred from the card.
+- **Yandex portal `displayName` shape:** `L L L L U+0020 L L L L L L L L` (four letters, a normal space
+  U+0020, eight letters). The separator is a **plain space**, not a look-alike.
+- **In-game citizenship card:** showed the name **with** the space.
+- ⚠️ **The MAIN account — the one where the space was lost — was NOT checked.** This evidence therefore does
+  **not** decide the cause; it only confirms, for the second account, the shape the 2026-09-26 addendum
+  could only see by eye.
+- **Method limit:** the game runs in a **cross-origin iframe**, so the browser tool cannot run the planned
+  code-point snippet inside the game (no direct read of the game's `getName()`). The Yandex **portal page's**
+  `displayName` is readable from the top frame, which is what was read here.
+
+**Still open for Step 0:** the main account's code points — both the portal `displayName` and, ideally, the
+game's own `getName()` value — which likely needs the owner at the keyboard (ask; do not guess).

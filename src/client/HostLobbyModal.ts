@@ -58,6 +58,16 @@ export class HostLobbyModal extends LitElement {
   @state() private disabledUnits: UnitType[] = [];
   @state() private lobbyCreatorClientID: string = "";
   @state() private lobbyIdVisible: boolean = true;
+  // Task 0302: the last Start attempt was refused or failed. Shown inline so the
+  // host stays in the lobby with their friends and can retry.
+  @state() private startFailed = false;
+  // Task 0302, review R3: a Start is in flight (ad, config save, up to ~5 s of
+  // server wait). A second tap is ignored and the button is disabled meanwhile.
+  @state() private isStarting = false;
+  // Review R7: bumped by open(). A Start begun in an earlier opening (e.g. an ad
+  // call that never answered) must neither clear the new opening's in-flight
+  // flag nor go on to start the new lobby.
+  private openGeneration = 0;
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Add a new timer for debouncing bot changes
@@ -495,7 +505,7 @@ export class HostLobbyModal extends LitElement {
                         : html`<input
                             type="number"
                             id="end-timer-value"
-                            min="0"
+                            min="1"
                             max="120"
                             .value=${String(this.maxTimerValue ?? "")}
                             style="width: 60px; color: black; text-align: right; border-radius: 8px;"
@@ -566,7 +576,7 @@ export class HostLobbyModal extends LitElement {
         <div class="start-game-button-container">
           <button
             @click=${this.startGame}
-            ?disabled=${this.clients.length < 2}
+            ?disabled=${this.clients.length < 2 || this.isStarting}
             class="start-game-button"
           >
             ${
@@ -575,6 +585,16 @@ export class HostLobbyModal extends LitElement {
                 : translateText("host_modal.start")
             }
           </button>
+          ${
+            this.startFailed
+              ? html`<div
+                  id="host-lobby-start-failed"
+                  class="text-red-400 text-sm text-center mt-2"
+                >
+                  ${translateText("host_modal.start_failed")}
+                </div>`
+              : ""
+          }
         </div>
 
       </div>
@@ -587,6 +607,12 @@ export class HostLobbyModal extends LitElement {
   }
 
   public open() {
+    this.startFailed = false;
+    // Review R7: a Start left hanging in an earlier opening must not keep this
+    // one's Start disabled until a page reload.
+    this.isStarting = false;
+    this.openGeneration++;
+    this.requestUpdate();
     this.lobbyCreatorClientID = generateID();
     this.lobbyIdVisible = this.userSettings.get(
       "settings.lobbyIdVisibility",
@@ -708,7 +734,9 @@ export class HostLobbyModal extends LitElement {
     ).value.replace(/[e+-]/gi, "");
     const value = parseInt((e.target as HTMLInputElement).value);
 
-    if (isNaN(value) || value < 0 || value > 120) {
+    // Review R6: 1..120, matching `maxTimerValue`'s `min(1)` in Schemas.ts. A 0
+    // would make the settings save answer 400, which now blocks Start (R4).
+    if (isNaN(value) || value < 1 || value > 120) {
       return;
     }
     this.maxTimerValue = value;
@@ -798,40 +826,92 @@ export class HostLobbyModal extends LitElement {
     return maps[randIdx] as GameMapType;
   }
 
-  private async startGame() {
+  private async startGame(): Promise<Response | null> {
+    // Review R3: one Start at a time. A double tap would replay the ad, roll a
+    // new random map and send a second start.
+    if (this.isStarting) {
+      return null;
+    }
+    this.isStarting = true;
+    this.startFailed = false;
+    // Explicit, as elsewhere: the decorator transform does not reliably schedule
+    // updates under the test build.
+    this.requestUpdate();
+    const generation = this.openGeneration;
+    try {
+      return await this.attemptStart(generation);
+    } finally {
+      if (generation === this.openGeneration) {
+        this.isStarting = false;
+        this.requestUpdate();
+      }
+    }
+  }
+
+  private async attemptStart(generation: number): Promise<Response | null> {
     // Flashist Adaptation: interstitial adv
     await FlashistFacade.instance.showInterstitial();
+    // Review R7: the modal was reopened on a new lobby while the ad was up.
+    if (generation !== this.openGeneration) {
+      return null;
+    }
 
     if (this.useRandomMap) {
       this.selectedMap = this.getRandomMap();
     }
 
-    await this.putGameConfig();
-    console.log(
-      `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} ${this.useRandomMap ? " (Randomly selected)" : ""}`,
-    );
-    this.close();
-    const config = await getServerConfigFromClient();
-    const response = await fetch(
-      // Flashist Adaptation: root-absolute, NOT `FlashistFacade.instance.windowOrigin`.
-      // windowOrigin is origin + document pathname, but the worker API is mounted at
-      // the host root (nginx `^/w(\d+)`, webpack proxy context `/w<N>`), so joining
-      // onto it prefixes the document path and misses the worker route entirely.
-      `/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
+    let response: Response;
+    try {
+      // Review R4 (owner ruling 2026-09-27, "Fix in 0302"): a failed or throwing
+      // settings save shows the same line and does NOT start — before, it was
+      // silent and the match started with the old settings.
+      const configResponse = await this.putGameConfig();
+      if (!configResponse.ok) {
+        this.showStartFailed();
+        return configResponse;
+      }
+      console.log(
+        `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} ${this.useRandomMap ? " (Randomly selected)" : ""}`,
+      );
+      const config = await getServerConfigFromClient();
+      response = await fetch(
+        // Flashist Adaptation: root-absolute, NOT `FlashistFacade.instance.windowOrigin`.
+        // windowOrigin is origin + document pathname, but the worker API is mounted at
+        // the host root (nginx `^/w(\d+)`, webpack proxy context `/w<N>`), so joining
+        // onto it prefixes the document path and misses the worker route entirely.
+        `/${config.workerPath(this.lobbyId)}/api/start_game/${this.lobbyId}`,
 
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      console.error(`Failed to start private game: ${error}`);
+      this.showStartFailed();
+      return null;
+    }
     if (!response.ok) {
+      // Task 0302: a 403 `citizens_only` (creator not a citizen, or the profile
+      // could not be read in time) or any other failure. A generic line, not the
+      // citizens-only popup (owner ruling 2026-09-27, Q1); the modal stays open.
       console.error(
         `Failed to start private game: ${response.status} ${response.statusText}`,
       );
+      this.showStartFailed();
+      return response;
     }
+    // Closed only after a SUCCESSFUL start (task 0302) — before, it closed first
+    // and every failure was silent.
+    this.close();
     return response;
+  }
+
+  private showStartFailed(): void {
+    this.startFailed = true;
+    this.requestUpdate();
   }
 
   private async copyToClipboard() {

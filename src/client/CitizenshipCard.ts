@@ -1,7 +1,16 @@
 import { LitElement, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import shieldIcon from "../../resources/images/ShieldIconWhite.svg";
+import {
+  MAX_USERNAME_LENGTH,
+  usernameRuleErrorMessage,
+  usernameRulesHint,
+} from "../core/validations/username";
 import { runCitizenshipPurchase } from "./CitizenshipPurchase";
+import {
+  deriveCitizenshipStatus,
+  publishCitizenshipStatus,
+} from "./CitizenshipStatus";
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
   cancelNameChangeRequest,
@@ -151,7 +160,16 @@ export class CitizenshipCard extends LitElement {
 
   private async refreshProfile(): Promise<void> {
     this.profile = await loadPlayerProfileView();
+    this.publishCitizenshipStatus();
     this.requestUpdate();
+  }
+
+  // Task 0302: the card is the page's only citizenship reader, so perk locks
+  // (the private-lobby row) follow what it publishes here.
+  private publishCitizenshipStatus(): void {
+    publishCitizenshipStatus(
+      deriveCitizenshipStatus(this.profile, this.paidGrantConfirmed),
+    );
   }
 
   /**
@@ -453,11 +471,20 @@ export class CitizenshipCard extends LitElement {
           type="text"
           .value=${this.nameDraft}
           @input=${this.onNameDraftInput}
+          maxlength="${MAX_USERNAME_LENGTH}"
           placeholder="${translateText(
             "citizenship_name_change.input_placeholder",
           )}"
           class="w-full px-3 py-[7px] rounded-lg text-[13px] text-white bg-black/40 border border-white/15 placeholder:text-white/35 focus:outline-none focus:border-blue-500"
         />
+        ${this.nameError === null
+          ? html`<div
+              id="citizenship-name-change-rules-hint"
+              class="mt-1 text-[11px] text-[#98989f] leading-[1.4]"
+            >
+              ${usernameRulesHint()}
+            </div>`
+          : nothing}
         <div class="mt-1.5 flex gap-1.5">
           <button
             id="citizenship-name-change-submit"
@@ -584,6 +611,7 @@ export class CitizenshipCard extends LitElement {
       }
       if (result === "granted") {
         this.paidGrantConfirmed = true;
+        this.publishCitizenshipStatus();
         this.requestUpdate();
         await this.refreshProfile();
       } else {
@@ -659,7 +687,9 @@ export class CitizenshipCard extends LitElement {
       case "invalid":
         // The SAME message the in-game username input shows for that rule —
         // owner ruling (c): mirror the existing validator, no bespoke rules.
-        return translateText(`username.${result.violation}`);
+        // Through the shared helper, so {min}/{max} are filled in (the raw
+        // "{max}" used to show here) and the full rule follows (task 0307).
+        return usernameRuleErrorMessage(result.violation);
       case "name_taken":
         return translateText("citizenship_name_change.error_name_taken");
       case "pending_exists":

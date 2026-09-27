@@ -19,6 +19,14 @@ import {
 } from "../core/validations/usernameRules";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 import { formatError, logger } from "./Logger";
+import {
+  DECIDE_NPM_SCRIPT,
+  DECISION_ENV,
+  PROFILE_API_SERVICE,
+  PROFILE_COMPOSE_FILE,
+  REASON_ENV,
+  REASON_PLACEHOLDER,
+} from "./NameChangeDecideCommand";
 
 const log = logger.child({ comp: "namechange" });
 
@@ -54,7 +62,24 @@ export type DecideOutcome =
 // whose name has since been swapped gets 409 `name_mismatch` and applies
 // nothing. Without that binding this cooldown would itself be a moderation-gate
 // bypass — which is why the two shipped together.
+//
+// A committed approve or reject resets the player's window (task 0313, owner
+// rule (a)): a request made AFTER the operator decided is a real new request,
+// not a flood, and was being dropped. Only the operator can decide, so a player
+// cannot use this to get extra messages. Withdraw does NOT reset it, so the
+// request → withdraw → request loop above stays at one message per window.
 const OPERATOR_NOTIFY_COOLDOWN_MS = 10 * 60_000;
+
+// The `lastNotifiedAt` key for a player (review R1 of task 0313). Both entry
+// points take the id as a UUID in ANY letter case — the session token's `pid`
+// and the decide route's `playerId` are each checked with a case-insensitive
+// regex, and Postgres matches either — so an uppercase decide used to commit
+// yet free nothing. Every lookup of the map by a player id goes through this
+// one function. Lowercasing cannot merge two players: a UUID's case carries no
+// meaning.
+function notifySlotKey(playerId: string): string {
+  return playerId.toLowerCase();
+}
 
 // Above this many tracked players, expired entries are swept before inserting.
 // The map is already bounded by the citizen count (the SQL gate runs first), so
@@ -181,6 +206,10 @@ export class NameChangeRepository {
    * only, and deliberately so: losing it on restart costs at most one extra
    * Telegram message, whereas a shared store would put a dependency in front of
    * a best-effort notification path.
+   *
+   * A committed approve/reject deletes the player's entry (task 0313); withdraw
+   * never does. Sound because there is one repository per process (Server.ts)
+   * and decisions arrive through this same server's decide route.
    */
   private readonly lastNotifiedAt = new Map<string, number>();
 
@@ -342,6 +371,14 @@ export class NameChangeRepository {
         await client.query(MARK_REJECTED_SQL, [rowId, reason ?? null]);
         rejectedName = newName;
       }
+      // A real decision frees the player's notify slot (task 0313), so their
+      // next request reaches the operator at once. Cleared BEFORE the COMMIT is
+      // sent, not after: the player's next INSERT can only succeed once the
+      // COMMIT is applied, so clearing after its reply could lose that race and
+      // drop the very alert this exists for. If the COMMIT then fails, the row
+      // is still pending — the cost is at most one extra message, the same as a
+      // restart.
+      this.releaseNotifySlot(playerId);
       await client.query("COMMIT");
     } catch (error) {
       await this.rollbackQuietly(client);
@@ -468,10 +505,14 @@ export class NameChangeRepository {
    * the string. Suppression is safe because the operator's decision is bound to
    * `expectedName` — a swapped name gets 409 `name_mismatch`, never a silent
    * apply.
+   *
+   * The one early reset is a committed approve/reject (`releaseNotifySlot`, task
+   * 0313). Withdraw never resets it.
    */
   private claimNotifySlot(playerId: string): boolean {
+    const key = notifySlotKey(playerId);
     const now = Date.now();
-    const last = this.lastNotifiedAt.get(playerId);
+    const last = this.lastNotifiedAt.get(key);
     if (last !== undefined && now - last < OPERATOR_NOTIFY_COOLDOWN_MS) {
       return false;
     }
@@ -482,39 +523,20 @@ export class NameChangeRepository {
         }
       }
     }
-    this.lastNotifiedAt.set(playerId, now);
+    this.lastNotifiedAt.set(key, now);
     return true;
   }
 
   /**
-   * The ready-to-paste approve command, so deciding against `expectedName` is
-   * the DEFAULT path rather than extra typing. `$PROFILE_API_URL` and
-   * `$PROFILE_INTERNAL_TOKEN` are left as shell variables — no secret is ever
-   * put in a Telegram message.
-   *
-   * The command carries the INTERNAL `playerId` (task 0270) — the decide route
-   * takes nothing else, and Yandex ids no longer go to Telegram. The charset check
-   * stays as belt and braces: a server-generated uuid always passes it, and a
-   * value that would break the shell quoting of a command an operator pastes
-   * into their own terminal is still never emitted. The notification still names
-   * the player, so nothing is lost but the convenience.
+   * Forget this player's last notification, so their next request notifies at
+   * once (task 0313, owner rule (a)). Called ONLY for a real approve/reject:
+   * only the operator can decide (the decide route is internal-auth'd), so every
+   * extra message this allows costs one operator action, and a player cannot
+   * trigger it. Withdraw deliberately does not call it — that would reopen the
+   * request → withdraw → request flood R1 closed. Cannot throw.
    */
-  private decideCommandLines(
-    playerId: string,
-    requestedName: string,
-  ): string[] {
-    if (!/^[A-Za-z0-9_-]+$/.test(playerId)) {
-      return [];
-    }
-    const body = JSON.stringify({
-      playerId,
-      decision: "approve",
-      expectedName: requestedName,
-    });
-    return [
-      "<b>Approve:</b>",
-      `<pre>curl -sS -X POST "$PROFILE_API_URL/internal/v1/name-change/decide" -H "Authorization: Bearer $PROFILE_INTERNAL_TOKEN" -H "Content-Type: application/json" -d '${escapeTelegramHtml(body)}'</pre>`,
-    ];
+  private releaseNotifySlot(playerId: string): void {
+    this.lastNotifiedAt.delete(notifySlotKey(playerId));
   }
 
   /**
@@ -531,13 +553,11 @@ export class NameChangeRepository {
     if (!this.claimNotifySlot(playerId)) {
       return;
     }
-    const text = [
-      "<b>[Name change] Pending request</b>",
-      `<b>Player:</b> ${escapeTelegramHtml(playerId)}`,
-      `<b>Requested:</b> ${escapeTelegramHtml(requestedName)}`,
-      `<b>Time:</b> ${new Date().toISOString()}`,
-      ...this.decideCommandLines(playerId, requestedName),
-    ].join("\n");
+    const text = buildOperatorNotificationText(
+      playerId,
+      requestedName,
+      new Date().toISOString(),
+    );
     try {
       void sendTelegramMessage(config, text)
         .then((outcome) => {
@@ -563,4 +583,164 @@ export class NameChangeRepository {
       log.warn(`operator telegram notification failed: ${formatError(error)}`);
     }
   }
+}
+
+// Every character a moderator can read at a glance in a name: letters, digits,
+// `_`, `[`, `]` and a plain space. Anything else the name rule lets through —
+// today a tab, newline, no-break space, U+2028/2029, U+3000 or the invisible
+// U+FEFF (the rule's `\s`) — is drawn as a visible code instead (task 0307, F3).
+//
+// A "letter" that draws as nothing is not readable at a glance either: the
+// Hangul fillers U+115F, U+1160, U+3164 and U+FFA0 are category Lo, so they pass
+// both the name rule and `\p{L}`, yet show as blank space (0307 review R1). They
+// are exactly the letters/digits Unicode marks Default_Ignorable_Code_Point
+// (checked in node 24), so the lookahead drops them from the plain set without
+// touching the name rule itself — which characters a name may hold is 0308's.
+const PLAIN_NAME_CHARACTER =
+  /^(?!\p{Default_Ignorable_Code_Point})[\p{L}\p{N}_[\] ]$/u;
+
+/** `⟨U+00A0⟩` for one character — code point, at least four hex digits. */
+function visibleCodePoint(ch: string): string {
+  const hex = (ch.codePointAt(0) ?? 0).toString(16).toUpperCase();
+  return `⟨U+${hex.padStart(4, "0")}⟩`;
+}
+
+/**
+ * The requested name as the moderator should see it (task 0307, F3; owner ruling
+ * Q1): any character that is not a letter, digit, `_`, `[`, `]` or plain space is
+ * shown as a visible code, so a name carrying an invisible or look-alike space — or
+ * a newline that would fake a second line in the message — cannot pass as a clean
+ * one. Only how the Telegram message LOOKS changes; the name that is stored, and
+ * that `expectedName` must match, is untouched.
+ *
+ * Returns HTML-escaped text for a `parse_mode: HTML` message.
+ */
+export function describeRequestedNameForModerator(requestedName: string): {
+  html: string;
+  hasHiddenCharacters: boolean;
+} {
+  let hasHiddenCharacters = false;
+  let shown = "";
+  for (const ch of requestedName) {
+    if (PLAIN_NAME_CHARACTER.test(ch)) {
+      shown += ch;
+    } else {
+      hasHiddenCharacters = true;
+      shown += visibleCodePoint(ch);
+    }
+  }
+  return { html: escapeTelegramHtml(shown), hasHiddenCharacters };
+}
+
+/** The `Requested:` line, plus a warning line when the name hides a character. */
+function requestedNameLines(requestedName: string): string[] {
+  const { html, hasHiddenCharacters } =
+    describeRequestedNameForModerator(requestedName);
+  return [
+    `<b>Requested:</b> ${html}`,
+    ...(hasHiddenCharacters
+      ? [
+          "⚠️ <b>This name contains hidden or unusual characters</b> (shown above as ⟨U+…⟩ codes). Check it carefully before approving.",
+        ]
+      : []),
+  ];
+}
+
+/**
+ * The whole per-request operator message (Telegram `parse_mode: HTML`). Pure and
+ * exported so its size and HTML validity are tested on the exact text that is sent
+ * (task 0312).
+ */
+export function buildOperatorNotificationText(
+  playerId: string,
+  requestedName: string,
+  isoTime: string,
+): string {
+  return [
+    "<b>[Name change] Pending request</b>",
+    `<b>Player:</b> ${escapeTelegramHtml(playerId)}`,
+    ...requestedNameLines(requestedName),
+    `<b>Time:</b> ${isoTime}`,
+    ...decideCommandLines(playerId, requestedName),
+  ].join("\n");
+}
+
+/**
+ * The JSON body of the operator's decide command, as PURE printable ASCII
+ * (task 0307, F2; owner ruling Q4). Every character outside `\x20-\x7E`, and the
+ * single quote, is written as a `\uXXXX` escape — so the body can never close
+ * the `'…'` it sits in on the shell line, whatever the name contains, and no
+ * clipboard or chat client can mangle an invisible character on the way. It is
+ * still valid JSON: the decide route's JSON parser turns every escape back into
+ * the exact character, so `expectedName` matches the stored name byte for byte.
+ *
+ * Before this the line was shell-safe ONLY because the name rule refuses `'`
+ * (task 0307's "one rule holding several doors shut"); now it is safe on its own.
+ *
+ * `decision` defaults to approve; the Reject line passes "reject" (task 0312). The
+ * reason is NOT in the body — it travels in its own variable, typed by the operator.
+ */
+export function buildDecideCommandBody(
+  playerId: string,
+  requestedName: string,
+  decision: "approve" | "reject" = "approve",
+): string {
+  return JSON.stringify({
+    playerId,
+    decision,
+    expectedName: requestedName,
+  }).replace(
+    /[^\x20-\x7E]|'/g,
+    (ch) => `\\u${ch.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+}
+
+/**
+ * The ready-to-paste Approve and Reject commands (task 0312), so deciding against
+ * `expectedName` is the DEFAULT path rather than extra typing — for BOTH decisions.
+ *
+ * Each runs on the PROFILE BOX, after the operator SSHes in: `docker compose exec`
+ * into the running profile-api container, which runs `npm run name-change:decide`
+ * (src/profile-server/decideNameChange.ts). That command reads the internal token
+ * from the container's own environment and posts to the decide route on
+ * 127.0.0.1. So no secret, URL or host is ever put in a Telegram message, and the
+ * command works from where the operator actually is — the old laptop `curl` got 403
+ * from nginx's `/internal/` allowlist (task 0276), and there was no Reject line at all.
+ *
+ * Only ONE shell ever reads the name: the operator's, inside `'…'`, which is safe
+ * for any name because the body is pure ASCII with no `'` (task 0307, F2 — see
+ * `buildDecideCommandBody`). `docker compose exec -e` hands the value on as an
+ * argument with no second shell, and `npm run` runs a fixed command string that
+ * never sees it. The Reject line carries a placeholder reason, which the command
+ * refuses until it is replaced.
+ *
+ * The command carries the INTERNAL `playerId` (task 0270) — the decide route takes
+ * nothing else, and Yandex ids no longer go to Telegram. The charset check stays as
+ * belt and braces: a server-generated uuid always passes it, and a value that would
+ * break the shell quoting of a command an operator pastes on a production box is
+ * still never emitted. The notification still names the player, so nothing is lost
+ * but the convenience.
+ *
+ * Exported, and pure, so the exact lines are tested — including through a real bash.
+ * Runbook: ai-agents/knowledge-base/name-change-digest-runbook.md.
+ */
+export function decideCommandLines(
+  playerId: string,
+  requestedName: string,
+): string[] {
+  if (!/^[A-Za-z0-9_-]+$/.test(playerId)) {
+    return [];
+  }
+  const commandFor = (decision: "approve" | "reject"): string => {
+    const body = buildDecideCommandBody(playerId, requestedName, decision);
+    const reason =
+      decision === "reject" ? ` -e ${REASON_ENV}='${REASON_PLACEHOLDER}'` : "";
+    return `docker compose -f ${PROFILE_COMPOSE_FILE} exec -T -e ${DECISION_ENV}='${body}'${reason} ${PROFILE_API_SERVICE} npm run -s ${DECIDE_NPM_SCRIPT}`;
+  };
+  return [
+    "<b>Approve</b> (on the profile box, see runbook):",
+    `<pre>${escapeTelegramHtml(commandFor("approve"))}</pre>`,
+    "<b>Reject</b> (replace the reason first):",
+    `<pre>${escapeTelegramHtml(commandFor("reject"))}</pre>`,
+  ];
 }
