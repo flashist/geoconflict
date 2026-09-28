@@ -51,26 +51,42 @@ is_truthy() {
     esac
 }
 
-# ── Config parity guard (task 0064) ───────────────────────────────────────────
+# ── Config parity guard (task 0064; ARMED by task 0298) ─────────────────────────
 # Names, by NAME only, any variable the profile server reads but this two-hop pipeline
 # never forwards — including a key written into profile.env that the export block below
 # never exports, which is guaranteed to land empty (task 0195's exact defect).
 #
 # Placed BEFORE the first load_env_file below, so no secret has been sourced into this
-# shell when it runs.
+# shell when it runs — and before the image build and the deploy lock, so a block costs
+# nothing and the box is untouched.
 #
-# REPORT-ONLY. In this mode the checker exits 0 for every ANALYSIS outcome — findings, a
-# parse failure, a blind spot, a missing input, an internal crash — but NOT
-# unconditionally: an unparseable argument exits 2, and a throw while it renders its
-# report is uncaught and exits 1. "This cannot fail a deploy" is guaranteed by the
-# `|| true` below, which absorbs all of those alike, plus the -f / command -v guard for a
-# missing checker or a missing node. The mode alone does not carry that claim.
+# ENFORCING (task 0298). This STOPS the deploy on a missing checker or a missing node
+# (task 0203 R4b; the missing-node case accepted by the owner at 0298's plan approval,
+# 2026-09-28), and on any non-zero exit from the checker: a REQUIRED finding in the
+# profile pipeline, a PARSE-FAILURE / DYNAMIC-READ / SKIP tagged profile or "global", a
+# usage error, a crash or a signal. Game and client findings are printed but do not block
+# this deploy (--block-on=profile; the R14 ruling). No override, by owner ruling
+# (2026-09-28, Q2). The profile ON-BOX value report (setup-profile.sh
+# report_config_values, task 0220) is a different check and stays report-only.
 #
-# The -f guard also keeps this silent inside tests/scripts/profile-deploy-hardening.test.sh,
-# whose fixture directory has no scripts/check-config-parity.mjs — that harness sees zero
-# new output.
-if [ -f "$(dirname "$0")/scripts/check-config-parity.mjs" ] && command -v node >/dev/null 2>&1; then
-    node "$(dirname "$0")/scripts/check-config-parity.mjs" --pipeline=all --report-only || true
+# tests/scripts/profile-deploy-hardening.test.sh copies this script into a fixture without
+# the real checker, so its run_deploy writes a stub scripts/check-config-parity.mjs (like
+# its secret-boundary stub) and asserts both stops.
+PARITY_CHECKER="$(dirname "$0")/scripts/check-config-parity.mjs"
+if [ ! -f "$PARITY_CHECKER" ]; then
+    echo "Error: config parity guard not found ($PARITY_CHECKER) — refusing to deploy."
+    exit 1
+fi
+if ! command -v node >/dev/null 2>&1; then
+    echo "Error: node not found — the config parity guard cannot run, refusing to deploy."
+    exit 1
+fi
+if ! node "$PARITY_CHECKER" --pipeline=all --enforce --block-on=profile; then
+    echo "Error: config parity guard failed (findings above) — refusing to deploy. Nothing was built or sent."
+    echo "  Fix: forward the variable through setup-profile.sh's profile.env AND this script's"
+    echo "  export block, or add an entry WITH a reason to scripts/config-parity-allowlist.json;"
+    echo "  for an unmapped src/ folder, add its one line to DIR_PIPELINE in scripts/check-config-parity.mjs."
+    exit 1
 fi
 
 # ── Load config ───────────────────────────────────────────────────────────────

@@ -22,12 +22,24 @@ import { z } from "zod";
  * See ai-agents/tasks/backlog/0012-personal-inbox/brief.md.
  */
 
-/** Template keys the client can render. Extend here (one place) + en/ru json. */
+/**
+ * Template keys the client can render. Extend here (one place) + en/ru json.
+ *
+ * `citizenship_granted` (task 0250 S1) is the NEUTRAL key the profile server
+ * serves an unverified caller in place of BOTH `citizenship_paid` and
+ * `citizenship_earned` (src/profile-server/PublicProjection.ts), so the inbox
+ * cannot tell a paid citizen from an earned one. It is never stored by the
+ * server's own hooks. The two specific keys stay in this list: they are still
+ * what is stored, a new client must still read an old server that serves them,
+ * and S3b returns them to a verified owner.
+ */
 export const INBOX_TEMPLATE_KEYS = [
   "citizenship_earned",
   "citizenship_paid",
   "name_change_approved",
   "name_change_rejected",
+  "name_change_cleared",
+  "citizenship_granted",
 ] as const;
 export const InboxTemplateKeySchema = z.enum(INBOX_TEMPLATE_KEYS);
 export type InboxTemplateKey = z.infer<typeof InboxTemplateKeySchema>;
@@ -55,6 +67,8 @@ export const INBOX_TEMPLATE_REQUIRED_PARAMS: Record<
   citizenship_paid: [],
   name_change_approved: ["name"],
   name_change_rejected: ["name", "reason"],
+  name_change_cleared: ["name", "reason"],
+  citizenship_granted: [],
 };
 
 /** Required params of `key` that `params` does not supply (empty string counts as missing). */

@@ -41,13 +41,16 @@ export type TenureCheckStatus =
  * Full result of `recordTenureCheck`. `xpAwarded` is what THIS call recorded for
  * `granted` / `below_minimum`, and what the earlier check stored for
  * `duplicate`; `xp` is the player's total after the call (0 for `not_found`).
- * `citizenshipNewlyGranted` has `CreditOutcome`'s meaning.
+ * `citizenshipNewlyGranted` has `CreditOutcome`'s meaning. `isCitizen` is the
+ * player's citizen state AFTER the call (false for `not_found`) — the route needs
+ * it to equalize `xp` for an unverified caller (task 0250 S1, `equalizedXp`).
  */
 export interface TenureCheckOutcome {
   status: TenureCheckStatus;
   xpAwarded: number;
   xp: number;
   citizenshipNewlyGranted: boolean;
+  isCitizen: boolean;
 }
 
 // Postgres `foreign_key_violation` — a credit referencing a player_id with no
@@ -295,9 +298,11 @@ export class PlayerProfileRepository {
           xpAwarded: 0,
           xp: 0,
           citizenshipNewlyGranted: false,
+          isCitizen: false,
         };
       }
       const currentXp = Number(locked.rows[0].xp);
+      const wasCitizen = Boolean(locked.rows[0].is_citizen);
 
       const inserted = await client.query(INSERT_TENURE_CHECK_SQL, [
         playerId,
@@ -315,6 +320,7 @@ export class PlayerProfileRepository {
           xpAwarded: Number(stored.rows[0]?.xp_awarded ?? 0),
           xp: currentXp,
           citizenshipNewlyGranted: false,
+          isCitizen: wasCitizen,
         };
       }
 
@@ -325,6 +331,7 @@ export class PlayerProfileRepository {
           xpAwarded: 0,
           xp: currentXp,
           citizenshipNewlyGranted: false,
+          isCitizen: wasCitizen,
         };
       }
 
@@ -333,7 +340,6 @@ export class PlayerProfileRepository {
         xpAwarded,
       ]);
       const newXp = Number(updated.rows[0].xp);
-      const wasCitizen = Boolean(locked.rows[0].is_citizen);
       const earnedAt = locked.rows[0].citizenship_earned_at as Date | null;
       let citizenshipNewlyGranted = false;
       // Same decision as creditMatchXp, on the row this transaction locked.
@@ -353,6 +359,7 @@ export class PlayerProfileRepository {
         xpAwarded,
         xp: newXp,
         citizenshipNewlyGranted,
+        isCitizen: wasCitizen || citizenshipNewlyGranted,
       };
     } catch (error) {
       try {

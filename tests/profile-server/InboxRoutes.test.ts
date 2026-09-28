@@ -30,10 +30,14 @@ function mockRepo(): ProfileRepo {
   };
 }
 
-function message(id: number, readAt: string | null = null) {
+function message(
+  id: number,
+  readAt: string | null = null,
+  templateKey: string | null = "citizenship_earned",
+) {
   return {
     id,
-    templateKey: "citizenship_earned" as const,
+    templateKey,
     templateParams: {},
     title: null,
     body: null,
@@ -115,13 +119,82 @@ describe("inbox routes", () => {
     });
 
     test("200 with the messages exactly as the repo orders them", async () => {
-      const res = await request(appWith())
+      // Non-citizenship keys: the two citizenship keys collapse (task 0250 S1).
+      const inbox = mockInbox({
+        listMessages: jest.fn().mockResolvedValue({
+          status: "ok",
+          messages: [
+            message(3, null, "name_change_approved"),
+            message(2, null, "name_change_rejected"),
+            message(1, null, "name_change_cleared"),
+          ],
+        }),
+      });
+      const res = await request(appWith(inbox))
         .get("/v1/messages")
         .set("Authorization", CALLER);
       expect(res.status).toBe(200);
       expect(res.body.messages.map((m: { id: number }) => m.id)).toEqual([
-        2, 1,
+        3, 2, 1,
       ]);
+    });
+
+    // Task 0250 S1, leak L4: an unverified caller must not learn from the inbox
+    // whether a citizen paid or earned. Attempt the leak on both fixtures.
+    describe("equalized citizenship messages (task 0250 S1, L4)", () => {
+      const leaks = (body: { messages: { templateKey: string | null }[] }) =>
+        body.messages.some(
+          (m) =>
+            m.templateKey === "citizenship_paid" ||
+            m.templateKey === "citizenship_earned",
+        );
+      const listOf = (messages: ReturnType<typeof message>[]) =>
+        mockInbox({
+          listMessages: jest.fn().mockResolvedValue({ status: "ok", messages }),
+        });
+      const get = (inbox: InboxRepo) =>
+        request(appWith(inbox))
+          .get("/v1/messages")
+          .set("Authorization", CALLER);
+
+      test("a stored citizenship_paid is served as citizenship_granted", async () => {
+        const res = await get(listOf([message(7, null, "citizenship_paid")]));
+        expect(res.status).toBe(200);
+        expect(res.body.messages).toEqual([
+          { ...message(7, null, "citizenship_granted") },
+        ]);
+        expect(leaks(res.body)).toBe(false);
+      });
+
+      test("a paid list and an earned list give identical responses", async () => {
+        const paid = await get(listOf([message(5, null, "citizenship_paid")]));
+        const earned = await get(
+          listOf([message(5, null, "citizenship_earned")]),
+        );
+        expect(leaks(paid.body)).toBe(false);
+        expect(leaks(earned.body)).toBe(false);
+        expect(paid.status).toBe(earned.status);
+        expect(paid.body).toEqual(earned.body);
+        expect(JSON.stringify(paid.body).length).toBe(
+          JSON.stringify(earned.body).length,
+        );
+      });
+
+      test("earned-then-paid collapses to ONE message — the oldest — like an earned-only list", async () => {
+        const both = await get(
+          listOf([
+            message(9, null, "citizenship_paid"),
+            message(8, null, "name_change_approved"),
+            message(4, "2026-08-27T10:00:00.000Z", "citizenship_earned"),
+          ]),
+        );
+        expect(both.status).toBe(200);
+        expect(both.body.messages).toEqual([
+          message(8, null, "name_change_approved"),
+          message(4, "2026-08-27T10:00:00.000Z", "citizenship_granted"),
+        ]);
+        expect(leaks(both.body)).toBe(false);
+      });
     });
 
     test("500 when the repo throws", async () => {
@@ -171,19 +244,36 @@ describe("inbox routes", () => {
   });
 
   describe("PATCH /v1/messages/read", () => {
-    test("marks ALL read when ids are absent", async () => {
-      const inbox = mockInbox();
+    // Task 0250 S1 (review R2): the route lists first, so it can leave out the
+    // citizenship messages the list hides. Both fixtures here are VISIBLE.
+    const visibleList = () => ({
+      status: "ok",
+      messages: [
+        message(3, null, "name_change_approved"),
+        message(2, "2026-08-26T11:00:00.000Z", null),
+        message(1),
+      ],
+    });
+
+    test("marks ALL read when ids are absent — every visible unread message, by id", async () => {
+      const inbox = mockInbox({
+        listMessages: jest.fn().mockResolvedValue(visibleList()),
+      });
       const res = await request(appWith(inbox))
         .patch("/v1/messages/read")
         .set("Authorization", CALLER)
         .send({});
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 2 });
-      expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, undefined);
+      expect(inbox.listMessages).toHaveBeenCalledWith(PLAYER_ID);
+      // The hidden-ids call is made even with none to hide (constant work).
+      expect(inbox.markRead).toHaveBeenNthCalledWith(1, PLAYER_ID, []);
+      expect(inbox.markRead).toHaveBeenNthCalledWith(2, PLAYER_ID, [3, 1]);
     });
 
     test("marks only the given ids", async () => {
       const inbox = mockInbox({
+        listMessages: jest.fn().mockResolvedValue(visibleList()),
         markRead: jest.fn().mockResolvedValue({ status: "ok", updated: 1 }),
       });
       const res = await request(appWith(inbox))
@@ -192,6 +282,7 @@ describe("inbox routes", () => {
         .send({ ids: [2] });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ updated: 1 });
+      expect(inbox.markRead).toHaveBeenCalledTimes(1);
       expect(inbox.markRead).toHaveBeenCalledWith(PLAYER_ID, [2]);
     });
 
@@ -210,7 +301,20 @@ describe("inbox routes", () => {
       expect(inbox.markRead).not.toHaveBeenCalled();
     });
 
-    test("403 not_citizen", async () => {
+    test("403 not_citizen from the list gate, without marking anything", async () => {
+      const inbox = mockInbox({
+        listMessages: jest.fn().mockResolvedValue({ status: "not_citizen" }),
+      });
+      const res = await request(appWith(inbox))
+        .patch("/v1/messages/read")
+        .set("Authorization", CALLER)
+        .send({});
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: "not_citizen" });
+      expect(inbox.markRead).not.toHaveBeenCalled();
+    });
+
+    test("403 not_citizen from the mark gate", async () => {
       const inbox = mockInbox({
         markRead: jest.fn().mockResolvedValue({ status: "not_citizen" }),
       });
@@ -244,6 +348,100 @@ describe("inbox routes", () => {
         .set("Authorization", CALLER)
         .send({});
       expect(res.status).toBe(500);
+      const listFails = await request(
+        appWith(
+          mockInbox({
+            listMessages: jest.fn().mockRejectedValue(new Error("db down")),
+          }),
+        ),
+      )
+        .patch("/v1/messages/read")
+        .set("Authorization", CALLER)
+        .send({});
+      expect(listFails.status).toBe(500);
+    });
+
+    // Task 0250 S1, review R2 (owner ruling Q-B): the count must never reveal a
+    // citizenship message GET /v1/messages hides — a second one means at least
+    // one purchase. An in-memory inbox, so `updated` is a real count.
+    describe("attempted leak: hidden citizenship messages (task 0250 S1, R2)", () => {
+      type Stored = ReturnType<typeof message>;
+      function fakeInbox(stored: Stored[]): InboxRepo {
+        return mockInbox({
+          listMessages: jest.fn().mockImplementation(async () => ({
+            status: "ok",
+            messages: stored.map((row) => ({ ...row })),
+          })),
+          markRead: jest
+            .fn()
+            .mockImplementation(async (_id: string, ids?: number[]) => {
+              let updated = 0;
+              for (const row of stored) {
+                if (
+                  row.readAt === null &&
+                  (ids === undefined || ids.includes(row.id))
+                ) {
+                  row.readAt = "2026-08-27T00:00:00.000Z";
+                  updated += 1;
+                }
+              }
+              return { status: "ok", updated };
+            }),
+        });
+      }
+      const READ = "2026-08-26T12:00:00.000Z";
+      // Earned only: one citizenship message, already read.
+      const earnedOnly = () => [message(1, READ, "citizenship_earned")];
+      // Earned, then paid: the NEWER paid message is hidden, and still unread.
+      const earnedThenPaid = () => [
+        message(2, null, "citizenship_paid"),
+        message(1, READ, "citizenship_earned"),
+      ];
+      const patch = (inbox: InboxRepo, body: object) =>
+        request(appWith(inbox))
+          .patch("/v1/messages/read")
+          .set("Authorization", CALLER)
+          .send(body);
+
+      test("mark-all answers the same for earned-only and earned-then-paid, and still marks the hidden row", async () => {
+        const hiddenRows = earnedThenPaid();
+        const earned = await patch(fakeInbox(earnedOnly()), {});
+        const paid = await patch(fakeInbox(hiddenRows), {});
+        expect(earned.status).toBe(200);
+        expect(paid.status).toBe(200);
+        expect(paid.body).toEqual(earned.body);
+        expect(paid.body).toEqual({ updated: 0 });
+        // Mark-all still marks it (plan § 6) — only the COUNT leaves it out.
+        expect(hiddenRows[0].readAt).not.toBeNull();
+      });
+
+      test("a hidden id answers like an id that does not exist, and is not marked", async () => {
+        const hiddenRows = earnedThenPaid();
+        const earned = await patch(fakeInbox(earnedOnly()), { ids: [2] });
+        const paid = await patch(fakeInbox(hiddenRows), { ids: [2] });
+        expect(paid.body).toEqual(earned.body);
+        expect(paid.body).toEqual({ updated: 0 });
+        expect(hiddenRows[0].readAt).toBeNull();
+      });
+
+      test("the visible message is still counted, the same for both", async () => {
+        const unreadEarned = [message(1, null, "citizenship_earned")];
+        const unreadBoth = [
+          message(2, null, "citizenship_paid"),
+          message(1, null, "citizenship_earned"),
+        ];
+        const earned = await patch(fakeInbox(unreadEarned), {});
+        const paid = await patch(fakeInbox(unreadBoth), {});
+        expect(earned.body).toEqual({ updated: 1 });
+        expect(paid.body).toEqual({ updated: 1 });
+        const earnedById = await patch(fakeInbox([message(1)]), { ids: [1] });
+        const paidById = await patch(
+          fakeInbox([message(2, null, "citizenship_paid"), message(1)]),
+          { ids: [1, 2] },
+        );
+        expect(earnedById.body).toEqual({ updated: 1 });
+        expect(paidById.body).toEqual({ updated: 1 });
+      });
     });
   });
 

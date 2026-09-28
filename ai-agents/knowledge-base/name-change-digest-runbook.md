@@ -4,6 +4,8 @@
 > message) is covered at the end: [Deciding a request: approve or reject (task `0312`)](#deciding-a-request-approve-or-reject-task-0312).
 > A request you only see in the digest's **list** message (task `0315`) is covered there too:
 > [Acting on a request you only see in the list](#acting-on-a-request-you-only-see-in-the-list-task-0315).
+> **Removing a name that was already approved** (task `0314`) uses the same command with
+> `"decision":"clear"`: [Removing an approved name](#removing-an-approved-name-task-0314).
 
 > ⛔ **READ THIS FIRST. What its daily arrival proves, and what it absolutely does not.**
 >
@@ -69,6 +71,9 @@ message with more text"*; list only, up to 20). Placeholders shown here:
 - **The name is shown like the per-request message's `Requested:` line**: any character that is not
   a letter, digit, `_`, `[`, `]` or plain space is shown as a `⟨U+XXXX⟩` code, and the line gets
   `⚠️ hidden characters`. A newline in a name shows as `⟨U+000A⟩`, so a name cannot fake a line.
+- **`⚠️ rude-name filter`** at the end of a line (task `0322`): the match's rude-name filter would
+  hide that name from other players. See
+  [The rude-name filter warning](#the-rude-name-filter-warning-task-0322).
 - **Waiting time** is counted from the request to the digest run: `N min`, `N h M min`, `N d M h`.
 - **No Approve/Reject lines** (owner ruling). To act on a listed request, see
   [Acting on a request you only see in the list](#acting-on-a-request-you-only-see-in-the-list-task-0315).
@@ -286,6 +291,52 @@ docker compose -f <profile dir>/docker-compose.yml exec -T \
 - **The shell shows `>` and waits:** a quote was left open. Press **Ctrl-C** and paste again.
   Nothing was sent.
 
+### Removing an approved name (task `0314`)
+
+For a name that was **already approved** and must go — approved by mistake, found offensive later, or
+the player asked to drop it (owner ruling, 2026-09-27). It sets the player's name back to **none**,
+so the game shows their default name, and the removed name is **free** for anyone again. The player
+gets an inbox message that repeats the removed name and your reason. A `cleared` row is added to the
+name history, keeping the removed name and your reason.
+
+There is **no Telegram line** for this — you build it yourself. Same command, same rules as above:
+**SSH in first, then paste** (see *Where to run it*); never from your laptop; the token is never typed.
+
+**1. Find the player's id and current name (read-only).** By name, case-insensitively:
+
+```bash
+docker compose -f <profile dir>/docker-compose.yml exec -T postgres \
+  psql -X -U <postgres user> -d <database> -tA \
+  -c "select id, to_json(display_name) from players where lower(display_name) = lower('<name>')"
+```
+
+It prints the player's uuid and their current name as a JSON string. If you only have the uuid,
+use `where id = '<player uuid>'` instead.
+
+**2. Run the clear.** `expectedName` is the player's **current** name, and a reason is **required**
+(at most 500 characters) — the player reads it:
+
+```bash
+docker compose -f <profile dir>/docker-compose.yml exec -T \
+  -e NAME_CHANGE_DECISION='{"playerId":"<player uuid>","decision":"clear","expectedName":"<current name>"}' \
+  -e NAME_CHANGE_REASON='<reason the player will read>' \
+  profile-api npm run -s name-change:decide
+```
+
+- Write any unusual character in the name as a `\uXXXX` code, exactly as for the list above. **A
+  mistake is safe:** a wrong name gets `HTTP 409 name_mismatch` and **nothing changes**; that answer
+  prints the current name as an escaped string you can paste straight into `expectedName`.
+- The command refuses a missing, blank or placeholder reason, and a missing `expectedName`, before
+  anything is sent.
+
+⚠️ **A pending request is NOT touched.** If the player also has a request waiting, it stays waiting
+and still shows on their card; approve or reject it separately, as above.
+
+Verification on the real box (owner-run, never claimed by an agent): on a test account with an
+approved name, run the clear → `HTTP 200: name removed`; the card shows the default name; the inbox
+message arrives; the token is never printed. Record the date in the task worklog — no host, IP,
+token, player id or name.
+
 ### What the answer means
 
 | Output | Exit | Meaning | What to do |
@@ -295,12 +346,15 @@ docker compose -f <profile dir>/docker-compose.yml exec -T \
 | `HTTP 404 no_pending` | 1 | Nothing pending for this player — already decided, or the player cancelled. Nothing changed. | Nothing, or check with the read-only query below. |
 | `HTTP 409 name_taken` | 1 | Another player got this name first. Nothing changed; the request is **still pending**. | Reject it with a reason, or retry later. |
 | `HTTP 409 name_mismatch` | 1 | The name pending now is not the one in your line — the player cancelled and asked for a different name. Nothing changed. The pending name is printed as an escaped string. | Decide on the new name — its own Telegram message, if one came (a player is notified at most once per 10 minutes, except that once you approve or reject, their next request notifies at once), or the daily digest's list. Never re-use the old line. |
-| `HTTP 400 bad_request` | 1 | The server refused the request's shape. Nothing changed. | Copy the line again from Telegram. |
+| `HTTP 200: name removed` | 0 | **Clear** (task `0314`): the name is gone, it is free for others, and the player gets an inbox message with your reason. A pending request was not touched. | Nothing — decide any pending request separately. |
+| `HTTP 404 no_custom_name` | 1 | **Clear:** this player has no custom name to remove. Nothing changed. | Check the player id with the lookup query. |
+| `HTTP 409 name_mismatch` … `Current name:` | 1 | **Clear:** the player's current name is not the one in your line. Nothing changed. The current name is printed as an escaped string. | Check it is the name you mean to remove, then re-run with it as `expectedName`. |
+| `HTTP 400 bad_request` | 1 | The server refused the request's shape. Nothing changed. | Copy the line again from Telegram — or, for a clear, which has no Telegram line, rebuild it from _Removing an approved name_. |
 | `HTTP 401 unauthorized` | 1 | The container's token was not accepted. Nothing changed. | Make sure you ran it on the profile box, in `profile-api`, exactly as pasted. |
 | `HTTP 503 name_change_unavailable` | 1 | Name changes are switched off on this server. Nothing changed. | Check the server's startup log. |
 | `HTTP 500 internal_error` | 1 | The server failed while deciding. | Check the `profile-api` logs; run the read-only query **before** retrying. |
 | `No answer from the profile API …` | 1 | No answer (timeout or connection refused). **The decision may or may not have been applied.** | Run the read-only query **before** retrying. |
-| `Refused: … Nothing was sent.` | 2 | Bad input caught locally (placeholder reason, blank reason, reason on an approve, broken or edited line, missing `expectedName`, reason over 500 characters, no token in the container). | Fix what it says and paste again. |
+| `Refused: … Nothing was sent.` | 2 | Bad input caught locally (placeholder reason, blank reason — on a reject or a clear —, reason on an approve, broken or edited line, missing `expectedName`, reason over 500 characters, no token in the container). | Fix what it says and paste again. |
 
 The name printed on a `409 name_mismatch` is escaped on purpose: a name holding hidden characters
 or terminal control codes cannot change what your root terminal shows.
@@ -310,11 +364,26 @@ or terminal control codes cannot change what your root terminal shows.
 ```bash
 docker compose -f <profile dir>/docker-compose.yml exec -T postgres \
   psql -X -U <postgres user> -d <database> -tA \
-  -c "select moderation_status, decided_at, rejection_reason is not null from player_name_history where player_id = '<player uuid>' order by id desc limit 1"
+  -c "select moderation_status, decided_at, rejection_reason is not null from player_name_history where player_id = '<player uuid>' order by decided_at desc nulls first, id desc limit 1"
 ```
 
-It prints the latest request's status (`approved` / `rejected` / `pending`), when it was decided,
-and whether a reason is stored — not the reason itself. Then check the player's card in the game.
+It prints the player's open request if there is one (`pending`), otherwise the most recent decision
+(`approved` / `rejected`, or `cleared` after a clear), when it was decided, and whether a reason is
+stored — not the reason itself. Then check the player's card in the game.
+
+It orders by **when a decision was made**, not by row id, on purpose (task `0314`): a clear adds a
+new row while leaving an older pending request alone, so after you decide that request, the newest
+*row* is still the clear. Ordered by decision time, the decision you just made is what prints.
+
+**After a clear (task `0314`)** the query above reads `cleared` (unless the player has an open
+request, or you have decided one since), and this prints `t` — the player has no custom name any
+more:
+
+```bash
+docker compose -f <profile dir>/docker-compose.yml exec -T postgres \
+  psql -X -U <postgres user> -d <database> -tA \
+  -c "select display_name is null from players where id = '<player uuid>'"
+```
 
 ### Acting on a request you only see in the list (task `0315`)
 
@@ -336,6 +405,38 @@ id is either refused before anything is sent (`Refused: …`, not a valid id) or
 `HTTP 404 no_pending` (no pending request under that id) — nothing changes either way. (The one way
 a wrong id could decide something is if it were another waiting player's id **and** your
 `expectedName` matched that player's pending name — so copy the id from the same line as the name.)
+
+### The rude-name filter warning (task `0322`)
+
+Since task `0322`, an **approved name is what other players see in a multiplayer match**. The match
+still runs its **rude-name filter** on every other player's name, and a name it matches is replaced
+with a **stand-in name** for everyone else (owner ruling: *"Keep filter, warn me first"*). So when a
+request's name would be hidden that way, you are told before you decide:
+
+- **Per-request message:** an extra line under **Requested:** —
+  *"⚠️ The match's rude-name filter would hide this name: other players would see a stand-in name.
+  Consider rejecting."*
+- **Daily list:** the line ends with `⚠️ rude-name filter`. This matters: a request that never got its
+  own message (the 10-minute rule above) is flagged **only** here.
+
+**What it means, exactly:** a yes/no answer from the **same filter the match uses**. It never says
+which word matched and never shows the stand-in name. The player is never told (their request reply
+does not change), so nobody can use a request to test the filter.
+
+⚠️ **It checks English words only.** A Russian insult, or anything else the English word list does
+not know, gets **no** warning. **Your own reading of the name is still the real check** — a name with
+no warning is not "clean", it is just not on that list.
+
+**What to do:**
+
+- **Pending request with the warning** → usually **reject**, with a reason the player can act on
+  (see *Reject* above). Approving it is allowed; the player's name would then show as a stand-in to
+  everyone else in matches.
+- **A name that was already approved** and turns out to be hidden (or rude) → remove it with the
+  clear command: [Removing an approved name](#removing-an-approved-name-task-0314).
+
+⚠️ **Names approved before task `0322` was deployed were never checked by this warning** (owner
+ruling: accepted, recorded in the ADR). If you notice one in a match, use the clear command above.
 
 ### Messages sent before this deploy
 

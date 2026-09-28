@@ -8,6 +8,19 @@ import {
   consumePendingSessionEnd,
   startSessionMatchTracking,
 } from "../SessionMatchAnalytics";
+import {
+  classifyPlatformDegradedCause,
+  consumeMatchExitMarker,
+  markMatchExit,
+} from "../PlatformDegradedAnalytics";
+import {
+  reinsertSdkLoaderScript,
+  runSdkLoaderRetries,
+  SDK_LOADER_BACKGROUND_RETRY_DELAYS_MS,
+  SDK_LOADER_IN_DEADLINE_RETRY_DELAYS_MS,
+  type SdkLoaderAttemptResult,
+  type SdkLoaderRetryOutcome,
+} from "../SdkLoaderRetry";
 
 export const TELEGRAM_CHANNEL_URL = "https://t.me/gameworldwar";
 export const VK_CHANNEL_URL = "https://vk.com/gameworldwar";
@@ -53,6 +66,19 @@ export const flashistConstants = {
     SESSION_FIRST_ACTION: "Session:FirstAction",
     SESSION_MATCHES_PLAYED: "Session:MatchesPlayed",
     SESSION_PLATFORM_INIT_TIMEOUT: "Session:PlatformInitTimeout",
+    // Why the Yandex platform is degraded on this page load — SDK, player or
+    // flags missing (task 0328). Only missing flags hide the citizenship card,
+    // so this is not a count of hidden cards. The suffix is a PlatformDegradedCause from the closed list in
+    // PlatformDegradedAnalytics.ts, appended at the call site. Value 1 = this
+    // load follows a match exit, 0 otherwise. Recovered = the flags arrived
+    // late after a degraded-without-flags check (what 0329 would rescue).
+    SESSION_PLATFORM_DEGRADED_FIRST_PART: "Session:PlatformDegraded:",
+    SESSION_PLATFORM_RECOVERED: "Session:PlatformRecovered",
+    // What the SDK loader download retry did (task 0330). Fires at most once
+    // per page, only when the first loader download failed. The suffix is a
+    // SdkLoaderRetryOutcome from the closed list in SdkLoaderRetry.ts, appended
+    // at the call site. Value = number of re-downloads made.
+    SESSION_SDK_LOADER_RETRY_FIRST_PART: "Session:SdkLoaderRetry:",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -136,6 +162,15 @@ export const flashistConstants = {
     CITIZENSHIP_TENURE_GRANT_REJECTED: "Citizenship:TenureGrant:Rejected",
     CITIZENSHIP_TENURE_GRANT_CLAIM_FAILED:
       "Citizenship:TenureGrant:ClaimFailed",
+
+    // "Restart to apply" popup after a mid-session grant (task 0303): a
+    // confirmed purchase, or the tenure gift that made the player a citizen.
+    // Not split by source — gift count = Shown − Purchase:Completed:Citizenship.
+    // Shown fires when the popup actually appears (not while it waits for the
+    // player to leave a lobby); Restart right before the reload; Later = dismiss.
+    CITIZENSHIP_RESTART_PROMPT_SHOWN: "Citizenship:RestartPrompt:Shown",
+    CITIZENSHIP_RESTART_PROMPT_RESTART: "Citizenship:RestartPrompt:Restart",
+    CITIZENSHIP_RESTART_PROMPT_LATER: "Citizenship:RestartPrompt:Later",
 
     // Paid-citizenship purchase funnel (task 0018; spec 0021 §3–5). Started
     // fires as the Yandex payment frame is opened (last client-controlled
@@ -411,6 +446,8 @@ const YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
 // experiment flags). On expiry the app continues in degraded mode instead of
 // hanging on the loading screen.
 const PLATFORM_INIT_DEADLINE_MS = 5000;
+const sleepMs = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 type YandexLoginStatus = "logged-in" | "guest" | "unknown";
 
 // Yandex catalog product shape (docs: sdk-purchases, re-checked 2026-08-14).
@@ -446,6 +483,35 @@ export class FlashistFacade {
   public yaGamesAvailable: boolean = false;
   private hasLoggedYandexLoginStatus = false;
   private hasLoggedExperimentEvents = false;
+
+  // Session:PlatformDegraded:{Cause} state (task 0328), each recorded where it
+  // happens. The loader's own failure is read from the template's
+  // window.flashist_sdkScriptLoadFailed at check time.
+  private bootFollowsMatchExit = false;
+  // The SDK loader script has loaded or failed (set in yandexSdkInit).
+  private sdkScriptSettled = false;
+  // Which part of stage 1 the 5 s deadline caught. Stage-2 (player/flags)
+  // deadlines leave it unset — those read as NoPlayer / NoFlags.
+  private platformInitTimeoutStage: "script" | "init" | undefined;
+  // YaGames.init() itself rejected (not a later step in its then-branch).
+  private sdkInitRejected = false;
+  private hasCheckedPlatformDegraded = false;
+  private platformDegradedWithoutFlags = false;
+  private hasLoggedPlatformRecovered = false;
+
+  // SDK loader download retry (task 0330). Lazily created / optional, because
+  // tests build facades via Object.create, which skips class-field initializers.
+  private sdkLoaderReadyPromise?: Promise<void>;
+  // A retry loaded the loader after the template's download failed.
+  private sdkLoaderRecoveredByRetry?: boolean;
+  // ...and it did so inside the 5 s deadline, so the boot was never degraded
+  // by the download. Only this clears the ScriptFailed cause (review R1).
+  private sdkLoaderRecoveredInDeadline?: boolean;
+  // The loader tag was missing, so there is nothing to retry.
+  private sdkLoaderRetryStopped?: boolean;
+  private sdkLoaderRetriesMade?: number;
+  private hasStartedSdkLoaderBackgroundRetry?: boolean;
+  private hasLoggedSdkLoaderRetryOutcome?: boolean;
 
   public yandexGamesSDK: any;
 
@@ -483,6 +549,10 @@ export class FlashistFacade {
   public initializeImmediate(): void {
     if (this.hasInitializedImmediate) return;
     this.hasInitializedImmediate = true;
+
+    // Read AND remove on every boot, healthy ones included, so a marker never
+    // carries over to a later load (task 0328). Never throws.
+    this.bootFollowsMatchExit = consumeMatchExitMarker();
 
     consumePendingSessionEnd((matchesPlayed) => {
       flashist_logEventAnalytics(
@@ -584,6 +654,12 @@ export class FlashistFacade {
   public initializePlatform(): Promise<void> {
     if (!this.hasStartedPlatformInit) {
       this.hasStartedPlatformInit = true;
+      // Checked at the citizenship card's own decision point — the game-init
+      // gate, after the same flags wait — so merely slow flags are not counted
+      // as missing (task 0328).
+      void flashist_waitGameInitComplete().then(() =>
+        this.logPlatformDegradedEvent(),
+      );
       this.runPlatformInit()
         .catch((error) => {
           flashist_logErrorToAnalytics(
@@ -620,9 +696,11 @@ export class FlashistFacade {
     // The 1s login-status window starts only once the SDK script itself is
     // ready: before the async-script change the tag was synchronous (fully
     // downloaded before any bundle code ran), so the window measured
-    // YaGames.init() latency only — preserved here. A never-loading script is
-    // covered by the deadline race further down.
-    const sdkReadyForSessionPromise = this.waitForSdkScript().then(() =>
+    // YaGames.init() latency only — preserved here. "Ready" includes the
+    // in-deadline download retries (task 0330), so the window starts from the
+    // loader that actually loaded. A never-loading script is covered by the
+    // deadline race further down.
+    const sdkReadyForSessionPromise = this.waitForSdkLoader().then(() =>
       this.waitForYandexSdkForSession(),
     );
 
@@ -631,6 +709,7 @@ export class FlashistFacade {
       deadlinePromise,
     ]);
     if (sdkOutcome === "deadline") {
+      this.platformInitTimeoutStage = this.sdkScriptSettled ? "init" : "script";
       logDeadlineEvent();
     }
     // SDK is ready, or we are committed to degraded mode — either way the
@@ -772,8 +851,69 @@ export class FlashistFacade {
     });
   }
 
+  /**
+   * Session:PlatformDegraded:{Cause} (task 0328) — at most once per page, at the
+   * game-init gate. Awaits the same flags load the citizenship card awaits, so
+   * flags that are merely slow do not count as missing. Never throws.
+   */
+  private async logPlatformDegradedEvent(): Promise<void> {
+    try {
+      if (this.hasCheckedPlatformDegraded) return;
+      this.hasCheckedPlatformDegraded = true;
+      if (!this.yaGamesAvailable) return;
+
+      await this.loadExperimentFlags();
+
+      const cause = classifyPlatformDegradedCause({
+        // A download a retry recovered inside the 5 s deadline is not why this
+        // page is degraded (0330). A later save is: the boot already degraded.
+        scriptFailed:
+          (window as any).flashist_sdkScriptLoadFailed === true &&
+          this.sdkLoaderRecoveredInDeadline !== true,
+        scriptTimedOut: this.platformInitTimeoutStage === "script",
+        initFailed: this.sdkInitRejected === true,
+        initTimedOut: this.platformInitTimeoutStage === "init",
+        hasSdk: !!this.yandexGamesSDK,
+        hasPlayer: !!this.yandexSdkPlayerObject,
+        hasFlags: !!this.yandexExperimentFlags,
+      });
+      if (cause === null) return;
+
+      this.platformDegradedWithoutFlags = !this.yandexExperimentFlags;
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.SESSION_PLATFORM_DEGRADED_FIRST_PART +
+          cause,
+        this.bootFollowsMatchExit ? 1 : 0,
+      );
+    } catch {
+      // Analytics only — must never affect boot
+    }
+  }
+
+  /**
+   * Session:PlatformRecovered (task 0328) — once per page, only when the
+   * degraded event fired with the flags missing and the flags have now arrived
+   * (late-SDK recovery). Those are the loads 0329 would rescue.
+   */
+  private logPlatformRecoveredIfDegraded(): void {
+    if (this.hasLoggedPlatformRecovered) return;
+    if (!this.platformDegradedWithoutFlags) return;
+    if (!this.yandexExperimentFlags) return;
+    this.hasLoggedPlatformRecovered = true;
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.SESSION_PLATFORM_RECOVERED,
+      this.bootFollowsMatchExit ? 1 : 0,
+    );
+  }
+
   // Single place for working with URLS
   public changeHref(value) {
+    // Only the match exits navigate to the root path (the Stripe checkout URL
+    // does not): mark the next boot as "follows a match exit" (task 0328).
+    // markMatchExit never throws, so navigation always happens.
+    if (value === this.rootPathname) {
+      markMatchExit();
+    }
     // window.location.href = value;
     window.location.href = value;
   }
@@ -799,13 +939,124 @@ export class FlashistFacade {
     await (window as any).flashist_sdkScriptReadyPromise;
   }
 
-  private async yandexSdkInit(): Promise<void> {
-    await this.waitForSdkScript();
+  /**
+   * The template's loader download, plus the quick in-deadline retries when it
+   * failed (task 0330). Memoized: yandexSdkInit and the login-status window
+   * share one run. Never rejects.
+   */
+  private waitForSdkLoader(): Promise<void> {
+    this.sdkLoaderReadyPromise ??= this.loadSdkLoaderWithQuickRetries();
+    return this.sdkLoaderReadyPromise;
+  }
 
-    if (typeof (window as any).YaGames === "undefined") {
-      // Not on the Yandex platform, or the SDK script failed to load
+  private async loadSdkLoaderWithQuickRetries(): Promise<void> {
+    await this.waitForSdkScript();
+    if (!this.isSdkLoaderDownloadFailed()) {
       return;
     }
+    const result = await runSdkLoaderRetries(
+      SDK_LOADER_IN_DEADLINE_RETRY_DELAYS_MS,
+      () => this.attemptSdkLoaderDownload(),
+      sleepMs,
+    );
+    this.sdkLoaderRetriesMade = result.retriesMade;
+    if (result.outcome === "loaded") {
+      this.sdkLoaderRecoveredByRetry = true;
+      // An attempt still downloading at the deadline can load after it — the
+      // boot has already gone degraded then, so that save counts as late.
+      const isLate = this.platformInitTimeoutStage === "script";
+      this.sdkLoaderRecoveredInDeadline = !isLate;
+      this.logSdkLoaderRetryOutcome(isLate ? "RecoveredLate" : "Recovered");
+    } else if (result.outcome === "noTag") {
+      this.sdkLoaderRetryStopped = true;
+      this.logSdkLoaderRetryOutcome("GaveUp");
+    }
+  }
+
+  /**
+   * The template's onerror ran — nothing executed — and no loader has defined
+   * YaGames since. The only state a retry may start from: never after onload.
+   */
+  private isSdkLoaderDownloadFailed(): boolean {
+    return (
+      (window as any).flashist_sdkScriptLoadFailed === true &&
+      typeof (window as any).YaGames === "undefined" &&
+      this.sdkLoaderRecoveredByRetry !== true &&
+      this.sdkLoaderRetryStopped !== true
+    );
+  }
+
+  // One re-download of the loader. A method so tests can stub it.
+  private attemptSdkLoaderDownload(): Promise<SdkLoaderAttemptResult> {
+    return reinsertSdkLoaderScript(document);
+  }
+
+  /**
+   * Quiet background retries after the quick ones failed (task 0330), started
+   * at most once per page. A success hands off to initLoadedYandexSdk(), which
+   * by then takes the existing late-recovery path (0328/0329).
+   */
+  private startSdkLoaderBackgroundRetry(): void {
+    if (this.hasStartedSdkLoaderBackgroundRetry) return;
+    this.hasStartedSdkLoaderBackgroundRetry = true;
+    void runSdkLoaderRetries(
+      SDK_LOADER_BACKGROUND_RETRY_DELAYS_MS,
+      () => this.attemptSdkLoaderDownload(),
+      sleepMs,
+    )
+      .then((result) => {
+        this.sdkLoaderRetriesMade =
+          (this.sdkLoaderRetriesMade ?? 0) + result.retriesMade;
+        if (result.outcome !== "loaded") {
+          this.logSdkLoaderRetryOutcome("GaveUp");
+          return;
+        }
+        this.sdkLoaderRecoveredByRetry = true;
+        this.logSdkLoaderRetryOutcome("RecoveredLate");
+        if (typeof (window as any).YaGames !== "undefined") {
+          return this.initLoadedYandexSdk();
+        }
+      })
+      .catch(() => {
+        // Best-effort recovery — must never surface as an unhandled rejection
+      });
+  }
+
+  /** Session:SdkLoaderRetry:{Outcome} (task 0330) — at most once per page. */
+  private logSdkLoaderRetryOutcome(outcome: SdkLoaderRetryOutcome): void {
+    if (this.hasLoggedSdkLoaderRetryOutcome) return;
+    this.hasLoggedSdkLoaderRetryOutcome = true;
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.SESSION_SDK_LOADER_RETRY_FIRST_PART +
+        outcome,
+      this.sdkLoaderRetriesMade ?? 0,
+    );
+  }
+
+  private async yandexSdkInit(): Promise<void> {
+    await this.waitForSdkLoader();
+    // Lets the deadline branch tell "loader still downloading" from "init()
+    // hung" (task 0328). Settled = after the quick download retries (0330).
+    this.sdkScriptSettled = true;
+
+    if (typeof (window as any).YaGames === "undefined") {
+      // Not on the Yandex platform, the loader left no SDK, or its download
+      // failed and the quick retries did not recover it. In that last case the
+      // boot degrades now and the download keeps retrying quietly (task 0330).
+      if (this.isSdkLoaderDownloadFailed()) {
+        this.startSdkLoaderBackgroundRetry();
+      }
+      return;
+    }
+    await this.initLoadedYandexSdk();
+  }
+
+  /**
+   * YaGames.init() and everything after it. Reached at most once per page —
+   * from yandexSdkInit, or from a background download retry, never both — so
+   * init() is never called twice. A rejected or hung init() is never retried.
+   */
+  private async initLoadedYandexSdk(): Promise<void> {
     this.yaGamesAvailable = true;
 
     try {
@@ -824,7 +1075,11 @@ export class FlashistFacade {
       // SDK and was deliberately not memoized — fetch for real now so flag
       // checks later in the session work and cohort events fire (the latch in
       // logExperimentEvents dedupes). No-op on the normal path (memo present).
-      void this.initExperimentFlags();
+      // Session:PlatformRecovered fires from here if the card's check already
+      // ran without flags (task 0328); a no-op otherwise.
+      void this.initExperimentFlags().then(() =>
+        this.logPlatformRecoveredIfDegraded(),
+      );
       // Badge snapshot recovery, same pattern: the boot-time prime resolved
       // against the no-SDK flags above, so re-prime now that the real ones are
       // in — otherwise the async helper reports enabled while the sync snapshot
@@ -840,7 +1095,7 @@ export class FlashistFacade {
       // so this skips entirely and never duplicates getPlayer(). The
       // Player:Yandex* status event is NOT re-logged (latched); late state is
       // for callers that ask after recovery.
-      void this.playerInitResultPromise
+      const playerRecovery = this.playerInitResultPromise
         ?.catch(() => {})
         .then(async () => {
           if (this.yandexSdkPlayerObject || !this.yandexGamesSDK) {
@@ -855,7 +1110,29 @@ export class FlashistFacade {
             // Recovery is best-effort — the session stays in guest state
           }
         });
+      // Task 0329: a degraded boot recovered late — let the citizenship card
+      // re-check its gate. Waits for the player too, so the card's profile read
+      // is not a false "guest" (bounded by the shared deadline).
+      if (playerRecovery !== undefined) {
+        void Promise.all([
+          // Memoized: joins the re-fetch above, never a second getFlags().
+          this.loadExperimentFlags(),
+          Promise.race([
+            playerRecovery,
+            new Promise<void>((resolve) =>
+              setTimeout(resolve, PLATFORM_INIT_DEADLINE_MS),
+            ),
+          ]),
+        ])
+          .then(() => this.markPlatformRecoveredLate())
+          .catch(() => {});
+      }
     } catch (error) {
+      // No SDK assigned means YaGames.init() itself rejected, not a later step
+      // above — only that case is the InitFailed cause (task 0328).
+      if (!this.yandexGamesSDK) {
+        this.sdkInitRejected = true;
+      }
       // A rejected YaGames.init() must not kill app start — degrade instead.
       flashist_logErrorToAnalytics(
         `ERROR! FlashistFacade | yandexSdkInit __ error: ${error}`,
@@ -1104,6 +1381,40 @@ export class FlashistFacade {
     return new Promise((resolve) => {
       (this.paymentsCatalogSettledResolvers ??= []).push(resolve);
     });
+  }
+
+  // Late platform recovery (task 0329). Lazily created, like the catalog
+  // resolvers above, because tests build facades via Object.create.
+  private hasPlatformRecoveredLate?: boolean;
+  private platformRecoveredLateResolvers?: Array<() => void>;
+
+  /**
+   * Resolves once a DEGRADED boot has recovered late: YaGames.init() settled
+   * only after stage 2 of platform init had run, the experiment flags now
+   * exist, and the player recovery settled (or the shared deadline passed).
+   * Fires at most once per page; resolves immediately for a waiter that
+   * arrives after it fired. Never resolves on a healthy boot, nor when the
+   * flags never arrive — subscribe with .then(), never block on it. The
+   * citizenship card (task 0329) re-checks its flag gate on it.
+   */
+  public whenPlatformRecoveredLate(): Promise<void> {
+    if (this.hasPlatformRecoveredLate) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      (this.platformRecoveredLateResolvers ??= []).push(resolve);
+    });
+  }
+
+  /** Sole writer of hasPlatformRecoveredLate — fires only with flags present, once. */
+  private markPlatformRecoveredLate(): void {
+    if (!this.yandexExperimentFlags || this.hasPlatformRecoveredLate) {
+      return;
+    }
+    this.hasPlatformRecoveredLate = true;
+    const resolvers = this.platformRecoveredLateResolvers ?? [];
+    this.platformRecoveredLateResolvers = [];
+    resolvers.forEach((resolve) => resolve());
   }
 
   /** Sole writer of paymentsCatalogStatus — wakes settle waiters on any non-idle value. */

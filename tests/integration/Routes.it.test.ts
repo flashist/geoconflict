@@ -170,14 +170,16 @@ RUN("profile API over real Postgres (integration)", () => {
     );
     expect(after.rows[0].n).toBe(1);
 
-    // Citizen now: the list is served, newest first, unread.
+    // Citizen now: the list is served, newest first, unread. Task 0250 S1: an
+    // unverified caller sees the NEUTRAL key; the stored row (above) is still
+    // `citizenship_earned`.
     const list = await request(app)
       .get("/v1/messages")
       .set("Authorization", caller);
     expect(list.status).toBe(200);
     expect(list.body.messages).toHaveLength(1);
     expect(list.body.messages[0]).toMatchObject({
-      templateKey: "citizenship_earned",
+      templateKey: "citizenship_granted",
       readAt: null,
     });
   });
@@ -308,11 +310,16 @@ RUN("profile API over real Postgres (integration)", () => {
     expect(missing.status).toBe(404);
 
     // Create via the internal endpoint (no psql seeding). The internal response
-    // carries the internal id (ADR-113 point 3) and nothing else.
+    // carries the internal id (ADR-113 point 3), the citizen flag and — since task
+    // 0322 — the approved display name (null here: a new player has none).
     const created = await resolveOverHttp(P);
     expect(created.status).toBe(200);
     const playerId = await playerIdOf(P);
-    expect(created.body).toEqual({ playerId, isCitizen: false });
+    expect(created.body).toEqual({
+      playerId,
+      isCitizen: false,
+      displayName: null,
+    });
 
     // Credit once, then idempotently again — keyed (game_id, player_id).
     const first = await creditOverHttp(playerId, "g1", 10);
@@ -339,6 +346,34 @@ RUN("profile API over real Postgres (integration)", () => {
     expect(read.body).not.toHaveProperty("is_paid_citizen");
     expect(read.body).not.toHaveProperty("citizenship_purchased_at");
     expect(JSON.stringify(read.body)).not.toMatch(UUID_SHAPE);
+  });
+
+  // Task 0322: the game server shows the approved name in matches, read off this
+  // same resolve. A player with one gets it; a player without one gets null.
+  test("resolve returns the approved display name, and null for a player with none", async () => {
+    const first = await resolveOverHttp(P);
+    const second = await resolveOverHttp("yandex-http-2");
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    const playerId: string = first.body.playerId;
+    // Stand in for an approved name-change: set the column the decide route writes.
+    await pool.query("UPDATE players SET display_name = $1 WHERE id = $2", [
+      "Approved_Name",
+      playerId,
+    ]);
+
+    const withName = await resolveOverHttp(P);
+    expect(withName.status).toBe(200);
+    expect(withName.body).toEqual({
+      playerId,
+      isCitizen: false,
+      displayName: "Approved_Name",
+    });
+
+    const without = await resolveOverHttp("yandex-http-2");
+    expect(without.status).toBe(200);
+    expect(without.body.displayName).toBeNull();
+    expect(without.body).toHaveProperty("displayName", null);
   });
 
   test("credit for an unknown player id reports no_profile and writes nothing", async () => {

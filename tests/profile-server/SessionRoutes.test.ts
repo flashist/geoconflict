@@ -70,6 +70,8 @@ function mocks(): Mocks {
     nameChange: {
       requestNameChange: jest.fn().mockResolvedValue({ status: "ok", id: 1 }),
       cancelNameChange: jest.fn().mockResolvedValue({ status: "ok" }),
+      dismissRejection: jest.fn().mockResolvedValue({ status: "ok" }),
+      clearDisplayName: jest.fn().mockResolvedValue({ status: "ok" }),
       decideNameChange: jest.fn(),
       getLatestState: jest.fn().mockResolvedValue(null),
     },
@@ -169,7 +171,9 @@ const ROUTES: PublicRoute[] = [
       });
     },
     acted: (m) => m.inbox.markRead as jest.Mock,
-    actedWith: [PLAYER_ID, undefined],
+    // Task 0250 S1 (review R2): mark-all marks the LISTED visible unread
+    // messages by id — none here.
+    actedWith: [PLAYER_ID, []],
   },
   {
     name: "POST /v1/profile/name-change-request",
@@ -199,6 +203,22 @@ const ROUTES: PublicRoute[] = [
       });
     },
     acted: (m) => m.nameChange.cancelNameChange as jest.Mock,
+    actedWith: [PLAYER_ID],
+  },
+  {
+    // Task 0314: hide a declined notice.
+    name: "POST /v1/profile/name-change-dismiss",
+    method: "post",
+    path: "/v1/profile/name-change-dismiss",
+    body: {},
+    okStatus: 200,
+    missingPlayerStatus: 403,
+    rigMissingPlayer: (m) => {
+      (m.nameChange.dismissRejection as jest.Mock).mockResolvedValue({
+        status: "not_citizen",
+      });
+    },
+    acted: (m) => m.nameChange.dismissRejection as jest.Mock,
     actedWith: [PLAYER_ID],
   },
   {

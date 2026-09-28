@@ -28,6 +28,7 @@ import {
   buildOperatorNotificationText,
   decideCommandLines,
   describeRequestedNameForModerator,
+  wouldMatchFilterHideName,
 } from "../../src/profile-server/NameChangeRepository";
 
 type Handler = (params: unknown[]) => { rows?: unknown[]; rowCount?: number };
@@ -867,6 +868,227 @@ describe("cancelNameChange (owner amendment 2)", () => {
   });
 });
 
+describe("dismissRejection (task 0314)", () => {
+  it("is citizen-gated like every other player-facing call", async () => {
+    const db = fakePool([["SELECT is_citizen", NOT_CITIZEN]]);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.dismissRejection("p1")).resolves.toEqual({
+      status: "not_citizen",
+    });
+    expect(db.sqlFor("UPDATE player_name_history")).toHaveLength(0);
+  });
+
+  it("treats a player with no profile row as not_citizen", async () => {
+    const db = fakePool([["SELECT is_citizen", NO_PROFILE]]);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.dismissRejection("p1")).resolves.toEqual({
+      status: "not_citizen",
+    });
+  });
+
+  it("hides ONLY the caller's newest row, and only while it is an unhidden decline", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["SET dismissed_at = now()", () => ({ rowCount: 1 })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.dismissRejection("p1")).resolves.toEqual({
+      status: "ok",
+    });
+    const update = db.sqlFor("SET dismissed_at = now()")[0];
+    expect(update.params).toEqual(["p1"]);
+    // The newest row of THIS player…
+    expect(update.sql).toMatch(
+      /WHERE id = \(\s*SELECT id FROM player_name_history\s+WHERE player_id = \$1\s+ORDER BY id DESC\s+LIMIT 1\s*\)/,
+    );
+    expect(update.sql).toContain("AND player_id = $1");
+    // …and only a decline that is not hidden yet — a pending or approved row
+    // can never be hidden.
+    expect(update.sql).toContain("AND moderation_status = 'rejected'");
+    expect(update.sql).toContain("AND dismissed_at IS NULL");
+  });
+
+  it("is still ok when nothing was hidden (second tap, or the newest row is not a decline)", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["SET dismissed_at = now()", () => ({ rowCount: 0 })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.dismissRejection("p1")).resolves.toEqual({
+      status: "ok",
+    });
+  });
+
+  it("sends nothing to the inbox or Telegram", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["SET dismissed_at = now()", () => ({ rowCount: 1 })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    await repo.dismissRejection("p1");
+    expect(inbox.sendTemplate).not.toHaveBeenCalled();
+    expect(telegramSend).not.toHaveBeenCalled();
+  });
+});
+
+describe("clearDisplayName (task 0314)", () => {
+  function clearPool(
+    currentName: string | null | undefined,
+    overrides: Array<[string, Handler]> = [],
+  ) {
+    return fakePool([
+      ...overrides,
+      [
+        "SELECT display_name FROM players",
+        () => ({
+          rows:
+            currentName === undefined ? [] : [{ display_name: currentName }],
+        }),
+      ],
+      ["UPDATE players SET display_name = NULL", () => ({ rowCount: 1 })],
+      [
+        "INSERT INTO player_name_history",
+        () => ({ rows: [{ id: 41 }], rowCount: 1 }),
+      ],
+    ]);
+  }
+
+  it("clears the name and writes a 'cleared' audit row with the removed name and the reason, in one transaction", async () => {
+    const db = clearPool("OldName");
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OldName", "offensive"),
+    ).resolves.toEqual({ status: "ok" });
+
+    const order = db.seen.map((e) => e.sql.trim().split("\n")[0]);
+    expect(order).toEqual([
+      "BEGIN",
+      "SELECT display_name FROM players",
+      "UPDATE players SET display_name = NULL, updated_at = now()",
+      "INSERT INTO player_name_history",
+      "COMMIT",
+    ]);
+    // The lock is the SAME one the approve path takes.
+    expect(db.sqlFor("SELECT display_name FROM players")[0].sql).toContain(
+      "FOR UPDATE",
+    );
+    expect(
+      db.sqlFor("UPDATE players SET display_name = NULL")[0].params,
+    ).toEqual([PLAYER_ID]);
+    const insert = db.sqlFor("INSERT INTO player_name_history")[0];
+    // Status passed EXPLICITLY (the column still defaults to 'approved'), no new name.
+    expect(insert.sql).toContain("'cleared'");
+    expect(insert.sql).toMatch(
+      /VALUES \(\$1, \$2, NULL, 'cleared', \$3, now\(\)\)/,
+    );
+    expect(insert.params).toEqual([PLAYER_ID, "OldName", "offensive"]);
+    expect(db.client.release).toHaveBeenCalled();
+  });
+
+  it("sends the name_change_cleared inbox note AFTER the commit, repeating the name and the reason", async () => {
+    const db = clearPool("OldName");
+    let committedBeforeSend = false;
+    inbox.sendTemplate.mockImplementation(async () => {
+      committedBeforeSend = db.seen.some((e) => /^\s*COMMIT\s*$/.test(e.sql));
+    });
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await repo.clearDisplayName(PLAYER_ID, "OldName", "offensive");
+    expect(inbox.sendTemplate).toHaveBeenCalledWith(
+      PLAYER_ID,
+      "name_change_cleared",
+      { name: "OldName", reason: "offensive" },
+    );
+    expect(committedBeforeSend).toBe(true);
+  });
+
+  it("no_custom_name when the player has no name set — nothing written, nothing sent", async () => {
+    const db = clearPool(null);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OldName", "offensive"),
+    ).resolves.toEqual({ status: "no_custom_name" });
+    expect(db.sqlFor("UPDATE players")).toHaveLength(0);
+    expect(db.sqlFor("INSERT INTO player_name_history")).toHaveLength(0);
+    expect(db.seen.some((e) => /ROLLBACK/.test(e.sql))).toBe(true);
+    expect(inbox.sendTemplate).not.toHaveBeenCalled();
+  });
+
+  it("no_custom_name when there is no player row at all", async () => {
+    const db = clearPool(undefined);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OldName", "offensive"),
+    ).resolves.toEqual({ status: "no_custom_name" });
+  });
+
+  it("name_mismatch carries the CURRENT name and changes nothing", async () => {
+    const db = clearPool("RealName");
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OtherName", "offensive"),
+    ).resolves.toEqual({ status: "name_mismatch", currentName: "RealName" });
+    expect(db.sqlFor("UPDATE players")).toHaveLength(0);
+    expect(db.sqlFor("INSERT INTO player_name_history")).toHaveLength(0);
+    expect(inbox.sendTemplate).not.toHaveBeenCalled();
+  });
+
+  it("trims expectedName before comparing, but stays case-sensitive", async () => {
+    const trimmed = clearPool("OldName");
+    await expect(
+      new NameChangeRepository(trimmed.pool, inbox).clearDisplayName(
+        PLAYER_ID,
+        "  OldName \n",
+        "r",
+      ),
+    ).resolves.toEqual({ status: "ok" });
+    const cased = clearPool("OldName");
+    await expect(
+      new NameChangeRepository(cased.pool, inbox).clearDisplayName(
+        PLAYER_ID,
+        "oldname",
+        "r",
+      ),
+    ).resolves.toEqual({ status: "name_mismatch", currentName: "OldName" });
+  });
+
+  it("rolls back, releases the client and rethrows when a write fails — no inbox note", async () => {
+    const db = clearPool("OldName", [
+      [
+        "INSERT INTO player_name_history",
+        () => {
+          throw pgError("23514");
+        },
+      ],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OldName", "offensive"),
+    ).rejects.toThrow("pg 23514");
+    expect(db.seen.some((e) => /ROLLBACK/.test(e.sql))).toBe(true);
+    expect(db.seen.some((e) => /^\s*COMMIT\s*$/.test(e.sql))).toBe(false);
+    expect(db.client.release).toHaveBeenCalled();
+    expect(inbox.sendTemplate).not.toHaveBeenCalled();
+  });
+
+  it("returns ok even when the inbox send rejects (the clear is committed)", async () => {
+    inbox.sendTemplate.mockRejectedValue(new Error("inbox down"));
+    const db = clearPool("OldName");
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(
+      repo.clearDisplayName(PLAYER_ID, "OldName", "offensive"),
+    ).resolves.toEqual({ status: "ok" });
+  });
+
+  it("never touches a pending request, and sends no Telegram message", async () => {
+    const db = clearPool("OldName");
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    await repo.clearDisplayName(PLAYER_ID, "OldName", "offensive");
+    expect(db.sqlFor("moderation_status = 'pending'")).toHaveLength(0);
+    expect(db.sqlFor("DELETE")).toHaveLength(0);
+    expect(telegramSend).not.toHaveBeenCalled();
+  });
+});
+
 describe("decideNameChange", () => {
   function decidePool(overrides: Array<[string, Handler]> = []) {
     return fakePool([
@@ -1104,8 +1326,15 @@ describe("decideNameChange", () => {
 });
 
 describe("getLatestState", () => {
+  // The projection query (its SELECT list; the dismiss UPDATE never matches it).
+  const LATEST = "SELECT new_display_name, moderation_status";
+
+  function latestPool(row: Record<string, unknown>) {
+    return fakePool([[LATEST, () => ({ rows: [row] })]]);
+  }
+
   it("returns null when the player has never requested a change", async () => {
-    const db = fakePool([["ORDER BY id DESC", () => ({ rows: [] })]]);
+    const db = fakePool([[LATEST, () => ({ rows: [] })]]);
     const repo = new NameChangeRepository(db.pool, inbox);
     await expect(repo.getLatestState("p1")).resolves.toBeNull();
   });
@@ -1114,7 +1343,7 @@ describe("getLatestState", () => {
     const decidedAt = new Date("2026-08-28T10:00:00.000Z");
     const db = fakePool([
       [
-        "ORDER BY id DESC",
+        LATEST,
         () => ({
           rows: [
             {
@@ -1137,15 +1366,13 @@ describe("getLatestState", () => {
     // must never ride along on it.
     expect(Object.keys(state ?? {})).not.toContain("rejection_reason");
     // ...and the query must not even select it.
-    expect(db.sqlFor("ORDER BY id DESC")[0].sql).not.toContain(
-      "rejection_reason",
-    );
+    expect(db.sqlFor(LATEST)[0].sql).not.toContain("rejection_reason");
   });
 
   it("carries a null decided_at for a pending request", async () => {
     const db = fakePool([
       [
-        "ORDER BY id DESC",
+        LATEST,
         () => ({
           rows: [
             {
@@ -1163,6 +1390,75 @@ describe("getLatestState", () => {
       requested_name: "NewName",
       decided_at: null,
     });
+  });
+
+  // ── Task 0314 ──
+  it("a declined request the player HID projects as null — the card goes idle", async () => {
+    const db = latestPool({
+      new_display_name: "NewName",
+      moderation_status: "rejected",
+      decided_at: new Date("2026-08-28T10:00:00.000Z"),
+      dismissed_at: new Date("2026-08-29T10:00:00.000Z"),
+    });
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.getLatestState("p1")).resolves.toBeNull();
+    expect(db.sqlFor(LATEST)[0].sql).toContain("dismissed_at");
+  });
+
+  it("a declined request NOT hidden still projects as rejected", async () => {
+    const db = latestPool({
+      new_display_name: "NewName",
+      moderation_status: "rejected",
+      decided_at: new Date("2026-08-28T10:00:00.000Z"),
+      dismissed_at: null,
+    });
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.getLatestState("p1")).resolves.toEqual({
+      status: "rejected",
+      requested_name: "NewName",
+      decided_at: "2026-08-28T10:00:00.000Z",
+    });
+  });
+
+  it("a 'cleared' audit row projects as null — never the string \"null\" and never the status", async () => {
+    const db = latestPool({
+      new_display_name: null,
+      moderation_status: "cleared",
+      decided_at: new Date("2026-08-28T10:00:00.000Z"),
+      dismissed_at: null,
+    });
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await expect(repo.getLatestState("p1")).resolves.toBeNull();
+  });
+
+  it("dismissed_at only matters on a DECLINE — a pending or approved row still shows", async () => {
+    for (const status of ["pending", "approved"]) {
+      const db = latestPool({
+        new_display_name: "NewName",
+        moderation_status: status,
+        decided_at: null,
+        dismissed_at: new Date("2026-08-29T10:00:00.000Z"),
+      });
+      const repo = new NameChangeRepository(db.pool, inbox);
+      await expect(repo.getLatestState("p1")).resolves.toMatchObject({
+        status,
+      });
+    }
+  });
+
+  it("a PENDING row wins over a newer cleared row (a clear leaves a pending request alone)", async () => {
+    const db = latestPool({
+      new_display_name: "NewName",
+      moderation_status: "pending",
+      decided_at: null,
+      dismissed_at: null,
+    });
+    const repo = new NameChangeRepository(db.pool, inbox);
+    await repo.getLatestState("p1");
+    const sql = db.sqlFor(LATEST)[0].sql;
+    expect(sql).toMatch(
+      /ORDER BY \(moderation_status = 'pending'\) DESC, id DESC\s+LIMIT 1/,
+    );
   });
 });
 
@@ -1537,5 +1833,87 @@ describe("describeRequestedNameForModerator (task 0307, F3)", () => {
     const text = telegramSend.mock.calls[0][1] as string;
     expect(text).toContain("<b>Requested:</b> Ivan");
     expect(text).not.toContain("hidden or unusual characters");
+  });
+});
+
+// Task 0322 (owner ruling "Keep filter, warn me first"): since approved names show
+// in matches, the moderator is told when the MATCH's rude-name filter would hide a
+// requested name. A yes/no only — never the matched word, never the stand-in name.
+describe("rude-name filter warning (task 0322)", () => {
+  const FILTER_WARNING = "rude-name filter would hide this name";
+  // A word from obscenity's English dataset (the real matcher, no mock here).
+  const FILTERED = "bitch";
+  // What the match shows instead (src/core/validations/username.ts shadowNames).
+  const STAND_INS = [
+    "NicePeopleOnly",
+    "BeKindPlz",
+    "LearningManners",
+    "StayClassy",
+    "BeNicer",
+    "NeedHugs",
+    "MakeFriends",
+  ];
+
+  it("asks the match's own matcher", () => {
+    expect(wouldMatchFilterHideName(FILTERED)).toBe(true);
+    expect(wouldMatchFilterHideName("B1tch_Queen")).toBe(true);
+    expect(wouldMatchFilterHideName("Ivan")).toBe(false);
+    expect(wouldMatchFilterHideName("Привет 123")).toBe(false);
+  });
+
+  it("the per-request message carries the warning for a filter-matched name", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["lower(display_name)", NAME_FREE],
+      ["INSERT INTO player_name_history", () => ({ rows: [{ id: 3 }] })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    // The player's own reply carries nothing about the filter — no probing it.
+    expect(await repo.requestNameChange(PLAYER_ID, FILTERED)).toEqual({
+      status: "ok",
+      id: 3,
+    });
+    const text = telegramSend.mock.calls[0][1] as string;
+    expect(text).toContain(FILTER_WARNING);
+    expect(text).toContain("Consider rejecting.");
+    const warningLine = text
+      .split("\n")
+      .find((line) => line.includes(FILTER_WARNING));
+    expect(warningLine).toBeDefined();
+    // Never the matched term, never the stand-in name, on the warning line.
+    expect(warningLine).not.toContain(FILTERED);
+    for (const standIn of STAND_INS) {
+      expect(text).not.toContain(standIn);
+    }
+  });
+
+  it("no warning line for a clean name", async () => {
+    const db = fakePool([
+      ["SELECT is_citizen", CITIZEN],
+      ["lower(display_name)", NAME_FREE],
+      ["INSERT INTO player_name_history", () => ({ rows: [{ id: 3 }] })],
+    ]);
+    const repo = new NameChangeRepository(db.pool, inbox, TELEGRAM);
+    await repo.requestNameChange(PLAYER_ID, "Ivan");
+    const text = telegramSend.mock.calls[0][1] as string;
+    expect(text).not.toContain(FILTER_WARNING);
+  });
+
+  it("a name with hidden characters AND a filtered word gets both warnings, and stays valid HTML under 4096", () => {
+    const name = `${"\u00A0".repeat(123)}${FILTERED}`;
+    expect(name.length).toBe(128);
+    const text = buildOperatorNotificationText(
+      PLAYER_ID,
+      name,
+      "2026-09-28T00:00:00.000Z",
+    );
+    expect(text).toContain("hidden or unusual characters");
+    expect(text).toContain(FILTER_WARNING);
+    expect(text.length).toBeLessThan(4096);
+    // The only tags are the ones the message writes itself.
+    const tags = new Set(text.match(/<[^>]*>/g) ?? []);
+    for (const tag of tags) {
+      expect(["<b>", "</b>", "<pre>", "</pre>"]).toContain(tag);
+    }
   });
 });

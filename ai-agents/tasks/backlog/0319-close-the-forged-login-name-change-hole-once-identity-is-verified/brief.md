@@ -101,7 +101,7 @@ producer before building — the route list above still stands, the mechanism ma
 
 ## Notes
 
-- **Depends on:** 0267 (the identity-verification investigation and its owner-approved recommendation) — and on the implementation task that builds verified login from it, which is not filed yet.
+- **Depends on:** 0325 (verified login — filed 2026-09-27, see the dated note at the end of *Notes*). *Earlier text, kept:* ~~0267 (the identity-verification investigation and its owner-approved recommendation) — and on the implementation task that builds verified login from it, which is not filed yet.~~
 - **Blocks:** nothing
 - **Related:**
   - [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) — the root fix (investigation).
@@ -115,3 +115,10 @@ producer before building — the route list above still stands, the mechanism ma
   - [`0014`](../../done/0014-yandex-catalog-registration/brief.md) — closed; the old, now-stale hand-off target.
   - `0250` (authenticated profile read), `0266` / `0273` (login endpoint and client session), ADR-103.
 - No secrets, hostnames or real player ids in any artifact of this task.
+- 📌 **2026-09-27 — dependency now filed (append-only).** Added by a spawned `fkit-producer` on OWNER RULING
+  D3 on `0250` (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ADR-021/037).
+  The *"implementation task that builds verified login … not filed yet"* in *Depends on* above **is now
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)** — it
+  mints `vfy:true` sessions and makes `resolveCaller` report `verified`. **This task depends on `0325`**; it
+  then gates its routes on `verified`. `0267`'s Yandex half is answered by the `0250` design report, so `0267`
+  no longer stands between this task and the fix.

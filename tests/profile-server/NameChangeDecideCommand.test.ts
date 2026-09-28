@@ -32,6 +32,14 @@ const approveJson = (name = "Ivan") =>
   buildDecideCommandBody(PLAYER_ID, name, "approve");
 const rejectJson = (name = "Ivan") =>
   buildDecideCommandBody(PLAYER_ID, name, "reject");
+// Task 0314: no Telegram line carries a clear — the operator builds it from the
+// runbook's shape, so it is built by hand here too.
+const clearJson = (name = "Ivan") =>
+  JSON.stringify({
+    playerId: PLAYER_ID,
+    decision: "clear",
+    expectedName: name,
+  });
 
 function harness(
   respond: () => Promise<{ status: number; body?: unknown }> = async () => ({
@@ -113,6 +121,179 @@ describe("runNameChangeDecide — what is sent", () => {
     });
     await expect(h.run(json, undefined)).resolves.toBe(EXIT_OK);
     expect(JSON.parse(h.calls[0].init.body)).not.toHaveProperty("reason");
+  });
+});
+
+describe("runNameChangeDecide — clear (task 0314)", () => {
+  it("posts exactly the bound clear with the operator's reason", async () => {
+    const h = harness();
+    await expect(h.run(clearJson("OldName"), "offensive")).resolves.toBe(
+      EXIT_OK,
+    );
+    expect(h.calls).toHaveLength(1);
+    expect(JSON.parse(h.calls[0].init.body)).toEqual({
+      playerId: PLAYER_ID,
+      decision: "clear",
+      expectedName: "OldName",
+      reason: "offensive",
+    });
+    expect(h.out.join("\n")).toContain("HTTP 200: name removed");
+    expect(h.out.join("\n")).toContain("NOT touched");
+    expect(h.err).toEqual([]);
+  });
+
+  it.each([
+    ["no reason", undefined],
+    ["a blank reason", "   "],
+    ["the unedited placeholder", REASON_PLACEHOLDER],
+    ["the placeholder with stray spaces", ` ${REASON_PLACEHOLDER} `],
+    ["a reason over 500 characters", "x".repeat(501)],
+  ])("refuses a clear with %s — exit 2, nothing sent", async (_l, reason) => {
+    const h = harness();
+    await expect(h.run(clearJson(), reason)).resolves.toBe(EXIT_BAD_INPUT);
+    expect(h.calls).toHaveLength(0);
+    expect(h.err.join("\n")).toContain("Nothing was sent.");
+  });
+
+  it("names a missing clear reason in plain words", () => {
+    expect(parseDecideInput(clearJson(), undefined)).toEqual({
+      ok: false,
+      error: expect.stringContaining("Removing a name needs a reason"),
+    });
+  });
+
+  it("refuses a clear with no expectedName — exit 2, nothing sent", async () => {
+    const h = harness();
+    await expect(
+      h.run(
+        JSON.stringify({ playerId: PLAYER_ID, decision: "clear" }),
+        "offensive",
+      ),
+    ).resolves.toBe(EXIT_BAD_INPUT);
+    expect(h.calls).toHaveLength(0);
+  });
+
+  it("404 no_custom_name → exit 1 with clear-specific wording", async () => {
+    const h = harness(async () => ({
+      status: 404,
+      body: { error: "no_custom_name" },
+    }));
+    await expect(h.run(clearJson(), "r")).resolves.toBe(EXIT_REFUSED);
+    expect(h.err.join("\n")).toContain("no custom name to remove");
+    expect(h.err.join("\n")).not.toContain("pending");
+  });
+
+  it("any OTHER 404 on a clear is reported as unexpected, never as 'no pending request'", async () => {
+    const h = harness(async () => ({ status: 404, body: { error: "odd" } }));
+    await expect(h.run(clearJson(), "r")).resolves.toBe(EXIT_REFUSED);
+    expect(h.err.join("\n")).toContain("unexpected answer");
+    expect(h.err.join("\n")).not.toContain("no pending request");
+  });
+
+  it("409 name_mismatch prints the CURRENT name escaped — no terminal control reaches a root shell", async () => {
+    const hostile = "Ev\u001b[2J\u001b]0;pwn\u0007il\u202Eeman\nfake";
+    const h = harness(async () => ({
+      status: 409,
+      body: { error: "name_mismatch", current_name: hostile },
+    }));
+    await expect(h.run(clearJson(), "r")).resolves.toBe(EXIT_REFUSED);
+    const printed = h.err.join("\n");
+    expect(printed).toContain("current name");
+    expect(printed).toMatch(/^[\x20-\x7E]*$/);
+    expect(printed).toContain(escapeForTerminal(hostile));
+    expect(printed).not.toContain("\u001b");
+    expect(printed).not.toContain("\u202E");
+  });
+
+  it.each([
+    [400, { error: "bad_request" }, "HTTP 400 bad_request"],
+    [401, { error: "unauthorized" }, "HTTP 401 unauthorized"],
+    [503, { error: "name_change_unavailable" }, "switched off"],
+    [500, { error: "internal_error" }, "read-only check in the runbook"],
+  ])(
+    "HTTP %i on a clear reads as it does for every decision",
+    async (status, body, words) => {
+      const h = harness(async () => ({ status, body }));
+      await expect(h.run(clearJson(), "r")).resolves.toBe(EXIT_REFUSED);
+      expect(h.err.join("\n")).toContain(words);
+    },
+  );
+
+  // Review R4: a clear has no Telegram line, so its "get a clean copy" hint points
+  // at the runbook; approve/reject keep pointing at the Telegram message.
+  it("HTTP 400 on a clear points at the runbook, never at a Telegram message", () => {
+    const clear = describeDecideResponse(
+      400,
+      { error: "bad_request" },
+      "clear",
+    );
+    expect(clear.message).toContain("Removing an approved name");
+    expect(clear.message).not.toContain("Telegram");
+    const approve = describeDecideResponse(
+      400,
+      { error: "bad_request" },
+      "approve",
+    );
+    expect(approve.message).toContain("from the Telegram message");
+  });
+
+  it("a clear with a bad shape points at the runbook, never at a Telegram message", () => {
+    const parsed = parseDecideInput(
+      JSON.stringify({
+        playerId: "not-a-uuid",
+        decision: "clear",
+        expectedName: "Ivan",
+      }),
+      "offensive",
+    );
+    expect(parsed.ok).toBe(false);
+    const error = parsed.ok ? "" : parsed.error;
+    expect(error).toContain("does not have the expected shape");
+    expect(error).toContain("Removing an approved name");
+    expect(error).not.toContain("Telegram");
+  });
+
+  // Review R5: approve/reject wording is pinned byte-for-byte (the same text as
+  // before task 0314), so the clear-only hint cannot drift into these answers.
+  it.each(["approve", "reject"] as const)(
+    "%s: the 400 answer and the bad-shape refusal keep their exact wording",
+    (decision) => {
+      expect(
+        describeDecideResponse(400, { error: "bad_request" }, decision),
+      ).toEqual({
+        exitCode: EXIT_REFUSED,
+        message:
+          "HTTP 400 bad_request: the server refused the request's shape (player id, decision or reason). Nothing was changed. Copy the command again from the Telegram message.",
+      });
+      expect(
+        parseDecideInput(
+          JSON.stringify({
+            playerId: "not-a-uuid",
+            decision,
+            expectedName: "Ivan",
+          }),
+          decision === "reject" ? "offensive" : undefined,
+        ),
+      ).toEqual({
+        ok: false,
+        error:
+          "NAME_CHANGE_DECISION does not have the expected shape (check: playerId). Copy the command again from the Telegram message.",
+      });
+    },
+  );
+
+  it("input with no readable decision names both sources", () => {
+    const parsed = parseDecideInput("[]", undefined);
+    const error = parsed.ok ? "" : parsed.error;
+    expect(error).toContain("Telegram message");
+    expect(error).toContain("Removing an approved name");
+  });
+
+  it("describeDecideResponse: a clear's 200 is exit 0 and says the name was removed", () => {
+    expect(describeDecideResponse(200, { status: "ok" }, "clear")).toEqual({
+      exitCode: EXIT_OK,
+      message: expect.stringContaining("name removed"),
+    });
   });
 });
 

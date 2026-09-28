@@ -1370,8 +1370,9 @@ describe("R18 — DefinePlugin keys are read from the DefinePlugin object litera
 
 describe("item 12 — each PARSE-FAILURE, DYNAMIC-READ and SKIP is tagged with its pipelines", () => {
   // Owner ruling 2026-09-23: a finding carries the pipelines it can be traced to, or
-  // "global" when it cannot. Consuming the tags per deploy is task 0298's job; here
-  // --enforce still fails on any finding, whatever its tag.
+  // "global" when it cannot. Consuming the tags per deploy (--block-on) is task 0298's —
+  // see "0298 — per-deploy blocking" below; without --block-on, --enforce still fails on
+  // any finding, whatever its tag.
   const PLACEMENTS: [string, string[] | "global"][] = [
     ["src/server/X.ts", ["game"]],
     ["src/profile-server/X.ts", ["profile"]],
@@ -1576,7 +1577,8 @@ describe("R4a — a read in a folder DIR_PIPELINE does not map is global, fails 
 
 describe("R4b — under --enforce, every 'cannot see' input fails closed on its own", () => {
   // The other half of the ruling — a MISSING guard script stops the deploy — lives at the
-  // call sites (deploy.sh / build-deploy-profile.sh `[ -f … ]`) and is task 0298's change.
+  // call sites (deploy.sh, build-deploy.sh, build-deploy-profile.sh `exit 1`), task 0298;
+  // tested end to end in tests/scripts/ConfigParityCallSites.test.ts.
   const FAILING = "enforce — failing on the findings above";
   const cases: [string, Record<string, string>, string][] = [
     [
@@ -1632,6 +1634,327 @@ describe("R4b — under --enforce, every 'cannot see' input fails closed on its 
         status: enforced.status,
         footer: enforced.stdout.trim().split("\n").pop(),
       }).toEqual({ label, status: 1, footer: FAILING });
+    }
+  });
+});
+
+// ── Task 0298 — per-deploy blocking (--block-on) ─────────────────────────────
+
+describe("0298 — per-deploy blocking: each deploy blocks on its own findings plus global ones", () => {
+  // The R4a/R14 ruling (architect's call, owner-approved 2026-09-23): a failure no pipeline
+  // can claim stops EVERY deploy; anything else stops only its own deploy, and the other
+  // deploys' findings still print. One row per ruled edge, each run exactly as the call
+  // sites run it: --pipeline=all --enforce --block-on=<the deploy's pipelines>.
+  const GAME = "game,client";
+  const PROFILE = "profile";
+  const COMPUTED = "const k = 'A';\nconst v = process.env[k];\nexport { v };";
+  const UNCLOSED = "export const x = 1;\n/* never closed\n";
+
+  type Row = {
+    label: string;
+    overrides: Record<string, string | null>;
+    args?: string[];
+    // The line that must be printed whether or not it blocks (R14: print loudly).
+    printed: string;
+    game: "blocks" | "passes";
+    profile: "blocks" | "passes";
+  };
+  const ROWS: Row[] = [
+    {
+      label: "R4a: an unmapped src/newdir (global)",
+      overrides: {
+        "src/newdir/X.ts": "const v = process.env.NEWDIR_ONE;\nexport { v };",
+      },
+      printed: "maps to no pipeline",
+      game: "blocks",
+      profile: "blocks",
+    },
+    {
+      label: "broken allowlist JSON (global)",
+      overrides: { "scripts/config-parity-allowlist.json": "{ not json" },
+      printed: "allowlist: invalid JSON",
+      game: "blocks",
+      profile: "blocks",
+    },
+    {
+      label: "a missing allowlist (global)",
+      overrides: { "scripts/config-parity-allowlist.json": null },
+      printed: "config-parity-allowlist.json not found",
+      game: "blocks",
+      profile: "blocks",
+    },
+    {
+      label: "a missing src/ (global)",
+      overrides: {},
+      args: ["--src-dir=no-such-src"],
+      printed: "no-such-src not found",
+      game: "blocks",
+      profile: "blocks",
+    },
+    {
+      label: "R14: a profile-tagged scanner PARSE-FAILURE",
+      overrides: { "src/profile-server/Bad.ts": UNCLOSED },
+      printed: "could not separate code from comments/strings",
+      game: "passes",
+      profile: "blocks",
+    },
+    {
+      label: "R14: a game-tagged scanner PARSE-FAILURE",
+      overrides: { "src/server/Bad.ts": UNCLOSED },
+      printed: "could not separate code from comments/strings",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "a core/configuration DYNAMIC-READ (game + client)",
+      overrides: { "src/core/configuration/Dyn.ts": COMPUTED },
+      printed: "computed index",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "R13: a game heredoc PARSE-FAILURE",
+      overrides: {
+        "deploy.sh": [
+          "#!/bin/bash",
+          "cat > ${ENV_FILE} << 'EOL'",
+          "GAME_TOKEN=${GAME_TOKEN}",
+          "    GAME_HOST=${GAME_HOST}",
+          "ENVIRONMENT=${ENV}",
+          "DEAD_ONE=${DEAD_ONE}",
+          "EOL",
+        ].join("\n"),
+      },
+      printed: "indents 'GAME_HOST='",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "R19: a game-tagged DYNAMIC-READ",
+      overrides: { "src/server/Dyn.ts": COMPUTED },
+      printed: "computed index",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "R19: a profile-tagged DYNAMIC-READ",
+      overrides: { "src/profile-server/Dyn.ts": COMPUTED },
+      printed: "computed index",
+      game: "passes",
+      profile: "blocks",
+    },
+    {
+      label: "a REQUIRED finding in profile",
+      overrides: {
+        "src/profile-server/New.ts":
+          "const n = process.env.PROFILE_NEW_ONE;\nexport { n };",
+      },
+      printed: "PROFILE_NEW_ONE — read but absent from profile.env",
+      game: "passes",
+      profile: "blocks",
+    },
+    {
+      label: "a REQUIRED finding in game",
+      overrides: {
+        "src/server/New.ts":
+          "const n = process.env.GAME_NEW_ONE;\nexport { n };",
+      },
+      printed: "GAME_NEW_ONE — read but never forwarded",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "a computed DefinePlugin key (client)",
+      overrides: {
+        "webpack.config.js": [
+          "new webpack.DefinePlugin({",
+          '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+          '  [computed]: JSON.stringify("x"),',
+          "});",
+        ].join("\n"),
+      },
+      printed: "has a computed key",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "a spread DefinePlugin key (client)",
+      overrides: {
+        "webpack.config.js": [
+          "new webpack.DefinePlugin({",
+          '  "process.env.CLIENT_MODE": JSON.stringify("dev"),',
+          "  ...extraDefinitions,",
+          "});",
+        ].join("\n"),
+      },
+      printed: "PARSE-FAILURE",
+      game: "blocks",
+      profile: "passes",
+    },
+    {
+      label: "a missing setup-profile.sh (profile SKIP)",
+      overrides: { "setup-profile.sh": null },
+      printed: "SKIP  setup-profile.sh not found",
+      game: "passes",
+      profile: "blocks",
+    },
+  ];
+
+  function deployRun(root: string, blockOn: string, args: string[] = []) {
+    return run([
+      `--repo-root=${root}`,
+      "--pipeline=all",
+      "--enforce",
+      `--block-on=${blockOn}`,
+      ...args,
+    ]);
+  }
+
+  it.each(ROWS.map((row) => [row.label, row] as [string, Row]))(
+    "%s",
+    (_label, row) => {
+      const root = fixture(row.overrides);
+      for (const [deploy, blockOn, expected] of [
+        ["game", GAME, row.game],
+        ["profile", PROFILE, row.profile],
+      ] as const) {
+        const result = deployRun(root, blockOn, row.args);
+        const footer = result.stdout.trim().split("\n").pop();
+        // Blocking or not, the finding is printed (R14: print loudly, don't block).
+        expect({
+          deploy,
+          printed: result.stdout.includes(row.printed),
+        }).toEqual({
+          deploy,
+          printed: true,
+        });
+        expect({ deploy, status: result.status }).toEqual({
+          deploy,
+          status: expected === "blocks" ? 1 : 0,
+        });
+        // R16: the footer says exactly what the exit code did.
+        const scope = `enforce (blocking: ${blockOn.split(",").join(", ")})`;
+        if (expected === "blocks") {
+          expect(footer).toBe(`${scope} — failing on the findings above`);
+        } else {
+          expect(footer).toMatch(
+            new RegExp(
+              `^${scope.replace(/[()]/g, "\\$&")} — no blocking findings; \\d+ finding\\(s\\) for other deploys printed above, not blocking$`,
+            ),
+          );
+        }
+      }
+    },
+  );
+
+  it("the clean fixture passes both deploys with the plain footer", () => {
+    const root = fixture();
+    for (const blockOn of [GAME, PROFILE]) {
+      const result = deployRun(root, blockOn);
+      expect(result.status).toBe(0);
+      expect(result.stdout.trim().split("\n").pop()).toBe(
+        `enforce (blocking: ${blockOn.split(",").join(", ")}) — no required findings`,
+      );
+    }
+  });
+
+  it("the not-blocking footer counts the other deploys' findings", () => {
+    // Two profile findings (a REQUIRED and a tagged DYNAMIC-READ), none for game/client.
+    const root = fixture({
+      "src/profile-server/New.ts":
+        "const n = process.env.PROFILE_NEW_ONE;\nexport { n };",
+      "src/profile-server/Dyn.ts": COMPUTED,
+    });
+    const result = deployRun(root, GAME);
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim().split("\n").pop()).toBe(
+      "enforce (blocking: game, client) — no blocking findings; 2 finding(s) for other deploys printed above, not blocking",
+    );
+  });
+
+  it("without --block-on, --enforce still fails on every finding whatever its tag", () => {
+    const root = fixture({ "src/profile-server/Bad.ts": UNCLOSED });
+    const result = run([`--repo-root=${root}`, "--pipeline=all", "--enforce"]);
+    expect(result.status).toBe(1);
+    expect(result.stdout.trim().split("\n").pop()).toBe(
+      "enforce — failing on the findings above",
+    );
+  });
+
+  it("the JSON result records which pipelines the run blocked on", () => {
+    const root = fixture();
+    const blocked = JSON.parse(
+      run([
+        `--repo-root=${root}`,
+        "--pipeline=all",
+        "--enforce",
+        "--block-on=profile",
+        "--json",
+      ]).stdout,
+    ) as CheckerResult & { blockOn: string[] | null };
+    expect(blocked.blockOn).toEqual(["profile"]);
+    expect(runJson([`--repo-root=${root}`, "--pipeline=all"])).toMatchObject({
+      blockOn: null,
+    });
+  });
+
+  it.each([
+    ["with --report-only", ["--report-only", "--block-on=game"]],
+    ["with no mode (report-only by default)", ["--block-on=game"]],
+    [
+      "with --report-only given last",
+      ["--enforce", "--block-on=game", "--report-only"],
+    ],
+    ["with an unknown pipeline", ["--enforce", "--block-on=game,web"]],
+    ["with an empty list", ["--enforce", "--block-on="]],
+    [
+      "with a pipeline --pipeline does not select",
+      ["--enforce", "--pipeline=game", "--block-on=profile"],
+    ],
+  ])("--block-on %s is a usage error: exit 2, loud", (_label, args) => {
+    const result = run(args);
+    expect(result.status).toBe(2);
+    expect(result.stdout).toContain("--block-on");
+    expect(result.stdout).toContain("usage:");
+  });
+
+  it("mutation check: with the tag filter turned off, the R14 rows go red", () => {
+    // Proves the rows above can fail: a checker whose per-deploy filter blocks on every
+    // tag would block the game deploy on a profile-only finding.
+    const source = fs.readFileSync(CHECKER, "utf8");
+    const filter =
+      /entry\.pipelines === "global" \|\|\n\s*entry\.pipelines\.some\(\(pipeline\) => blockOn\.includes\(pipeline\)\)/;
+    expect(source).toMatch(filter);
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "config-parity-mutant-"));
+    fixtures.push(dir);
+    const mutant = path.join(dir, "check-config-parity.mjs");
+    fs.writeFileSync(mutant, source.replace(filter, "true"));
+    const root = fixture({ "src/profile-server/Bad.ts": UNCLOSED });
+    const args = [
+      `--repo-root=${root}`,
+      "--pipeline=all",
+      "--enforce",
+      `--block-on=${GAME}`,
+    ];
+    expect(run(args).status).toBe(0);
+    const mutated = spawnSync(process.execPath, [mutant, ...args], {
+      encoding: "utf8",
+    });
+    expect(mutated.status).toBe(1);
+  });
+
+  it("real tree: both deploys' armed runs exit 0", () => {
+    for (const blockOn of [GAME, PROFILE]) {
+      const result = run([
+        "--pipeline=all",
+        "--enforce",
+        `--block-on=${blockOn}`,
+      ]);
+      expect({ blockOn, status: result.status }).toEqual({
+        blockOn,
+        status: 0,
+      });
+      expect(result.stdout).toContain("REQUIRED  0");
     }
   });
 });
@@ -2204,18 +2527,20 @@ describe("real tree", () => {
     expect(names(result.pipelines.client.info)).toEqual(["WEBSOCKET_URL"]);
   });
 
-  it("carries the phase-2 entries as inert — 0195's hand-off, 0220's Telegram trio, 0274's monitoring pair, 0064 Phase 2's game value entries", () => {
+  it("carries the phase-2 entries as inert — 0195's hand-off, 0220's Telegram trio, 0274's monitoring pair, 0064 Phase 2's and 0298's game value entries", () => {
     // Deliberately pinned to the exact list: a phase-2 entry never suppresses a NAME finding,
     // so one appearing (or vanishing) here is a change someone must have meant. 0220 added the
     // three Telegram variables and 0274 the OTLP endpoint + the login-creation switch —
     // all of whose VALUES are checked on the box. 0064 Phase 2 added the five game entries
     // (FEEDBACK_WEBHOOK_URL, STORAGE_*) that let scripts/check-config-values.mjs accept a
-    // BLANK value; they are inert here like every other phase-2 entry.
+    // BLANK value, and 0298 a sixth (OTEL_AUTH_HEADER, owner ruling 2026-09-28 Q1); they are
+    // inert here like every other phase-2 entry.
     const result = runJson(["--pipeline=all"]);
     expect(names(result.inertAllowlist)).toEqual([
       "FEEDBACK_TELEGRAM_CHAT_ID",
       "FEEDBACK_TELEGRAM_TOKEN",
       "FEEDBACK_WEBHOOK_URL",
+      "OTEL_AUTH_HEADER",
       "OTEL_EXPORTER_OTLP_ENDPOINT",
       "PROFILE_LOGIN_CREATE_ENABLED",
       "STORAGE_ACCESS_KEY",

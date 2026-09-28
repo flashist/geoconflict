@@ -562,6 +562,25 @@ describe("renderInboxMessage", () => {
     });
   });
 
+  // Task 0250 S1: the neutral key an unverified caller is served in place of
+  // citizenship_paid / citizenship_earned is a known key and renders.
+  it("renders the neutral citizenship_granted template", () => {
+    expect(
+      renderInboxMessage({
+        id: 1,
+        templateKey: "citizenship_granted",
+        templateParams: {},
+        title: null,
+        body: null,
+        sentAt: "2026-08-26T10:00:00.000Z",
+        readAt: null,
+      }),
+    ).toEqual({
+      title: "[inbox.templates.citizenship_granted.title]",
+      body: "[inbox.templates.citizenship_granted.body]",
+    });
+  });
+
   it("renders a literal message as stored", () => {
     expect(
       renderInboxMessage({

@@ -1,14 +1,6 @@
-import {
-  RegExpMatcher,
-  collapseDuplicatesTransformer,
-  englishDataset,
-  englishRecommendedTransformers,
-  resolveConfusablesTransformer,
-  resolveLeetSpeakTransformer,
-  skipNonAlphabeticTransformer,
-} from "obscenity";
 import { translateText } from "../../client/Utils";
 import { simpleHash } from "../Util";
+import { isProfaneUsername } from "./profanity";
 import {
   MAX_USERNAME_LENGTH,
   MIN_USERNAME_LENGTH,
@@ -17,14 +9,10 @@ import {
   type UsernameRuleViolation,
 } from "./usernameRules";
 
-const matcher = new RegExpMatcher({
-  ...englishDataset.build(),
-  ...englishRecommendedTransformers,
-  ...resolveConfusablesTransformer(),
-  ...skipNonAlphabeticTransformer(),
-  ...collapseDuplicatesTransformer(),
-  ...resolveLeetSpeakTransformer(),
-});
+// The matcher itself lives in ./profanity (task 0322) so the profile server can
+// ask the same one without this module's client imports; re-exported here so
+// every existing importer keeps working unchanged.
+export { isProfaneUsername };
 
 // Re-exported so every existing importer of this module keeps working unchanged;
 // the rules themselves now live in ./usernameRules (dependency-free, so the
@@ -46,10 +34,6 @@ export function fixProfaneUsername(username: string): string {
     return shadowNames[simpleHash(username) % shadowNames.length];
   }
   return username;
-}
-
-export function isProfaneUsername(username: string): boolean {
-  return matcher.hasMatch(username);
 }
 
 /**

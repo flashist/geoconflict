@@ -147,8 +147,11 @@ RUN("migration 006 — player identity (integration)", () => {
     await applyMigrations(pool, MIGRATIONS_DIR, { filter: UP_TO_004 });
     expect(await appliedFiles(pool)).not.toContain("006_player_identity.sql");
 
+    // 006 is still the file under test; 007 (task 0314) follows it on the same
+    // run because the runner applies every pending file.
     await expect(applyMigrations(pool, MIGRATIONS_DIR)).resolves.toEqual([
       "006_player_identity.sql",
+      "007_name_change_dismiss_and_clear.sql",
     ]);
 
     const leftovers = await pool.query(

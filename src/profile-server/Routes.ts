@@ -30,6 +30,7 @@ import {
 import {
   NameChangeCancelRequestSchema,
   NameChangeDecisionRequestSchema,
+  NameChangeDismissRequestSchema,
   NameChangeRequestSchema,
   type NameChangeState,
 } from "../core/profile/NameChangeContract";
@@ -38,10 +39,7 @@ import {
   PurchaseIntentRequestSchema,
   PurchaseReconcileRequestSchema,
 } from "../core/profile/PaymentsContract";
-import type {
-  PlayerProfile,
-  PublicPlayerProfile,
-} from "../core/profile/PlayerProfile";
+import type { PlayerProfile } from "../core/profile/PlayerProfile";
 import {
   TenureGrantRequestSchema,
   tenureGrantForEvidence,
@@ -63,7 +61,9 @@ import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
 import type {
   CancelOutcome,
+  ClearOutcome,
   DecideOutcome,
+  DismissOutcome,
   RequestOutcome,
 } from "./NameChangeRepository";
 import type {
@@ -82,6 +82,12 @@ import type {
   TenureCheckOutcome,
   XpGrantKind,
 } from "./PlayerProfileRepository";
+import {
+  equalizedXp,
+  hiddenInboxMessageIds,
+  toPublicInboxMessages,
+  toPublicProfile,
+} from "./PublicProjection";
 import {
   isUsableSessionSecret,
   signSessionToken,
@@ -263,12 +269,18 @@ export interface NameChangeRepo {
     requestedName: string,
   ): Promise<RequestOutcome>;
   cancelNameChange(playerId: string): Promise<CancelOutcome>;
+  dismissRejection(playerId: string): Promise<DismissOutcome>;
   decideNameChange(
     playerId: string,
     decision: "approve" | "reject",
     reason?: string,
     expectedName?: string,
   ): Promise<DecideOutcome>;
+  clearDisplayName(
+    playerId: string,
+    expectedName: string,
+    reason: string,
+  ): Promise<ClearOutcome>;
   getLatestState(playerId: string): Promise<NameChangeState | null>;
 }
 
@@ -280,7 +292,9 @@ export interface NameChangeRepo {
  * implement a `legacy_fallback_used` metric reason against it.
  *
  * ⚠️ `ok` is NOT a proven owner: the token is `vfy:false` (anyone asserting an id
- * gets one), so paid state (0250) must never trust it.
+ * gets one), so paid state (0250) must never trust it. Such a caller gets the
+ * EQUALIZED view (PublicProjection.ts, task 0250 S1) on every route that returns
+ * profile data, xp or inbox messages — a paid and an earned citizen look the same.
  */
 type CallerResolution = { status: "ok"; playerId: string } | CallerFailure;
 
@@ -317,34 +331,6 @@ function sendCallerFailure(
 // instead of a pg 22P02 error (which would surface as a 500).
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/**
- * Public projection of a profile. Sprint 4: this read needs a session token but the
- * token is `vfy:false` (no Yandex signature verification yet — deferred to 0267), so
- * anyone can still mint one for an id they merely assert. Keep omitting the fields a
- * caller shouldn't be able to resolve that way:
- *  - paid state (`is_paid_citizen`, `citizenship_purchased_at`) — leaking "who paid".
- * The profile carries no identity at all (task 0270): neither the internal player
- * id nor a platform id can reach a client through it (ADR-113 hard rule).
- * TODO(payments): once Yandex-signature auth lands, these can be returned to the
- * verified owner of the profile.
- *
- * `nameChange` (task 0067) is merged in when the caller has one. It carries only
- * {status, requested_name, decided_at} — never the operator's rejection reason,
- * which would otherwise be readable by anyone who can guess a player id; that
- * text reaches the player through the citizen-gated inbox message instead.
- */
-function toPublicProfile(
-  profile: PlayerProfile,
-  nameChange?: NameChangeState | null,
-): PublicPlayerProfile {
-  const { is_paid_citizen, citizenship_purchased_at, ...rest } = profile;
-  void is_paid_citizen;
-  void citizenship_purchased_at;
-  // Omit the key entirely (rather than sending null) when there is no request —
-  // the field is `.optional()` on the shared schema, not nullable.
-  return nameChange ? { ...rest, name_change: nameChange } : rest;
-}
 
 // ── Error handler (task 0271) — createApp registers it LAST ───────────────
 // Replaces Express's default handler, which (a) prints `err.stack` to stderr —
@@ -754,7 +740,7 @@ export function createApp(
   // Replaces /internal/v1/profile/upsert (removed). Source `game_server`: this
   // ALWAYS creates, independent of any login-creation switch. A playerId in this
   // internal response is allowed (ADR-113 point 3); it never reaches a client.
-  // Never sets xp, citizenship, or paid flags.
+  // Never sets xp, citizenship, or paid flags. Never logs the display name.
   app.post("/internal/v1/players/resolve", internalAuth, async (req, res) => {
     const parsed = PlayerResolveRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -770,6 +756,11 @@ export function createApp(
       const body: PlayerResolveResponse = {
         playerId: resolved.playerId,
         isCitizen: resolved.profile.is_citizen,
+        // Task 0322: the approved display name (null when none, or cleared by
+        // task 0314), so the game server can show it to other players. Sent
+        // whatever the citizen status. Already in the row this read returned —
+        // no extra query. The game server re-checks it against the join rule.
+        displayName: resolved.profile.display_name,
       };
       res.status(200).json(body);
     } catch (error) {
@@ -1073,7 +1064,11 @@ export function createApp(
           res.status(403).json({ error: "not_citizen" });
           return;
         }
-        res.status(200).json({ messages: outcome.messages });
+        // Equalized at the route (task 0250 S1), never in InboxRepository, so
+        // the repository keeps returning the true stored keys for S3b's owner view.
+        res
+          .status(200)
+          .json({ messages: toPublicInboxMessages(outcome.messages) });
       } catch (error) {
         log.error(`GET /v1/messages failed: ${formatError(error)}`);
         res.status(500).json({ error: "internal_error" });
@@ -1082,6 +1077,15 @@ export function createApp(
 
     // Mark all (no `ids`) or specific messages read. Scoped in SQL to the
     // caller's own id; idempotent, so a re-open is a harmless no-op.
+    //
+    // Equalized (task 0250 S1, review R2): `updated` counts only messages the
+    // caller can SEE in `GET /v1/messages`. A citizenship message the list hides
+    // (a second one ⇒ at least one purchase) is never counted by mark-all and
+    // never confirmed by id — a hidden id answers like a foreign one, 0. Mark-all
+    // still marks the hidden rows read, in a call whose count is discarded; the
+    // hidden-ids call is made even when there are none, so the number of queries
+    // does not depend on paid state either. Mark-all covers the messages listed
+    // here, so one that arrives mid-request is left for the next open to show.
     app.patch("/v1/messages/read", async (req, res) => {
       const parsed = MarkReadRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1093,7 +1097,22 @@ export function createApp(
         if (sendCallerFailure(res, caller)) {
           return;
         }
-        const outcome = await inbox.markRead(caller.playerId, parsed.data.ids);
+        const listed = await inbox.listMessages(caller.playerId);
+        if (listed.status === "not_citizen") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        const hiddenIds = hiddenInboxMessageIds(listed.messages);
+        let visibleIds: number[];
+        if (parsed.data.ids === undefined) {
+          await inbox.markRead(caller.playerId, [...hiddenIds]);
+          visibleIds = toPublicInboxMessages(listed.messages)
+            .filter((message) => message.readAt === null)
+            .map((message) => message.id);
+        } else {
+          visibleIds = parsed.data.ids.filter((id) => !hiddenIds.has(id));
+        }
+        const outcome = await inbox.markRead(caller.playerId, visibleIds);
         if (outcome.status === "not_citizen") {
           res.status(403).json({ error: "not_citizen" });
           return;
@@ -1156,8 +1175,9 @@ export function createApp(
 
   // ── Citizen name change (task 0067) ────────────────────────────────────────
   // Player-facing JSON POSTs from the game origin ⇒ preflighted. publicCors is
-  // scoped to the two /v1/profile/name-change-* paths ONLY — never /internal/*, and
-  // mounted per path rather than on /v1/profile (whose exact path has its own).
+  // scoped to the /v1/profile/name-change-* paths listed below ONLY — never
+  // /internal/*, and mounted per path rather than on /v1/profile (whose exact path
+  // has its own).
   const nameChangeCors = publicCors("POST");
   // Stricter than the shared 60/min profile-read limiter — a name change is a
   // rare, human-paced action — but deliberately NOT as tight as it first looks
@@ -1190,6 +1210,7 @@ export function createApp(
   for (const path of [
     "/v1/profile/name-change-request",
     "/v1/profile/name-change-cancel",
+    "/v1/profile/name-change-dismiss",
   ]) {
     app.use(path, nameChangeCors, nameChangeLimiter, nameChangeEnabled);
   }
@@ -1277,6 +1298,37 @@ export function createApp(
         res.status(500).json({ error: "internal_error" });
       }
     });
+
+    // Hide your OWN declined request from the card (task 0314, owner ruling
+    // Q1). Remembered on the server, so it is hidden on every device; only the
+    // newest row, and only while it is a decline, can be hidden (see
+    // NameChangeRepository.dismissRejection). Hiding twice is still 200.
+    //   Responses: 200 { "status": "ok" } · 400 bad_request · 401/503 session
+    //   failures · 403 not_citizen · 500 internal_error.
+    app.post("/v1/profile/name-change-dismiss", async (req, res) => {
+      const parsed = NameChangeDismissRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const caller = await resolveCaller(req);
+        if (sendCallerFailure(res, caller)) {
+          return;
+        }
+        const outcome = await nameChange.dismissRejection(caller.playerId);
+        if (outcome.status === "not_citizen") {
+          res.status(403).json({ error: "not_citizen" });
+          return;
+        }
+        res.status(200).json({ status: "ok" });
+      } catch (error) {
+        log.error(
+          `POST /v1/profile/name-change-dismiss failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
   }
 
   // Internal, service-authenticated moderation decision — the brief's "minimal
@@ -1294,6 +1346,14 @@ export function createApp(
   //   is what the Telegram notification carries; Yandex ids no longer go there:
   //     { "playerId": "…", "decision": "approve", "expectedName": "…" }
   //     { "playerId": "…", "decision": "reject", "reason": "…" }  // reason REQUIRED
+  //     { "playerId": "…", "decision": "clear", "expectedName": "…", "reason": "…" }
+  //   `clear` (task 0314) removes the player's APPROVED name — it is not a decision
+  //   on a pending request, and a pending request is left alone. Both the reason
+  //   and `expectedName` are REQUIRED for it, and `expectedName` is bound to the
+  //   player's CURRENT name. Clear answers: 200 { "status": "ok" } · 404
+  //   no_custom_name (the player has no name to remove) · 409 name_mismatch
+  //   carrying `current_name` (nothing was changed) · plus the 400/401/503/500
+  //   below. The command's form is in the runbook, "Removing an approved name".
   //   `expectedName` is OPTIONAL on the wire but is what the Telegram notification's
   //   ready-to-paste commands send (the decide command refuses to run without it),
   //   and it is what makes deciding from that message safe — see
@@ -1323,12 +1383,45 @@ export function createApp(
         res.status(400).json({ error: "bad_request" });
         return;
       }
+      const request = parsed.data;
+      if (request.decision === "clear") {
+        try {
+          // The schema guarantees both for a clear; `?? ""` only satisfies the
+          // types (an empty expectedName can never match a set name).
+          const outcome = await nameChange.clearDisplayName(
+            request.playerId,
+            request.expectedName ?? "",
+            request.reason ?? "",
+          );
+          if (outcome.status === "no_custom_name") {
+            res.status(404).json({ error: "no_custom_name" });
+            return;
+          }
+          if (outcome.status === "name_mismatch") {
+            // Same reasoning as pending_name below: internal-auth'd, and the
+            // player's current name is already public.
+            res.status(409).json({
+              error: "name_mismatch",
+              current_name: outcome.currentName,
+            });
+            return;
+          }
+          res.status(200).json({ status: "ok" });
+        } catch (error) {
+          // Never log the operator's reason text or the name — only the failure.
+          log.error(
+            `POST /internal/v1/name-change/decide (clear) failed: ${formatError(error)}`,
+          );
+          res.status(500).json({ error: "internal_error" });
+        }
+        return;
+      }
       try {
         const outcome = await nameChange.decideNameChange(
-          parsed.data.playerId,
-          parsed.data.decision,
-          parsed.data.reason,
-          parsed.data.expectedName,
+          request.playerId,
+          request.decision,
+          request.reason,
+          request.expectedName,
         );
         if (outcome.status === "no_pending") {
           res.status(404).json({ error: "no_pending" });
@@ -1424,8 +1517,18 @@ export function createApp(
         }
         const body: TenureGrantResponse = {
           status: outcome.status,
+          // Deliberately the TRUE amount, citizen or not (task 0250 S1, review
+          // R1): it is a pure function of this request's evidence (or, on
+          // `duplicate`, of the evidence the first claim sent), never of paid
+          // state, so a paid and an earned citizen sending the same evidence get
+          // the same number. With `xp` constant for citizens it reveals no
+          // movement that tells them apart — and it keeps the thank-you popup
+          // and `Citizenship:TenureGrant:Claimed` working for every citizen.
           xpAwarded: outcome.xpAwarded,
-          xp: outcome.xp,
+          // Equalized (task 0250 S1, owner ruling Q-A): EVERY citizen — paid,
+          // earned, or one this very claim just made a citizen — is shown
+          // exactly the threshold. A non-citizen sees their true total.
+          xp: equalizedXp(outcome.xp, outcome.isCitizen),
         };
         res.status(200).json(body);
       } catch (error) {

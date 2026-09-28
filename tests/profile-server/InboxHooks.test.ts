@@ -271,6 +271,7 @@ describe("PlayerProfileRepository.recordTenureCheck → afterCitizenshipEarned (
       xpAwarded: 50,
       xp: 110,
       citizenshipNewlyGranted: true,
+      isCitizen: true,
     });
     expect(sendTemplate).toHaveBeenCalledTimes(1);
     expect(sendTemplate).toHaveBeenCalledWith(PLAYER_ID, "citizenship_earned");
@@ -324,6 +325,7 @@ describe("PlayerProfileRepository.recordTenureCheck → afterCitizenshipEarned (
       xpAwarded: 0,
       xp: 99,
       citizenshipNewlyGranted: false,
+      isCitizen: false,
     });
     const statements = client.query.mock.calls.map((call) => String(call[0]));
     expect(
@@ -356,6 +358,7 @@ describe("PlayerProfileRepository.recordTenureCheck → afterCitizenshipEarned (
       xpAwarded: 30,
       xp: 99,
       citizenshipNewlyGranted: false,
+      isCitizen: false,
     });
     const statements = client.query.mock.calls.map((call) => String(call[0]));
     expect(statements.some((sql) => sql.includes("SET xp = xp + $2"))).toBe(
@@ -503,8 +506,64 @@ describe("PlayerProfileRepository.recordTenureCheck → afterCitizenshipEarned (
     ).resolves.toMatchObject({
       status: "granted",
       citizenshipNewlyGranted: false,
+      isCitizen: true,
     });
     expect(sendTemplate).not.toHaveBeenCalled();
+  });
+
+  // Task 0250 S1: `isCitizen` is the citizen state AFTER the call, so the route
+  // can equalize `xp` for an unverified caller.
+  describe("isCitizen on every outcome (task 0250 S1)", () => {
+    test.each([
+      { inserted: false, xpAwarded: 50, status: "duplicate" },
+      { inserted: true, xpAwarded: 0, status: "below_minimum" },
+      { inserted: true, xpAwarded: 10, status: "granted" },
+    ])(
+      "an already-citizen (paid, xp 30) → $status reports isCitizen true",
+      async ({ inserted, xpAwarded, status }) => {
+        const repo = new PlayerProfileRepository(
+          makePool(
+            tenureClient({ xp: 30, isCitizen: true, earnedAt: null, inserted }),
+          ),
+        );
+        await expect(
+          repo.recordTenureCheck(PLAYER_ID, xpAwarded, TENURE_EVIDENCE),
+        ).resolves.toMatchObject({ status, isCitizen: true });
+      },
+    );
+
+    test("a non-citizen granted below 100 reports isCitizen false", async () => {
+      const repo = new PlayerProfileRepository(
+        makePool(
+          tenureClient({
+            xp: 10,
+            isCitizen: false,
+            earnedAt: null,
+            inserted: true,
+          }),
+        ),
+      );
+      await expect(
+        repo.recordTenureCheck(PLAYER_ID, 50, TENURE_EVIDENCE),
+      ).resolves.toMatchObject({ status: "granted", isCitizen: false });
+    });
+
+    test("not_found reports isCitizen false", async () => {
+      const client: MockClient = {
+        query: jest.fn().mockResolvedValue({ rows: [] }),
+        release: jest.fn(),
+      };
+      const repo = new PlayerProfileRepository(makePool(client));
+      await expect(
+        repo.recordTenureCheck(PLAYER_ID, 50, TENURE_EVIDENCE),
+      ).resolves.toEqual({
+        status: "not_found",
+        xpAwarded: 0,
+        xp: 0,
+        citizenshipNewlyGranted: false,
+        isCitizen: false,
+      });
+    });
   });
 });
 

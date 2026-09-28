@@ -18,6 +18,13 @@ import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
 import "./CitizenshipCard";
 import "./CitizensOnlyModal";
+import "./CitizenshipRestartModal";
+import { CitizenshipRestartModal } from "./CitizenshipRestartModal";
+import {
+  CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+  createCitizenshipRestartOffer,
+  type CitizenshipRestartOffer,
+} from "./CitizenshipRestartOffer";
 import "./TenureGrantModal";
 import {
   CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
@@ -63,6 +70,10 @@ import {
   setNextMissionLevel,
 } from "./SinglePlayMissionStorage";
 import { setStartScreenControlsHidden } from "./StartScreenControls";
+import {
+  reportBackOnStartScreen,
+  setStartScreenPresenceSource,
+} from "./StartScreenPresence";
 import "./StartScreenTabs";
 import { SinglePlayerModal } from "./SinglePlayerModal";
 import { TerritoryPatternsModal } from "./TerritoryPatternsModal";
@@ -158,6 +169,20 @@ class Client {
   // the two (Main.ts:707), so two joins can interleave and the last to mint is
   // not necessarily the one whose monitor is running.
   private monitorGeneration = 0;
+  // "Restart to apply" after a mid-session citizenship grant (task 0303).
+  private readonly citizenshipRestartOffer: CitizenshipRestartOffer =
+    createCitizenshipRestartOffer({
+      isAwayFromStartScreen: () => this.gameStop !== null,
+      isSurfacesEnabled: () =>
+        FlashistFacade.instance.isCitizenshipSurfacesEnabled(),
+      showPrompt: () => {
+        const modal = document.querySelector("citizenship-restart-modal");
+        if (modal instanceof CitizenshipRestartModal) {
+          modal.show(() => this.citizenshipRestartOffer.restart());
+        }
+      },
+      reload: () => FlashistFacade.instance.reloadApp(),
+    });
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
 
@@ -295,6 +320,9 @@ class Client {
     document.addEventListener("join-lobby", this.handleJoinLobby.bind(this));
     document.addEventListener("leave-lobby", this.handleLeaveLobby.bind(this));
     document.addEventListener("kick-player", this.handleKickPlayer.bind(this));
+    // Start-screen UI that must not interrupt a lobby or match asks here
+    // (task 0329, review R1: the citizenship card's late reveal).
+    setStartScreenPresenceSource(() => this.gameStop !== null);
     // A mid-load login (the citizenship card's guest CTA) leaves the page with no
     // session token, so restart it and run the whole start sequence logged in
     // (task 0273, owner ruling D3). Never out of a live match.
@@ -308,6 +336,13 @@ class Client {
         reload: () => FlashistFacade.instance.reloadApp(),
         storage: readSessionStorage(),
         fallback: detail.fallback,
+      });
+    });
+    // A purchase (or the tenure gift) made the player a citizen mid-session:
+    // offer a restart so everything read at load catches up (task 0303).
+    window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, () => {
+      this.citizenshipRestartOffer.onGranted().catch((error) => {
+        console.warn("Citizenship restart offer failed:", error);
       });
     });
 
@@ -749,6 +784,8 @@ class Client {
       () => {
         console.log("Closing modals");
         setStartScreenControlsHidden(true);
+        // The page reloads after the match, so a waiting restart offer is moot.
+        this.citizenshipRestartOffer.onMatchStarting();
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
@@ -767,6 +804,7 @@ class Client {
           "account-button",
           "token-login",
           "matchmaking-modal",
+          "citizenship-restart-modal",
         ].forEach((tag) => {
           const modal = document.querySelector(tag) as HTMLElement & {
             close?: () => void;
@@ -985,11 +1023,14 @@ class Client {
     this.logActiveMatchAbandon();
     this.gameStop();
     this.gameStop = null;
+    reportBackOnStartScreen();
     this.stopPerformanceMonitor();
     clearReconnectSession();
     this.gutterAds.hide();
     this.publicLobby.leaveLobby();
     setStartScreenControlsHidden(false);
+    // A grant made while in the lobby shows its restart offer now (task 0303).
+    this.citizenshipRestartOffer.onBackOnStartScreen();
   }
 
   private stopPerformanceMonitor(): void {

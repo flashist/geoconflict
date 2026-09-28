@@ -200,7 +200,7 @@ that is a code change plus a profile deploy, not a UI edit.
   [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
   and [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) (proving the alert
   path stays alive — a different problem from this rule) ·
-  [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
+  [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
   (a disabled channel would silence this rule too).
 - **Effort:** small once traffic exists — a single monitor in a UI. **The waiting is the work.**
 - 🔒 No secrets, hosts, IPs, domains or tokens in any artifact.

@@ -33,7 +33,10 @@ const TENURE_GRANT_FETCH_TIMEOUT_MS = 10_000;
 export type TenureGrantClaimResult =
   /** Nothing was sent: gate off, no session, already checked, storage unreadable, or already tried this load. */
   | { status: "skipped" }
-  /** The server granted `xpAwarded` XP; `xp` is the new total. */
+  /**
+   * The server granted `xpAwarded` XP; `xp` is the new total — or, for a
+   * citizen, exactly the threshold (task 0250 S1: the unverified view).
+   */
   | { status: "granted"; xpAwarded: number; xp: number }
   /** The server recorded a final check: 0 XP, or an earlier check. */
   | { status: "below_minimum" | "duplicate" }

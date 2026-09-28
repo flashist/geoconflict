@@ -7,6 +7,7 @@
 // opened; exactly one of Completed/Abandoned follows for every started flow;
 // nothing fires when the flow dies before the frame (no id / intent failure).
 
+import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   FlashistFacade,
   flashist_logEventAnalytics,
@@ -85,5 +86,8 @@ export async function runCitizenshipPurchase(): Promise<CitizenshipPurchaseResul
   void facade.consumePurchase(completed.purchaseToken).catch(() => {
     // Deliberately swallowed — see above.
   });
+  // Task 0303: offer the "restart to apply" popup. Here, not in the card, so
+  // every caller of this flow gets it (0301's explainer popup included).
+  dispatchCitizenshipGrantedMidSession("purchase");
   return "granted";
 }

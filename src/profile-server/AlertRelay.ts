@@ -88,6 +88,11 @@ export const ALERT_WEBHOOK_SECRET_ENV = "PROFILE_ALERT_WEBHOOK_TOKEN";
 // route with the right secret. It says nothing about Telegram delivery, nothing about a
 // message reaching a human, and — the hole worth stating out loud — nothing about a
 // channel that is ALREADY disabled. It catches the CAUSE within ~24 h, not the STATE.
+//
+// Task 0285 closes that hole WITHOUT a second path: the probe also reads the channel's
+// status from the monitoring stack's own Postgres and sends it as `channel_state`; this
+// relay copies a sanitised value into the SAME marker, and profile-checks.sh check 13 is the
+// one place that interprets it. The relay renders no verdict on it.
 
 /**
  * Where the marker is written INSIDE the container. setup-profile.sh bind-mounts this
@@ -103,6 +108,33 @@ export const ALERT_PROBE_MARKER_PATH =
 
 /** The non-secret discriminator, matched on `payload.probe` (trimmed, lowercased). */
 export const ALERT_PROBE_KEY = "liveness";
+
+/**
+ * Task 0285: the only shape a `channel_state` may take into the marker — a lowercase word,
+ * optionally hyphenated, at most 32 characters. It covers every state the probe can report
+ * (the vendor's four statuses plus `missing` / `unreadable`) and nothing that could break the
+ * shell reader's one-key-per-line parse.
+ */
+const CHANNEL_STATE_PATTERN = /^[a-z][a-z-]{0,31}$/;
+
+/** What an unusable `channel_state` is recorded as. Check 13 FAILs on it by name. */
+export const INVALID_CHANNEL_STATE = "invalid";
+
+/**
+ * Task 0285. `undefined` when the probe sent no state (a pre-0285 probe script) — the marker
+ * then keeps 0284's exact shape. A value matching CHANNEL_STATE_PATTERN is kept VERBATIM;
+ * anything else (a non-string, null, uppercase, too long, stray characters) becomes
+ * INVALID_CHANNEL_STATE. ⛔ No interpretation here: `delivering` vs everything else is
+ * decided in exactly one place, profile-checks.sh check 13.
+ */
+export function sanitizeChannelState(raw: unknown): string | undefined {
+  if (raw === undefined) {
+    return undefined;
+  }
+  return typeof raw === "string" && CHANNEL_STATE_PATTERN.test(raw)
+    ? raw
+    : INVALID_CHANNEL_STATE;
+}
 
 /**
  * The `status` this route answers a PROBE with, and only a probe (review R3 + owner ruling,
@@ -187,6 +219,11 @@ const AlertWebhookSchema = z.object({
       // and the alert was delivered. The value is narrowed with `typeof` at the one place
       // it is read.
       probe: z.unknown().optional(),
+      // Task 0285: the notification channel's own state, carried by the probe. `unknown`
+      // for exactly R1's reason above — a stray non-string here in a REAL alert's payload
+      // must not fail the whole-body parse and drop the alert. Read ONLY on the probe
+      // branch, which is strictly after the secret check.
+      channel_state: z.unknown().optional(),
       title: z.string().optional(),
       value: z.string().optional(),
       threshold: z.string().optional(),
@@ -411,8 +448,9 @@ type Decision =
   | { kind: "deliver"; text: string; keyed: AlertRelayKeyed; id: string }
   | { kind: "drop"; reason: AlertRelayResult; keyed: AlertRelayKeyed }
   // Task 0284: a liveness probe. Nothing is rendered, nothing is sent, nothing is
-  // dedupe-keyed — the only effect is the marker file.
-  | { kind: "probe" };
+  // dedupe-keyed — the only effect is the marker file. `channelState` (task 0285) is
+  // already sanitised, and absent when the probe sent none.
+  | { kind: "probe"; channelState?: string };
 
 export function createAlertRelay(
   config: AlertRelayConfig,
@@ -509,13 +547,16 @@ export function createAlertRelay(
    * `finished_at` is seconds-precision ISO with a trailing `Z`, which is what its
    * `iso_to_epoch` parses.
    *
-   * ⛔ Never the caller's address, never the secret, never anything from the body.
+   * ⛔ Never the caller's address, never the secret, never anything from the body — with ONE
+   * exception (task 0285): `channel_state`, and only after `sanitizeChannelState` has reduced
+   * it to a lowercase word or `invalid`. Absent, the key is left out entirely, so a pre-0285
+   * probe produces 0284's marker byte for byte.
    *
    * A write failure is logged and the response is STILL 2xx: the marker going stale is
    * the signal the checker reads, and a non-2xx here would be read by nobody but curl —
    * while spending the sender's retry budget if a real alert ever took this branch.
    */
-  function writeProbeMarker(at: number): void {
+  function writeProbeMarker(at: number, channelState?: string): void {
     try {
       writeMarker(
         markerPath,
@@ -524,6 +565,9 @@ export function createAlertRelay(
             schema: 1,
             finished_at: `${new Date(at).toISOString().slice(0, 19)}Z`,
             source: "alert-webhook-probe",
+            ...(channelState === undefined
+              ? {}
+              : { channel_state: channelState }),
           },
           null,
           2,
@@ -572,7 +616,10 @@ export function createAlertRelay(
       typeof rawProbe === "string" ? rawProbe.trim().toLowerCase() : "";
     const carriesAlert = data.alert !== undefined || data.id !== undefined;
     if (probe === ALERT_PROBE_KEY && !carriesAlert) {
-      return { kind: "probe" };
+      return {
+        kind: "probe",
+        channelState: sanitizeChannelState(data.payload?.channel_state),
+      };
     }
     // A non-string `probe` can never match, but it still means the key is sitting in the
     // channel payload — warn about that too rather than losing the signal.
@@ -631,7 +678,7 @@ export function createAlertRelay(
     // string, so "the relay recorded a probe" and "the relay dropped the call at 200" can be
     // told apart by the operator running it by hand.
     if (decision.kind === "probe") {
-      writeProbeMarker(at);
+      writeProbeMarker(at, decision.channelState);
       metrics.alertRelay("probe", "unkeyed");
       res.status(200).json({ status: ALERT_PROBE_RESPONSE_STATUS });
       return;

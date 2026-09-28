@@ -71,9 +71,26 @@ export const PlayerResolveRequestSchema = z.object({
 });
 export type PlayerResolveRequest = z.infer<typeof PlayerResolveRequestSchema>;
 
-/** The resolved internal id plus the display-only citizen flag (task 0068). */
+/**
+ * The resolved internal id plus the display-only citizen flag (task 0068) and,
+ * since task 0322, the player's approved display name.
+ *
+ * `displayName` has THREE states, and the game server treats each differently:
+ *  - absent    — an older profile server that does not send it: "unknown", so the
+ *                game server keeps whatever it already holds;
+ *  - `null`    — no approved name (never approved, or cleared by task 0314);
+ *  - a string  — a candidate name. The game server RE-CHECKS it against the
+ *                current join-name rule before showing it; it is never trusted as is.
+ *
+ * `.catch(undefined)` is load-bearing: `ProfileApiClient.resolvePlayer` drops the
+ * WHOLE resolve when this schema fails, so without it one malformed name would also
+ * lose `playerId` (the XP credit) and `isCitizen` (the ★). A bad value is read as
+ * absent instead. Both deploy orders parse: an old parser drops the unknown key (a
+ * plain `z.object` strips it), and this parser takes an old reply with it missing.
+ */
 export const PlayerResolveResponseSchema = z.object({
   playerId: InternalPlayerIdSchema,
   isCitizen: z.boolean(),
+  displayName: z.string().nullable().optional().catch(undefined),
 });
 export type PlayerResolveResponse = z.infer<typeof PlayerResolveResponseSchema>;

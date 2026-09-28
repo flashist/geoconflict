@@ -13,6 +13,7 @@ import {
   type TelegramConfig,
 } from "../core/notifications/TelegramNotifier";
 import type { NameChangeState } from "../core/profile/NameChangeContract";
+import { isProfaneUsername } from "../core/validations/profanity";
 import {
   checkUsernameRules,
   type UsernameRuleViolation,
@@ -49,6 +50,19 @@ export type DecideOutcome =
   // (operators only) and this string is already public on GET /v1/profile, so
   // returning it leaks nothing and makes a stale command self-correcting.
   | { status: "name_mismatch"; pendingName: string }
+  | { status: "ok" };
+
+// Hiding a declined notice (task 0314). There is no "nothing to hide" outcome on
+// purpose: hiding twice, or hiding when the newest request is not a decline, is
+// a harmless no-op and still `ok` — the card re-reads the profile either way.
+export type DismissOutcome = { status: "not_citizen" } | { status: "ok" };
+
+// The operator's "clear" (task 0314). `name_mismatch` carries the player's
+// CURRENT name, for the same reason DecideOutcome carries the pending one: the
+// route is internal-auth'd and the string is the player's own public name.
+export type ClearOutcome =
+  | { status: "no_custom_name" }
+  | { status: "name_mismatch"; currentName: string }
   | { status: "ok" };
 
 // At most ONE operator notification per player per window (review R1). Cancel
@@ -187,13 +201,60 @@ WHERE id = $1
 `;
 
 // Newest request wins — this drives the card's pending / rejected / approved
-// state. player_name_history_player_recent_idx serves it.
+// state. player_name_history_player_recent_idx finds the player's rows.
+//
+// A PENDING row wins over a newer one (task 0314). Before 0314 this changed
+// nothing: rows are only ever inserted as 'pending' and at most one is pending,
+// so a pending row was always the newest. An operator's "clear" now INSERTS a
+// 'cleared' audit row and deliberately leaves a pending request alone — and
+// without this, that newer cleared row would hide the pending request from its
+// own player (no pending notice, no Withdraw, and a new request refused with
+// `pending_exists` for no visible reason).
 const LATEST_SQL = `
-SELECT new_display_name, moderation_status, decided_at
+SELECT new_display_name, moderation_status, decided_at, dismissed_at
 FROM player_name_history
 WHERE player_id = $1
-ORDER BY id DESC
+ORDER BY (moderation_status = 'pending') DESC, id DESC
 LIMIT 1
+`;
+
+// "Hide" on a declined notice (task 0314, owner ruling Q1). Touches ONLY the
+// player's newest row, and only while that row is a decline that is not hidden
+// yet — so a pending or approved row can never be hidden, and a second tap
+// changes nothing. `player_id = $1` is repeated on the outer row as belt and
+// braces: the id already comes from that player's rows.
+const DISMISS_REJECTION_SQL = `
+UPDATE player_name_history
+SET dismissed_at = now()
+WHERE id = (
+  SELECT id FROM player_name_history
+  WHERE player_id = $1
+  ORDER BY id DESC
+  LIMIT 1
+)
+  AND player_id = $1
+  AND moderation_status = 'rejected'
+  AND dismissed_at IS NULL
+`;
+
+// The operator's "clear" (task 0314, owner ruling Q2). NULL frees the name at
+// once: players_display_name_uq is partial, `where display_name is not null`.
+const CLEAR_NAME_SQL = `
+UPDATE players SET display_name = NULL, updated_at = now()
+WHERE id = $1
+`;
+
+// The audit row for a clear. The status is passed EXPLICITLY, like every writer
+// here (the column still defaults to 'approved'). A cleared row has no new name —
+// migrations/007 requires exactly that — the removed name goes in
+// old_display_name, and the operator's reason goes in the existing
+// rejection_reason column (it is the "why" for a clear, as for a rejection).
+const INSERT_CLEARED_SQL = `
+INSERT INTO player_name_history
+  (player_id, old_display_name, new_display_name, moderation_status,
+   rejection_reason, decided_at)
+VALUES ($1, $2, NULL, 'cleared', $3, now())
+RETURNING id
 `;
 
 function toIsoOrNull(value: Date | null): string | null {
@@ -438,6 +499,77 @@ export class NameChangeRepository {
     return null;
   }
 
+  /**
+   * The operator's "clear" (task 0314, owner ruling Q2): set the player's
+   * approved display name back to none, in ONE transaction, and write a
+   * 'cleared' audit row carrying the removed name and the reason.
+   *
+   * `expectedName` is REQUIRED and bound to the player's CURRENT name (trimmed,
+   * case-sensitive, like decideNameChange's binding): a mismatch applies nothing
+   * and returns the name that is actually set, so an operator can only ever
+   * remove the name they are looking at.
+   *
+   * The profile row is locked FOR UPDATE, the same lock the approve path takes,
+   * so a clear and an approve for the same player run one after the other.
+   *
+   * A PENDING request, if the player has one, is left alone — the operator
+   * decides it separately (runbook). The notify slot is not touched: a clear is
+   * not a decision on a request.
+   *
+   * The inbox note fires AFTER commit through the same never-throw hook as the
+   * approve/reject notes. The log line names the audit row id only — never the
+   * name or the player (brief privacy note).
+   */
+  async clearDisplayName(
+    playerId: string,
+    expectedName: string,
+    reason: string,
+  ): Promise<ClearOutcome> {
+    const client = await this.pool.connect();
+    let clearedName: string;
+    let auditRowId: number;
+    try {
+      await client.query("BEGIN");
+      const profile = await client.query(LOCK_PROFILE_SQL, [playerId]);
+      const current =
+        profile.rows.length > 0
+          ? ((profile.rows[0].display_name as string | null) ?? null)
+          : null;
+      if (current === null) {
+        await client.query("ROLLBACK");
+        return { status: "no_custom_name" };
+      }
+      if (expectedName.trim() !== current) {
+        await client.query("ROLLBACK");
+        return { status: "name_mismatch", currentName: current };
+      }
+      await client.query(CLEAR_NAME_SQL, [playerId]);
+      const audit = await client.query(INSERT_CLEARED_SQL, [
+        playerId,
+        current,
+        reason,
+      ]);
+      auditRowId = Number(audit.rows[0].id);
+      clearedName = current;
+      await client.query("COMMIT");
+    } catch (error) {
+      await this.rollbackQuietly(client);
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    log.info(`display name cleared by operator (history row ${auditRowId})`);
+    this.afterNameChangeDecided(playerId, "name_change_cleared", {
+      name: clearedName,
+      // The route refuses a clear without a non-empty reason, so this fallback
+      // is unreachable through it; a direct caller still cannot produce a param
+      // the inbox boundary refuses as missing (as for a rejection).
+      reason: reason.length > 0 ? reason : "—",
+    });
+    return { status: "ok" };
+  }
+
   private async rollbackQuietly(client: PoolClient): Promise<void> {
     try {
       await client.query("ROLLBACK");
@@ -449,7 +581,8 @@ export class NameChangeRepository {
 
   /**
    * The player's most recent request, for the public profile projection, or null
-   * when they have never requested one. Deliberately does NOT return
+   * when there is nothing to show: they never requested one, an operator cleared
+   * their name, or they hid a decline (task 0314). Deliberately does NOT return
    * `rejection_reason` — see NameChangeContract: `GET /v1/profile` is
    * unauthenticated and enumerable, and the reason reaches the player through
    * the citizen-gated inbox message instead.
@@ -460,11 +593,39 @@ export class NameChangeRepository {
       return null;
     }
     const row = res.rows[0];
+    // Task 0314: two newest rows mean "nothing to show", so the card is idle —
+    //  * a 'cleared' row (an operator removed the name; it has no new name, and
+    //    the removed one is not republished here), and
+    //  * a decline the player hid with the Hide button.
+    // 'cleared' never reaches the wire: NameChangeStatusSchema has three values.
+    if (row.moderation_status === "cleared") {
+      return null;
+    }
+    if (
+      row.moderation_status === "rejected" &&
+      (row.dismissed_at ?? null) !== null
+    ) {
+      return null;
+    }
     return {
       status: row.moderation_status as NameChangeState["status"],
       requested_name: String(row.new_display_name),
       decided_at: toIsoOrNull(row.decided_at as Date | null),
     };
+  }
+
+  /**
+   * Hide the caller's OWN declined request from the card (task 0314, owner
+   * ruling Q1). Citizen-gated in SQL like every player-facing call. Remembered
+   * on the server, so it is hidden on every device. The inbox message keeps the
+   * reason; nothing is deleted.
+   */
+  async dismissRejection(playerId: string): Promise<DismissOutcome> {
+    if (!(await this.isCitizen(playerId))) {
+      return { status: "not_citizen" };
+    }
+    await this.pool.query(DISMISS_REJECTION_SQL, [playerId]);
+    return { status: "ok" };
   }
 
   private async isCitizen(playerId: string): Promise<boolean> {
@@ -480,7 +641,10 @@ export class NameChangeRepository {
    */
   private afterNameChangeDecided(
     playerId: string,
-    templateKey: "name_change_approved" | "name_change_rejected",
+    templateKey:
+      | "name_change_approved"
+      | "name_change_rejected"
+      | "name_change_cleared",
     params: Record<string, string>,
   ): void {
     if (this.inbox === undefined) {
@@ -632,7 +796,31 @@ export function describeRequestedNameForModerator(requestedName: string): {
   return { html: escapeTelegramHtml(shown), hasHiddenCharacters };
 }
 
-/** The `Requested:` line, plus a warning line when the name hides a character. */
+/**
+ * Whether the MATCH's rude-name filter would hide this name from other players
+ * (task 0322; owner ruling "Keep filter, warn me first"). Since 0322 an approved
+ * name is what other players see in a match, and the match replaces a name its
+ * filter matches with a stand-in (GameRunner → fixProfaneUsername). This asks the
+ * very same matcher (src/core/validations/profanity.ts).
+ *
+ * The match checks `sanitize(name)`; for any name that passes the name rule that is
+ * the name itself (tests/core/ApprovedNameInvariants.test.ts pins it), so checking
+ * the requested name gives the match's answer.
+ *
+ * A yes/no ONLY, for the operator: it never says which word matched and never shows
+ * the stand-in name, and it is never part of the player's own request reply (so the
+ * request route cannot be used to probe the filter). Nothing logs it. The filter
+ * checks ENGLISH words only — a Russian insult is not caught; the moderator's own
+ * reading is still the real check.
+ */
+export function wouldMatchFilterHideName(requestedName: string): boolean {
+  return isProfaneUsername(requestedName);
+}
+
+/**
+ * The `Requested:` line, plus a warning line when the name hides a character and
+ * one when the match's rude-name filter would hide it (task 0322).
+ */
 function requestedNameLines(requestedName: string): string[] {
   const { html, hasHiddenCharacters } =
     describeRequestedNameForModerator(requestedName);
@@ -641,6 +829,11 @@ function requestedNameLines(requestedName: string): string[] {
     ...(hasHiddenCharacters
       ? [
           "⚠️ <b>This name contains hidden or unusual characters</b> (shown above as ⟨U+…⟩ codes). Check it carefully before approving.",
+        ]
+      : []),
+    ...(wouldMatchFilterHideName(requestedName)
+      ? [
+          "⚠️ <b>The match's rude-name filter would hide this name</b>: other players would see a stand-in name. Consider rejecting.",
         ]
       : []),
   ];

@@ -575,3 +575,171 @@ describe("FlashistFacade private_lobbies switch + tester marker (task 0302)", ()
     );
   });
 });
+
+// Task 0329: the late-recovery signal the citizenship card re-checks its gate
+// on. Drives the real yandexSdkInit() recovery branch on a bare facade.
+describe("FlashistFacade.whenPlatformRecoveredLate (task 0329)", () => {
+  type Deferred<T> = { promise: Promise<T>; resolve: (value: T) => void };
+  function deferred<T>(): Deferred<T> {
+    let resolve: (value: T) => void = () => {};
+    const promise = new Promise<T>((r) => {
+      resolve = r;
+    });
+    return { promise, resolve };
+  }
+
+  const guest = { isAuthorized: () => false };
+
+  function makeRecoveryFacade(options: {
+    /** Set only once stage 2 of platform init has run (degraded boot). */
+    playerInitResultPromise?: Promise<void>;
+    getFlags: jest.Mock;
+    getPlayer: jest.Mock;
+  }): FlashistFacade {
+    (
+      window as unknown as { flashist_sdkScriptReadyPromise: Promise<void> }
+    ).flashist_sdkScriptReadyPromise = Promise.resolve();
+    (window as unknown as { YaGames: unknown }).YaGames = {
+      init: jest.fn().mockResolvedValue({
+        getFlags: options.getFlags,
+        getPlayer: options.getPlayer,
+      }),
+    };
+    return Object.assign(Object.create(FlashistFacade.prototype), {
+      yaGamesAvailable: false,
+      yandexInitPromise: Promise.resolve(),
+      yandexSdkInitPlayerPromise: Promise.resolve(),
+      playerInitResultPromise: options.playerInitResultPromise,
+      // Cohort events already logged: keeps analytics out of this test.
+      hasLoggedExperimentEvents: true,
+      // Sibling recoveries at the same site, stubbed: this suite is the signal.
+      initPayments: jest.fn().mockResolvedValue(undefined),
+      yandexGamesReadyCallback: jest.fn(),
+      primeCitizenshipSurfacesSnapshot: jest.fn(),
+    }) as FlashistFacade;
+  }
+
+  const runSdkInit = (facade: FlashistFacade): Promise<void> =>
+    (facade as unknown as { yandexSdkInit(): Promise<void> }).yandexSdkInit();
+
+  /** Spy on a promise without blocking on it. */
+  function track(promise: Promise<void>): { settled: () => boolean } {
+    let settled = false;
+    void promise.then(() => {
+      settled = true;
+    });
+    return { settled: () => settled };
+  }
+
+  // Flush chained promise callbacks under fake timers.
+  const flush = () => jest.advanceTimersByTimeAsync(0);
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    delete (window as unknown as { YaGames?: unknown }).YaGames;
+  });
+
+  it("resolves on a late recovery, for a waiter added before and one added after", async () => {
+    const getFlags = jest.fn().mockResolvedValue({ citizenship_ui: "enabled" });
+    const getPlayer = jest.fn().mockResolvedValue(guest);
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: Promise.resolve(),
+      getFlags,
+      getPlayer,
+    });
+    const early = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await flush();
+
+    expect(early.settled()).toBe(true);
+    const late = track(facade.whenPlatformRecoveredLate());
+    await flush();
+    expect(late.settled()).toBe(true);
+    expect(getPlayer).toHaveBeenCalledTimes(1);
+  });
+
+  it("never resolves on the normal path (stage 2 had not run yet)", async () => {
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: undefined,
+      getFlags: jest.fn().mockResolvedValue({ citizenship_ui: "enabled" }),
+      getPlayer: jest.fn().mockResolvedValue(guest),
+    });
+    const waiter = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await jest.advanceTimersByTimeAsync(10_000);
+
+    expect(waiter.settled()).toBe(false);
+  });
+
+  it("never resolves when the flag fetch fails", async () => {
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: Promise.resolve(),
+      getFlags: jest.fn().mockRejectedValue(new Error("no flags")),
+      getPlayer: jest.fn().mockResolvedValue(guest),
+    });
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    const waiter = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await jest.advanceTimersByTimeAsync(10_000);
+
+    expect(waiter.settled()).toBe(false);
+    jest.restoreAllMocks();
+  });
+
+  it("waits for the player recovery before resolving", async () => {
+    const player = deferred<unknown>();
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: Promise.resolve(),
+      getFlags: jest.fn().mockResolvedValue({ citizenship_ui: "enabled" }),
+      getPlayer: jest.fn().mockReturnValue(player.promise),
+    });
+    const waiter = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await flush();
+    expect(waiter.settled()).toBe(false);
+
+    player.resolve(guest);
+    await flush();
+    expect(waiter.settled()).toBe(true);
+  });
+
+  it("stops waiting for a hung getPlayer() at the 5 s shared deadline", async () => {
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: Promise.resolve(),
+      getFlags: jest.fn().mockResolvedValue({ citizenship_ui: "enabled" }),
+      getPlayer: jest.fn().mockReturnValue(new Promise(() => {})),
+    });
+    const waiter = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await jest.advanceTimersByTimeAsync(4_999);
+    expect(waiter.settled()).toBe(false);
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(waiter.settled()).toBe(true);
+  });
+
+  it("calls getFlags() exactly once across the recovery branch", async () => {
+    const getFlags = jest.fn().mockResolvedValue({ citizenship_ui: "enabled" });
+    const facade = makeRecoveryFacade({
+      playerInitResultPromise: Promise.resolve(),
+      getFlags,
+      getPlayer: jest.fn().mockResolvedValue(guest),
+    });
+    const waiter = track(facade.whenPlatformRecoveredLate());
+
+    await runSdkInit(facade);
+    await flush();
+
+    expect(waiter.settled()).toBe(true);
+    expect(getFlags).toHaveBeenCalledTimes(1);
+  });
+});

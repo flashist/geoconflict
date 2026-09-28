@@ -36,6 +36,7 @@ import {
   NAME_CHANGE_DIGEST_MARKER_PATH,
   PENDING_COUNT_SQL,
   PENDING_LIST_CAP,
+  PENDING_LIST_MAX_LENGTH,
   PENDING_LIST_SQL,
   countPendingNameChanges,
   formatNameChangeDigest,
@@ -489,6 +490,35 @@ describe("formatPendingNameChangeList", () => {
   it("does not flag a plain name", () => {
     expect(formatPendingNameChangeList(1, AT, entries(rows(1)))).not.toContain(
       "hidden characters",
+    );
+  });
+
+  // Task 0322: the per-player notification cooldown means some requests never get
+  // their own Telegram message, so the list must flag the rude-name filter too.
+  it("flags a name the match's rude-name filter would hide, and only that one", () => {
+    const list = rows(3).map((r, i) =>
+      i === 1 ? { ...r, new_display_name: "bitch" } : r,
+    );
+    const lines = formatPendingNameChangeList(3, AT, entries(list)).split("\n");
+    expect(lines[1]).not.toContain("rude-name filter");
+    expect(lines[2]).toMatch(/ ⚠️ rude-name filter$/);
+    expect(lines[3]).not.toContain("rude-name filter");
+  });
+
+  it("20 worst-case names carrying BOTH warnings stay under 4096 and M counts the dropped ones", () => {
+    const hostile = `${"ㅤ".repeat(123)}bitch`;
+    expect(hostile.length).toBe(128);
+    const list = rows(20).map((r) => ({ ...r, new_display_name: hostile }));
+    const text = formatPendingNameChangeList(25, AT, entries(list));
+    expect(text.length).toBeLessThan(PENDING_LIST_MAX_LENGTH);
+    const shown = text.split("\n").filter((l) => /^\d+\. <code>/.test(l));
+    expect(shown.length).toBeGreaterThan(0);
+    expect(shown.length).toBeLessThan(20);
+    for (const line of shown) {
+      expect(line).toContain("⚠️ hidden characters ⚠️ rude-name filter");
+    }
+    expect(text).toContain(
+      `…and ${25 - shown.length} more waiting (oldest shown first)`,
     );
   });
 });

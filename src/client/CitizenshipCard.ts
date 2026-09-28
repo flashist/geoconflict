@@ -6,7 +6,9 @@ import {
   usernameRuleErrorMessage,
   usernameRulesHint,
 } from "../core/validations/username";
+import { publishApprovedName } from "./ApprovedName";
 import { runCitizenshipPurchase } from "./CitizenshipPurchase";
+import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   deriveCitizenshipStatus,
   publishCitizenshipStatus,
@@ -14,6 +16,7 @@ import {
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
   cancelNameChangeRequest,
+  dismissNameChangeRejection,
   submitNameChangeRequest,
 } from "./NameChangeRequest";
 import {
@@ -23,6 +26,7 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
+import { whenOnStartScreen } from "./StartScreenPresence";
 import { maybeClaimTenureGrant } from "./TenureGrantClaim";
 import type { TenureGrantModal } from "./TenureGrantModal";
 import {
@@ -78,6 +82,8 @@ export class CitizenshipCard extends LitElement {
   // Gated by the "citizenship_ui" Yandex experiment flag: the card renders
   // nothing (and fires no analytics) until the flag is confirmed enabled.
   // checkExperimentFlag returns true unconditionally when GAME_ENV === "dev".
+  // Task 0329: a card hidden by the flag check re-checks it once if the Yandex
+  // platform recovers late (recheckWhenPlatformRecovers).
   @state() private isEnabled = false;
 
   // Paid purchase flow (task 0018): non-blocking error line under the buy CTA.
@@ -114,30 +120,10 @@ export class CitizenshipCard extends LitElement {
           // Collapse the host so the start screen keeps the design's rhythm
           // (an empty flex child would still create a container gap slot).
           this.classList.add("hidden");
+          this.recheckWhenPlatformRecovers();
           return;
         }
-        this.classList.remove("hidden");
-        this.isEnabled = true;
-        // Reconciliation can grant an interrupted purchase AFTER the profile
-        // was fetched — re-fetch on its signal so the card leaves State 2
-        // instead of offering a second purchase (task 0018).
-        window.addEventListener(
-          PURCHASES_RECONCILED_EVENT,
-          this.onPurchasesReconciled,
-        );
-        // The payments catalog can settle after this first render (it races
-        // the platform-init deadline) — re-render on settle so a late 'ready'
-        // reveals the buy CTA. Never resolves in a catalog-less session.
-        void FlashistFacade.instance.whenPaymentsCatalogSettled().then(() => {
-          if (this.isConnected) {
-            this.requestUpdate();
-          }
-        });
-        this.requestUpdate();
-        await this.updateComplete;
-        this.maybeReportSeen();
-        await this.refreshProfile();
-        this.startTenureClaim();
+        await this.revealCard();
       })
       .catch((error) => {
         console.warn("Failed to load profile for citizenship card:", error);
@@ -145,11 +131,91 @@ export class CitizenshipCard extends LitElement {
   }
 
   disconnectedCallback() {
+    // Task 0329: a recovery waiter from this connection must do nothing.
+    this.connectionGeneration++;
     window.removeEventListener(
       PURCHASES_RECONCILED_EVENT,
       this.onPurchasesReconciled,
     );
     super.disconnectedCallback();
+  }
+
+  // Bumped on every disconnect; a promise cannot be unsubscribed, so a waiter
+  // compares the generation it started in (task 0329).
+  private connectionGeneration = 0;
+
+  /**
+   * The one path that shows the card — from the first flag check at the gate,
+   * and from the re-check after a late platform recovery (task 0329).
+   */
+  private async revealCard(): Promise<void> {
+    this.classList.remove("hidden");
+    this.isEnabled = true;
+    // Reconciliation can grant an interrupted purchase AFTER the profile
+    // was fetched — re-fetch on its signal so the card leaves State 2
+    // instead of offering a second purchase (task 0018).
+    window.addEventListener(
+      PURCHASES_RECONCILED_EVENT,
+      this.onPurchasesReconciled,
+    );
+    // The payments catalog can settle after this first render (it races
+    // the platform-init deadline) — re-render on settle so a late 'ready'
+    // reveals the buy CTA. Never resolves in a catalog-less session.
+    void FlashistFacade.instance.whenPaymentsCatalogSettled().then(() => {
+      if (this.isConnected) {
+        this.requestUpdate();
+      }
+    });
+    this.requestUpdate();
+    await this.updateComplete;
+    this.maybeReportSeen();
+    await this.refreshProfile();
+    this.startTenureClaim();
+  }
+
+  /**
+   * Task 0329: the flag check hid the card. On a degraded boot the flags may
+   * simply have been missing, so wait for the facade's late-recovery signal
+   * (fires at most once per page, never on a healthy boot) and ask the flag
+   * again. Reveals only on a real `enabled` — a flag that is really off keeps
+   * the card hidden, so 0291's fail-closed rule holds. Subscribes whenever the
+   * card hides (owner ruling Q1, 2026-09-28): asking the facade "were the flags
+   * missing?" afterwards would race the recovery itself.
+   *
+   * The recovery can land after the player joined a lobby or match, so the
+   * reveal waits for the start screen (review R1): its tenure gift popup must
+   * never cover a live match, and Citizenship:Seen fires only once the card can
+   * be seen. The gate reveal needs no wait — the player is still on the start
+   * screen then.
+   */
+  private recheckWhenPlatformRecovers(): void {
+    const generation = this.connectionGeneration;
+    const isStillWanted = () =>
+      generation === this.connectionGeneration &&
+      this.isConnected &&
+      !this.isEnabled;
+    void FlashistFacade.instance
+      .whenPlatformRecoveredLate()
+      .then(async () => {
+        if (!isStillWanted()) {
+          return;
+        }
+        const enabled = await FlashistFacade.instance.isCitizenshipUiEnabled();
+        if (!enabled || !isStillWanted()) {
+          return;
+        }
+        await whenOnStartScreen();
+        if (!isStillWanted()) {
+          return;
+        }
+        await this.revealCard();
+      })
+      .catch((error) => {
+        console.warn(
+          "Failed to re-check the citizenship card after platform recovery:",
+          error,
+        );
+      });
   }
 
   private readonly onPurchasesReconciled = (): void => {
@@ -158,10 +224,32 @@ export class CitizenshipCard extends LitElement {
     }
   };
 
+  // Task 0326: profile reads can overlap (first read vs reconciliation, tenure,
+  // purchase, name change, login fallback). Each read takes a number; a read that
+  // lands after a NEWER read has already been applied is dropped, so a slow stale
+  // answer can never overwrite a fresher one. The read itself still runs: the
+  // guard only decides whether its result is applied.
+  private profileReadsIssued = 0;
+  private newestAppliedProfileRead = 0;
+
   private async refreshProfile(): Promise<void> {
-    this.profile = await loadPlayerProfileView();
+    const readNumber = ++this.profileReadsIssued;
+    const profile = await loadPlayerProfileView();
+    if (readNumber < this.newestAppliedProfileRead) {
+      return; // superseded: settle normally, apply nothing
+    }
+    this.newestAppliedProfileRead = readNumber;
+    this.profile = profile;
     this.publishCitizenshipStatus();
+    this.publishApprovedName();
     this.requestUpdate();
+  }
+
+  private isCitizenNow(): boolean {
+    return (
+      deriveCitizenshipStatus(this.profile, this.paidGrantConfirmed) ===
+      "citizen"
+    );
   }
 
   // Task 0302: the card is the page's only citizenship reader, so perk locks
@@ -169,6 +257,26 @@ export class CitizenshipCard extends LitElement {
   private publishCitizenshipStatus(): void {
     publishCitizenshipStatus(
       deriveCitizenshipStatus(this.profile, this.paidGrantConfirmed),
+    );
+  }
+
+  // Task 0321: the start-screen name box locks to the approved name this
+  // publishes — the card stays the page's only profile reader. Only an
+  // AUTHORITATIVE read publishes (owner ruling Q1, 2026-09-28: a non-null
+  // display_name locks, regardless of citizen status). A guest, a failed read
+  // or a timeout publishes nothing, so the last good answer stands: a failed
+  // read never locks the box, and never unlocks it mid-load either.
+  private publishApprovedName(): void {
+    const profile = this.profile;
+    if (profile === null || !profile.isAuthoritative) {
+      return;
+    }
+    // `?? null`: a view built by an older path (or a test stub) can omit it.
+    const approvedName = profile.approvedName ?? null;
+    publishApprovedName(
+      approvedName === null
+        ? { kind: "none" }
+        : { kind: "approved", name: approvedName },
     );
   }
 
@@ -182,9 +290,19 @@ export class CitizenshipCard extends LitElement {
    * The popup opens ONLY on `granted` with XP > 0. The profile is re-read with
    * refreshProfile(), never a second loadPlayerProfileView() caller, so
    * `Citizenship:Earned:XP` cannot double-fire.
+   *
+   * Task 0303 (owner ruling Q-A, 2026-09-28): a gift that MADE the player a
+   * citizen also offers the "restart to apply" popup, once the thank-you popup
+   * is closed. The server's answer cannot say so (every citizen reads XP 100),
+   * so the card compares its own status before the claim and after the re-read.
+   * A failed re-read reads as not-citizen, so it offers nothing.
+   *
+   * Task 0326: if a newer read was applied before this re-read lands, the
+   * re-read is dropped and the check below sees that newer read instead.
    */
   private startTenureClaim(): void {
     void (async () => {
+      const wasCitizen = this.isCitizenNow();
       const result = await maybeClaimTenureGrant();
       if (
         result.status !== "granted" ||
@@ -193,11 +311,27 @@ export class CitizenshipCard extends LitElement {
       ) {
         return;
       }
-      document
-        .querySelector<TenureGrantModal>("tenure-grant-modal")
-        ?.show({ xpAwarded: result.xpAwarded, xp: result.xp });
+      let markThankYouClosed: () => void = () => {};
+      const thankYouClosed = new Promise<void>((resolve) => {
+        markThankYouClosed = resolve;
+      });
+      const modal =
+        document.querySelector<TenureGrantModal>("tenure-grant-modal");
+      if (modal === null) {
+        markThankYouClosed();
+      } else {
+        modal.show(
+          { xpAwarded: result.xpAwarded, xp: result.xp },
+          markThankYouClosed,
+        );
+      }
       // So the XP bar shows the granted total.
       await this.refreshProfile();
+      if (wasCitizen || !this.isCitizenNow()) {
+        return;
+      }
+      await thankYouClosed;
+      dispatchCitizenshipGrantedMidSession("tenure");
     })().catch((error) => {
       console.warn("Tenure grant claim failed:", error);
     });
@@ -438,6 +572,8 @@ export class CitizenshipCard extends LitElement {
   // ── Name change (task 0067, citizens only) ───────────────────────────────
   // Four states, all driven by the SERVER's name_change projection except the
   // local "editing" toggle: idle → editing → pending → (approved | rejected).
+  // A decline the player hid, or a name an operator cleared, comes back from the
+  // server as no request at all, i.e. idle (task 0314).
   private renderNameChange(profile: PlayerProfileView) {
     // `?? null` is defensive, not decorative: a view object built by an older
     // path (or a test stub) can omit the field entirely, and `undefined !== null`
@@ -540,13 +676,23 @@ export class CitizenshipCard extends LitElement {
             name: requestedName,
           })}
         </div>
-        <button
-          id="citizenship-name-change-retry"
-          class="mt-1.5 w-full px-3 py-[5px] rounded-lg text-[12px] font-bold text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
-          @click=${this.onNameChangeCtaTap}
-        >
-          ${translateText("citizenship_name_change.try_again")}
-        </button>
+        <div class="mt-1.5 flex gap-1.5">
+          <button
+            id="citizenship-name-change-retry"
+            class="flex-1 px-3 py-[5px] rounded-lg text-[12px] font-bold text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            @click=${this.onNameChangeCtaTap}
+          >
+            ${translateText("citizenship_name_change.try_again")}
+          </button>
+          <button
+            id="citizenship-name-change-dismiss"
+            class="px-3 py-[5px] rounded-lg text-[12px] font-bold text-white/70 bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            @click=${this.onNameRejectionDismissTap}
+          >
+            ${translateText("citizenship_name_change.dismiss")}
+          </button>
+        </div>
+        ${this.renderNameError()}
       </div>
     `;
   }
@@ -717,6 +863,36 @@ export class CitizenshipCard extends LitElement {
         // `no_pending` is treated as success on purpose: it means the request
         // is already gone (an operator decided it, or another tab withdrew
         // it). Re-reading the profile shows whatever is actually true now.
+        await this.refreshProfile();
+        return;
+      }
+      this.nameError = translateText(
+        result.status === "not_citizen"
+          ? "citizenship_name_change.error_not_citizen"
+          : "citizenship_name_change.error_generic",
+      );
+      this.requestUpdate();
+    } finally {
+      this.isNameRequestInFlight = false;
+    }
+  };
+
+  // Hide a declined notice (task 0314). The server remembers it — nothing is
+  // stored on the device — and the card re-reads the profile, so the idle state
+  // comes from the server like every other name-change state.
+  private readonly onNameRejectionDismissTap = async (): Promise<void> => {
+    if (this.isNameRequestInFlight) {
+      return;
+    }
+    this.isNameRequestInFlight = true;
+    this.nameError = null;
+    this.requestUpdate();
+    try {
+      const result = await dismissNameChangeRejection();
+      if (!this.isConnected) {
+        return;
+      }
+      if (result.status === "ok") {
         await this.refreshProfile();
         return;
       }

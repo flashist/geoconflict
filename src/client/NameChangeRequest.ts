@@ -36,6 +36,11 @@ export type NameChangeCancelResult =
   | { status: "not_citizen" }
   | { status: "error" };
 
+export type NameChangeDismissResult =
+  | { status: "ok" }
+  | { status: "not_citizen" }
+  | { status: "error" };
+
 /**
  * POST under the login session's Bearer token (task 0273, S4) returning
  * {ok, body} — or null when the call could not be made at all (unconfigured API,
@@ -136,4 +141,22 @@ export async function cancelNameChangeRequest(): Promise<NameChangeCancelResult>
     default:
       return { status: "error" };
   }
+}
+
+/**
+ * Hide the current player's own declined request from the card (task 0314). The
+ * server remembers it, so it stays hidden on every device; nothing is stored
+ * here. An old server without the route answers 404, which maps to `error`.
+ */
+export async function dismissNameChangeRejection(): Promise<NameChangeDismissResult> {
+  const response = await postJson("/v1/profile/name-change-dismiss", {});
+  if (response === null) {
+    return { status: "error" };
+  }
+  if (response.ok) {
+    return { status: "ok" };
+  }
+  return errorCode(response.json) === "not_citizen"
+    ? { status: "not_citizen" }
+    : { status: "error" };
 }

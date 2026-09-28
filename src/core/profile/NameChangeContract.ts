@@ -2,8 +2,9 @@ import { z } from "zod";
 
 /**
  * Shared client↔profile-server WIRE contracts for citizen name changes (task
- * 0067): `POST /v1/profile/name-change-request` and
- * `POST /v1/profile/name-change-cancel` (player-facing) plus
+ * 0067): `POST /v1/profile/name-change-request`,
+ * `POST /v1/profile/name-change-cancel` and (task 0314)
+ * `POST /v1/profile/name-change-dismiss` (player-facing) plus
  * `POST /internal/v1/name-change/decide` (service-authenticated). Sibling of
  * InboxContract.ts / PaymentsContract.ts — defined here so the client posts and
  * parses exactly the shapes the profile server validates.
@@ -60,6 +61,15 @@ export type NameChangeCancelRequest = z.infer<
   typeof NameChangeCancelRequestSchema
 >;
 
+/**
+ * Hide the caller's OWN declined request from the card (task 0314). Same empty
+ * body as cancel — the Bearer token is the caller.
+ */
+export const NameChangeDismissRequestSchema = z.object({});
+export type NameChangeDismissRequest = z.infer<
+  typeof NameChangeDismissRequestSchema
+>;
+
 /** Operator-authored rejection reason. Bounded to fit the inbox `{reason}` param. */
 export const MAX_REJECTION_REASON_LENGTH = 500;
 
@@ -70,11 +80,18 @@ export const MAX_REJECTION_REASON_LENGTH = 500;
  * empty string as missing, so a blank reason would be refused at the send
  * boundary AFTER the row was already marked rejected. Refusing it here keeps
  * that inconsistency impossible.
+ *
+ * `clear` (task 0314, owner-ruled 2026-09-27) is not a decision on a pending
+ * request: it removes the player's APPROVED name, setting it back to none. It
+ * needs a reason for the same inbox reason (`name_change_cleared` requires it),
+ * and it REQUIRES `expectedName` — bound to the player's CURRENT name — so an
+ * operator can only ever remove the name they are looking at. Approve and
+ * reject keep `expectedName` optional on the wire, unchanged.
  */
 export const NameChangeDecisionRequestSchema = z
   .object({
     playerId: InternalPlayerIdSchema,
-    decision: z.enum(["approve", "reject"]),
+    decision: z.enum(["approve", "reject", "clear"]),
     reason: z.string().max(MAX_REJECTION_REASON_LENGTH).optional(),
     /**
      * The name the operator BELIEVES they are deciding on — the binding that
@@ -99,13 +116,19 @@ export const NameChangeDecisionRequestSchema = z
   })
   .refine(
     (value) =>
-      value.decision !== "reject" || (value.reason ?? "").trim().length > 0,
-    { message: "a rejection requires a non-empty reason" },
+      value.decision === "approve" || (value.reason ?? "").trim().length > 0,
+    { message: "a rejection or a clear requires a non-empty reason" },
+  )
+  .refine(
+    (value) => value.decision !== "clear" || value.expectedName !== undefined,
+    { message: "a clear requires expectedName (the player's current name)" },
   );
 export type NameChangeDecisionRequest = z.infer<
   typeof NameChangeDecisionRequestSchema
 >;
 
+// The WIRE statuses. The database has a fourth, 'cleared' (task 0314), which is
+// never sent: the profile projection shows a cleared row as no request at all.
 export const NAME_CHANGE_STATUSES = [
   "pending",
   "approved",
@@ -164,7 +187,14 @@ export type NameChangeCancelResponse = z.infer<
 >;
 
 export const NameChangeDecisionResponseSchema = z.object({
-  status: z.enum(["ok", "no_pending", "name_taken", "name_mismatch"]),
+  status: z.enum([
+    "ok",
+    "no_pending",
+    "name_taken",
+    "name_mismatch",
+    // `clear` only (task 0314): the player has no custom name to remove.
+    "no_custom_name",
+  ]),
 });
 export type NameChangeDecisionResponse = z.infer<
   typeof NameChangeDecisionResponseSchema

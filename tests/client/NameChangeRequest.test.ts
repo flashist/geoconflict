@@ -33,6 +33,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import {
   cancelNameChangeRequest,
+  dismissNameChangeRejection,
   submitNameChangeRequest,
 } from "../../src/client/NameChangeRequest";
 import { resetProfileSessionForTests } from "../../src/client/ProfileSession";
@@ -199,6 +200,51 @@ describe("NameChangeRequest", () => {
       const fetchMock = jest.fn().mockRejectedValue(new Error("offline"));
       global.fetch = fetchMock as unknown as typeof fetch;
       await expect(cancelNameChangeRequest()).resolves.toEqual({
+        status: "error",
+      });
+    });
+  });
+
+  // Task 0314: hide a declined notice.
+  describe("dismissNameChangeRejection", () => {
+    it("posts an empty body to the dismiss route under a Bearer token", async () => {
+      const fetchMock = stubFetch(200, { status: "ok" });
+      await expect(dismissNameChangeRejection()).resolves.toEqual({
+        status: "ok",
+      });
+      expect(fetchMock).toHaveBeenCalledWith(
+        `${API_BASE}/v1/profile/name-change-dismiss`,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({}),
+          headers: expect.objectContaining({ Authorization: EXPECTED_BEARER }),
+        }),
+      );
+      expect(fetchMock.mock.calls[0][1].signal).toBeDefined();
+    });
+
+    it("reports not_citizen distinctly", async () => {
+      stubFetch(403, { error: "not_citizen" });
+      await expect(dismissNameChangeRejection()).resolves.toEqual({
+        status: "not_citizen",
+      });
+    });
+
+    it("maps an OLD server's 404 (no such route) and any other failure to error", async () => {
+      stubFetch(404, { error: "not_found" });
+      await expect(dismissNameChangeRejection()).resolves.toEqual({
+        status: "error",
+      });
+      stubFetch(500, { error: "internal_error" });
+      await expect(dismissNameChangeRejection()).resolves.toEqual({
+        status: "error",
+      });
+    });
+
+    it("NEVER throws on a network failure", async () => {
+      const fetchMock = jest.fn().mockRejectedValue(new Error("offline"));
+      global.fetch = fetchMock as unknown as typeof fetch;
+      await expect(dismissNameChangeRejection()).resolves.toEqual({
         status: "error",
       });
     });

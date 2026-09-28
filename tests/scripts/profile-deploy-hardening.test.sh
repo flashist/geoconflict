@@ -125,8 +125,19 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
     : > "$RUN/Dockerfile.profile"
     printf '#!/bin/bash\nexit 0\n' > "$RUN/scripts/check-docker-secret-boundary.sh"
     chmod +x "$RUN/scripts/check-docker-secret-boundary.sh"
+    # Task 0298: the config parity guard is ARMED — a missing checker stops the deploy — so
+    # the fixture carries a stub checker, like the secret-boundary stub above. It records its
+    # argv and exits $STUB_PARITY_RC (default 0). PARITY_STUB=absent (a shell variable of
+    # the caller, never passed into the script's env) leaves it out, for T19.
+    if [ "${PARITY_STUB:-}" != "absent" ]; then
+        printf '%s\n' \
+            'import fs from "node:fs";' \
+            "fs.appendFileSync(\"$WORK/parity.argv\", process.argv.slice(2).join(\" \") + \"\\n\");" \
+            "process.exit(Number(\"${STUB_PARITY_RC:-0}\"));" \
+            > "$RUN/scripts/check-config-parity.mjs"
+    fi
     rm -f "$WORK/docker.argv" "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" \
-          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env"
+          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env" "$WORK/parity.argv"
     # `env -i` + an explicit allow-list — deliberately NOT a list of secrets to clear.
     # The real deploy script forwards every variable in its export block from its environment into the staged
     # secrets file, and the scp stub captures that file to $WORK/staged.env for T10. If
@@ -253,6 +264,45 @@ if [ "$got" = "$SECRET_YP" ]; then pass "value round-trips through sourcing (spa
   else fail "staged value did not round-trip (got ${#got} chars, expected ${#SECRET_YP})"; fi
 if grep -rqF "$SECRET_YP" "$WORK"/*.argv 2>/dev/null; then fail "payments secret LEAKED into an argv"; \
   else pass "payments secret never appears in docker/ssh/scp/sshpass argv"; fi
+
+echo "== T19: the config parity guard is ARMED — it runs first and fails closed (0298) =="
+# Owner rulings 2026-09-23 (0203 R4b, R14) and 2026-09-28 (0298 plan: a missing node stops it
+# too). The real checker is tested end to end in tests/scripts/ConfigParityCallSites.test.ts;
+# here the REAL build-deploy-profile.sh is driven with a stub checker, so what is proven is
+# the call site: it passes the armed flags, and a non-zero or missing checker stops it
+# before any docker call, lock, record or transport.
+NEW; echo profile > "$WORK/marker"
+run_deploy
+[ "$RC" -eq 0 ] && pass "stub checker exit 0 → deploy proceeds (rc=0)" || fail "deploy exited $RC with a passing checker; see $WORK/out.log"
+[ "$(cat "$WORK/parity.argv" 2>/dev/null)" = "--pipeline=all --enforce --block-on=profile" ] \
+  && pass "checker ran once, with --pipeline=all --enforce --block-on=profile" \
+  || fail "checker argv was '$(cat "$WORK/parity.argv" 2>/dev/null)' — expected exactly one run with --pipeline=all --enforce --block-on=profile"
+NEW; echo profile > "$WORK/marker"
+STUB_PARITY_RC=1 run_deploy
+[ "$RC" -ne 0 ] && pass "stub checker exit 1 → deploy failed closed (rc=$RC)" || fail "a failing checker did NOT stop the deploy"
+grep -q 'config parity guard failed' "$WORK/out.log" && pass "…and said why" || fail "no 'config parity guard failed' message"
+[ ! -f "$WORK/docker.argv" ] && pass "…before any docker call" || fail "docker ran after a failing parity guard"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$RECORD" ] && [ ! -d "$WORK/lock.d" ] \
+  && pass "…with no SCP, no deploy record, no lock" || fail "a blocked deploy still transported, recorded or locked"
+NEW; echo profile > "$WORK/marker"
+PARITY_STUB=absent run_deploy
+[ "$RC" -ne 0 ] && pass "missing checker → deploy failed closed (rc=$RC)" || fail "a MISSING checker did not stop the deploy (0203 R4b)"
+grep -q 'config parity guard not found' "$WORK/out.log" && pass "…and said why" || fail "no 'config parity guard not found' message"
+[ ! -f "$WORK/docker.argv" ] && [ ! -f "$WORK/scp.called" ] && pass "…before any docker call or SCP" || fail "docker/SCP ran with no parity guard"
+B="$REPO_ROOT/build-deploy-profile.sh"
+CALL=$(grep -nE '^if ! node "\$PARITY_CHECKER" --pipeline=all --enforce --block-on=profile; then$' "$B" | head -1 | cut -d: -f1)
+[ -n "$CALL" ] && pass "build-deploy-profile.sh: the call site passes --enforce --block-on=profile" \
+  || fail "build-deploy-profile.sh: no 'if ! node \"\$PARITY_CHECKER\" --pipeline=all --enforce --block-on=profile; then' line"
+# Any non-comment line naming the checker — by its variable (the call site spells it
+# "$PARITY_CHECKER") or by its filename — must not swallow it (0298 review R1: the old
+# pattern keyed on the filename alone and could never match the call line).
+grep -nE '^[^#]*(PARITY_CHECKER|check-config-parity\.mjs)[^#]*(\|\| *true|--report-only)' "$B" >/dev/null \
+  && fail "build-deploy-profile.sh: the parity guard is swallowed again (|| true / --report-only)" \
+  || pass "build-deploy-profile.sh: no '|| true' and no --report-only on the parity guard"
+FIRST_LOAD=$(grep -n '^load_env_file ' "$B" | head -1 | cut -d: -f1)
+[ -n "$CALL" ] && [ -n "$FIRST_LOAD" ] && [ "$CALL" -lt "$FIRST_LOAD" ] \
+  && pass "build-deploy-profile.sh: the guard runs before the first load_env_file (no secret in the shell)" \
+  || fail "build-deploy-profile.sh: the parity guard is not above the first load_env_file"
 
 echo "== T11: profile-checks.sh is SCP'd and PROFILE_CHECKS_PING_URL round-trips (task 0219) =="
 # The ping URL is a capability (whoever holds it silences the alert): same T10 standard — the
@@ -1705,18 +1755,42 @@ printf 'ALERT_PROBE_URL=https://example.invalid/hook\nALERT_PROBE_SECRET=0f3ab9c
 mkdir -p "$PROBE_RUN_DIR/bin"
 cat > "$PROBE_RUN_DIR/bin/curl" <<'EOF'
 #!/bin/bash
-cat > /dev/null                        # drain the JSON body from stdin, as the real call sends it
+# Save the JSON body from stdin, as the real call sends it (task 0285 asserts what it carries).
+cat > "$(dirname "$0")/../curl.stdin"
 [ -n "${STUB_CURL_FAIL:-}" ] && exit 22
 printf '%s' "${STUB_CURL_BODY:-}"
 EOF
-chmod +x "$PROBE_RUN_DIR/bin/curl"
+# Task 0285: the channel-state read. `timeout` is not on a macOS PATH and the real `docker`
+# must never be reached from a test, so both are stubbed. The docker stub records its argv and
+# prints psql.out (tab-separated `status<TAB>url` rows) — or FAILS when there is none, so the
+# five 0284 cases below run with an UNREADABLE state and prove a failed read cannot break the
+# liveness probe.
+# Review R1/R2: the timeout stub records its argv (so the bound is asserted on the call that
+# actually RAN) and can exit as a real timeout would — 124 after SIGTERM, 137 after SIGKILL —
+# without running the command; the docker stub can fail with a chosen exit code.
+cat > "$PROBE_RUN_DIR/bin/timeout" <<'EOF'
+#!/bin/bash
+printf '%s\n' "$*" >> "$(dirname "$0")/../timeout.argv"
+[ -n "${STUB_TIMEOUT_RC:-}" ] && exit "$STUB_TIMEOUT_RC"
+[ "$1" = "-k" ] && shift 2   # the kill grace
+shift   # the duration
+exec "$@"
+EOF
+cat > "$PROBE_RUN_DIR/bin/docker" <<'EOF'
+#!/bin/bash
+d="$(dirname "$0")/.."
+printf '%s\n' "$*" >> "$d/docker.argv"
+[ -f "$d/psql.out" ] || exit "${STUB_DOCKER_RC:-1}"
+cat "$d/psql.out"
+EOF
+chmod +x "$PROBE_RUN_DIR/bin/curl" "$PROBE_RUN_DIR/bin/timeout" "$PROBE_RUN_DIR/bin/docker"
 # The real script logs to /var/log; redirect that one line into the temp dir.
 sed "s#^LOG=.*#LOG=\"$PROBE_RUN_DIR/probe.log\"#" "$PROBE_RUN_DIR/alert-probe.sh" > "$PROBE_RUN_DIR/run.sh"
 grep -q "^LOG=\"$PROBE_RUN_DIR/probe.log\"\$" "$PROBE_RUN_DIR/run.sh" \
   && pass "probe: the extracted script is runnable with its log redirected (the cases below are not vacuous)" \
   || fail "probe: could not redirect LOG= in the extracted script — the behavioural cases below would be vacuous"
 run_probe() {  # <VAR=VAL> ; sets PRC and PLOG
-  rm -f "$PROBE_RUN_DIR/probe.log"
+  rm -f "$PROBE_RUN_DIR/probe.log" "$PROBE_RUN_DIR/curl.stdin"
   env -i PATH="$PROBE_RUN_DIR/bin:/usr/bin:/bin" "$@" bash "$PROBE_RUN_DIR/run.sh" >/dev/null 2>&1
   PRC=$?
   PLOG=$(cat "$PROBE_RUN_DIR/probe.log" 2>/dev/null || true)
@@ -1743,7 +1817,171 @@ run_probe "STUB_CURL_BODY={\"status\":\"$RELAY_PROBE_STATUS\"}"
 { [ "$PRC" -ne 0 ] && printf '%s' "$PLOG" | grep -q 'NOT CONFIGURED'; } \
   && pass "probe: an empty URL/secret exits non-zero and says NOT CONFIGURED" \
   || fail "probe: an unconfigured probe did not fail (rc=$PRC)"
+
+# 11) Task 0285 — the notification channel's OWN state, BEHAVIOURALLY. The same extracted script,
+#     now with rows from the stub psql. Only rows whose URL equals ALERT_PROBE_URL count; the
+#     worst state wins; no match is `missing`; a failed or odd read is `unreadable` — and in
+#     every case the POST is still sent and the exit code keeps 0284's meaning.
+printf 'ALERT_PROBE_URL=https://example.invalid/hook\nALERT_PROBE_SECRET=0f3ab9c7notreal\n' \
+  > "$PROBE_RUN_DIR/alert-probe.env"
+PROBE_OK_BODY="{\"status\":\"$RELAY_PROBE_STATUS\"}"
+expect_state() {  # <expected state> <label> [<expected log tail>] — asserts the POST body and the log line
+  local want="{\"payload\":{\"secret\":\"0f3ab9c7notreal\",\"probe\":\"liveness\",\"channel_state\":\"$1\"}}"
+  local want_log="${3:-$1}"
+  { [ "$PRC" -eq 0 ] && [ "$(cat "$PROBE_RUN_DIR/curl.stdin" 2>/dev/null)" = "$want" ] \
+      && [ "${PLOG##*channel state: }" = "$want_log" ]; } \
+    && pass "probe (0285): $2 → POST carries channel_state \"$1\", exit 0, log ends 'channel state: $want_log'" \
+    || fail "probe (0285): $2 — expected channel_state '$1' and log tail '$want_log' (rc=$PRC body=$(cat "$PROBE_RUN_DIR/curl.stdin" 2>/dev/null) log=$PLOG)"
+}
+printf 'delivering\thttps://example.invalid/hook\n' > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state delivering "one delivering row"
+printf 'disabled\thttps://example.invalid/hook\n' > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state disabled "one disabled row"
+printf 'delivering\thttps://example.invalid/hook\ndisabled\thttps://example.invalid/hook\npaused\thttps://example.invalid/hook\n' \
+  > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state disabled "two matching channels, delivering + disabled + paused (the worst wins)"
+printf 'delivering\thttps://example.invalid/hook\ndisabled\thttps://other.example.invalid/hook\ndisabled\t\n' \
+  > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state delivering "a disabled channel at ANOTHER url, and one with no url (not ours — ignored)"
+printf 'delivering\thttps://example.invalid/hook/\ndelivering\thttps://other.example.invalid/hook\n' > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state missing "no channel's URL equals ALERT_PROBE_URL (exact match — a trailing slash is drift)"
+: > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state missing "no channels at all"
+#     Review R3: what REAL psql does (measured, stderr discarded, ON_ERROR_STOP): a schema change
+#     (missing table or column), a server-side statement_timeout cancel, and `docker compose exec`
+#     on a service that is not running all exit rc 1 with EMPTY stdout; a failed connect (incl.
+#     PGCONNECT_TIMEOUT) exits rc 2. psql never prints its error on stdout with rc 0 — so a
+#     schema change is modelled here as rc 1 + nothing on stdout, not as an ERROR line.
+rm -f "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY" STUB_DOCKER_RC=1; expect_state unreadable "the query FAILS, rc 1 + empty stdout — a schema change, a statement_timeout cancel or a stopped service (the POST is still sent, liveness exit unchanged)" \
+  "unreadable (exec or psql failed, rc=1)"
+#     Review R2: every unreadable cause class is logged — fixed words and an exit code only, the
+#     POST still carries the bare word `unreadable`.
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY" STUB_DOCKER_RC=2; expect_state unreadable "psql cannot connect, rc 2 + empty stdout (incl. PGCONNECT_TIMEOUT)" \
+  "unreadable (exec or psql failed, rc=2)"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY" STUB_TIMEOUT_RC=124; expect_state unreadable "the read TIMES OUT (SIGTERM, rc 124)" \
+  "unreadable (timed out)"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY" STUB_TIMEOUT_RC=137; expect_state unreadable "the read is KILLED after the grace (rc 137)" \
+  "unreadable (killed, rc=137)"
+#     `unexpected output` is reached only when psql exits 0 with a row of the wrong shape.
+printf 'disabled\n' > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state unreadable "rc 0, but a row with no tab (not the verified shape)" \
+  "unreadable (unexpected output)"
+printf 'Disabled\thttps://example.invalid/hook\n' > "$PROBE_RUN_DIR/psql.out"
+run_probe "STUB_CURL_BODY=$PROBE_OK_BODY"; expect_state unreadable "a status that is not a lowercase word" \
+  "unreadable (unexpected output)"
+{ ! printf '%s' "$PLOG" | grep -qF 'example.invalid' && ! printf '%s' "$PLOG" | grep -qF 'Disabled'; } \
+  && pass "probe (0285): an unexpected-output log line carries neither the URL nor the raw psql row" \
+  || fail "probe (0285): the log line leaks psql output or the URL: $PLOG"
+#     A failed state read never turns a DROPPED call into success, nor a success into failure:
+rm -f "$PROBE_RUN_DIR/psql.out"
+run_probe 'STUB_CURL_BODY={"status":"accepted"}'
+{ [ "$PRC" -ne 0 ] && printf '%s' "$PLOG" | grep -qF 'did NOT record a probe' \
+    && [ "${PLOG##*channel state: }" = "unreadable (exec or psql failed, rc=1)" ]; } \
+  && pass "probe (0285): a dropped call still exits non-zero with an unreadable state, and the log names both" \
+  || fail "probe (0285): the state read changed the dropped-call outcome (rc=$PRC log=$PLOG)"
+#     ⛔ Neither the secret nor the URL ever reaches docker's (and so psql's) argv.
+[ -s "$PROBE_RUN_DIR/docker.argv" ] \
+  && pass "probe (0285): the docker stub recorded its argv (the guard below is not vacuous)" \
+  || fail "probe (0285): the docker stub was never called — the state read never ran"
+{ grep -qF '0f3ab9c7notreal' "$PROBE_RUN_DIR/docker.argv" || grep -qF 'example.invalid' "$PROBE_RUN_DIR/docker.argv"; } \
+  && fail "probe (0285): the secret or the URL reached the docker/psql argv — visible in ps for every hourly run" \
+  || pass "probe (0285): neither the secret nor the URL is ever on the docker/psql argv"
+grep -q 'default_transaction_read_only=on' "$PROBE_RUN_DIR/docker.argv" \
+  && pass "probe (0285): the psql call that actually ran carries default_transaction_read_only=on" \
+  || fail "probe (0285): the psql call ran WITHOUT the read-only transaction setting"
+#     Review R1: the bound, on the call that actually RAN — every docker/psql call went through
+#     `timeout -k <grace> <n>`, and it carried the server-side statement timeout.
+{ [ -s "$PROBE_RUN_DIR/timeout.argv" ] \
+    && ! grep -vqE '^-k [0-9]+s? [0-9]+s? docker compose exec ' "$PROBE_RUN_DIR/timeout.argv"; } \
+  && pass "probe (0285): every state read ran under 'timeout -k <grace> <n> docker compose exec' (review R1)" \
+  || fail "probe (0285): the state read ran without 'timeout -k <grace> <n>' — a wedged docker client would stall the liveness POST: $(cat "$PROBE_RUN_DIR/timeout.argv" 2>/dev/null)"
+grep -q 'statement_timeout=' "$PROBE_RUN_DIR/docker.argv" \
+  && pass "probe (0285): the psql call that actually ran carries a server-side statement_timeout" \
+  || fail "probe (0285): the psql call ran WITHOUT statement_timeout — a wedged query leaves an orphan psql per hour"
 rm -rf "$PROBE_RUN_DIR"
+
+# 12) Task 0285 — STRUCTURAL guards on the state read. Grep-level, same accepted residual as above.
+PROBE_PSQL_LINE=$(printf '%s\n' "$PROBE_BLOCK_JOINED" | grep 'docker compose exec' | grep 'psql' || true)
+[ "$(printf '%s\n' "$PROBE_PSQL_LINE" | grep -c . || true)" = "1" ] \
+  && pass "probe (0285): exactly ONE docker/psql invocation, joined onto one line (the guards below are not vacuous)" \
+  || fail "probe (0285): expected exactly one 'docker compose exec … psql' line in the probe, found: $PROBE_PSQL_LINE"
+printf '%s' "$PROBE_PSQL_LINE" | grep -q "PGOPTIONS='-c default_transaction_read_only=on[ ']" \
+  && pass "probe (0285): the state query runs in a READ-ONLY transaction (Postgres refuses any write)" \
+  || fail "probe (0285): the psql call lacks PGOPTIONS='-c default_transaction_read_only=on'"
+#     Review R1: the bound. Client side: `timeout -k <grace> <n>` wraps the docker call itself
+#     (SIGTERM, then SIGKILL). Server side: statement_timeout, strictly under the client's <n>, in
+#     the same PGOPTIONS — killing the client never kills the psql inside the container.
+PROBE_TIMEOUT_S=$(printf '%s' "$PROBE_PSQL_LINE" | sed -nE 's/.*\$\(cd "\$DIR" && timeout -k [0-9]+ ([0-9]+) docker compose exec .*/\1/p')
+PROBE_STMT_S=$(printf '%s' "$PROBE_PSQL_LINE" | sed -nE "s/.*PGOPTIONS='-c default_transaction_read_only=on -c statement_timeout=([0-9]+)s'.*/\\1/p")
+[ -n "$PROBE_TIMEOUT_S" ] \
+  && pass "probe (0285): the state read runs under 'timeout -k <grace> ${PROBE_TIMEOUT_S} docker compose exec' (review R1)" \
+  || fail "probe (0285): the docker/psql call is not wrapped in 'timeout -k <grace> <n>' — a wedged docker client would stall the liveness POST"
+{ [ -n "$PROBE_STMT_S" ] && [ -n "$PROBE_TIMEOUT_S" ] && [ "$PROBE_STMT_S" -lt "$PROBE_TIMEOUT_S" ]; } \
+  && pass "probe (0285): statement_timeout=${PROBE_STMT_S}s sits in the same PGOPTIONS, under the client's ${PROBE_TIMEOUT_S}s" \
+  || fail "probe (0285): no server-side statement_timeout in PGOPTIONS, or it is not under the client timeout (stmt='$PROBE_STMT_S' client='$PROBE_TIMEOUT_S')"
+printf '%s' "$PROBE_PSQL_LINE" | grep -qE -- '-e PGCONNECT_TIMEOUT=[0-9]+ ' \
+  && pass "probe (0285): psql's connect is bounded too (PGCONNECT_TIMEOUT)" \
+  || fail "probe (0285): the psql call lacks PGCONNECT_TIMEOUT — a Postgres that never accepts leaves an orphan psql"
+#     Review R2: what the state reader echoes reaches the log. Only fixed words, a validated status
+#     (via `worst`) and an exit code may be echoed — never a psql row, an unvalidated $status,
+#     the URL or the rows buffer.
+PROBE_READER=$(printf '%s\n' "$PROBE_BLOCK" | sed -n '/^read_channel_state() {$/,/^}$/p')
+[ -n "$PROBE_READER" ] && printf '%s\n' "$PROBE_READER" | grep -qE '^[[:space:]]*(.*\) )?echo ' \
+  && pass "probe (0285): extracted read_channel_state and its echo lines (the guard below is not vacuous)" \
+  || fail "probe (0285): could not extract read_channel_state's echo lines — the guard below is vacuous"
+printf '%s\n' "$PROBE_READER" | grep -v '^[[:space:]]*#' | grep -E '\becho ' | grep -qE '\$\{?(line|rows|url|status|ALERT_PROBE_(SECRET|URL))\b' \
+  && fail "probe (0285): read_channel_state echoes a psql row, the URL or the secret — it would reach the log" \
+  || pass "probe (0285): read_channel_state echoes only fixed words, a validated status and an exit code"
+#     Review R2 drift: check 13's FAIL text tells the operator which cause class means what, so it
+#     must name each class exactly as the probe logs it — else the pointer silently stops matching.
+PROBE_CAUSE_DRIFT=""
+for cause in 'timed out' 'killed' 'exec or psql failed, rc=' 'unexpected output'; do
+  printf '%s\n' "$PROBE_READER" | grep -qF "echo \"unreadable ($cause" || PROBE_CAUSE_DRIFT="$PROBE_CAUSE_DRIFT [probe: $cause]"
+  grep -qF "'$cause" "$REPO_ROOT/profile-checks.sh" || PROBE_CAUSE_DRIFT="$PROBE_CAUSE_DRIFT [check 13: $cause]"
+done
+#     Review R3: rc 1 (the query failed) and rc 2 (cannot connect) mean different things, so check
+#     13 must name each one on its own.
+for exit_code in 1 2; do
+  grep -qF "'exec or psql failed, rc=$exit_code'" "$REPO_ROOT/profile-checks.sh" \
+    || PROBE_CAUSE_DRIFT="$PROBE_CAUSE_DRIFT [check 13: rc=$exit_code]"
+done
+[ -z "$PROBE_CAUSE_DRIFT" ] \
+  && pass "probe (0285): every unreadable cause class the probe logs is named, same spelling, in check 13's FAIL text" \
+  || fail "DRIFT: unreadable cause classes differ between the probe and check 13's FAIL text:$PROBE_CAUSE_DRIFT"
+PROBE_SQL=$(printf '%s' "$PROBE_PSQL_LINE" | sed -n 's/.* -c "\([^"]*\)".*/\1/p')
+{ printf '%s' "$PROBE_SQL" | grep -qE '^SELECT ' \
+    && ! printf '%s' "$PROBE_SQL" | grep -qiE '\b(insert|update|delete|alter|drop|create|truncate|grant|revoke|copy|call|do)\b|;'; } \
+  && pass "probe (0285): the state query is one plain SELECT ('$PROBE_SQL')" \
+  || fail "probe (0285): the state query is not a single plain SELECT: '$PROBE_SQL'"
+printf '%s' "$PROBE_SQL" | grep -qiE "payload|secret" \
+  && fail "probe (0285): the state query selects the channel's payload/secret — it must read status and url only" \
+  || pass "probe (0285): the state query never selects the channel's payload (where the secret lives)"
+printf '%s' "$PROBE_PSQL_LINE" | grep -qE '\$\{?ALERT_PROBE_(SECRET|URL)' \
+  && fail "probe (0285): ALERT_PROBE_SECRET or ALERT_PROBE_URL is on the docker/psql argv" \
+  || pass "probe (0285): the docker/psql line never references ALERT_PROBE_SECRET or ALERT_PROBE_URL"
+printf '%s\n' "$PROBE_BLOCK" | grep -v '^[[:space:]]*#' | grep -E '^[[:space:]]*say ' | grep -qE '\$\{?(ALERT_PROBE_(SECRET|URL)|url|line|rows)\b' \
+  && fail "probe (0285): a say line logs the secret, the URL or raw psql output" \
+  || pass "probe (0285): no say line logs the secret, the URL or raw psql output"
+#     The version pin. The query was verified against ONE image tag; an upgrade is a deliberate
+#     edit of the compose file, and this makes it re-verify the schema before it ships instead of
+#     paging nightly afterwards with `unreadable` (owner ruling Q2, 2026-09-28).
+COMPOSE_UPTRACE_TAG=$(sed -n 's/^[[:space:]]*image: uptrace\/uptrace:\([^[:space:]]*\)$/\1/p' "$TS" | head -1)
+VERIFIED_UPTRACE_TAG=$(printf '%s\n' "$PROBE_BLOCK" | sed -n 's/^# Schema verified against: uptrace\/uptrace:\([^[:space:]]*\) .*/\1/p' | head -1)
+[ -n "$COMPOSE_UPTRACE_TAG" ] && [ -n "$VERIFIED_UPTRACE_TAG" ] \
+  && pass "probe (0285): read the compose tag ($COMPOSE_UPTRACE_TAG) and the verified tag ($VERIFIED_UPTRACE_TAG)" \
+  || fail "probe (0285): could not read the compose uptrace tag or the probe's 'Schema verified against' line — the pin is vacuous"
+[ -n "$COMPOSE_UPTRACE_TAG" ] && [ "$COMPOSE_UPTRACE_TAG" = "$VERIFIED_UPTRACE_TAG" ] \
+  && pass "probe (0285): the pinned monitoring image equals the version the channel-state query was verified against" \
+  || fail "PIN: the compose runs uptrace/uptrace:$COMPOSE_UPTRACE_TAG but the channel-state query was verified against $VERIFIED_UPTRACE_TAG. Re-verify the notif_channels schema on the new version (task 0285 step 0), then update the 'Schema verified against' line"
+#     Key-name drift: three files in two languages must spell the marker key the same way, and
+#     nothing else would catch them diverging — check 13 would FAIL daily with 'no channel_state'.
+printf '%s\n' "$PROBE_BLOCK" | grep -qF '"channel_state":"${channel_state}"' \
+  && grep -qE '^[[:space:]]*channel_state: z\.unknown\(\)\.optional\(\),$' "$RELAY" \
+  && grep -qE '^[[:space:]]*: \{ channel_state: channelState \}\),$' "$RELAY" \
+  && grep -qF 'json_field "$PROBE_MARKER" channel_state' "$REPO_ROOT/profile-checks.sh" \
+  && pass "channel_state: spelled the same in the probe script, AlertRelay.ts (schema + marker) and profile-checks.sh" \
+  || fail "DRIFT: 'channel_state' is not spelled identically in the probe body, AlertRelay.ts's schema and marker, and profile-checks.sh's reader"
 
 echo "== Structural: daily name-change digest (task 0283) =="
 # Review R1. setup-profile.sh's executable bit went 755 → 644 in the working tree during this

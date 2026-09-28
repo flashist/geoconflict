@@ -134,6 +134,13 @@
       "reason": "Optional by design: src/server/Master.ts posts player feedback to the webhook only when it is set; Telegram (FEEDBACK_TELEGRAM_TOKEN, deliberately NOT listed here) is the channel in use. Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy."
     },
     {
+      "name": "OTEL_AUTH_HEADER",
+      "pipeline": "game",
+      "class": "optional",
+      "phase": 2,
+      "reason": "Optional by design (task 0298; owner ruling 2026-09-28, Q1 'arm both; password may be blank'): the game server adds an Authorization header only when the value is set (src/server/Logger.ts:23, src/server/OtelTracing.ts:14, src/server/WorkerMetrics.ts:33) and still creates its exporters without it. The telemetry side needs no auth: nginx's location /v1/ proxies straight to the collector (setup-telemetry.sh:886-887), and the collector's OTLP receiver has no auth and adds the Uptrace credential itself when forwarding (setup-telemetry.sh:452-477). Blank on prod since 0.0.152 (2026-09-26). Value entry for scripts/check-config-values.mjs: blank allowed on a prod deploy. Remove this entry if the collector ever requires the header."
+    },
+    {
       "name": "PUBLIC_HOST",
       "pipeline": "client",
       "class": "server-only",

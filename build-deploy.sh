@@ -39,6 +39,30 @@ if [[ "$ENV" != "dev" && "$ENV" != "staging" && "$ENV" != "prod" ]]; then
     exit 1
 fi
 
+# ── Early config parity check (task 0298; owner ruling 2026-09-28, Q3) ─────────
+# The same name-only guard, with the same flags and the same stops, that deploy.sh runs
+# — run HERE first so a name problem stops the deploy BEFORE STEP 0 commits, tags and
+# pushes a version and STEP 1 builds and pushes an image. deploy.sh keeps its own copy
+# because it can be run on its own. Value problems are still caught only in deploy.sh
+# (they need the loaded settings), so one of those still costs a version number.
+# No secret is loaded in this script, so the no-leak property holds here too.
+PARITY_CHECKER="$(dirname "$0")/scripts/check-config-parity.mjs"
+if [ ! -f "$PARITY_CHECKER" ]; then
+    echo "❌ Config parity guard not found ($PARITY_CHECKER) — refusing to deploy."
+    exit 1
+fi
+if ! command -v node >/dev/null 2>&1; then
+    echo "❌ node not found — the config parity guard cannot run, refusing to deploy."
+    exit 1
+fi
+if ! node "$PARITY_CHECKER" --pipeline=all --enforce --block-on=game,client; then
+    echo "❌ Config parity guard failed (findings above) — refusing to deploy. Nothing was bumped, pushed or built."
+    echo "   Fix: forward the variable in deploy.sh's heredoc (or DefinePlugin for the client),"
+    echo "   or add an entry WITH a reason to scripts/config-parity-allowlist.json; for an unmapped"
+    echo "   src/ folder, add its one line to DIR_PIPELINE in scripts/check-config-parity.mjs."
+    exit 1
+fi
+
 VERSION_TAG=$(date +"%Y%m%d-%H%M%S")
 
 print_header "STEP 0: BUMP PACKAGE VERSION"

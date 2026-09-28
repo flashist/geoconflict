@@ -627,6 +627,200 @@ RUN("citizen name change over real Postgres (integration)", () => {
     expect((await rows(CITIZEN))[0].moderation_status).toBe("pending");
   });
 
+  // ── Task 0314 — Hide a declined notice; the operator's "clear" ───────────
+  describe("hide a declined notice (task 0314, owner ruling Q1)", () => {
+    const dismiss = (yandexId: string) =>
+      request(app)
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", callerFor(yandexId))
+        .send({});
+    const profile = async (yandexId: string) =>
+      (
+        await request(app)
+          .get("/v1/profile")
+          .set("Authorization", callerFor(yandexId))
+          .expect(200)
+      ).body;
+
+    it("reject → Hide → the profile has no name_change → a new request works and shows pending", async () => {
+      await submit(CITIZEN, "BadName").expect(200);
+      await decide(CITIZEN, { decision: "reject", reason: "nope" }).expect(200);
+      expect((await profile(CITIZEN)).name_change.status).toBe("rejected");
+
+      await dismiss(CITIZEN).expect(200, { status: "ok" });
+      expect(await profile(CITIZEN)).not.toHaveProperty("name_change");
+      // Nothing deleted: the decline is still in the history, just hidden.
+      const hidden = await pool.query(
+        `SELECT moderation_status, dismissed_at FROM player_name_history
+         WHERE player_id = $1`,
+        [ids[CITIZEN]],
+      );
+      expect(hidden.rows).toHaveLength(1);
+      expect(hidden.rows[0].moderation_status).toBe("rejected");
+      expect(hidden.rows[0].dismissed_at).not.toBeNull();
+
+      // A second tap is harmless.
+      await dismiss(CITIZEN).expect(200, { status: "ok" });
+
+      await submit(CITIZEN, "BetterName").expect(200, { status: "ok" });
+      expect((await profile(CITIZEN)).name_change).toEqual({
+        status: "pending",
+        requested_name: "BetterName",
+        decided_at: null,
+      });
+    });
+
+    it("can never hide a pending or an approved row", async () => {
+      await submit(CITIZEN, "NewName").expect(200);
+      await dismiss(CITIZEN).expect(200, { status: "ok" });
+      expect((await profile(CITIZEN)).name_change.status).toBe("pending");
+
+      await decide(CITIZEN, { decision: "approve" }).expect(200);
+      await dismiss(CITIZEN).expect(200, { status: "ok" });
+      expect((await profile(CITIZEN)).name_change.status).toBe("approved");
+
+      const all = await pool.query(
+        `SELECT dismissed_at FROM player_name_history WHERE player_id = $1`,
+        [ids[CITIZEN]],
+      );
+      expect(all.rows.every((row) => row.dismissed_at === null)).toBe(true);
+    });
+
+    it("hides only the caller's OWN decline", async () => {
+      await submit(CITIZEN, "BadName").expect(200);
+      await decide(CITIZEN, { decision: "reject", reason: "nope" }).expect(200);
+      await dismiss(OTHER).expect(200, { status: "ok" });
+      expect((await profile(CITIZEN)).name_change.status).toBe("rejected");
+    });
+
+    it("is citizen-gated", async () => {
+      await dismiss(PLAIN).expect(403, { error: "not_citizen" });
+    });
+  });
+
+  describe("operator clear (task 0314, owner ruling Q2)", () => {
+    const clear = (yandexId: string, expectedName?: string, reason = "rude") =>
+      decide(yandexId, { decision: "clear", expectedName, reason });
+
+    it("clears the name, keeps an audit row, notifies, and FREES the name for someone else", async () => {
+      await submit(CITIZEN, "NewName").expect(200);
+      await decide(CITIZEN, { decision: "approve" }).expect(200);
+      await waitForMessages(pool, ids[CITIZEN], 1);
+
+      await clear(CITIZEN, "NewName", "offensive").expect(200, {
+        status: "ok",
+      });
+
+      expect(await displayName(CITIZEN)).toBeNull();
+      const res = await request(app)
+        .get("/v1/profile")
+        .set("Authorization", callerFor(CITIZEN))
+        .expect(200);
+      expect(res.body.display_name).toBeNull();
+      // The cleared row is never projected, and the removed name is not republished.
+      expect(res.body).not.toHaveProperty("name_change");
+      expect(JSON.stringify(res.body)).not.toContain("NewName");
+
+      const history = await rows(CITIZEN);
+      expect(history).toHaveLength(2);
+      expect(history[1]).toMatchObject({
+        moderation_status: "cleared",
+        old_display_name: "NewName",
+        new_display_name: null,
+        rejection_reason: "offensive",
+      });
+      expect(history[1].decided_at).not.toBeNull();
+
+      const messages = await waitForMessages(pool, ids[CITIZEN], 2);
+      expect(messages[1].template_key).toBe("name_change_cleared");
+      expect(messages[1].template_params).toEqual({
+        name: "NewName",
+        reason: "offensive",
+      });
+
+      // players_display_name_uq is partial on NOT NULL — the name is free again.
+      await submit(OTHER, "newname").expect(200, { status: "ok" });
+      await decide(OTHER, { decision: "approve" }).expect(200, {
+        status: "ok",
+      });
+      expect(await displayName(OTHER)).toBe("newname");
+    });
+
+    it("409s a wrong expectedName with the CURRENT name, and changes nothing", async () => {
+      await clear(OTHER, "Petr").expect(409, {
+        error: "name_mismatch",
+        current_name: "Ivan",
+      });
+      expect(await displayName(OTHER)).toBe("Ivan");
+      expect(await rows(OTHER)).toHaveLength(0);
+    });
+
+    it("404s no_custom_name for a player with no name, writing nothing", async () => {
+      await clear(CITIZEN, "Anything").expect(404, {
+        error: "no_custom_name",
+      });
+      expect(await rows(CITIZEN)).toHaveLength(0);
+    });
+
+    it("400s a clear without a reason or without expectedName", async () => {
+      await decide(OTHER, { decision: "clear", expectedName: "Ivan" }).expect(
+        400,
+        { error: "bad_request" },
+      );
+      await decide(OTHER, { decision: "clear", reason: "rude" }).expect(400, {
+        error: "bad_request",
+      });
+      expect(await displayName(OTHER)).toBe("Ivan");
+    });
+
+    it("leaves a PENDING request alone — it still shows, and can still be decided", async () => {
+      await submit(OTHER, "Petr").expect(200);
+      await clear(OTHER, "Ivan").expect(200);
+      expect(await displayName(OTHER)).toBeNull();
+
+      const res = await request(app)
+        .get("/v1/profile")
+        .set("Authorization", callerFor(OTHER))
+        .expect(200);
+      // The newer cleared row must not hide the player's own pending request.
+      expect(res.body.name_change).toEqual({
+        status: "pending",
+        requested_name: "Petr",
+        decided_at: null,
+      });
+
+      await decide(OTHER, { decision: "approve", expectedName: "Petr" }).expect(
+        200,
+      );
+      expect(await displayName(OTHER)).toBe("Petr");
+    });
+
+    it("the migration's CHECKs: a cleared row has no name, and only a cleared row may", async () => {
+      const insert = (name: string | null, status: string) =>
+        pool.query(
+          `INSERT INTO player_name_history
+             (player_id, new_display_name, moderation_status)
+           VALUES ($1, $2, $3)`,
+          [ids[CITIZEN], name, status],
+        );
+      await expect(insert("Named", "cleared")).rejects.toMatchObject({
+        code: "23514",
+        constraint: "player_name_history_cleared_has_no_name_check",
+      });
+      for (const status of ["pending", "approved", "rejected"]) {
+        await expect(insert(null, status)).rejects.toMatchObject({
+          code: "23514",
+          constraint: "player_name_history_cleared_has_no_name_check",
+        });
+      }
+      await expect(insert("Named", "withdrawn")).rejects.toMatchObject({
+        code: "23514",
+        constraint: "player_name_history_moderation_status_check",
+      });
+      await expect(insert(null, "cleared")).resolves.toBeDefined();
+    });
+  });
+
   // Task 0283, brief verification step 1. The digest's whole claim is that ONE number is
   // the number of players waiting — and that claim rests on the real partial unique index
   // player_name_history_one_pending_uq, not on anything the query itself does. So it has

@@ -83,6 +83,7 @@ monitoring box host cron (hourly, :17)
 | Its two deploy variables | `TELEMETRY_ALERT_PROBE_URL`, `PROFILE_ALERT_WEBHOOK_TOKEN` — forwarded by `build-deploy-telemetry.sh`, persist-or-reuse on the box |
 | Marker write | `src/profile-server/AlertRelay.ts` (`ALERT_PROBE_MARKER_PATH`), bind-mounted out by `setup-profile.sh` |
 | The check | `profile-checks.sh` check 11, `alert-path-probe` |
+| The channel's own state (task `0285`) | the same probe script reads it; the relay copies it into the same marker as `channel_state`; `profile-checks.sh` check 13, `alert-channel-state`, reads it |
 
 **Detection latency: roughly 3 hours best case, ~27 hours worst**, plus the dead-man's switch's own
 grace. It is bounded by the **daily** read, not the hourly probe — making the probe more frequent
@@ -91,11 +92,11 @@ way, so faster detection only shortens how long you were blind; it does not chan
 
 #### 🚨 What the probe does NOT prove — read this before trusting a green line
 
-- ⛔ **It cannot see a channel that is ALREADY disabled.** If a transient 403 disabled the channel
-  yesterday and the address is fine today, the probe is green and alerting is still dead. **It catches
-  the CAUSE within ~24 h, not the STATE.** Closing that hole is a **separate follow-up task** (owner
-  ruling, 2026-09-18): it needs the monitoring stack's own channel state, whose 2.0.2 table and column
-  names are unverified. **Until it lands, this hole stands.**
+- ✅ **A channel that is ALREADY disabled is now caught — by check 13, not by the probe's reachability
+  test (task `0285`).** Before it, a transient 403 that disabled the channel yesterday left the probe
+  green today and alerting dead. Now the same hourly probe also reads the channel's own record and
+  carries it in the same POST; see *The channel's own state* below. ⚠️ **Not yet seen to trip on the
+  real box** — the owner's drill is still to run (see below).
 - ⛔ **It does not check the secret the monitoring stack's channel config holds.** The probe proves the
   copy **the cron** holds matches the relay. Those are two separate copies; the channel's could be
   wrong and every alert dropped while the probe stays green.
@@ -115,6 +116,63 @@ way, so faster detection only shortens how long you were blind; it does not chan
 - ⚠️ **`npm run check:config-parity` does not reach telemetry variables.** The hardening harness
   (`tests/scripts/profile-deploy-hardening.test.sh`) is the only gate that those two deploy variables
   are forwarded at all — the same residual `0277` recorded.
+
+#### The channel's own state — check 13, `alert-channel-state` (task `0285`)
+
+The probe catches the **cause** (the monitoring box cannot reach the webhook). Check 13 catches the
+**state**: the monitoring stack refuses to send unless the channel's status is `delivering`, so a
+channel disabled by a failure that has since healed drops every alert while the probe stays green.
+
+```
+monitoring box, the same hourly probe
+  1. read-only SELECT of every channel's status + url from the monitoring stack's own Postgres
+     (read-only transaction; 20 s client timeout + SIGKILL grace, 15 s statement_timeout); keep the channel(s) whose url equals the probe's own URL
+  2. the SAME POST, one extra field: {"payload":{…,"probe":"liveness","channel_state":"<state>"}}
+     → relay (after the secret check) copies a sanitised value into the SAME marker
+        → check 13 (daily 08:00 UTC): anything but `delivering` ⇒ FAIL ⇒ dead-man's switch
+```
+
+**Verified schema** (the `uptrace/uptrace:2.0.2` binary, then confirmed read-only on the box on
+2026-09-28 — names and counts only): the state is in the monitoring stack's **Postgres**, table
+`notif_channels`, column `status`, an enum with four values `draft` / `delivering` / `paused` /
+`disabled` (default `delivering`). The vendor's own disable writes `status = 'disabled'` — a state
+change, not an error field or a timestamp. A webhook channel's `params` holds two keys, `url` and
+`payload`; the probe selects only `url` and **never** `payload` (that is where the shared secret lives).
+
+| What check 13 reports | Meaning |
+| --- | --- |
+| **OK** `delivering, Nh ago` | the stack's **own record** says it sends. Not proof a message arrives. |
+| **FAIL** `DISABLED` | every alert is dropped at source — see the steps below |
+| **FAIL** `PAUSED` / `DRAFT` | someone paused it, or never finished saving it |
+| **FAIL** no channel's URL equals `TELEMETRY_ALERT_PROBE_URL` | the channel was deleted, **or** the probe tests a different URL than alerts use — a real finding either way |
+| **FAIL** could not read the channel state | the stack's Postgres is down, or its schema changed. Read `/var/log/uptrace-alert-probe.log` on the monitoring box |
+| **FAIL** no `channel_state` | the probe script or the relay predates `0285` — redeploy both |
+| **FAIL** state UNKNOWN (stale / future / missing marker) | no fresh probe arrived; `alert-path-probe` fails with it — start there |
+
+- **Several channels with the probe's URL:** the worst state wins (`disabled` > `paused` > `draft` >
+  anything else > `delivering`). A deliberately paused duplicate would page — delete it.
+- **Unreadable ⇒ FAIL on every run** (owner ruling, 2026-09-28). A version upgrade cannot cause nightly
+  pages by surprise: the image is pinned, and the hardening harness fails `npm test` if the compose tag
+  stops matching the probe script's `Schema verified against:` line. **To upgrade the monitoring
+  image:** re-run the read-only schema check on the new version first, then bump both lines together.
+- **Deploy order:** profile box first (`./build-deploy-profile.sh`), then the monitoring box
+  (`./build-deploy-telemetry.sh`), in one window before 08:00 UTC. ⚠️ Check 13 FAILs ("no
+  `channel_state`") from the profile deploy until the first probe carrying a state arrives, so run
+  `/opt/uptrace/alert-probe.sh` by hand straight after. The reverse order is harmless (an older relay
+  ignores the new field). Rolling the relay back makes check 13 FAIL with its "predates `0285`" text —
+  intended.
+- **Detection latency:** the same as the probe, ~3–27 h, bounded by the daily run.
+
+⛔ **What a green check 13 does NOT prove:**
+- It reads the stack's **own record**. If the vendor ever dropped alerts without updating `status`,
+  this would not see it.
+- Not the **secret held in the channel's own config** (still unchecked — a candidate follow-up).
+- Not that any **monitor is attached** to the channel.
+- Not **Telegram delivery**, nor a message reaching a human; not `0274` A1 (delivery after idle).
+- It **detects only** — nothing re-enables a channel automatically.
+- ⚠️ **Not yet seen to trip on the real box.** Until the owner's drill (put the channel into a real
+  `disabled` state, watch the dead-man's switch page with `alert-channel-state`, re-enable, watch it
+  go OK) has run, this guard is proven by tests only. One host, no CI.
 
 #### Three ways it will surprise you
 
@@ -146,6 +204,36 @@ way, so faster detection only shortens how long you were blind; it does not chan
 4. 🚨 **Then re-enable the notification channel in the monitoring UI and confirm alerting is live.**
    If a real alert hit the same failure, the channel is already disabled. **Fixing the address does
    not undo the disable** — see the rule above, it is the same rule.
+
+#### When `alert-channel-state` fails
+
+1. If `alert-path-probe` failed too, fix that first — check 13's state is UNKNOWN without a fresh probe.
+2. `DISABLED`: **re-enable the channel in the monitoring UI**, then find what disabled it — usually a
+   401/403/404 from the relay (check `PROFILE_INTERNAL_ALLOW_IPS`; the channel's own copy of the secret).
+   Fixing the cause does **not** undo the disable, and re-enabling does not fix the cause: do both.
+3. `PAUSED` / `DRAFT`: set the channel back to delivering (or finish saving it) in the monitoring UI.
+4. `no channel's URL equals TELEMETRY_ALERT_PROBE_URL`: compare the channel's URL in the monitoring UI
+   with `TELEMETRY_ALERT_PROBE_URL`. They must be identical — a trailing slash counts.
+5. `could not read the channel state`: read `/var/log/uptrace-alert-probe.log` on the monitoring box.
+   It holds the latest hourly run only, and ends `channel state: unreadable (<cause>)`:
+   - `exec or psql failed, rc=1` — **the query failed**: the schema changed (missing table or column —
+     was the monitoring image upgraded? re-verify the schema, task `0285` step 0), the query hit its
+     server-side `statement_timeout=15s` (Postgres overloaded — this box has had OOM freezes, check
+     memory first), or the Postgres service is not running (`docker compose ps` in the monitoring
+     stack's directory). Real psql prints nothing on stdout in any of these; the log cannot tell them
+     apart, so check the service first, then the image tag.
+   - `exec or psql failed, rc=2` — **psql cannot connect**: Postgres is down, refusing connections, or
+     did not accept within `PGCONNECT_TIMEOUT`. Check the container is up and its memory.
+   - `timed out` / `killed, rc=137` — **the docker client itself hung** and `timeout -k 5 20` stopped
+     it. Both Postgres-side bounds (connect 10 s, statement 15 s) sit under the client's 20 s, so a slow
+     Postgres normally shows as rc 1 or rc 2 instead; this points at docker (the daemon, or the box
+     frozen). `killed` can also be the OOM killer.
+   - `unexpected output` — psql **succeeded** (rc 0), but the rows are not the shape the verified
+     schema produces — e.g. a column changed type. Re-verify the schema (task `0285` step 0).
+   The cause is a fixed word and an exit code — the log never carries psql's own output, the URL or the
+   secret.
+6. After any fix, run `/opt/uptrace/alert-probe.sh` by hand (its log ends `channel state: …`), then
+   `/opt/profile/checks.sh` on the profile box, and confirm `alert-channel-state … OK`.
 
 ---
 

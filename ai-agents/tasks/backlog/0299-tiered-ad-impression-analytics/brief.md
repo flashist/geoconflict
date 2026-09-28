@@ -105,3 +105,11 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
 - **Event budget:** interstitials are rare, and Yandex caps their frequency, so there is no pressure on
   GameAnalytics' 500 events per user per day limit (`0020/plan-baseline.md` Q3).
 - **No secrets in any artifact.**
+- 📌 **2026-09-27 — the paid signal this task will get (append-only).** Added by a spawned `fkit-producer` on
+  OWNER RULING D1 on `0250` (*"Raw facts: paid + date"*, live via `AskUserQuestion` in the `fkit lead` session,
+  relayed by `fkit-lead`; ADR-021/037). For a **verified** caller, `0250`'s slice S3b returns the raw
+  `is_paid_citizen`, so the `PaidCitizen` tier can read it directly — no `ad_free` stand-in. ⚠️ **Unverified
+  sessions never get it** (and they see the equalized profile from `0250` S1), so `PaidCitizen` is only known
+  on verified sessions; the plan must decide how an unverified paid citizen is counted. Still depends on
+  `0250` (now its slice S3b, which waits on
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)).

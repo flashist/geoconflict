@@ -287,6 +287,15 @@ store-copy condition.
   ⛔ **What did NOT change:** step 1's *revenue framing* (the ad-impression numbers) and the
   all-six-placements-or-a-subset question stay here and are **not** `0250`'s. `0250` carries the
   entitlement seam only.
+
+  📌 **2026-09-27 — unchanged, and now precise about which part of `0250` (append-only).** Added by a spawned
+  `fkit-producer` on OWNER RULINGS on `0250` (live via `AskUserQuestion` in the `fkit lead` session, relayed
+  by `fkit-lead`; ADR-021/037). D2 *"Paid only (Recommended)"* keeps this task **paid-only**. It waits on
+  **`0250`'s slice S3b** (the verified-only view, which returns the raw `is_paid_citizen` to the verified
+  owner — D1), and S3b waits on verified login,
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md).
+  `0250`'s slice S1 (the leak fix) does **not** unblock this task. Fail-open-to-ads still applies: an
+  unverified session never learns it is paid, so it shows ads.
 - **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**
   [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
   popup, which now ranks below this task so it can list ad-free. ⚠️ Through this task, `0301` also waits on
@@ -314,6 +323,8 @@ store-copy condition.
 - **Effort:** unknown until step 1 closes, and saying otherwise would be a guess. Step 2 alone is small
   (~0.5 day); step 1's seam could be anywhere from ~0.5 day (candidate 3, if the SDK cooperates) to a
   multi-day auth task (candidate 1).
+- 📌 **Routing note from [`0303`](../../done/0303-the-whole-game-reflects-a-purchase-without-a-reload/brief.md) (2026-09-28, `0303` plan step 11; added by a spawned `fkit-producer` at `fkit-lead`'s request):**
+  *"after a purchase the popup offers a restart and a match end reloads anyway, so a perk may read status at load time. A grant made by session-start reconciliation applies from the next load unless the perk listens to `PURCHASES_RECONCILED_EVENT`."*
 
 ## Open questions for the owner
 

@@ -13,6 +13,9 @@
  * Owner rulings baked in (2026-09-23, amendments to plan-phase2.md):
  *   - a blank PROFILE_INTERNAL_TOKEN is REQUIRED — it has no `optional` value entry;
  *   - the non-empty rule, like the format rules, applies to PROD deploys only.
+ * And task 0298 (owner rulings 2026-09-28): the guard is ARMED in deploy.sh (Q1 = "arm
+ * both"), with no override (Q2); OTEL_AUTH_HEADER gets a game `optional` value entry, so
+ * CLEAN_PROD carries it BLANK, as prod does since 0.0.152.
  */
 
 import { spawnSync } from "node:child_process";
@@ -115,7 +118,8 @@ const CLEAN_PROD: Record<string, string> = {
   OTEL_PASSWORD: "",
   OTEL_ENDPOINT: "",
   OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel.example.test",
-  OTEL_AUTH_HEADER: "x",
+  // Blank, as on prod since 0.0.152: optional by recorded decision (task 0298, Q1).
+  OTEL_AUTH_HEADER: "",
   BASIC_AUTH_USER: "",
   BASIC_AUTH_PASS: "",
   FEEDBACK_WEBHOOK_URL: "",
@@ -134,6 +138,7 @@ const DEAD_KEYS = [
 ];
 const SHIPPED_OPTIONAL = [
   "FEEDBACK_WEBHOOK_URL",
+  "OTEL_AUTH_HEADER",
   "STORAGE_ACCESS_KEY",
   "STORAGE_BUCKET",
   "STORAGE_ENDPOINT",
@@ -447,8 +452,9 @@ describe("D — clean prod-shaped configuration (verification step 4)", () => {
     expect(result.deadKeyExemption.applied).toBe(true);
     expect(result.optional.map((o) => o.name).sort()).toEqual(SHIPPED_OPTIONAL);
     expect([...result.unchecked].sort()).toEqual(DEAD_KEYS);
-    // 30 heredoc keys = 19 OK + 5 OPTIONAL + 6 UNCHECKED.
-    expect(result.ok).toHaveLength(19);
+    // 30 heredoc keys = 18 OK + 6 OPTIONAL + 6 UNCHECKED — the W12 shape (OK 18) with
+    // OTEL_AUTH_HEADER moved from REQUIRED to OPTIONAL by task 0298.
+    expect(result.ok).toHaveLength(18);
 
     const enforced = runValues(
       ["--values-stdin", "--deploy-env=prod", "--enforce"],
@@ -836,7 +842,7 @@ describe("H — deploy.sh run_config_value_guard, extracted and run under /bin/b
   const maybe = bashAvailable ? it : it.skip;
 
   maybe(
-    "a prod-shaped run with NON-exported variables names the findings and exits 0",
+    "a prod-shaped run with NON-exported variables names the findings and returns non-zero (armed, task 0298)",
     () => {
       const canary = `cnryH${Math.random().toString(16).slice(2)}`;
       const values = {
@@ -852,28 +858,126 @@ describe("H — deploy.sh run_config_value_guard, extracted and run under /bin/b
       );
       expect(run.stdout).not.toContain("EXTRACT-FAILED");
       expect(run.stdout).toContain(
-        "config value guard (report-only) · deploy env: prod",
+        "config value guard (enforce) · deploy env: prod",
       );
       expect(run.stdout).toMatch(
         /REQUIRED {2}2\n {10}PROFILE_INTERNAL_TOKEN — forwarded but EMPTY\n {10}JWT_ISSUER — must be an https URL — it is not; must not be a bare IP address — its host is an IP literal\n/,
       );
-      expect(run.stdout).toContain("OPTIONAL  5");
+      expect(run.stdout).toContain("OPTIONAL  6");
+      expect(run.stdout).toContain(
+        "OTEL_AUTH_HEADER — blank by recorded decision",
+      );
       expect(run.stdout).not.toContain("VALUE-UNKNOWN");
-      expect(run.stdout).toContain("guard-exit=0");
+      expect(run.stdout).toContain("enforce — failing on the findings above");
+      expect(run.stdout).toContain("guard-exit=1");
       expect(run.stdout + run.stderr).not.toContain(canary);
       expect(run.stdout + run.stderr).not.toContain("10.1.2.3");
     },
   );
 
-  maybe("with the checker absent it skips silently and returns 0", () => {
+  maybe(
+    "a clean prod-shaped run (OTEL_AUTH_HEADER blank) returns 0 under --enforce",
+    () => {
+      const run = runGuard(
+        REAL_DEPLOY_SH,
+        `${shellAssignments(CLEAN_PROD)}\nrun_config_value_guard\necho "guard-exit=$?"`,
+        tempDir(),
+      );
+      expect(run.stdout).toContain("REQUIRED  0");
+      expect(run.stdout).toContain("enforce — no required findings");
+      expect(run.stdout).toContain("guard-exit=0");
+    },
+  );
+
+  // Task 0298 (owner ruling 2026-09-28, Q1 = "arm both"; a missing node accepted with the
+  // plan): every way the guard cannot run is a stop, with a message — never a silent pass.
+  maybe("with the checker absent it stops: non-zero, with a message", () => {
     const dir = tempDir();
     const run = runGuard(
       path.join(dir, "deploy.sh"),
       'run_config_value_guard\necho "guard-exit=$?"',
       dir,
     );
-    expect(run.stdout).toBe("guard-exit=0\n");
-    expect(run.stderr).toBe("");
+    expect(run.stdout).toContain("config value guard: checker not found");
+    expect(run.stdout).toContain("guard-exit=1");
+  });
+
+  function stubChecker(lines: string[]): string {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.writeFileSync(
+      path.join(dir, "scripts", "check-config-values.mjs"),
+      lines.join("\n"),
+    );
+    return dir;
+  }
+
+  maybe("a failing --list-sources stops: non-zero, with a message", () => {
+    const dir = stubChecker([
+      'if (process.argv.includes("--list-sources")) process.exit(1);',
+      'require("never reached");',
+    ]);
+    const run = runGuard(
+      path.join(dir, "deploy.sh"),
+      'run_config_value_guard\necho "guard-exit=$?"',
+      dir,
+    );
+    expect(run.stdout).toContain(
+      "config value guard: could not list the deploy heredoc's value sources",
+    );
+    expect(run.stdout).toContain("guard-exit=1");
+  });
+
+  maybe("an empty source list stops: non-zero, with a message", () => {
+    const dir = stubChecker([
+      'if (process.argv.includes("--list-sources")) process.exit(0);',
+      "process.exit(0);",
+    ]);
+    const run = runGuard(
+      path.join(dir, "deploy.sh"),
+      'run_config_value_guard\necho "guard-exit=$?"',
+      dir,
+    );
+    expect(run.stdout).toContain(
+      "config value guard: the deploy heredoc listed no value sources",
+    );
+    expect(run.stdout).toContain("guard-exit=1");
+  });
+
+  maybe("the checker's own exit status is what the function returns", () => {
+    const dir = stubChecker([
+      'if (process.argv.includes("--list-sources")) {',
+      '  process.stdout.write("FOO\\n");',
+      "} else {",
+      "  for await (const c of process.stdin) void c;",
+      '  process.exitCode = process.argv.includes("--enforce") ? 3 : 0;',
+      "}",
+    ]);
+    const run = runGuard(
+      path.join(dir, "deploy.sh"),
+      'FOO=bar\nrun_config_value_guard\necho "guard-exit=$?"',
+      dir,
+    );
+    expect(run.stdout).toContain("guard-exit=3");
+  });
+
+  maybe("with node not on PATH it stops: non-zero, with a message", () => {
+    const result = spawnSync(
+      BASH,
+      [
+        "-c",
+        `${EXTRACT}\ncommand -v node >/dev/null && echo NODE-FOUND\nrun_config_value_guard\necho "guard-exit=$?"`,
+        REAL_DEPLOY_SH,
+        REAL_DEPLOY_SH,
+      ],
+      // /usr/bin:/bin only: awk for the extraction, and no node (it lives elsewhere here).
+      { encoding: "utf8", env: { PATH: "/usr/bin:/bin", HOME: os.homedir() } },
+    );
+    expect(result.stdout).not.toContain("NODE-FOUND");
+    expect(result.stdout).toContain(
+      "config value guard: node not found — the guard cannot run",
+    );
+    expect(result.stdout).toContain("guard-exit=1");
   });
 
   maybe("a hostile source name from --list-sources is never evaluated", () => {
@@ -907,18 +1011,24 @@ describe("H — deploy.sh run_config_value_guard, extracted and run under /bin/b
     );
   });
 
-  it("deploy.sh calls the guard once, right before the ssh", () => {
+  // Task 0298: the call site stops the deploy on a non-zero return. The exact line is
+  // pinned so a quiet revert to `|| true` (or a lost `exit 1`) turns this red.
+  const CALL_SITE =
+    'run_config_value_guard || { echo "❌ Config value guard failed (findings above) — refusing to deploy. Nothing has run on the server."; exit 1; }';
+
+  it("deploy.sh calls the guard once, right before the ssh, and stops the deploy on failure", () => {
     const text = fs.readFileSync(REAL_DEPLOY_SH, "utf8");
-    const calls = text.match(/^run_config_value_guard \|\| true$/gm) ?? [];
-    expect(calls).toHaveLength(1);
-    const call = text.indexOf("\nrun_config_value_guard || true\n");
+    const calls = text.match(/^run_config_value_guard(?!\(\)).*$/gm) ?? [];
+    expect(calls).toEqual([CALL_SITE]);
+    expect(text).not.toMatch(/run_config_value_guard \|\| true/);
+    const call = text.indexOf(`\n${CALL_SITE}\n`);
     const ssh = text.indexOf(
       'print_header "EXECUTING UPDATE SCRIPT ON SERVER"',
     );
     const lastLoad = text.lastIndexOf('load_env_file ".env.');
     expect(call).toBeGreaterThan(lastLoad);
     expect(call).toBeLessThan(ssh);
-    expect(text.slice(call, ssh).trim()).toBe("run_config_value_guard || true");
+    expect(text.slice(call, ssh).trim()).toBe(CALL_SITE);
   });
 });
 
@@ -932,7 +1042,7 @@ describe("I — real tree", () => {
     expect(result.skips).toEqual([]);
   });
 
-  it("the shipped game value entries are exactly the five approved ones — no PROFILE_INTERNAL_TOKEN", () => {
+  it("the shipped game value entries are exactly the six approved ones — no PROFILE_INTERNAL_TOKEN", () => {
     const parsed = JSON.parse(fs.readFileSync(REAL_ALLOWLIST, "utf8")) as {
       allow: {
         name: string;

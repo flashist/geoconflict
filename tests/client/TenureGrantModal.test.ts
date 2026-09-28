@@ -67,4 +67,35 @@ describe("TenureGrantModal", () => {
     expect(modal.isVisible).toBe(false);
     expect(overlay(modal).classList.contains("visible")).toBe(false);
   });
+
+  // Task 0303: the card waits for this before offering the restart popup.
+  it("the CTA calls onClosed once, after hiding", async () => {
+    const modal = await mount();
+    const onClosed = jest.fn(() => {
+      expect(modal.isVisible).toBe(false);
+    });
+    modal.show({ xpAwarded: 5, xp: 5 }, onClosed);
+    await modal.updateComplete;
+    expect(onClosed).not.toHaveBeenCalled();
+
+    const cta = modal.shadowRoot!.querySelector(
+      "#tenure-grant-modal-cta",
+    ) as HTMLElement;
+    cta.click();
+    cta.click();
+
+    expect(onClosed).toHaveBeenCalledTimes(1);
+  });
+
+  it("the CTA works without onClosed", async () => {
+    const modal = await mount();
+    modal.show({ xpAwarded: 5, xp: 5 });
+    await modal.updateComplete;
+
+    (
+      modal.shadowRoot!.querySelector("#tenure-grant-modal-cta") as HTMLElement
+    ).click();
+
+    expect(modal.isVisible).toBe(false);
+  });
 });

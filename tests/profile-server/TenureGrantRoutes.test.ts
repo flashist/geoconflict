@@ -62,6 +62,7 @@ function outcome(
     xpAwarded: 12,
     xp: 20,
     citizenshipNewlyGranted: false,
+    isCitizen: false,
     ...overrides,
   };
 }
@@ -163,14 +164,21 @@ describe("POST /v1/profile/tenure-grant", () => {
 
     it("the response never carries citizenshipNewlyGranted or any id", async () => {
       const tenureGrant = mockTenureGrant(
-        outcome({ citizenshipNewlyGranted: true, xpAwarded: 50, xp: 110 }),
+        outcome({
+          citizenshipNewlyGranted: true,
+          isCitizen: true,
+          xpAwarded: 50,
+          xp: 110,
+        }),
       );
       const res = await request(appWith(tenureGrant))
         .post(PATH)
         .set("Authorization", CALLER)
         .send({ evidence: { daysPlayed: 80, gameRecordDays: 0 } })
         .expect(200);
-      expect(res.body).toEqual({ status: "granted", xpAwarded: 50, xp: 110 });
+      // xp is the threshold, not 110: the claim made them a citizen, and every
+      // citizen is shown exactly 100 (task 0250 S1, owner ruling Q-A).
+      expect(res.body).toEqual({ status: "granted", xpAwarded: 50, xp: 100 });
     });
 
     it("ignores a client-sent amount and id — the server computes and resolves them", async () => {
@@ -190,6 +198,105 @@ describe("POST /v1/profile/tenure-grant", () => {
         50,
         { daysPlayed: 80, gameRecordDays: 3 },
       );
+    });
+
+    // Task 0250 S1, leak L3 (review R1, owner ruling Q-A): every citizen is
+    // shown exactly the threshold, so neither the level nor the MOVEMENT of a
+    // citizen's xp tells a paid one from an earned one. Fixtures are outcomes the
+    // repository can really return: a granted claim ADDS xpAwarded to the stored
+    // total (an earned citizen is at ≥ 100 before it, so ≥ 100 + xpAwarded after).
+    describe("equalized xp (task 0250 S1, L3)", () => {
+      const claim = (result: TenureCheckOutcome) =>
+        request(appWith(mockTenureGrant(result)))
+          .post(PATH)
+          .set("Authorization", CALLER)
+          .send({ evidence: EVIDENCE });
+      const leaks = (body: { xp: number }, isCitizen: boolean) =>
+        isCitizen && body.xp !== 100;
+
+      it("granted: a paid citizen at 30 (→ 42) and an earned citizen at 100 (→ 112) get identical bodies", async () => {
+        const paid = await claim(
+          outcome({
+            status: "granted",
+            xpAwarded: 12,
+            xp: 42,
+            isCitizen: true,
+          }),
+        );
+        const earned = await claim(
+          outcome({
+            status: "granted",
+            xpAwarded: 12,
+            xp: 112,
+            isCitizen: true,
+          }),
+        );
+        expect(paid.status).toBe(200);
+        expect(paid.body).toEqual({
+          status: "granted",
+          xpAwarded: 12,
+          xp: 100,
+        });
+        expect(paid.body).toEqual(earned.body);
+        expect(leaks(paid.body, true)).toBe(false);
+        expect(leaks(earned.body, true)).toBe(false);
+      });
+
+      it("duplicate: the replay is identical too (paid at 42 vs earned at 1200)", async () => {
+        const paid = await claim(
+          outcome({
+            status: "duplicate",
+            xpAwarded: 12,
+            xp: 42,
+            isCitizen: true,
+          }),
+        );
+        const earned = await claim(
+          outcome({
+            status: "duplicate",
+            xpAwarded: 12,
+            xp: 1200,
+            isCitizen: true,
+          }),
+        );
+        expect(paid.body).toEqual({
+          status: "duplicate",
+          xpAwarded: 12,
+          xp: 100,
+        });
+        expect(paid.body).toEqual(earned.body);
+      });
+
+      it("below_minimum: a citizen at 30 and one at 1200 are both shown 100", async () => {
+        for (const xp of [30, 1200]) {
+          const res = await claim(
+            outcome({
+              status: "below_minimum",
+              xpAwarded: 0,
+              xp,
+              isCitizen: true,
+            }),
+          );
+          expect(res.body).toEqual({
+            status: "below_minimum",
+            xpAwarded: 0,
+            xp: 100,
+          });
+        }
+      });
+
+      it("a non-citizen crossing into citizenship through the claim is shown 100 with the true xpAwarded", async () => {
+        const res = await claim(
+          outcome({
+            status: "granted",
+            xpAwarded: 10,
+            xp: 105,
+            citizenshipNewlyGranted: true,
+            isCitizen: true,
+          }),
+        );
+        expect(res.body).toEqual({ status: "granted", xpAwarded: 10, xp: 100 });
+      });
     });
 
     it("forged counts are capped at 50 (verification 10)", async () => {

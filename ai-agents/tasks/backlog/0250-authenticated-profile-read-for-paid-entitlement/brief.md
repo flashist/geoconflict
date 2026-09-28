@@ -74,15 +74,20 @@ paid benefit, and every additional paid perk `PROJECT.md` promises ("name change
 lobbies, spectating") will want the same seam.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0325` (verified login). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
 
 ## Owner
-fkit-producer
+fkit-coder
 
-⚠️ **`fkit-producer`, not `fkit-coder`, and that is deliberate.** Phase 1 is a **design decision** that
-nobody has taken, and it is not the producer's to take alone either — it needs `fkit-architect` on the
-technical shape and the owner on the privacy posture. It re-assigns to `fkit-coder` once the design is
-settled.
+📌 **Re-assigned `fkit-producer` → `fkit-coder` on 2026-09-27**, as this brief anticipated: phase 1 (the
+design) is settled — the architect's report is in and the owner ruled D1–D5 (see *Owner rulings
+(2026-09-27)* at the end of this brief). Done by a spawned `fkit-producer` on `fkit-lead`'s instruction in
+`/fkit-sprint-ship-loop`.
+
+*History, kept as written — true until 2026-09-27:* ~~`fkit-producer`~~ — ~~⚠️ **`fkit-producer`, not
+`fkit-coder`, and that is deliberate.** Phase 1 is a **design decision** that nobody has taken, and it is not
+the producer's to take alone either — it needs `fkit-architect` on the technical shape and the owner on the
+privacy posture. It re-assigns to `fkit-coder` once the design is settled.~~
 
 ## Context
 
@@ -135,6 +140,21 @@ The code marks the exact places the work belongs. **An implementer should start 
 | `src/profile-server/Routes.ts:157-158` | `TODO(payments): once Yandex-signature auth lands, these can be returned to the verified owner of the profile.` — sits in `toPublicProfile()`'s doc comment, directly above the omission. |
 | `src/profile-server/Routes.ts:208-210` | `TODO(payments): verify a Yandex signature so a caller can only read its own profile.` — on the `GET /v1/profile` route itself. |
 | `src/profile-server/Routes.ts:128-137` | The inbox routes' `resolvePlayerId()` doc: *"when ADR-103 exits (the Yandex secret lands with `0014` and signed-player verification exists), the signature check drops in **HERE and nowhere else**."* ⚠️ **A second seam with the same dependency** — see *Scope*. |
+
+📌 **Anchors re-checked 2026-09-27 — the table above has drifted; it is kept as written, and these are the
+current places** (from the design report §2.7, re-confirmed by the producer with `grep` against the working
+tree that day; line numbers will move again, so re-find them by name):
+- ~~`resolvePlayerId()` at `Routes.ts:128-137`~~ — **no longer exists.** Its successor is **`resolveCaller`**
+  (`src/profile-server/Routes.ts`, ~`:498`), the single place every player-facing route (profile, inbox,
+  name change, tenure grant) learns who is calling. Its doc reserves it for the signature check.
+- **`toPublicProfile`** now sits at ~`Routes.ts:346`, with its `TODO(payments)` comment at ~`:338`. The
+  login projection is at ~`:735`; `GET /v1/profile` is at ~`:640`.
+- ~~The `TODO(payments)` on the `GET /v1/profile` route (`:208-210`)~~ — **no longer in the file**; only the
+  `toPublicProfile` one remains.
+- Leak sites the report added (see *Owner rulings*, D5): the tenure-grant response (`POST
+  /v1/profile/tenure-grant`, ~`Routes.ts:1477`) and the inbox read (`GET /v1/messages`, ~`Routes.ts:1074`).
+- `src/core/profile/PlayerProfile.ts` ~`:55` still carries the stale *"Sprint 4's read is unauthenticated"*
+  comment (see *Notes*).
 
 ### 🚨 No auth mechanism exists for profile reads today — so this is a DESIGN task first
 
@@ -243,6 +263,20 @@ the architect's, and the owner rules.** ⛔ Note the conflict with Verification 
 - **Phase 2 — implement the chosen design** on `GET /v1/profile` and the shared profile projection
   (`PublicPlayerProfileSchema`), so that a **verified** caller can learn its own paid state.
 
+📌 **Phase 2 re-shaped by the owner rulings of 2026-09-27** (full record: *Owner rulings (2026-09-27)*
+below). Phase 1 is **done**. Phase 2 is now **two slices of this task**, in this order:
+- **S1 — the MUST-FIX (the "equalized projection").** For every caller that is **not** verified, paid and
+  earned citizens look the same on **all four** leak channels: `GET /v1/profile`, the login response, the
+  tenure-grant response, and the inbox read (D5). **No dependency — ships first. Deploy the client
+  first, then the profile server** (a client that does not know the new neutral inbox key drops that
+  message). Design: report §5 and §8 S1.
+- **S3b — the verified-only view.** A **verified** caller (`vfy:true`) gets its own true `xp`,
+  `citizenship_earned_at`, the original inbox keys, and — per D1 — the raw facts **`is_paid_citizen`** and
+  **`citizenship_purchased_at`**, to itself only. **Hard-depends on
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)**
+  (verified login). Design: report §8 S3b, with D1 replacing its `entitlements: { ad_free }` payload.
+- ⛔ **Verified login itself (report slices S0, S2, S3a) is NOT in this task** — it is `0325` (D3).
+
 ### Out of scope — named so it is not absorbed
 
 - ⛔ **The ad-suppression gate itself.** That is [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
@@ -252,9 +286,20 @@ the architect's, and the owner rules.** ⛔ Note the conflict with Verification 
   server** trusting an id for crediting, not about a **browser** proving identity to the profile API.
   ⚠️ **They plausibly share a mechanism.** If phase 1's design would also close ADR-103, **say so and
   raise it** — but do not silently widen this task into that one.
+  📌 *Answered 2026-09-27 by the design report (§6):* verified login does **not** close ADR-103 by itself —
+  the game server never sees the profile session. It needs a second step (the session token in the
+  WebSocket join), which is **not filed**; see
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
+  *Out of scope*. Still out of scope here.
 - ⛔ **The inbox routes' `resolvePlayerId()` seam** (`src/profile-server/Routes.ts:128-137`), which
   carries the same "signature drops in here" note. Same rule: **flag the overlap, file it separately,
   do not absorb it.**
+  📌 **Narrowed 2026-09-27 by OWNER RULING D5 — read before relying on the bullet above.** The seam
+  (now `resolveCaller`) and the signature check **stay out of scope**; they are filed separately as
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (D3).
+  But the **inbox projection** (leak L4: the `citizenship_paid` inbox template tells a payer apart) and the
+  **tenure-grant response** (leak L3: it returns the true XP) are now **IN scope** — D5 widened this task for
+  **these two leaks only**, so slice S1 closes all four known leaks at once.
 - ⛔ **`persistent_id`.** It is redacted for a **different** reason (it is the internal cross-device
   identity-linkage token). This task is about paid state. Un-redacting `persistent_id` is not implied
   by anything here and must not ride along.
@@ -293,10 +338,14 @@ phase 1 chooses, all of these must hold:**
 
 ## Notes
 
-- **Depends on:** nothing on the boards. ⚠️ **But possibly on an external gate:** if phase 1 chooses a
-  Yandex-signature design, it needs the per-game secret key, tracked as
+- **Depends on:** [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
+  (verified login) — **hard, for slice S3b only** (owner ruling D3, 2026-09-27). **Slice S1 (the MUST-FIX)
+  depends on nothing** and ships first. The task as a whole cannot close until `0325` ships.
+  *Superseded 2026-09-27, kept as written:* ~~nothing on the boards. ⚠️ **But possibly on an external
+  gate:** if phase 1 chooses a Yandex-signature design, it needs the per-game secret key, tracked as
   [`0014`](../../done/0014-yandex-catalog-registration/brief.md) `## Verification` item 3, whose state is
-  **unknown**. ⛔ **Check it; do not assume.**
+  **unknown**. ⛔ **Check it; do not assume.**~~ — the key is configured and correct (open question 3,
+  answered below).
 - **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,
   paid-only confirmed), and that flag cannot reach the client until this task ships.
@@ -315,7 +364,10 @@ phase 1 chooses, all of these must hold:**
 - ⛔ **Do NOT put the auth design in this brief.** Owner ruling, 2026-09-12: that is `fkit-architect`'s,
   at plan time. A plan that arrives having already picked a scheme without the architect consult has
   skipped phase 1.
-- **Effort:** ⛔ **not estimable today.** Phase 1 is ~0.5–1 day of design plus an architect consult.
+- 📌 **Effort, updated 2026-09-27 from the design report (§4):** slice S1 ~1–1.5 days. Slice S3b is not
+  separately estimated in the report (it rides on `0325`, which is ~2.5–3 days plus the owner-run spike).
+  Estimates, not measurements. *Earlier text, kept:*
+- ~~**Effort:** ⛔ **not estimable today.**~~ Phase 1 is ~0.5–1 day of design plus an architect consult.
   Phase 2 is unknowable until phase 1 closes — candidate 3 could be small if the SDK cooperates;
   candidate 1 is a multi-day auth change with an external dependency. **An estimate here would be
   fiction.**
@@ -329,17 +381,115 @@ phase 1 chooses, all of these must hold:**
 
 ## Open questions for the owner
 
-1. **What paid signal should a verified caller get — the raw `is_paid_citizen`, or a narrow derived
+1. ✅ **ANSWERED 2026-09-27 by OWNER RULING D1 — the raw facts: `is_paid_citizen` and
+   `citizenship_purchased_at`, to the verified owner only.** Owner's answer, verbatim: **"Raw facts: paid +
+   date"**. ⚠️ Not the architect's recommendation (the narrow `ad_free` entitlement). See *Owner rulings
+   (2026-09-27)*. *The question as asked, kept:*
+   ~~**What paid signal should a verified caller get — the raw `is_paid_citizen`, or a narrow derived
    entitlement (candidate 2)?** ⛔ **Producer has no recommendation; this is a privacy-posture call the
-   architect should give you options on.** The narrower shape leaks less if the auth is ever weakened.
-2. **Does this need to hold up `0248`, or should `0248` be re-scoped to `is_citizen`?** Ruling 2 of
+   architect should give you options on.** The narrower shape leaks less if the auth is ever weakened.~~
+2. ✅ **ANSWERED 2026-09-27 by OWNER RULING D2 — `0248` stays paid-only and waits for verified login.**
+   Owner's answer, verbatim: **"Paid only (Recommended)"**. See *Owner rulings (2026-09-27)*. *The question
+   as asked, kept:*
+   ~~**Does this need to hold up `0248`, or should `0248` be re-scoped to `is_citizen`?**~~ Ruling 2 of
    2026-09-12 settled `0248` as **paid-only**, which makes this a hard prerequisite. **Recorded as an
    open question only because it is the one lever that would remove the prerequisite** — the producer's
    recommendation is to **leave the paid-only ruling standing**: ad-free is the strongest paid benefit
    and giving it to earned citizens removes the main reason to pay.
-3. **Is the per-game payments secret key collected?** Unknown — `0014` open item 1. **It decides whether
-   candidate 1 is plannable at all today.**
+3. ✅ **ANSWERED 2026-09-27 by the design report (§2.5) — yes: the key is collected, configured on the
+   profile box, and correct.** Evidence, none of it printing or storing the value: issued 2026-09-12
+   (`0014`); present in the running container 2026-09-19; real purchases verified with it 2026-09-26
+   (`0065`); and a **read-only probe on 2026-09-27** showed the payments gate passes (a deliberately
+   non-existent payments path answered 404, not the 503 a missing key gives). ⚠️ **Still NOT established:**
+   whether the same key verifies signed **player** data, and the payload's fields — that is
+   [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)'s
+   spike S0. *The question as asked, kept:*
+   ~~**Is the per-game payments secret key collected?** Unknown — `0014` open item 1. **It decides whether
+   candidate 1 is plannable at all today.**~~
    📌 *Noted 2026-09-26 by the producer — a pointer, not a ruling:* this **looks answered.**
    [`0014`](../../done/0014-yandex-catalog-registration/brief.md) item 3 records the key issued 2026-09-12,
    and [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md) records `YANDEX_PAYMENTS_SECRET`
    present in the running `profile-api` container since 2026-09-20. Confirm at plan time; do not assume.
+
+## Owner rulings (2026-09-27)
+
+**Given live via `AskUserQuestion` in the `fkit lead` session on 2026-09-27, relayed by `fkit-lead` to a
+spawned `fkit-producer` holding no owner channel (ADR-021/037).** Recorded verbatim; appended (ADR-035). ⛔ Not
+producer precedent. The questions are D1–D5 of the design report
+[`2026-09-27-0250-authenticated-profile-read-design.md`](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md)
+(§10). They close phase 1 and answer *Open questions* 1–2; question 3 is answered by the report itself.
+
+| # | Question (plain terms) | Owner's answer (verbatim) | Option text shown (verbatim) |
+|---|---|---|---|
+| **D1** | What does a **verified** player learn about their own payment? (brief open question 1) | **"Raw facts: paid + date"** | *"The paid flag and the purchase date."* |
+| **D2** | Ad-free for whom? (brief open question 2) | **"Paid only (Recommended)"** | *"Keep it the main reason to pay. 0248 waits for verified login."* |
+| **D3** | Where does verified login live? | **"New task, above 0250 (Recommended)"** | *"Its own build task in Sprint 6, directly above 0250; 0250 waits on it. 0267 (the identity investigation) is closed or narrowed using this report."* |
+| **D4** | Accept the side effects of the leak fix on **unverified** sessions? | **"Accept all (Recommended)"** | *"Accept the 3 side effects; record the polling hole as a known, accepted risk."* |
+| **D5** | Leak scope | **"Fix all 4 in 0250 (Recommended)"** | *"One first slice closes every known leak. Ships first, needs no Yandex work."* |
+
+**What each ruling means for this task:**
+
+- **D1 — raw facts, verified owner only.** ⚠️ **This is NOT the architect's recommendation**, which was *"Only
+  the benefit: ad_free"* (report §3.3, candidate 2-narrow). So slice S3b returns **`is_paid_citizen`** and
+  **`citizenship_purchased_at`** to a caller holding a **verified** (`vfy:true`) session, about **itself only**
+  — and to nobody else. The report's `entitlements: { ad_free }` payload (§3.3, §5.1 row 4, §8 S3b) is
+  **superseded** by this ruling. Returning *both* the raw facts and an `ad_free` object was not asked or
+  ruled; if the plan wants both, that is a new owner question. The cross-deploy rule still binds: any field
+  added to `PublicPlayerProfileSchema` is `.optional()` (verification step 5). The owner's accepted cost, as
+  the report states it: the purchase date is disclosed to the verified owner, and every perk is tied to
+  "paid" rather than to a named benefit.
+- **D2 — `0248` stays paid-only.** It waits on this task's slice S3b. Candidate 4 of the report (re-scope
+  `0248` to `is_citizen`) is **declined**.
+- **D3 — verified login is its own task:**
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md), filed
+  2026-09-27 with the report's slices **S0** (owner-run spike), **S2** (shadow mode) and **S3a** (mint
+  `vfy:true`), plus the ADR recording the first verified identity (owner sign-off pending). This task keeps
+  **S1** and **S3b**; S3b hard-depends on `0325`. ⚠️ The owner ruled `0325` *"directly above 0250"*; on the
+  board it is **appended** (ADR-035 — closed rows sit below this row, so the rank cannot be written) and the
+  order is carried by the dependency and by a note on the Sprint 6 board. **`0267`:** the report answers its
+  Yandex half; closing or narrowing it is a **pending producer/owner step** — nothing was closed or cancelled.
+- **D4 — accepted, all three side effects, for unverified sessions** (report §5.3):
+  1. a paid citizen with under 100 XP sees **100 / 100** on their own card (and in the tenure popup);
+  2. the `Citizenship:Earned:XP` analytics event **under-counts** — it runs on verified reads only, with a
+     fresh storage-key prefix, and never fires on the new client until S3b;
+  3. payers see a **neutral inbox note** (a new `citizenship_granted` key) instead of *"Your citizenship
+     purchase was successful"*.
+
+  ⚠️ **Known, accepted risk — leak L5, the polling hole:** someone who knows a player's id and polls them
+  around the moment of purchase can still infer it (citizen flag flips while XP jumps). Closing it fully
+  would mean refusing unverified reads, which verification step 6 forbids. **Recorded as accepted by owner
+  ruling; it must also be recorded in `0325`'s ADR.** The report's optional hardening (hide `updated_at` from
+  unverified callers) was **not ruled** — the plan may propose it.
+- **D5 — all four leaks in this task.** Slice S1 closes **L1** (`citizenship_earned_at`), **L2** (XP under
+  100), **L3** (the tenure-grant response's true XP) and **L4** (the `citizenship_paid` inbox template). This
+  **widens** this task for L3 and L4 **only**; the inbox auth seam stays out (see *Scope*).
+
+**Slice order (report §8, owner-accepted via D3/D5):**
+
+| Order | Slice | Owner task | Depends on | Deploy |
+|---|---|---|---|---|
+| 1 | **S1** — equalized projection (the MUST-FIX) | **0250** | **nothing** | **client first**, then profile server |
+| 2 | S0 — spike on the signed player payload (owner-run) | `0325` | the owner, live iframe | — |
+| 3 | S2 — verified-login shadow mode | `0325` | S0's answers | server, then client |
+| 4 | S3a — mint `vfy:true` | `0325` | S2's metric + owner go-ahead | server |
+| 5 | **S3b** — verified-only projection with the raw paid facts (D1) | **0250** | **`0325` (S3a)** | server, then client |
+
+Full deploy order across all slices (report §8): client S1 → server S1 → server S2 → client S2 → server
+S3a/S3b → client S3b.
+
+**Effect on other briefs (dated notes added 2026-09-27, same producer):** `0248` (unchanged, paid-only, waits
+on S3b) · `0299` (may use the raw `is_paid_citizen` for verified callers) · `0319` (now depends on `0325`) ·
+`0322` (pointer to the not-filed second step) · `0267` (the report answers its Yandex half).
+
+⛔ **What this producer did NOT do:** change `## Status`; close, cancel or move any task; re-rank any row;
+write the ADR (that is `0325`'s deliverable); touch `ai-agents/wiki-vault/`; commit or push.
+
+## 📌 Note for S3b's future plan — added 2026-09-27
+
+**Source:** this task's [`worklog.md`](worklog.md), 2026-09-27 build, *Decision log* item **(4)**.
+
+S1 turned `Citizenship:Earned:XP` detection off (dormant). **When S3b turns it back on for verified reads, the
+detection must use the paid state that S3b can then see**, so that a **paid** citizen who later crosses 100 XP is
+**not** counted as "earned". Without that check, the server would stamp `citizenship_earned_at` for that player
+and the event would fire, over-counting earned citizens. The S1 code comment and the analytics reference doc
+already say this residual is gone only *while the event is dormant*. S3b's plan must carry the fix.

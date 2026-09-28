@@ -4,7 +4,9 @@
 // WHAT IT DOES
 //   Compares, by NAME ONLY, the environment variables the application reads against
 //   the ones each deploy pipeline actually forwards. It is pure static analysis over
-//   git-tracked files.
+//   the files ON DISK: it walks src/ from the filesystem, so an untracked or
+//   uncommitted .ts file there is scanned too — its result depends on the working tree,
+//   not only on what git tracks (0298 review R2).
 //
 // WHAT IT DELIBERATELY DOES NOT DO — this is the task's entire safety story
 //   It never opens a .env file, never reads the process environment, and never prints
@@ -30,26 +32,34 @@
 //                  DYNAMIC-READ, missing inputs, and an internal throw inside
 //                  analyse(). It is NOT unconditional: an unparseable argument exits 2
 //                  (before the mode is even consulted), and a throw while rendering or
-//                  writing the report is uncaught and exits 1.
-//   THE ABSOLUTE   "this cannot fail a deploy" is guaranteed by the CALL SITES, not by
-//                  this file: deploy.sh and build-deploy-profile.sh append `|| true`,
-//                  which absorbs exit 2, exit 1, an uncaught stack trace, a signal, a
-//                  missing node, and an import-time syntax error alike.
+//                  writing the report is uncaught and exits 1. No deploy passes it any
+//                  more; it stays for a developer's own run (`npm run check:config-parity`).
 //   --enforce      fails closed: exits 1 on any REQUIRED finding, PARSE-FAILURE,
-//                  DYNAMIC-READ blind spot, or missing input. Built and tested, but
-//                  wired to nothing (owner ruling R3) — no script passes it today.
+//                  DYNAMIC-READ blind spot, or missing input (SKIP). ARMED at both deploy
+//                  call sites by task 0298: deploy.sh (and build-deploy.sh's early check)
+//                  and build-deploy-profile.sh stop the deploy on a non-zero exit.
+//   --block-on=    per-deploy blocking (task 0298; the R4a/R14 ruling, owner-approved
+//                  2026-09-23). Needs --enforce, and names pipelines that --pipeline also
+//                  selects; anything else is a usage error (exit 2). The run then fails
+//                  only on: a REQUIRED finding in a pipeline it names, and a PARSE-FAILURE,
+//                  DYNAMIC-READ or SKIP whose tag overlaps those pipelines or is "global"
+//                  (a failure no pipeline can claim stops EVERY deploy). Findings for the
+//                  other pipelines are still analysed and printed — loudly, not blocking —
+//                  and the footer counts them. Without --block-on, --enforce fails on
+//                  every finding, whatever its tag. The call sites pass
+//                  `--pipeline=all --enforce --block-on=game,client` (game deploy) and
+//                  `--block-on=profile` (profile deploy). A core/configuration finding is
+//                  tagged game + client, so it blocks the game deploy and not the profile one.
 //   TAGS           every PARSE-FAILURE, DYNAMIC-READ and SKIP carries the pipelines it
-//                  concerns, or "global" (task 0203 item 12). --enforce still fails on
-//                  ANY such finding, whatever its tag: blocking only the deploys a finding
-//                  concerns is task 0298's job, as is arming --enforce at all.
-//   MISSING GUARD  a missing check-config-parity.mjs cannot be caught by this file. The
-//                  ruling that it stops the deploy (task 0203 R4b) is enforced at the call
-//                  sites' `[ -f … ]` tests in deploy.sh / build-deploy-profile.sh, and
-//                  changing them is task 0298's. These inputs fail closed: a missing
-//                  input file, a src/ file or directory that cannot be read (review 0203
-//                  R6, owner ruling 2026-09-24), a source file whose code cannot be
-//                  separated from its comments/strings, and a computed or spread
-//                  DefinePlugin key.
+//                  concerns, or "global" (task 0203 item 12). --block-on reads them.
+//   MISSING GUARD  a missing check-config-parity.mjs, or a missing node, cannot be caught
+//                  by this file. The ruling that each stops the deploy (task 0203 R4b; a
+//                  missing node accepted as the same case at 0298's plan approval) is
+//                  enforced at the call sites, which `exit 1` on either. These inputs fail
+//                  closed here: a missing input file, a src/ file or directory that cannot
+//                  be read (review 0203 R6, owner ruling 2026-09-24), a source file whose
+//                  code cannot be separated from its comments/strings, and a computed or
+//                  spread DefinePlugin key.
 //
 // KNOWN LIMITS — documented, not fixed.
 //   - Only src/**/*.ts is scanned (task 0203 R21). A read in build or test tooling
@@ -88,7 +98,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO_ROOT = path.resolve(HERE, "..");
 
 // ── Inputs ────────────────────────────────────────────────────────────────────
-// Every input is git-tracked and value-free. Each is overridable by a
+// Every input is value-free and read from disk as it stands (the named files are
+// git-tracked; the src/ walk also picks up untracked files). Each is overridable by a
 // `--<key>=<path>` flag so tests can point the checker at synthetic fixtures.
 export const INPUT_DEFAULTS = {
   "src-dir": "src",
@@ -1332,22 +1343,55 @@ export function analyse(options) {
     })),
     requiredTotal,
     mode: options.enforce ? "enforce" : "report-only",
+    // The pipelines an --enforce run blocks on (task 0298), or null: block on everything.
+    blockOn: options.blockOn ?? null,
   };
 }
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
+/**
+ * Whether a tagged PARSE-FAILURE / DYNAMIC-READ / SKIP blocks a deploy that blocks on
+ * `blockOn` (task 0298): a "global" finding blocks every deploy (R4a — no pipeline can
+ * claim it), any other blocks only the deploys whose pipelines its tag names (R14).
+ */
+function blocksDeploy(entry, blockOn) {
+  return (
+    entry.pipelines === "global" ||
+    entry.pipelines.some((pipeline) => blockOn.includes(pipeline))
+  );
+}
+
+/**
+ * Splits a run's findings into those that block this deploy and those that do not. Without
+ * --block-on every pipeline blocks, so every finding does — the pre-0298 behaviour.
+ */
+function blockingCounts(result) {
+  const blockOn = result.blockOn ?? PIPELINES;
+  let blocking = 0;
+  let other = 0;
+  for (const pipeline of PIPELINES) {
+    const count = result.pipelines[pipeline].required.length;
+    if (blockOn.includes(pipeline)) blocking += count;
+    else other += count;
+  }
+  for (const entry of [
+    ...result.parseFailures,
+    ...result.dynamicReads,
+    ...result.skips,
+  ]) {
+    if (blocksDeploy(entry, blockOn)) blocking += 1;
+    else other += 1;
+  }
+  return { blocking, other };
+}
+
 /**
  * Whether --enforce fails this run. The ONE definition, used by both the exit code and the
  * printed footer, so the output can never tell the reader the opposite of what the process
  * did (review 0064 finding R16).
  */
 function failsClosed(result) {
-  return (
-    result.requiredTotal > 0 ||
-    result.parseFailures.length > 0 ||
-    result.dynamicReads.length > 0 ||
-    result.skips.length > 0
-  );
+  return blockingCounts(result).blocking > 0;
 }
 
 function wrap(names, indent) {
@@ -1427,12 +1471,20 @@ function render(result, selected) {
     );
   }
 
+  // The enforce footer reads the same blockingCounts() as the exit code (R16).
+  const scope =
+    result.blockOn === null ? "" : ` (blocking: ${result.blockOn.join(", ")})`;
+  const { other } = blockingCounts(result);
   if (mode === "report-only") {
     out.push("report-only — exit 0, this cannot fail a deploy");
   } else if (failsClosed(result)) {
-    out.push("enforce — failing on the findings above");
+    out.push(`enforce${scope} — failing on the findings above`);
+  } else if (other > 0) {
+    out.push(
+      `enforce${scope} — no blocking findings; ${other} finding(s) for other deploys printed above, not blocking`,
+    );
   } else {
-    out.push("enforce — no required findings");
+    out.push(`enforce${scope} — no required findings`);
   }
   return out.join("\n");
 }
@@ -1444,12 +1496,20 @@ function parseArgs(argv) {
   let pipelines = PIPELINES;
   let enforce = false;
   let json = false;
+  let blockOn = null;
 
   for (const arg of argv) {
     if (arg === "--report-only") enforce = false;
     else if (arg === "--enforce") enforce = true;
     else if (arg === "--json") json = true;
-    else if (arg.startsWith("--repo-root=")) repoRoot = arg.slice(12);
+    else if (arg.startsWith("--block-on=")) {
+      blockOn = arg.slice(11).split(",");
+      for (const p of blockOn) {
+        if (!PIPELINES.includes(p)) {
+          throw new Error(`--block-on: unknown pipeline '${p}'`);
+        }
+      }
+    } else if (arg.startsWith("--repo-root=")) repoRoot = arg.slice(12);
     else if (arg.startsWith("--pipeline=")) {
       const value = arg.slice(11);
       if (value === "all") pipelines = PIPELINES;
@@ -1470,7 +1530,27 @@ function parseArgs(argv) {
       }
     }
   }
-  return { inputs, repoRoot: path.resolve(repoRoot), pipelines, enforce, json };
+  // A --block-on that could not block is refused loudly, never run quietly: without
+  // --enforce nothing blocks at all, and a pipeline --pipeline does not select is never
+  // analysed, so its REQUIRED findings would read as zero (task 0298).
+  if (blockOn !== null) {
+    if (!enforce) throw new Error("--block-on needs --enforce");
+    for (const p of blockOn) {
+      if (!pipelines.includes(p)) {
+        throw new Error(
+          `--block-on: pipeline '${p}' is not selected by --pipeline`,
+        );
+      }
+    }
+  }
+  return {
+    inputs,
+    repoRoot: path.resolve(repoRoot),
+    pipelines,
+    enforce,
+    json,
+    blockOn,
+  };
 }
 
 function main(argv) {
@@ -1479,7 +1559,7 @@ function main(argv) {
     options = parseArgs(argv);
   } catch (error) {
     process.stdout.write(
-      `config-parity guard: ${error.message}\nusage: check-config-parity.mjs [--pipeline=game|profile|client|all] [--report-only|--enforce] [--json] [--repo-root=PATH]\n`,
+      `config-parity guard: ${error.message}\nusage: check-config-parity.mjs [--pipeline=game|profile|client|all] [--report-only|--enforce [--block-on=game,profile,client]] [--json] [--repo-root=PATH]\n`,
     );
     return 2;
   }

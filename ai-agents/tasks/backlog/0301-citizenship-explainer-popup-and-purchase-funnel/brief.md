@@ -262,3 +262,5 @@ never an inline string. At minimum:
   3. "Coming soon" lines for planned perks — allowed or not? Producer recommendation: **no** — the
      2026-09-12 store-copy ruling points that way, and a paid page promising unbuilt features invites
      complaints and Yandex moderation trouble.
+- 📌 **Routing note from [`0303`](../../done/0303-the-whole-game-reflects-a-purchase-without-a-reload/brief.md) (2026-09-28, `0303` plan step 11; added by a spawned `fkit-producer` at `fkit-lead`'s request):**
+  *"after a purchase the popup offers a restart and a match end reloads anyway, so a perk may read status at load time. A grant made by session-start reconciliation applies from the next load unless the perk listens to `PURCHASES_RECONCILED_EVENT`."*

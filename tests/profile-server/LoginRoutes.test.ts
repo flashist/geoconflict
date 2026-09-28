@@ -105,7 +105,9 @@ describe("POST /v1/login", () => {
     const nameChange: NameChangeRepo = {
       requestNameChange: jest.fn(),
       cancelNameChange: jest.fn(),
+      dismissRejection: jest.fn(),
       decideNameChange: jest.fn(),
+      clearDisplayName: jest.fn(),
       getLatestState: jest.fn().mockResolvedValue({
         status: "pending",
         requested_name: "NewName",
@@ -355,6 +357,74 @@ describe("POST /v1/login", () => {
         process.env.PROFILE_INTERNAL_TOKEN = originalToken;
       }
     });
+  });
+
+  // Task 0250 S1, leaks L1/L2: the login's `profile` is the same equalized
+  // projection as GET /v1/profile. Valid fixtures only (the one above breaks the
+  // is_paid_citizen ⇒ is_citizen invariant on purpose, for the strip test).
+  describe("equalized profile (task 0250 S1, L1/L2)", () => {
+    const CREATED_AT = "2026-09-01T00:00:00.000Z";
+    const paidNotEarned: PlayerProfile = {
+      schema_version: 1,
+      xp: 30,
+      is_citizen: true,
+      is_paid_citizen: true,
+      citizenship_earned_at: null,
+      citizenship_purchased_at: "2026-09-10T00:00:00.000Z",
+      display_name: null,
+      created_at: CREATED_AT,
+      updated_at: "2026-09-10T00:00:00.000Z",
+    };
+    const earnedAt100: PlayerProfile = {
+      schema_version: 1,
+      xp: 100,
+      is_citizen: true,
+      is_paid_citizen: false,
+      citizenship_earned_at: "2026-09-12T00:00:00.000Z",
+      citizenship_purchased_at: null,
+      display_name: null,
+      created_at: CREATED_AT,
+      updated_at: "2026-09-12T00:00:00.000Z",
+    };
+    const loginAs = (profile: PlayerProfile) =>
+      request(
+        appWith(
+          mockRepo(false, {
+            resolveOrCreatePlayer: jest.fn().mockResolvedValue({
+              playerId: PLAYER_ID,
+              created: false,
+              profile,
+            }),
+          }),
+        ),
+      )
+        .post("/v1/login")
+        .send(BODY);
+    const leakL1 = (p: {
+      is_citizen: boolean;
+      citizenship_earned_at: unknown;
+    }) => p.is_citizen && p.citizenship_earned_at === null;
+    const leakL2 = (p: { is_citizen: boolean; xp: number }) =>
+      p.is_citizen && p.xp < 100;
+
+    test.each([100, 1200])(
+      "a paid-not-earned citizen and an earned citizen at %i get identical profiles",
+      async (earnedXp) => {
+        const paid = await loginAs(paidNotEarned);
+        const earned = await loginAs({ ...earnedAt100, xp: earnedXp });
+        expect(paid.status).toBe(200);
+        expect(earned.status).toBe(200);
+        expect(leakL1(paid.body.profile)).toBe(leakL1(earned.body.profile));
+        expect(leakL2(paid.body.profile)).toBe(leakL2(earned.body.profile));
+        expect(paid.body.profile).toEqual(earned.body.profile);
+        expect(paid.body.profile).toMatchObject({
+          is_citizen: true,
+          xp: 100,
+          citizenship_earned_at: null,
+          updated_at: CREATED_AT,
+        });
+      },
+    );
   });
 
   test("OPTIONS /v1/login is 204 with Authorization allowed and a Max-Age, and touches no repo", async () => {

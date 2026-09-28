@@ -186,8 +186,8 @@ Given live in the `fkit lead` session on **2026-09-22** via `AskUserQuestion`, r
 | # | Ruling | Reason the owner accepted |
 |---|---|---|
 | **1** | **`0286` step 8 runs FIRST.** | `0219` B4, `0220` §8, `0221` B1 and `0286` itself all need `npm run deploy:profile` to complete, and `0286` is the fix for the defect that hangs exactly that command. Prove it first and the rest of the slot is safe. |
-| **2** | **The game deploy runs in the SAME window** as the profile-box work — `0272`, `0273`, `0032` step 5, `0064` step 8. | Both sides must agree on `PROFILE_INTERNAL_TOKEN`, and `0296`'s A1/A3–A4 (ex-`0062`-D1/D3/D4) need a deployed game server; ex-`0062`-D5 passed locally 2026-09-23. 📌 **2026-09-23, later (Sprint 4 rescope, Q2 = (a); OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent):** `0064` step 8 now lives in [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), split out of `0064`. The ruling's text above is kept as written. |
-| **3** | **`0203`'s six pending decisions are deferred until after the deploy.** ✅ **RE-CONFIRMED BY THE OWNER 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). 🚨 **The deferral SURVIVES the slipped slot** — it is *"after the window"*, **not** *"after 2026-09-20"*, so it still holds now that the window is undated. ⛔ **`0203`'s `## Status` marker was NOT touched and no mover was invoked.** 🔓 **LIFTED FOR `0203`, LATER ON 2026-09-23 — Sprint 4 rescope, Q3 = (b), AGAINST the producer's recommendation; OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent.** `0203` stays in Sprint 4, and **its six decisions are taken NOW, before this window.** The row is kept as written: it was true until the lift. `0203`'s consumer (`--enforce` wiring) is now [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md). | ~~Not surfaced here.~~ ✅ **RECORDED 2026-09-22 — the owner's reasoning, same as before:** the **deploy unblocks eight rows and had a date**; **`0203` unblocks one task's `--enforce` wiring** (`0064`'s) **and has no deadline.** ⇒ the deploy goes first. |
+| **2** | **The game deploy runs in the SAME window** as the profile-box work — `0272`, `0273`, `0032` step 5, `0064` step 8. | Both sides must agree on `PROFILE_INTERNAL_TOKEN`, and `0296`'s A1/A3–A4 (ex-`0062`-D1/D3/D4) need a deployed game server; ex-`0062`-D5 passed locally 2026-09-23. 📌 **2026-09-23, later (Sprint 4 rescope, Q2 = (a); OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent):** `0064` step 8 now lives in [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md), split out of `0064`. The ruling's text above is kept as written. |
+| **3** | **`0203`'s six pending decisions are deferred until after the deploy.** ✅ **RE-CONFIRMED BY THE OWNER 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). 🚨 **The deferral SURVIVES the slipped slot** — it is *"after the window"*, **not** *"after 2026-09-20"*, so it still holds now that the window is undated. ⛔ **`0203`'s `## Status` marker was NOT touched and no mover was invoked.** 🔓 **LIFTED FOR `0203`, LATER ON 2026-09-23 — Sprint 4 rescope, Q3 = (b), AGAINST the producer's recommendation; OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-23, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021); ⛔ not producer precedent.** `0203` stays in Sprint 4, and **its six decisions are taken NOW, before this window.** The row is kept as written: it was true until the lift. `0203`'s consumer (`--enforce` wiring) is now [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md). | ~~Not surfaced here.~~ ✅ **RECORDED 2026-09-22 — the owner's reasoning, same as before:** the **deploy unblocks eight rows and had a date**; **`0203` unblocks one task's `--enforce` wiring** (`0064`'s) **and has no deadline.** ⇒ the deploy goes first. |
 
 ---
 
@@ -727,7 +727,7 @@ surfaces either"* (`0217` § *Barrier 2*). A dropped credit is **lost, not queue
 
 ### W12 — Game deploy · `./build-deploy.sh prod` · **ruling 2**
 
-One command carries `0272` (S3 game server), `0273` (S4 client), `0032` step 5's build, ~~`0064`~~ [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) step 8's
+One command carries `0272` (S3 game server), `0273` (S4 client), `0032` step 5's build, ~~`0064`~~ [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) step 8's
 observation *(split out of `0064` on 2026-09-23, rescope Q2 = (a))*, and — because `PROFILE_INTERNAL_TOKEN` is now non-blank — `0217` step 4 and the
 deploy that `0296` section A (ex-`0062` D1–D4) has been waiting for.
 
@@ -741,7 +741,7 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
       same check applies before them.)*
       📌 *2026-09-24: `0064`, `0253`, `0020` and `0203` are closed and committed in `6eeceeb`. None of their changes is
       unfinished any more. The `git status` check still stands for anything new.*
-- [ ] **[`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) (ex-`0064` step 8) — the parity guard runs clean, report-only.** Capture its full output into `0298`'s worklog (names and verdicts only). `deploy.sh:60-61` invokes
+- [ ] **[`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) (ex-`0064` step 8) — the parity guard runs clean, report-only.** Capture its full output into `0298`'s worklog (names and verdicts only). `deploy.sh:60-61` invokes
       `check-config-parity.mjs --pipeline=all --report-only || true`. ⛔ **Report-only. A non-zero exit
       here would fail a deploy and is out of scope** (`0064` verification step 6). Arming is ~~`0064`'s
       own~~ `0298`'s, after all ten of `0203`'s items. ~~**and `0203` is deferred by ruling 3.**~~ *(2026-09-23: ruling 3 is
@@ -771,7 +771,15 @@ It bumps, commits, tags and pushes (`build-deploy.sh:50-53`), builds, then calls
       blank-by-hand rule was **retired** on 2026-09-24 (owner, verbatim: *"Retire it"*; see `0296`'s top
       box), and this slot needs it set and matching anyway (W11). If you see that line, the token is
       missing. Treat it as a missed precondition, not as noise.
-      📌 *2026-09-25 (lead's finding from a dry run, not an owner ruling):* also expect `REQUIRED OTEL_AUTH_HEADER — forwarded but EMPTY`; harmless, not needed by design; handled by [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md).
+      📌 *2026-09-25 (lead's finding from a dry run, not an owner ruling):* also expect `REQUIRED OTEL_AUTH_HEADER — forwarded but EMPTY`; harmless, not needed by design; handled by [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md).
+      📌 *2026-09-28 — the two W12 checkboxes above describe the window AS IT RAN (report-only). For later
+      deploys: [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)
+      Part B arms both guards (owner rulings 2026-09-28, Q1–Q3; built, not yet committed or deployed at this
+      writing). Once it ships, the name guard runs `--enforce` in `build-deploy.sh` (before the version bump),
+      `deploy.sh` and `build-deploy-profile.sh`; the value guard runs `--enforce` in `deploy.sh`; a missing
+      guard or `node` stops the deploy; `OTEL_AUTH_HEADER` is `OPTIONAL` (blank allowed), so a clean prod run
+      reads `REQUIRED 0`, `OPTIONAL 6`. There is no override. Record, rollback and first-armed-run order:
+      `0298`'s `worklog.md`.*
 - [ ] ⚠️ **Parity cannot catch the thing you are doing here.** It compares **names**, and
       `PROFILE_INTERNAL_TOKEN` *is* forwarded correctly (`deploy.sh:350`; *was cited as `:312`, re-verified
       2026-09-24*). ~~A present-when-it-should-be-
@@ -978,7 +986,7 @@ matters is **before `0065`'s flip** (rescope Q1 = (a)), not this window.
 | `0219` **closes** | ⛔ It does not. G3/G4 deferred; the 2026-09-13 hold-open ruling stands. The slot lands B4/B5/B6 only. |
 | `0219`-B2, `0219`-B3, `0219`-B7…B10 | Deferred with `0285` and `0289`, owner ruling 2026-09-19. |
 | ~~`0203`'s six pending decisions~~ | 🔓 **LIFTED 2026-09-23 (Sprint 4 rescope, Q3 = (b)): they are taken BEFORE this window now**, so this row no longer holds. Kept as written: ~~**Ruling 3** — deferred until after the deploy. ✅ **RE-CONFIRMED BY THE OWNER 2026-09-22**, same reasoning (the deploy unblocks eight rows and had a date; `0203` unblocks one task's `--enforce` wiring and has no deadline). 🚨 **Still deferred even though the slot SLIPPED** — *"after the window"*, not *"after a date"*. Full record: *The three owner rulings that set the spine*, ruling 3.~~ |
-| Arming `--enforce` on the parity guard | ~~`0064`'s~~ [`0298`](../tasks/backlog/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)'s (split 2026-09-23), after all ten `0203` items. *"Arming this guard early correctly fails every deploy on known gaps."* |
+| Arming `--enforce` on the parity guard | ~~`0064`'s~~ [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)'s (split 2026-09-23), after all ten `0203` items. *"Arming this guard early correctly fails every deploy on known gaps."* |
 | `0221`'s non-root deploy user | Split out by owner ruling Q8. This window lands `PermitRootLogin prohibit-password`, not `no`. |
 | `0054` — flipping `CITIZENSHIP_CARD_ENABLED` | ✅ **RULED OUT 2026-09-22** (C1). It is a source change **plus a second game deploy** — *a decision about launching citizenship, not a verification step*, and it must not ride in on a deploy slot. |
 | `0065` **step 3** — the real test purchase | ✅ **RULED OUT 2026-09-22** (C1) — it cannot happen without the flip above. ⛔ `0065` stays `🚧 Blocked`. 📌 *2026-09-23: moved to [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3 by owner ruling (C1 addendum); still out of this window.* |

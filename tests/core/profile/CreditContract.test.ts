@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   CreditBatchRequestSchema,
   CreditItemSchema,
@@ -5,6 +6,7 @@ import {
   PlayerResolveRequestSchema,
   PlayerResolveResponseSchema,
 } from "../../../src/core/profile/CreditContract";
+import { InternalPlayerIdSchema } from "../../../src/core/profile/InboxContract";
 
 const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 
@@ -159,6 +161,73 @@ describe("PlayerResolveResponseSchema", () => {
       PlayerResolveResponseSchema.parse({
         playerId: PLAYER_ID,
         isCitizen: "true",
+      }),
+    ).toThrow();
+  });
+});
+
+// Task 0322: the approved display name rides on the same resolve reply. Absent,
+// null and a string are three different answers; a malformed value must never
+// cost the player the rest of the reply (the XP credit id and the ★).
+describe("PlayerResolveResponseSchema — displayName (task 0322)", () => {
+  const base = { playerId: PLAYER_ID, isCitizen: true };
+
+  test("an old reply without displayName parses, with the field absent", () => {
+    const parsed = PlayerResolveResponseSchema.parse(base);
+    expect(parsed.displayName).toBeUndefined();
+    expect(parsed.playerId).toBe(PLAYER_ID);
+    expect(parsed.isCitizen).toBe(true);
+  });
+
+  test("null parses as null (no approved name, or cleared)", () => {
+    expect(
+      PlayerResolveResponseSchema.parse({ ...base, displayName: null })
+        .displayName,
+    ).toBeNull();
+  });
+
+  test("a string parses as that string", () => {
+    expect(
+      PlayerResolveResponseSchema.parse({ ...base, displayName: "Name_1" })
+        .displayName,
+    ).toBe("Name_1");
+  });
+
+  test.each([[42], [{ nested: "x" }], [["a"]], [true]])(
+    "a malformed displayName (%p) reads as absent while playerId and isCitizen still parse",
+    (displayName) => {
+      const result = PlayerResolveResponseSchema.safeParse({
+        ...base,
+        displayName,
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.displayName).toBeUndefined();
+      expect(result.data.playerId).toBe(PLAYER_ID);
+      expect(result.data.isCitizen).toBe(true);
+    },
+  );
+
+  test("the old parser (no displayName) accepts the new reply", () => {
+    // A verbatim copy of the pre-0322 schema: an old game server reading a new
+    // profile server's reply.
+    const OldPlayerResolveResponseSchema = z.object({
+      playerId: InternalPlayerIdSchema,
+      isCitizen: z.boolean(),
+    });
+    const parsed = OldPlayerResolveResponseSchema.parse({
+      ...base,
+      displayName: "Name_1",
+    });
+    expect(parsed).toEqual(base);
+  });
+
+  test("a bad displayName does not rescue a bad playerId", () => {
+    expect(() =>
+      PlayerResolveResponseSchema.parse({
+        playerId: "not-a-uuid",
+        isCitizen: true,
+        displayName: 42,
       }),
     ).toThrow();
   });

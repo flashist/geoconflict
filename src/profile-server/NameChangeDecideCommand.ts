@@ -28,9 +28,13 @@ export const PROFILE_COMPOSE_FILE = "/opt/profile/docker-compose.yml";
 export const PROFILE_API_SERVICE = "profile-api";
 /** The package.json script that runs decideNameChange.ts. */
 export const DECIDE_NPM_SCRIPT = "name-change:decide";
-/** The decision JSON: `{ playerId, decision, expectedName }`. */
+/**
+ * The decision JSON: `{ playerId, decision, expectedName }`. `decision` is
+ * approve, reject, or (task 0314) clear — which removes an APPROVED name and binds
+ * `expectedName` to the player's CURRENT name (runbook, "Removing an approved name").
+ */
 export const DECISION_ENV = "NAME_CHANGE_DECISION";
-/** The rejection reason — its own variable, typed by the operator. */
+/** The rejection (or clear) reason — its own variable, typed by the operator. */
 export const REASON_ENV = "NAME_CHANGE_REASON";
 /** What the Reject line carries until the operator replaces it. Refused as a reason. */
 export const REASON_PLACEHOLDER = "REPLACE-WITH-REASON";
@@ -41,6 +45,21 @@ export const DECIDE_REQUEST_TIMEOUT_MS = 10_000;
 export const EXIT_OK = 0;
 export const EXIT_REFUSED = 1;
 export const EXIT_BAD_INPUT = 2;
+
+/**
+ * Where to get a clean copy of the command. Approve/reject lines come from the
+ * per-request Telegram message; a clear (task 0314) has no Telegram line, so it
+ * is rebuilt from the runbook. `decision` is whatever the input said, if anything.
+ */
+function copyAgainHint(decision: unknown): string {
+  if (decision === "clear") {
+    return 'Rebuild it from the runbook ("Removing an approved name").';
+  }
+  if (decision === "approve" || decision === "reject") {
+    return "Copy the command again from the Telegram message.";
+  }
+  return 'Copy the command again from the Telegram message (for a clear: rebuild it from the runbook, "Removing an approved name").';
+}
 
 export type ParsedDecideInput =
   | { ok: true; request: NameChangeDecisionRequest }
@@ -58,7 +77,7 @@ export function parseDecideInput(
   if (decisionJson === undefined || decisionJson.trim() === "") {
     return {
       ok: false,
-      error: `${DECISION_ENV} is not set. Paste the whole command from the Telegram message.`,
+      error: `${DECISION_ENV} is not set. ${copyAgainHint(undefined)}`,
     };
   }
   let value: unknown;
@@ -67,13 +86,13 @@ export function parseDecideInput(
   } catch {
     return {
       ok: false,
-      error: `${DECISION_ENV} is not valid JSON. The command was probably cut short or edited; copy it again from the Telegram message.`,
+      error: `${DECISION_ENV} is not valid JSON. The command was probably cut short or edited. ${copyAgainHint(undefined)}`,
     };
   }
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return {
       ok: false,
-      error: `${DECISION_ENV} is not a JSON object. Copy the command again from the Telegram message.`,
+      error: `${DECISION_ENV} is not a JSON object. ${copyAgainHint(undefined)}`,
     };
   }
   const fields = value as Record<string, unknown>;
@@ -83,16 +102,23 @@ export function parseDecideInput(
   if (typeof fields.expectedName !== "string") {
     return {
       ok: false,
-      error: `${DECISION_ENV} has no expectedName. This command only decides on the exact name the Telegram message showed.`,
+      error: `${DECISION_ENV} has no expectedName. This command only acts on the exact name it names: the one the Telegram message showed, or for a clear the player's current name.`,
     };
   }
 
   const hasReason = reason !== undefined && reason.trim() !== "";
-  if (fields.decision === "reject") {
+  // A clear (task 0314) takes a reason exactly like a rejection: the player's
+  // inbox note carries it.
+  const needsReason =
+    fields.decision === "reject" || fields.decision === "clear";
+  if (needsReason) {
     if (!hasReason) {
       return {
         ok: false,
-        error: `A rejection needs a reason: set ${REASON_ENV} to the text the player will read.`,
+        error:
+          fields.decision === "clear"
+            ? `Removing a name needs a reason: set ${REASON_ENV} to the text the player will read.`
+            : `A rejection needs a reason: set ${REASON_ENV} to the text the player will read.`,
       };
     }
     if (reason.trim() === REASON_PLACEHOLDER) {
@@ -118,7 +144,7 @@ export function parseDecideInput(
   // sent is always what the operator typed.
   const parsed = NameChangeDecisionRequestSchema.safeParse({
     ...fields,
-    reason: fields.decision === "reject" ? reason : undefined,
+    reason: needsReason ? reason : undefined,
   });
   if (!parsed.success) {
     const where = parsed.error.issues
@@ -126,7 +152,7 @@ export function parseDecideInput(
       .join(", ");
     return {
       ok: false,
-      error: `${DECISION_ENV} does not have the expected shape (check: ${where}). Copy the command again from the Telegram message.`,
+      error: `${DECISION_ENV} does not have the expected shape (check: ${where}). ${copyAgainHint(fields.decision)}`,
     };
   }
   return { ok: true, request: parsed.data };
@@ -157,9 +183,15 @@ function errorCode(body: unknown): string | undefined {
 export function describeDecideResponse(
   status: number,
   body: unknown,
-  decision: "approve" | "reject",
+  decision: "approve" | "reject" | "clear",
 ): { exitCode: number; message: string } {
   const code = errorCode(body);
+  if (decision === "clear") {
+    const clearAnswer = describeClearResponse(status, body, code);
+    if (clearAnswer !== null) {
+      return clearAnswer;
+    }
+  }
   if (status === 200) {
     return {
       exitCode: EXIT_OK,
@@ -198,8 +230,7 @@ export function describeDecideResponse(
   if (status === 400) {
     return {
       exitCode: EXIT_REFUSED,
-      message:
-        "HTTP 400 bad_request: the server refused the request's shape (player id, decision or reason). Nothing was changed. Copy the command again from the Telegram message.",
+      message: `HTTP 400 bad_request: the server refused the request's shape (player id, decision or reason). Nothing was changed. ${copyAgainHint(decision)}`,
     };
   }
   if (status === 401) {
@@ -223,12 +254,62 @@ export function describeDecideResponse(
         "HTTP 500 internal_error: the server failed while deciding. Check the profile-api logs, and run the read-only check in the runbook before retrying.",
     };
   }
+  return unexpectedAnswer(status, code);
+}
+
+function unexpectedAnswer(
+  status: number,
+  code: string | undefined,
+): { exitCode: number; message: string } {
   return {
     exitCode: EXIT_REFUSED,
     // The server's error code is escaped like pending_name above: nothing
     // server-supplied reaches a root terminal raw.
     message: `HTTP ${status}${code === undefined ? "" : ` ${escapeForTerminal(code)}`}: unexpected answer. Run the read-only check in the runbook before retrying.`,
   };
+}
+
+/**
+ * The answers whose meaning is different for a clear (task 0314). Everything else
+ * (400, 401, 503, 500, unexpected) reads the same for every decision.
+ */
+function describeClearResponse(
+  status: number,
+  body: unknown,
+  code: string | undefined,
+): { exitCode: number; message: string } | null {
+  if (status === 200) {
+    return {
+      exitCode: EXIT_OK,
+      message:
+        "HTTP 200: name removed. The player now shows their default name, the name is free for others, and the player gets an inbox message with your reason. A pending request, if they had one, was NOT touched.",
+    };
+  }
+  if (status === 404) {
+    // Only no_custom_name means "nothing to remove"; the shared 404 wording
+    // ("no pending request") would be wrong for a clear, so any other 404 is
+    // reported as unexpected.
+    return code === "no_custom_name"
+      ? {
+          exitCode: EXIT_REFUSED,
+          message:
+            "HTTP 404 no_custom_name: this player has no custom name to remove. Nothing was changed.",
+        }
+      : unexpectedAnswer(status, code);
+  }
+  if (status === 409 && code === "name_mismatch") {
+    const current =
+      typeof body === "object" && body !== null
+        ? (body as Record<string, unknown>).current_name
+        : undefined;
+    const shown =
+      typeof current === "string" ? escapeForTerminal(current) : "(not given)";
+    return {
+      exitCode: EXIT_REFUSED,
+      message: `HTTP 409 name_mismatch: the player's current name is not the one in this command. Nothing was changed. Current name: ${shown}`,
+    };
+  }
+  return null;
 }
 
 /** The slice of fetch this command uses — injected so the tests need no network. */

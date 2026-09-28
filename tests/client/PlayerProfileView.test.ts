@@ -32,7 +32,11 @@ import {
   FlashistFacade,
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
-import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import {
+  EARNED_AT_STORAGE_KEY_PREFIX,
+  loadPlayerProfileView,
+  reportEarnedCitizenshipTransition,
+} from "../../src/client/PlayerProfileView";
 import { EXPECTED_BEARER, primeProfileSession } from "./support/profileSession";
 
 const isYandexAuthorized = FlashistFacade.instance
@@ -79,6 +83,8 @@ const ZERO_STATE = {
   isAuthoritative: false,
   // A non-authoritative read knows nothing about name-change requests (0067).
   nameChange: null,
+  // ...nor about an approved name (0321): null never means "none" here.
+  approvedName: null,
 };
 
 describe("loadPlayerProfileView", () => {
@@ -123,6 +129,7 @@ describe("loadPlayerProfileView", () => {
       isCitizen: true,
       isAuthoritative: true,
       nameChange: null,
+      approvedName: "Генерал",
     });
     // The Yandex id is gone from the URL; the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
@@ -144,7 +151,25 @@ describe("loadPlayerProfileView", () => {
       isCitizen: false,
       isAuthoritative: true,
       nameChange: null,
+      // The card falls back to the Yandex name; the approved name does not
+      // (task 0321), so the name box never locks to a platform name.
+      approvedName: null,
     });
+  });
+
+  // Task 0321 — the approved name is the raw display_name, never the fallback.
+  it("carries display_name as approvedName, and null when there is none", async () => {
+    isYandexAuthorized.mockResolvedValue(true);
+    stubFetch(200, publicProfile({ display_name: "Commander" }));
+    const named = await loadPlayerProfileView();
+    expect(named!.approvedName).toBe("Commander");
+    expect(named!.displayName).toBe("Commander");
+
+    stubFetch(200, publicProfile({ display_name: null }));
+    const unnamed = await loadPlayerProfileView();
+    expect(unnamed!.approvedName).toBeNull();
+    expect(unnamed!.displayName).toBe(YANDEX_NAME);
+    expect(unnamed!.isAuthoritative).toBe(true);
   });
 
   // Task 0067 — the name-change state rides the public profile projection.
@@ -267,14 +292,25 @@ describe("loadPlayerProfileView", () => {
       isCitizen: false,
       isAuthoritative: false,
       nameChange: null,
+      approvedName: null,
     });
   });
 });
 
 // Task 0017 / 0021 §6 — Citizenship:Earned:XP fires when the server profile
 // first shows citizenship_earned_at after a previous observation without it.
+//
+// Task 0250 S1 (owner ruling D4): every profile read is unverified until S3b,
+// and an unverified read carries `citizenship_earned_at: null` for every player.
+// So `loadPlayerProfileView` no longer runs the detection at all; the detector
+// itself stays (S3b calls it for verified reads) under a fresh `_v2` prefix.
 describe("Citizenship:Earned:XP transition detection", () => {
   const EARNED_AT = "2026-08-23T10:00:00.000Z";
+  const OLD_PREFIX = "geoconflict_citizenship_earned_at:";
+  const earnedAtKeys = () =>
+    Object.keys(localStorage).filter((key) =>
+      key.startsWith("geoconflict_citizenship_earned_at"),
+    );
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -294,107 +330,115 @@ describe("Citizenship:Earned:XP transition detection", () => {
     jest.restoreAllMocks();
   });
 
-  it("fires exactly once when earned_at appears after a not-earned observation", async () => {
-    stubFetch(200, publicProfile({ xp: 990 }));
-    await loadPlayerProfileView(); // arms: observed as not-yet-earned
-    expect(logEventAnalytics).not.toHaveBeenCalled();
-
-    stubFetch(
-      200,
-      publicProfile({
-        xp: 1000,
-        is_citizen: true,
-        citizenship_earned_at: EARNED_AT,
-      }),
-    );
-    await loadPlayerProfileView(); // the transition
-    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
-    expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Earned:XP");
-
-    await loadPlayerProfileView(); // steady state — never again
-    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not fire on a first-ever observation that is already a citizen", async () => {
-    // Fresh device / cleared storage: no stored snapshot means no transition
-    // (accepted MVP residual — owner ruling 2026-08-23).
-    stubFetch(
-      200,
-      publicProfile({
-        xp: 1200,
-        is_citizen: true,
-        citizenship_earned_at: EARNED_AT,
-      }),
-    );
-    await loadPlayerProfileView();
-    expect(logEventAnalytics).not.toHaveBeenCalled();
-  });
-
-  it("does not fire while earned_at stays null across loads", async () => {
-    stubFetch(200, publicProfile({ xp: 400 }));
-    await loadPlayerProfileView();
-    await loadPlayerProfileView();
-    expect(logEventAnalytics).not.toHaveBeenCalled();
-  });
-
-  it("does not fire (and keeps the armed snapshot) on a failed fetch between observations", async () => {
-    stubFetch(200, publicProfile({ xp: 990 }));
-    await loadPlayerProfileView(); // arms
-
-    stubFetch(500, { error: "internal_error" });
-    await loadPlayerProfileView(); // zero-state path — detection untouched
-    expect(logEventAnalytics).not.toHaveBeenCalled();
-
-    stubFetch(
-      200,
-      publicProfile({ is_citizen: true, citizenship_earned_at: EARNED_AT }),
-    );
-    await loadPlayerProfileView(); // still fires once the real profile arrives
-    expect(logEventAnalytics).toHaveBeenCalledTimes(1);
-  });
-
-  it("tracks the transition per Yandex account", async () => {
-    stubFetch(200, publicProfile({ xp: 990 }));
-    await loadPlayerProfileView(); // arms yandex-123
-
-    getYandexUniqueId.mockResolvedValue("yandex-456");
-    // A different account means a fresh login (the old token is not theirs) —
-    // get it out of the way so the stub below only answers the profile read.
-    await primeProfileSession();
-    logEventAnalytics.mockClear();
-    stubFetch(
-      200,
-      publicProfile({
-        is_citizen: true,
-        citizenship_earned_at: EARNED_AT,
-      }),
-    );
-    // First-ever observation for yandex-456 — armed state of yandex-123 must
-    // not leak across accounts.
-    await loadPlayerProfileView();
-    expect(logEventAnalytics).not.toHaveBeenCalled();
-  });
-
-  it("survives localStorage being unavailable (no fire, card unaffected)", async () => {
-    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new Error("storage disabled");
+  describe("loadPlayerProfileView — dormant until S3b (task 0250 S1)", () => {
+    it("a not-earned → earned sequence NEVER fires and writes nothing under either prefix", async () => {
+      stubFetch(200, publicProfile({ xp: 99 }));
+      await loadPlayerProfileView(); // would have armed before S1
+      stubFetch(
+        200,
+        publicProfile({
+          xp: 100,
+          is_citizen: true,
+          citizenship_earned_at: EARNED_AT,
+        }),
+      );
+      await loadPlayerProfileView(); // would have fired before S1
+      await loadPlayerProfileView();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(earnedAtKeys()).toEqual([]);
     });
-    stubFetch(
-      200,
-      publicProfile({
-        xp: 1000,
-        is_citizen: true,
-        citizenship_earned_at: EARNED_AT,
-      }),
-    );
 
-    await expect(loadPlayerProfileView()).resolves.toEqual({
-      displayName: "Commander",
-      xp: 1000,
-      isCitizen: true,
-      isAuthoritative: true,
-      nameChange: null,
+    it("an old-prefix armed snapshot from a pre-S1 bundle never fires either", async () => {
+      localStorage.setItem(OLD_PREFIX + "yandex-123", "");
+      stubFetch(
+        200,
+        publicProfile({ is_citizen: true, citizenship_earned_at: EARNED_AT }),
+      );
+      await loadPlayerProfileView();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      // The old key is left as it was; nothing new is written.
+      expect(earnedAtKeys()).toEqual([OLD_PREFIX + "yandex-123"]);
     });
-    expect(logEventAnalytics).not.toHaveBeenCalled();
+
+    it("survives localStorage being unavailable (no fire, card unaffected)", async () => {
+      jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("storage disabled");
+      });
+      stubFetch(
+        200,
+        publicProfile({
+          xp: 1000,
+          is_citizen: true,
+          citizenship_earned_at: EARNED_AT,
+        }),
+      );
+
+      await expect(loadPlayerProfileView()).resolves.toEqual({
+        displayName: "Commander",
+        xp: 1000,
+        isCitizen: true,
+        isAuthoritative: true,
+        nameChange: null,
+        approvedName: "Commander",
+      });
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+  });
+
+  // The detector S3b will call for VERIFIED reads — exercised directly.
+  describe("reportEarnedCitizenshipTransition (S3b's verified-read detector)", () => {
+    it("uses the fresh _v2 prefix", () => {
+      expect(EARNED_AT_STORAGE_KEY_PREFIX).toBe(
+        "geoconflict_citizenship_earned_at_v2:",
+      );
+      reportEarnedCitizenshipTransition("yandex-123", null);
+      expect(earnedAtKeys()).toEqual([
+        "geoconflict_citizenship_earned_at_v2:yandex-123",
+      ]);
+    });
+
+    it("fires exactly once when earned_at appears after a not-earned observation", () => {
+      reportEarnedCitizenshipTransition("yandex-123", null); // arms
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT); // transition
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+      expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Earned:XP");
+      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT); // steady
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    });
+
+    it('an old-prefix "" does not arm it (no false Earned event at S3b)', () => {
+      localStorage.setItem(OLD_PREFIX + "yandex-123", "");
+      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("does not fire on a first-ever observation that is already a citizen", () => {
+      // Fresh device / cleared storage (accepted MVP residual, 2026-08-23).
+      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("does not fire while earned_at stays null", () => {
+      reportEarnedCitizenshipTransition("yandex-123", null);
+      reportEarnedCitizenshipTransition("yandex-123", null);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("tracks the transition per Yandex account", () => {
+      reportEarnedCitizenshipTransition("yandex-123", null); // arms 123 only
+      reportEarnedCitizenshipTransition("yandex-456", EARNED_AT);
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("never throws when localStorage is unavailable", () => {
+      jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("storage disabled");
+      });
+      expect(() =>
+        reportEarnedCitizenshipTransition("yandex-123", EARNED_AT),
+      ).not.toThrow();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
   });
 });

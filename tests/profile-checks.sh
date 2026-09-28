@@ -123,12 +123,28 @@ weekly_json() {  # <days-ago of the newest object> [more days-ago ...]
 # Task 0284: the shape src/profile-server/AlertRelay.ts writes — one key per line, key at
 # the line start, seconds-precision ISO with a trailing Z. That shape is a contract between
 # a TypeScript writer and this shell reader, and AlertRoutes.test.ts pins the other half.
-write_probe_marker() {  # <file> <finished_at_iso>
-  cat > "$1" <<EOF
+#
+# Task 0285: the relay adds a fourth key, "channel_state", carried by the probe from the
+# monitoring stack's own record. Default `delivering` (a healthy channel) so every case above
+# C24 keeps its meaning; the literal `ABSENT` writes 0284's exact three-key shape instead.
+write_probe_marker() {  # <file> <finished_at_iso> [channel_state | ABSENT]
+  local state="${3:-delivering}"
+  if [ "$state" = "ABSENT" ]; then
+    cat > "$1" <<EOF
 {
   "schema": 1,
   "finished_at": "$2",
   "source": "alert-webhook-probe"
+}
+EOF
+    return 0
+  fi
+  cat > "$1" <<EOF
+{
+  "schema": 1,
+  "finished_at": "$2",
+  "source": "alert-webhook-probe",
+  "channel_state": "$state"
 }
 EOF
 }
@@ -209,10 +225,10 @@ pinged_fail()    { [ "$(tail -1 "$WORK/curl.urls" 2>/dev/null)" = "$FAKE_PING_UR
 body() { cat "$WORK/curl.body" 2>/dev/null; }
 
 # ══════════════════════════════════════════════════════════════════════════════
-echo "=== C1: healthy box → 12 ok, success ping, exit 0 ==="
+echo "=== C1: healthy box → 13 ok, success ping, exit 0 ==="
 reset_fixture; run_checks
 [ "$RC" -eq 0 ] && ok "exit 0" || no "exit $RC (expected 0):"$'\n'"$OUT"
-grep -q 'RESULT: 12 ok, 0 failed' "$WORK/out.log" && ok "all 12 checks OK" || no "expected 12 ok / 0 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 13 ok, 0 failed' "$WORK/out.log" && ok "all 13 checks OK" || no "expected 13 ok / 0 failed:"$'\n'"$OUT"
 pinged_success && ok "success ping sent to the bare URL" || no "success ping not sent (urls: $(cat "$WORK/curl.urls" 2>/dev/null))"
 [ ! -f "$WORK/curl.body" ] && ok "success ping carries no body" || no "success ping carried a body"
 grep -q -- '--retry 3' "$WORK/curl.argv" && grep -q -- '-m 10' "$WORK/curl.argv" && ok "ping uses a timeout + retries" || no "ping lacks -m 10 / --retry 3"
@@ -290,7 +306,7 @@ echo "=== C9: weekly FAILS while the daily marker AND object are OK ('backup OK'
 reset_fixture; weekly_json 9 > "$WORK/rclone.weekly.json"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "/fail ping on a weekly-only failure" || no "weekly-only failure did not page"
 body | grep -q 'weekly-backup-object' && ! body | grep -q 'daily-backup' && ok "body names ONLY the weekly check" || no "body: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 1 failed' "$WORK/out.log" && ok "12 ok / 1 failed" || no "expected 12 ok / 1 failed:"$'\n'"$OUT"
 
 echo "=== C10: certbot log mtime 2 days → FAIL; empty log + fresh rotated .1.gz → OK (logrotate window) ==="
 reset_fixture; touch_hours_ago "$FIX/le/letsencrypt.log" 48; run_checks
@@ -335,7 +351,7 @@ echo "=== C13: no ping URL → 'ALERTING NOT CONFIGURED', exit non-zero, no curl
 reset_fixture; run_checks PROFILE_CHECKS_PING_URL=
 [ "$RC" -ne 0 ] && ok "exit non-zero without a URL even though every check passed" || no "exit 0 with no alerting"
 grep -q 'ALERTING NOT CONFIGURED' "$WORK/out.log" && ok "logged ALERTING NOT CONFIGURED" || no "no ALERTING NOT CONFIGURED line"
-grep -q 'RESULT: 12 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
+grep -q 'RESULT: 13 ok, 0 failed' "$WORK/out.log" && ok "checks still ran and were logged" || no "checks did not run"
 [ ! -f "$WORK/curl.argv" ] && ok "curl never called" || no "curl was called without a URL"
 
 echo "=== C14: URL comes from checks.env (the on-box shape) when the env is bare ==="
@@ -358,7 +374,7 @@ echo "=== C18: junk threshold overrides → FAIL + default, never a silent OK or
 reset_fixture; write_marker "$FIX/profile/backups/last-backup.json" 0 "$(iso_hours_ago 30)"; run_checks PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=abc
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS='abc' is not a non-negative integer — default 26 used" && ok "MAX_BACKUP_AGE_HOURS=abc → FAIL names the variable + default" || no "junk backup-age threshold: rc=$RC body=$(body)"
 body | grep -q 'daily-backup-marker: daily marker age 30h > 26h' && ok "…and the default 26h still catches the 30h-old marker (no silent OK)" || no "default not applied: $(body)"
-grep -q 'RESULT: 11 ok, 2 failed' "$WORK/out.log" && ok "all 12 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 2 failed' "$WORK/out.log" && ok "all 13 checks still ran" || no "checks did not all run:"$'\n'"$OUT"
 reset_fixture; run_checks PROFILE_CHECKS_CERT_MIN_DAYS=1x
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -q "thresholds: PROFILE_CHECKS_CERT_MIN_DAYS='1x'" && ok "CERT_MIN_DAYS=1x → reaches the /fail ping (no set -u abort)" || no "junk cert threshold aborted before the ping: rc=$RC urls=$(cat "$WORK/curl.urls" 2>/dev/null)"
 grep -q 'openssl x509 -checkend 1728000 -noout -in' "$WORK/openssl.argv" && ok "…and check 6 ran with the default 20d" || no "check 6 did not run with the default: $(cat "$WORK/openssl.argv" 2>/dev/null)"
@@ -372,7 +388,7 @@ reset_fixture; : > "$FIX/reboot-required"; run_checks
 [ "$RC" -ne 0 ] && pinged_fail && ok "pending reboot → /fail ping, exit non-zero" || no "pending reboot did not page (rc=$RC)"
 body | grep -q 'reboot-required: reboot required' && ok "body names the pending reboot" || no "body lacks the reboot line: $(body)"
 body | grep -q 'reboot-required' && ! body | grep -q 'daily-backup' && ok "body names ONLY the reboot check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 1 failed' "$WORK/out.log" && ok "12 ok / 1 failed" || no "expected 12 ok / 1 failed:"$'\n'"$OUT"
 reset_fixture; run_checks
 grep -q 'reboot-required: no pending reboot' "$WORK/out.log" && [ "$RC" -eq 0 ] && ok "no marker file → OK" || no "absent marker wrongly failed (rc=$RC)"
 
@@ -479,9 +495,11 @@ reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$
 body | grep -q 'PROFILE_INTERNAL_ALLOW_IPS' && ok "…and the FAIL names the variable to check" || no "FAIL does not name PROFILE_INTERNAL_ALLOW_IPS: $(body)"
 body | grep -q 'must be re-enabled by hand' \
   && ok "…and says the channel must be re-enabled by hand (fixing the address does not undo a disable)" || no "FAIL omits the re-enable step: $(body)"
-body | grep -q 'alert-path-probe' && ! body | grep -q 'daily-backup' \
-  && ok "body names ONLY the probe check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+# Task 0285: a stale marker also makes check 13's channel state UNKNOWN, so the body now names
+# exactly two checks — both reading the same marker — and nothing else.
+[ "$(body | cut -d: -f1 | sort -u | tr '\n' ' ')" = "alert-channel-state alert-path-probe " ] \
+  && ok "body names ONLY the probe check and check 13 on the same marker (everything else still OK)" || no "body: $(body)"
+grep -q 'RESULT: 11 ok, 2 failed' "$WORK/out.log" && ok "11 ok / 2 failed" || no "expected 11 ok / 2 failed:"$'\n'"$OUT"
 
 reset_fixture; rm "$FIX/profile/alerts/last-alert-probe.json"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'alert-path-probe: no alert-path probe marker at all' \
@@ -497,7 +515,7 @@ reset_fixture; write_probe_marker "$FIX/profile/alerts/last-alert-probe.json" "$
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -qE "alert-path-probe: the probe marker's finished_at is (49|50)h in the FUTURE" \
   && ok "a +50h probe marker → FAIL naming the skew (never a silent OK)" || no "future probe marker not reported: rc=$RC $(body)"
 body | grep -q 'clock skew' && ok "…and the FAIL names clock skew as the cause to look for" || no "FAIL does not name clock skew: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 11 ok, 2 failed' "$WORK/out.log" && ok "11 ok / 2 failed" || no "expected 11 ok / 2 failed:"$'\n'"$OUT"
 
 reset_fixture; printf '{\n  "schema": 1,\n  "finished_at": "not-a-date",\n  "source": "alert-webhook-probe"\n}\n' \
   > "$FIX/profile/alerts/last-alert-probe.json"; run_checks
@@ -544,7 +562,7 @@ body | grep -q 'profile-name-change-digest.log' && ok "…and the FAIL names the
   || no "stale FAIL names only the Telegram causes: $(body)"
 body | grep -q 'name-change-digest' && ! body | grep -q 'daily-backup' \
   && ok "body names ONLY the digest check (everything else still OK)" || no "body: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 1 failed' "$WORK/out.log" && ok "12 ok / 1 failed" || no "expected 12 ok / 1 failed:"$'\n'"$OUT"
 
 reset_fixture; rm "$FIX/profile/digest/last-name-change-digest.json"; run_checks
 [ "$RC" -ne 0 ] && body | grep -q 'name-change-digest: no name-change digest marker at all' \
@@ -565,7 +583,7 @@ reset_fixture; write_digest_marker "$FIX/profile/digest/last-name-change-digest.
 [ "$RC" -ne 0 ] && pinged_fail && body | grep -qE "name-change-digest: the digest marker's finished_at is (49|50)h in the FUTURE" \
   && ok "a +50h digest marker → FAIL naming the skew (never a silent OK)" || no "future digest marker not reported: rc=$RC $(body)"
 body | grep -q 'clock skew' && ok "…and the FAIL names clock skew as the cause to look for" || no "FAIL does not name clock skew: $(body)"
-grep -q 'RESULT: 11 ok, 1 failed' "$WORK/out.log" && ok "11 ok / 1 failed" || no "expected 11 ok / 1 failed:"$'\n'"$OUT"
+grep -q 'RESULT: 12 ok, 1 failed' "$WORK/out.log" && ok "12 ok / 1 failed" || no "expected 12 ok / 1 failed:"$'\n'"$OUT"
 
 reset_fixture; printf '{\n  "schema": 1,\n  "finished_at": "not-a-date",\n  "source": "name-change-digest"\n}\n' \
   > "$FIX/profile/digest/last-name-change-digest.json"; run_checks
@@ -588,6 +606,87 @@ write_digest_marker "$FIX/digest-elsewhere.json" "$(iso_hours_ago 4)"
 run_checks PROFILE_CHECKS_NAME_CHANGE_DIGEST_MARKER_FILE="$FIX/digest-elsewhere.json"
 [ "$RC" -eq 0 ] && grep -q 'name-change-digest: the daily name-change digest reached Telegram 4h ago' "$WORK/out.log" \
   && ok "marker path env-overridable (the off-box test seam)" || no "digest marker path override ignored (rc=$RC):"$'\n'"$OUT"
+
+echo "=== C24: the notification channel's OWN state (task 0285, check 13) — the hole check 11 cannot see ==="
+# Check 11 catches the CAUSE (the monitoring box cannot reach the webhook). This catches the
+# STATE: a transient 403 yesterday disabled the channel, the address is fine today, the probe
+# is green — and every alert is still dropped at source. The probe reads the channel's status
+# from the monitoring stack's own Postgres and carries it in the marker; only `delivering` sends.
+P24="$FIX/profile/alerts/last-alert-probe.json"
+reset_fixture; run_checks
+[ "$RC" -eq 0 ] && grep -q 'alert-channel-state: the monitoring stack records its alert channel as delivering, 1h ago' "$WORK/out.log" \
+  && ok "delivering → OK naming the state and the age" || no "delivering not OK (rc=$RC):"$'\n'"$OUT"
+grep -q 'alert-channel-state.*its own record only, NOT proof a message arrives' "$WORK/out.log" \
+  && ok "…and the OK line refuses to over-claim (the stack's own record only)" || no "OK line over-claims: $OUT"
+grep -q 'RESULT: 13 ok, 0 failed' "$WORK/out.log" && ok "13 checks, all OK" || no "expected 13 ok / 0 failed:"$'\n'"$OUT"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" disabled; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: .*DISABLED' \
+  && ok "disabled → FAIL + /fail ping naming DISABLED" || no "disabled channel not reported: rc=$RC $(body)"
+body | grep -q 'Re-enable it in the monitoring UI' && body | grep -q 'does NOT undo the disable' \
+  && ok "…and says re-enable by hand (fixing the cause does not undo it)" || no "FAIL omits the re-enable step: $(body)"
+body | grep -q 'PROFILE_INTERNAL_ALLOW_IPS' && ok "…and names the variable to check for the cause" || no "FAIL does not name PROFILE_INTERNAL_ALLOW_IPS: $(body)"
+body | grep -q 'alert-channel-state' && ! body | grep -q 'alert-path-probe' \
+  && ok "body names ONLY check 13 — the probe itself is green (the exact hole: cause fine, state dead)" || no "body: $(body)"
+grep -q 'RESULT: 12 ok, 1 failed' "$WORK/out.log" && ok "12 ok / 1 failed" || no "expected 12 ok / 1 failed:"$'\n'"$OUT"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" paused; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: .*PAUSED' \
+  && ok "paused → FAIL naming PAUSED" || no "paused channel not reported: rc=$RC $(body)"
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" draft; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: .*DRAFT' \
+  && ok "draft → FAIL naming DRAFT" || no "draft channel not reported: rc=$RC $(body)"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" missing; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q "alert-channel-state: no notification channel's URL equals TELEMETRY_ALERT_PROBE_URL" \
+  && ok "missing → FAIL naming the variable (deleted channel, or probe/channel URL drift)" || no "missing channel not reported: rc=$RC $(body)"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" unreadable; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: the probe could not read the channel state' \
+  && ok "unreadable → FAIL (never a silent pass — owner ruling Q2)" || no "unreadable state not reported: rc=$RC $(body)"
+body | grep -q '/var/log/uptrace-alert-probe.log' && body | grep -q 'upgraded' \
+  && ok "…and names the log to read and the upgrade suspicion" || no "unreadable FAIL lacks its pointers: $(body)"
+# Review R2: the pointer must carry information — the FAIL text names each cause class the probe
+# logs, spelled exactly as setup-telemetry.sh's read_channel_state writes it.
+body | grep -qF "'timed out'" && body | grep -qF "'killed'" && body | grep -qF "'exec or psql failed, rc=1'" \
+  && body | grep -qF "'exec or psql failed, rc=2'" && body | grep -qF "'unexpected output'" \
+  && ok "…and names every cause class the probe logs (review R2)" || no "unreadable FAIL does not name the probe's cause classes: $(body)"
+# Review R3: real psql exits rc 1 with empty stdout on a schema change (missing table or column)
+# and on a statement_timeout cancel, and rc 2 on a failed connect — so the schema change belongs
+# under rc=1, the connect failure under rc=2, and 'timed out' is the docker client hanging.
+body | grep -qE "'exec or psql failed, rc=1' = [^;]*schema changed" \
+  && body | grep -qE "'exec or psql failed, rc=1' = [^;]*statement_timeout" \
+  && body | grep -qE "'exec or psql failed, rc=2' = [^;]*connect" \
+  && body | grep -qE "'timed out' or 'killed' = [^;]*docker client" \
+  && ok "…and maps each class to what real psql means by it (review R3)" || no "unreadable FAIL mis-maps psql's exit codes: $(body)"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" invalid; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q "alert-channel-state: the relay rejected the channel state the probe sent as malformed ('invalid')" \
+  && ok "invalid → FAIL naming it" || no "invalid state not reported: rc=$RC $(body)"
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" frozen; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q "alert-channel-state: unexpected channel state 'frozen'" \
+  && ok "any other value → FAIL naming the value (only 'delivering' is OK)" || no "unknown state not reported: rc=$RC $(body)"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" ABSENT; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: the probe marker carries no channel_state' \
+  && ok "key absent → FAIL naming a pre-0285 probe or relay" || no "absent key not reported: rc=$RC $(body)"
+body | grep -q 'predates task 0285' && ok "…and says what predates it (redeploy both sides)" || no "absent-key FAIL lacks the cause: $(body)"
+grep -q 'alert-path-probe: the monitoring box reached the alert webhook 1h ago' "$WORK/out.log" \
+  && ok "…while check 11 stays green on the same (0284-shaped) marker" || no "0284-shaped marker broke check 11: $OUT"
+
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 27)" delivering; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: .*state is UNKNOWN' \
+  && ok "a stale marker saying delivering → FAIL (an old 'delivering' is not today's state)" || no "stale delivering read as OK: rc=$RC $(body)"
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago -50)" delivering; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: .*FUTURE' \
+  && ok "a future-dated marker → FAIL (a negative age must never read GREEN)" || no "future marker read as OK: rc=$RC $(body)"
+reset_fixture; rm "$P24"; run_checks
+[ "$RC" -ne 0 ] && pinged_fail && body | grep -q 'alert-channel-state: no alert-path probe marker' \
+  && ok "no marker at all → FAIL (state unknown)" || no "missing marker read as OK: rc=$RC $(body)"
+reset_fixture; write_probe_marker "$P24" "$(iso_hours_ago 1)" disabled
+run_checks PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE="$FIX/elsewhere-0285.json"
+body | grep -q 'alert-channel-state: no alert-path probe marker' \
+  && ok "reads the SAME marker path override as check 11 (one marker, no new seam)" || no "check 13 ignores PROFILE_CHECKS_ALERT_PROBE_MARKER_FILE: $(body)"
 
 echo "=== C17: secret-leak guard across EVERY run above ==="
 # Log and ping bodies must never carry the access key, secret, bucket, endpoint host or ping URL.

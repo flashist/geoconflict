@@ -41,24 +41,39 @@ if [[ "$ENV" != "dev" && "$ENV" != "staging" && "$ENV" != "prod" ]]; then
     exit 1
 fi
 
-# ── Config parity guard (task 0064) ───────────────────────────────────────────
+# ── Config parity guard (task 0064; ARMED by task 0298) ─────────────────────────
 # Names, by NAME only, any variable this pipeline reads but never forwards. It is
 # deliberately placed HERE: after the argument validation above and BEFORE the first
 # load_env_file below, so at the moment it runs no secret has been sourced into this
 # shell. That is what makes the no-leak property structural rather than a promise.
 #
-# REPORT-ONLY. In this mode the checker exits 0 for every ANALYSIS outcome — findings,
-# a parse failure, a blind spot, a missing input, an internal crash. That is not the
-# whole story and it is not unconditional: an unparseable argument exits 2, and a throw
-# while it renders its report is uncaught and exits 1.
-#
-# "This cannot fail a deploy" is guaranteed HERE, by the `|| true` below, and not by the
-# mode. The `|| true` absorbs every outcome alike: exit 2, exit 1, an uncaught stack
-# trace, a signal, and an import-time syntax error. The -f / command -v guard covers the
-# remaining two — a missing checker and a missing node. Do not remove either and leave
-# the claim standing.
-if [ -f "$(dirname "$0")/scripts/check-config-parity.mjs" ] && command -v node >/dev/null 2>&1; then
-    node "$(dirname "$0")/scripts/check-config-parity.mjs" --pipeline=all --report-only || true
+# ENFORCING (task 0298). This STOPS the deploy — before anything is loaded, copied or
+# run on the server — on:
+#   - a missing checker, or a missing node: the guard could not run (task 0203 R4b; the
+#     missing-node case accepted by the owner at 0298's plan approval, 2026-09-28);
+#   - a non-zero exit from the checker: a REQUIRED finding in the game or client
+#     pipeline, a PARSE-FAILURE / DYNAMIC-READ / SKIP tagged game, client or "global",
+#     a usage error (exit 2), an internal crash, or a signal.
+# Findings for the PROFILE pipeline are printed but do not block this deploy
+# (--block-on=game,client; the R14 ruling). build-deploy.sh runs this same check before
+# it bumps and pushes a version; this copy stays because deploy.sh can be run on its own.
+# There is deliberately no override (owner ruling 2026-09-28, Q2): fix a wrong block with
+# an allowlist entry WITH a reason, or a one-line revert — both visible in git.
+PARITY_CHECKER="$(dirname "$0")/scripts/check-config-parity.mjs"
+if [ ! -f "$PARITY_CHECKER" ]; then
+    echo "❌ Config parity guard not found ($PARITY_CHECKER) — refusing to deploy."
+    exit 1
+fi
+if ! command -v node >/dev/null 2>&1; then
+    echo "❌ node not found — the config parity guard cannot run, refusing to deploy."
+    exit 1
+fi
+if ! node "$PARITY_CHECKER" --pipeline=all --enforce --block-on=game,client; then
+    echo "❌ Config parity guard failed (findings above) — refusing to deploy."
+    echo "   Fix: forward the variable in this script's heredoc (or DefinePlugin for the client),"
+    echo "   or add an entry WITH a reason to scripts/config-parity-allowlist.json; for an unmapped"
+    echo "   src/ folder, add its one line to DIR_PIPELINE in scripts/check-config-parity.mjs."
+    exit 1
 fi
 
 # ── Config value guard (task 0064 Phase 2) ────────────────────────────────────
@@ -77,24 +92,39 @@ fi
 # as a plain shell name before the indirect ${!name} read, because an indirect read of
 # something like `a[$(cmd)]` would RUN cmd.
 #
-# REPORT-ONLY, and "this cannot fail a deploy" is guaranteed by the `|| true` guards
-# here and at the call site, not by the checker's mode.
+# ENFORCING (task 0298; owner ruling 2026-09-28, Q1 = "arm both"). The function returns
+# non-zero — and the call site below stops the deploy — on a missing checker, a missing
+# node, a failed --list-sources, an empty source list, or a non-zero exit from the
+# checker's --enforce run. Every one of those is an explicit `return`: this function is
+# called from an `||` list, where bash switches `set -e` OFF inside it, so nothing here may
+# rely on set -e. Values are judged on prod only, so dev/staging can stop only on a wiring
+# fault. A blank value that is blank BY DECISION needs a game `phase: 2` `optional` entry
+# (with a reason) in scripts/config-parity-allowlist.json.
 run_config_value_guard() {
-    local checker sources
+    local checker sources status
     checker="$(dirname "$0")/scripts/check-config-values.mjs"
-    if [ ! -f "$checker" ] || ! command -v node >/dev/null 2>&1; then
-        return 0
+    if [ ! -f "$checker" ]; then
+        echo "config value guard: checker not found ($checker)"
+        return 1
     fi
-    sources=$(node "$checker" --list-sources) || sources=""
+    if ! command -v node >/dev/null 2>&1; then
+        echo "config value guard: node not found — the guard cannot run"
+        return 1
+    fi
+    if ! sources=$(node "$checker" --list-sources); then
+        echo "config value guard: could not list the deploy heredoc's value sources"
+        return 1
+    fi
     if [ -z "$sources" ]; then
-        echo "config value guard: skipped — could not list the deploy heredoc's value sources"
-        return 0
+        echo "config value guard: the deploy heredoc listed no value sources"
+        return 1
     fi
+    status=0
     printf '%s\n' "$sources" | while IFS= read -r name; do
         [[ $name =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || continue
         printf '%s\0%s\0' "$name" "${!name-}"
-    done | node "$checker" --values-stdin --deploy-env="$ENV" --report-only || true
-    return 0
+    done | node "$checker" --values-stdin --deploy-env="$ENV" --enforce || status=$?
+    return "$status"
 }
 
 uppercase_env=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
@@ -329,7 +359,7 @@ else
     echo "Basic Authentication is disabled"
 fi
 
-run_config_value_guard || true
+run_config_value_guard || { echo "❌ Config value guard failed (findings above) — refusing to deploy. Nothing has run on the server."; exit 1; }
 
 print_header "EXECUTING UPDATE SCRIPT ON SERVER"
 

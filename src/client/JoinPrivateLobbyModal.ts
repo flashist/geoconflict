@@ -14,6 +14,7 @@ export class JoinPrivateLobbyModal extends LitElement {
   @query("o-modal") private modalEl!: HTMLElement & {
     open: () => void;
     close: () => void;
+    isModalOpen: boolean;
   };
   @query("#lobbyIdInput") private lobbyIdInput!: HTMLInputElement;
   @state() private message: string = "";
@@ -23,6 +24,9 @@ export class JoinPrivateLobbyModal extends LitElement {
   @state() private players: ClientInfo[] = [];
 
   private playersInterval: NodeJS.Timeout | null = null;
+  // Task 0327: bumped by every close. A lobby check still awaiting its fetch
+  // when the window closes must not go on to join with the window gone.
+  private closeGeneration = 0;
 
   connectedCallback() {
     super.connectedCallback();
@@ -37,13 +41,20 @@ export class JoinPrivateLobbyModal extends LitElement {
   private handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Escape") {
       e.preventDefault();
-      this.close();
+      // Task 0327: a window-wide listener, so it also fires while the window is
+      // hidden — including in a match, where a leave would end the match.
+      if (this.modalEl?.isModalOpen) {
+        this.modalEl.close();
+      }
     }
   };
 
   render() {
     return html`
-      <o-modal title=${translateText("private_lobby.title")}>
+      <o-modal
+        title=${translateText("private_lobby.title")}
+        @modal-close=${this.handleModalClose}
+      >
         <div class="lobby-id-box">
           <input
             type="text"
@@ -121,26 +132,51 @@ export class JoinPrivateLobbyModal extends LitElement {
     }
   }
 
+  // Programmatic close (match start, onJoin, the hash reset): never leaves.
+  // Callers that need a leave do it themselves (onHashUpdate -> handleLeaveLobby).
   public close() {
-    this.lobbyIdInput.value = "";
+    this.reset();
     this.modalEl?.close();
-    if (this.playersInterval) {
-      clearInterval(this.playersInterval);
-      this.playersInterval = null;
-    }
   }
 
-  public closeAndLeave() {
-    this.close();
-    this.hasJoined = false;
-    this.message = "";
+  // Task 0327: every close the player makes (✕, a click outside, Escape) ends
+  // in o-modal's `modal-close`. A joined player leaves the lobby exactly once;
+  // after a programmatic close, reset() has already cleared `hasJoined`.
+  private handleModalClose() {
+    const lobbyId = this.lobbyIdInput?.value ?? "";
+    const wasJoined = this.hasJoined;
+    this.reset();
+    if (!wasJoined) {
+      return;
+    }
     this.dispatchEvent(
       new CustomEvent("leave-lobby", {
-        detail: { lobby: this.lobbyIdInput.value },
+        detail: { lobby: lobbyId },
         bubbles: true,
         composed: true,
       }),
     );
+  }
+
+  private reset() {
+    if (this.lobbyIdInput) {
+      this.lobbyIdInput.value = "";
+    }
+    if (this.playersInterval) {
+      clearInterval(this.playersInterval);
+      this.playersInterval = null;
+    }
+    this.hasJoined = false;
+    this.message = "";
+    this.players = [];
+    this.closeGeneration++;
+    // Explicit, as in HostLobbyModal: the decorator transform does not reliably
+    // schedule updates under the test build.
+    this.requestUpdate();
+  }
+
+  private isClosedSince(generation: number): boolean {
+    return generation !== this.closeGeneration;
   }
 
   private extractLobbyIdFromUrl(input: string): string {
@@ -178,16 +214,19 @@ export class JoinPrivateLobbyModal extends LitElement {
 
   private async joinLobby(): Promise<void> {
     const lobbyId = this.lobbyIdInput.value;
+    const generation = this.closeGeneration;
     console.log(`Joining lobby with ID: ${lobbyId}`);
     this.message = `${translateText("private_lobby.checking")}`;
 
     try {
       // First, check if the game exists in active lobbies
-      const gameExists = await this.checkActiveLobby(lobbyId);
-      if (gameExists) return;
+      const gameExists = await this.checkActiveLobby(lobbyId, generation);
+      if (gameExists || this.isClosedSince(generation)) return;
 
       // If not active, check archived games
-      switch (await this.checkArchivedGame(lobbyId)) {
+      const archived = await this.checkArchivedGame(lobbyId, generation);
+      if (this.isClosedSince(generation)) return;
+      switch (archived) {
         case "success":
           return;
         case "not_found":
@@ -202,11 +241,15 @@ export class JoinPrivateLobbyModal extends LitElement {
       }
     } catch (error) {
       console.error("Error checking lobby existence:", error);
+      if (this.isClosedSince(generation)) return;
       this.message = `${translateText("private_lobby.error")}`;
     }
   }
 
-  private async checkActiveLobby(lobbyId: string): Promise<boolean> {
+  private async checkActiveLobby(
+    lobbyId: string,
+    generation: number,
+  ): Promise<boolean> {
     const config = await getServerConfigFromClient();
     const url = `/${config.workerPath(lobbyId)}/api/game/${lobbyId}/exists`;
 
@@ -216,6 +259,10 @@ export class JoinPrivateLobbyModal extends LitElement {
     });
 
     const gameInfo = await response.json();
+    // Task 0327: the window was closed while this check was in flight.
+    if (this.isClosedSince(generation)) {
+      return false;
+    }
 
     if (gameInfo.exists) {
       this.message = translateText("private_lobby.joined_waiting");
@@ -241,6 +288,7 @@ export class JoinPrivateLobbyModal extends LitElement {
 
   private async checkArchivedGame(
     lobbyId: string,
+    generation: number,
   ): Promise<"success" | "not_found" | "version_mismatch" | "error"> {
     const archivePromise = fetch(`${getApiBase()}/game/${lobbyId}`, {
       method: "GET",
@@ -292,6 +340,10 @@ export class JoinPrivateLobbyModal extends LitElement {
       return "version_mismatch";
     }
 
+    // Task 0327: the window was closed while this check was in flight.
+    if (this.isClosedSince(generation)) {
+      return "error";
+    }
     this.dispatchEvent(
       new CustomEvent("join-lobby", {
         detail: {

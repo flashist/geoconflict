@@ -3,6 +3,7 @@
 // step; this asserts it for this task's section rather than trusting review.
 
 import fs from "fs";
+import IntlMessageFormat from "intl-messageformat";
 import path from "path";
 
 const LANG_DIR = path.join(__dirname, "../../resources/lang");
@@ -28,6 +29,7 @@ const REQUIRED_KEYS = [
   "rejected_label",
   "rejected_hint",
   "try_again",
+  "dismiss", // task 0314 — the Hide button on the declined notice
   "error_name_taken",
   "error_pending_exists",
   "error_not_citizen",
@@ -78,19 +80,96 @@ describe("citizenship_name_change localization (task 0067)", () => {
   );
 
   // The moderation verdicts ride 0012's inbox templates.
-  it.each(["name_change_approved", "name_change_rejected"])(
-    "inbox template %s exists in both languages",
-    (key) => {
-      for (const lang of [en, ru]) {
-        const templates = (
-          lang.inbox as unknown as Record<
-            string,
-            Record<string, { title: string; body: string }>
-          >
-        ).templates;
-        expect(templates[key].title.length).toBeGreaterThan(0);
-        expect(templates[key].body.length).toBeGreaterThan(0);
+  it.each([
+    "name_change_approved",
+    "name_change_rejected",
+    "name_change_cleared", // task 0314
+  ])("inbox template %s exists in both languages", (key) => {
+    for (const lang of [en, ru]) {
+      const templates = (
+        lang.inbox as unknown as Record<
+          string,
+          Record<string, { title: string; body: string }>
+        >
+      ).templates;
+      expect(templates[key].title.length).toBeGreaterThan(0);
+      expect(templates[key].body.length).toBeGreaterThan(0);
+    }
+  });
+
+  // Task 0314: the clear note must substitute BOTH params the server sends, or
+  // the player sees the raw ICU source; and it must not name the game (0311).
+  it("name_change_cleared substitutes {name} and {reason} in both languages", () => {
+    for (const lang of [en, ru]) {
+      const body = (
+        lang.inbox as unknown as Record<
+          string,
+          Record<string, { title: string; body: string }>
+        >
+      ).templates.name_change_cleared.body;
+      expect(body).toContain("{name}");
+      expect(body).toContain("{reason}");
+    }
+  });
+
+  it("the task 0314 texts do not name the game (task 0311)", () => {
+    for (const lang of [en, ru]) {
+      const cleared = (
+        lang.inbox as unknown as Record<
+          string,
+          Record<string, { title: string; body: string }>
+        >
+      ).templates.name_change_cleared;
+      for (const text of [lang[SECTION].dismiss, cleared.title, cleared.body]) {
+        expect(text.toLowerCase()).not.toContain("geoconflict");
+        expect(text.toLowerCase()).not.toContain("геоконфликт");
       }
-    },
-  );
+    }
+  });
+
+  it("ru's Hide is translated, not copied from en", () => {
+    expect(ru[SECTION].dismiss).not.toBe(en[SECTION].dismiss);
+  });
+
+  // Task 0316: the approved note must not promise the name is active
+  // everywhere — the approved name shows only on the card (0067 ruling (b)).
+  // The inbox renders this at view time, so the change is retroactive.
+  describe("the name_change_approved note (task 0316)", () => {
+    const approved = (lang: Record<string, Record<string, string>>) =>
+      (
+        lang.inbox as unknown as Record<
+          string,
+          Record<string, { title: string; body: string }>
+        >
+      ).templates.name_change_approved;
+
+    it("the owner-approved copy, verbatim (Q1: option C, title unchanged)", () => {
+      expect(approved(en)).toEqual({
+        title: "Your name change was approved",
+        body: "Your new display name ''{name}'' has been approved.",
+      });
+      expect(approved(ru)).toEqual({
+        title: "Смена имени одобрена",
+        body: "Ваше новое имя «{name}» одобрено.",
+      });
+    });
+
+    it("no longer says the name is active", () => {
+      expect(approved(en).body).not.toContain("is now active");
+      expect(approved(ru).body).not.toContain("теперь активно");
+    });
+
+    // en's `''` is ICU escaping for one `'`; a single `'` would quote out
+    // `{name}` and the player would see the raw placeholder.
+    it.each([
+      ["en", en, "Your new display name 'Test' has been approved."],
+      ["ru", ru, "Ваше новое имя «Test» одобрено."],
+    ] as const)("%s renders the exact sentence", (locale, lang, expected) => {
+      expect(
+        new IntlMessageFormat(approved(lang).body, locale).format({
+          name: "Test",
+        }),
+      ).toBe(expected);
+    });
+  });
 });

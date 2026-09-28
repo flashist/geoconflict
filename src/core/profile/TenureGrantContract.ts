@@ -61,7 +61,9 @@ export type TenureGrantStatus = (typeof TENURE_GRANT_STATUSES)[number];
  * 200 body. `granted` = this call added `xpAwarded` (> 0). `below_minimum` =
  * this call recorded a final 0-XP check. `duplicate` = the player was already
  * checked; `xpAwarded` is the amount that earlier check stored and nothing was
- * added. `xp` is the player's total after the call.
+ * added. `xp` is the player's total after the call — except that a citizen
+ * (paid, earned, or made one by this call) is shown exactly the citizenship
+ * threshold to an unverified caller (task 0250 S1, owner ruling Q-A).
  */
 export const TenureGrantResponseSchema = z.object({
   status: z.enum(TENURE_GRANT_STATUSES),

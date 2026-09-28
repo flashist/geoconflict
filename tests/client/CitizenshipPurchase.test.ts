@@ -27,6 +27,10 @@ jest.mock("../../src/client/PaymentsApiClient", () => ({
 
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
+  CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+  type CitizenshipGrantedMidSessionDetail,
+} from "../../src/client/CitizenshipRestartOffer";
+import {
   FlashistFacade,
   flashist_logEventAnalytics,
 } from "../../src/client/flashist/FlashistFacade";
@@ -46,15 +50,85 @@ const complete = completePurchase as jest.Mock;
 const loggedEvents = (): string[] =>
   logEventAnalytics.mock.calls.map((call) => call[0] as string);
 
+// Task 0303: the "restart to apply" signal, recorded per test.
+let grantedSignals: CitizenshipGrantedMidSessionDetail[] = [];
+const onGrantedSignal = (event: Event) => {
+  grantedSignals.push(
+    (event as CustomEvent<CitizenshipGrantedMidSessionDetail>).detail,
+  );
+};
+
 describe("runCitizenshipPurchase", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    grantedSignals = [];
+    window.addEventListener(
+      CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+      onGrantedSignal,
+    );
     // Happy-path defaults; individual tests break one link at a time.
     createIntent.mockResolvedValue("intent-uuid");
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
     complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
     consumePurchase.mockResolvedValue(undefined);
   });
+
+  afterEach(() => {
+    window.removeEventListener(
+      CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+      onGrantedSignal,
+    );
+  });
+
+  it("granted: fires the restart-offer signal once, with source purchase (task 0303)", async () => {
+    await expect(runCitizenshipPurchase()).resolves.toBe("granted");
+
+    expect(grantedSignals).toEqual([{ source: "purchase" }]);
+  });
+
+  it("a HUNG consume still fires the restart-offer signal (task 0303)", async () => {
+    consumePurchase.mockImplementation(() => new Promise(() => {}));
+
+    await expect(runCitizenshipPurchase()).resolves.toBe("granted");
+
+    expect(grantedSignals).toEqual([{ source: "purchase" }]);
+  });
+
+  it.each([
+    [
+      "no intent",
+      () => {
+        createIntent.mockResolvedValue(null);
+      },
+    ],
+    [
+      "frame rejected",
+      () => {
+        purchaseCatalogItem.mockRejectedValue(new Error("frame closed"));
+      },
+    ],
+    [
+      "missing signature",
+      () => {
+        purchaseCatalogItem.mockResolvedValue({});
+      },
+    ],
+    [
+      "failed completion",
+      () => {
+        complete.mockResolvedValue(null);
+      },
+    ],
+  ])(
+    "%s: no restart-offer signal (task 0303)",
+    async (_label, breakOneLink) => {
+      breakOneLink();
+
+      await expect(runCitizenshipPurchase()).resolves.toBe("error");
+
+      expect(grantedSignals).toEqual([]);
+    },
+  );
 
   it("happy path: intent → purchase → complete → consume, Started then Completed", async () => {
     await expect(runCitizenshipPurchase()).resolves.toBe("granted");

@@ -21,6 +21,7 @@ jest.mock("../../src/client/PaymentsApiClient", () => ({
   reconcilePurchases: jest.fn(),
 }));
 
+import { CITIZENSHIP_GRANTED_MID_SESSION_EVENT } from "../../src/client/CitizenshipRestartOffer";
 import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
 import { reconcilePurchases } from "../../src/client/PaymentsApiClient";
 import {
@@ -86,6 +87,29 @@ describe("PaymentsReconciliation", () => {
     expect(consumePurchase).toHaveBeenNthCalledWith(1, "tok-1");
     expect(consumePurchase).toHaveBeenNthCalledWith(2, "tok-2");
     expect(reconciledEvents).toBe(1);
+  });
+
+  // Task 0303 (decided in the plan): a session-start grant never offers the
+  // "restart to apply" popup — the page just loaded, and a quick restart could
+  // leave the consume unfinished and chain a second popup.
+  it("never fires the restart-offer signal, even when it granted (task 0303)", async () => {
+    const onGrantedSignal = jest.fn();
+    window.addEventListener(
+      CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+      onGrantedSignal,
+    );
+    try {
+      schedulePaymentsReconciliation();
+      await flushAsync();
+    } finally {
+      window.removeEventListener(
+        CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+        onGrantedSignal,
+      );
+    }
+
+    expect(reconciledEvents).toBe(1);
+    expect(onGrantedSignal).not.toHaveBeenCalled();
   });
 
   it("still fires the event when a consume fails — the grant is committed server-side", async () => {

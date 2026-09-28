@@ -28,12 +28,14 @@ function templateMessage(overrides: Record<string, unknown> = {}) {
 
 describe("InboxContract", () => {
   describe("template keys", () => {
-    test("registers exactly the four V1 keys", () => {
+    test("registers exactly the V1 keys plus name_change_cleared (task 0314) and citizenship_granted (task 0250)", () => {
       expect([...INBOX_TEMPLATE_KEYS]).toEqual([
         "citizenship_earned",
         "citizenship_paid",
         "name_change_approved",
         "name_change_rejected",
+        "name_change_cleared",
+        "citizenship_granted",
       ]);
       for (const key of INBOX_TEMPLATE_KEYS) {
         expect(InboxTemplateKeySchema.safeParse(key).success).toBe(true);
@@ -285,6 +287,14 @@ describe("InboxContract", () => {
       expect(
         missingInboxTemplateParams("citizenship_earned", undefined),
       ).toEqual([]);
+      // Task 0250 S1: the neutral citizenship note substitutes nothing.
+      expect(INBOX_TEMPLATE_REQUIRED_PARAMS.citizenship_granted).toEqual([]);
+      expect(isKnownInboxTemplateKey("citizenship_granted")).toBe(true);
+      // Task 0314: the clear note repeats the removed name and the reason.
+      expect(INBOX_TEMPLATE_REQUIRED_PARAMS.name_change_cleared).toEqual([
+        "name",
+        "reason",
+      ]);
 
       expect(
         SendMessageRequestSchema.safeParse({

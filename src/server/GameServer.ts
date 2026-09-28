@@ -15,6 +15,7 @@ import {
   GameStartInfo,
   GameStartInfoSchema,
   Intent,
+  JoinUsernameSchema,
   PlayerParticipation,
   PlayerRecord,
   ServerDesyncSchema,
@@ -286,6 +287,10 @@ export class GameServer {
         creditableId === this.getCreditableYandexId(existing)
       ) {
         client.profilePlayerId = existing.profilePlayerId;
+        // Task 0322. The approved name follows the SAME rule, not isCitizen's
+        // unconditional carry: carried across a different identity it would show
+        // another player's name. The fresh resolve below refreshes it (before start).
+        client.approvedName = existing.approvedName;
       }
 
       this.activeClients = this.activeClients.filter((c) => c !== existing);
@@ -536,7 +541,9 @@ export class GameServer {
       gameID: this.id,
       config: this.gameConfig,
       players: this.activeClients.map((c) => ({
-        username: c.username,
+        // Task 0322: the approved name, re-checked, else the typed one. Frozen
+        // here for the whole match, like the citizen flag below.
+        username: this.matchDisplayName(c),
         clientID: c.clientID,
         cosmetics: c.cosmetics,
         // The single point where the citizen flag is frozen for the whole match:
@@ -1032,10 +1039,21 @@ export class GameServer {
   }
 
   public gameInfo(): GameInfo {
+    // Task 0322 (review R1). Once started, a player's name is the one the frozen
+    // roster carries — a reconnect after start (e.g. under a different or missing
+    // id) must not make the poll disagree with it. Anyone not on the roster falls
+    // back to the swap.
+    const frozenNames =
+      this._hasStarted && this.gameStartInfo !== undefined
+        ? new Map(
+            this.gameStartInfo.players.map((p) => [p.clientID, p.username]),
+          )
+        : undefined;
     return {
       gameID: this.id,
       clients: this.activeClients.map((c) => ({
-        username: c.username,
+        // Task 0322: the same name the start roster freezes (see matchDisplayName).
+        username: frozenNames?.get(c.clientID) ?? this.matchDisplayName(c),
         clientID: c.clientID,
         isCitizen: c.isCitizen,
       })),
@@ -1389,6 +1407,15 @@ export class GameServer {
         if (resolved.isCitizen) {
           client.isCitizen = true;
         }
+        // Task 0322. Ignored once the match has started: the roster is frozen, and
+        // the lobby poll after start must agree with it. Absent (an older profile
+        // server) means "unknown", so whatever is held stays.
+        if (!this._hasStarted && resolved.displayName !== undefined) {
+          client.approvedName = this.checkedApprovedName(
+            client,
+            resolved.displayName,
+          );
+        }
         return resolved.playerId;
       })
       // Belt-and-braces: resolvePlayer is contractually non-throwing, but this is on
@@ -1399,6 +1426,53 @@ export class GameServer {
       });
     this.profileResolves.set(client, resolving);
     return resolving;
+  }
+
+  /**
+   * Task 0322. The approved name as it may be stored on the client: trimmed and
+   * passing the CURRENT join-name rule, or null. `null` in (no approved name, or
+   * cleared by task 0314) clears it. A name that fails the rule — e.g. the rule
+   * changed after approval (task 0308) — is dropped with ONE warn line naming the
+   * clientID only, never the name. Logged here, not at the swap, because the
+   * lobby poll runs the swap once a second.
+   */
+  private checkedApprovedName(
+    client: Client,
+    displayName: string | null,
+  ): string | null {
+    if (displayName === null) {
+      return null;
+    }
+    const checked = JoinUsernameSchema.safeParse(displayName);
+    if (!checked.success) {
+      this.log.warn(
+        "approved name fails the current join rule; typed name used",
+        { clientID: client.clientID },
+      );
+      return null;
+    }
+    return checked.data;
+  }
+
+  /**
+   * Task 0322. The name other players see for this client: its approved name if
+   * that still passes the join rule at the moment of the swap (a silent re-check —
+   * never trust the stored string blindly), otherwise the name it typed. The ONE
+   * swap point, used by both the lobby poll (`gameInfo`) and the frozen start
+   * roster (`start`), so every multiplayer screen shows the same name. After
+   * start, `gameInfo` reads the frozen roster first and uses this only for a
+   * client the roster does not list.
+   *
+   * A join-rule pass also passes the roster's wide `UsernameSchema`, so a swapped
+   * name can never make `start()` refuse the roster
+   * (tests/core/ApprovedNameInvariants.test.ts pins this).
+   */
+  private matchDisplayName(c: Client): string {
+    if (c.approvedName === null) {
+      return c.username;
+    }
+    const checked = JoinUsernameSchema.safeParse(c.approvedName);
+    return checked.success ? checked.data : c.username;
   }
 
   /**

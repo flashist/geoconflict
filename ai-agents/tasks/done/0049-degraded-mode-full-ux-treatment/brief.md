@@ -76,3 +76,16 @@ Case (c) is architecturally indistinguishable from (b) anywhere in the client to
   - Live simulation (verification #2): cases **(c)** degraded and **(a)** standalone demonstrated live — evidence in this folder's `worklog.md` and `evidence/degraded-mode-case-c.png`. **Case (b) — healthy-SDK real Yandex guest — was NOT live-verified** (unreachable outside a real Yandex embed); it is covered by unit tests only (verification #3 is therefore unit-test-level, not live).
   - Verification #1 (`Session:PlatformInitTimeout` analytics pull) **deferred post-close** — owner will pull it at their convenience; informational only, never a gate.
   - No fresh review round at close (owner ruling): the review of record is the pre-fkit round series ending in commit `2b43274` (ledger: `ai-agents/reviews/degraded-mode-full-ux-treatment.md`); no in-folder `review.md` exists, deliberately.
+- **2026-09-28 — "no active retry" NARROWED by owner ruling (append-only note; the locked text above is kept as written).**
+  OWNER RULING **D-1** on task `0318`, given live via `AskUserQuestion` in the `fkit lead` session and relayed by
+  `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+  Verbatim: **"Retry download only (Recommended)"** — option text: *"A couple of retries within the 5 s start-up
+  limit, then quiet background retries. Never retry Yandex's start-up call itself. ~1 day."*
+  - **Narrowed for a failed SDK loader-script DOWNLOAD only**, built by
+    [`0330`](../../done/0330-retry-a-failed-yandex-sdk-loader-download/brief.md). The "no retry of
+    `YaGames.init()`" part **still holds**: a rejected or hung `init()` is never retried.
+  - Why the reasoning above did not carry over to a download: it was about a rejected/timed-out `init()`; a failed
+    download is transient — see the [`0318` report](../../../knowledge-base/reports/2026-09-28-0318-citizenship-card-vanishes.md) §2.4.
+  - The *Recovery: deferred … revisit if `Session:PlatformInitTimeout` volume proves non-trivial* decision is
+    being revisited, as scheduled, by [`0329`](../../done/0329-citizenship-card-re-checks-its-gate-when-the-platform-recovers-late/brief.md)
+    (owner ruling D-2 on `0318`) — a revisit, not a reversal.

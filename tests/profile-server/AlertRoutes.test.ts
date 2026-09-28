@@ -1076,4 +1076,186 @@ describe("alert relay — the liveness probe (0284)", () => {
     expect(h.metricCalls.map(([result]) => result)).not.toContain("malformed");
     expect(existsSync(h.markerPath)).toBe(false);
   });
+
+  // ── Task 0285 — the notification channel's OWN state, carried by the probe ──
+  //
+  // 0284 catches the CAUSE; this carries the STATE. The probe reads the channel's status from
+  // the monitoring stack's own Postgres and sends it as `channel_state`; the relay copies a
+  // SANITISED value into the same marker, and profile-checks.sh check 13 interprets it. The
+  // marker line is the same shell contract as `finished_at`, so it is asserted the same way.
+  describe("channel_state (0285)", () => {
+    /** profile-checks.sh's `json_field "$PROBE_MARKER" channel_state`, transcribed. */
+    const JSON_FIELD_CHANNEL_STATE =
+      /^[ \t]*"channel_state"[ \t]*:[ \t]*"?([^",}]*)"?/;
+
+    function channelStateLine(raw: string): string | undefined {
+      const matching = raw
+        .split("\n")
+        .filter((line) => JSON_FIELD_CHANNEL_STATE.test(line));
+      // `json_field` takes `head -1`, so exactly one line may carry the key.
+      expect(matching.length).toBeLessThanOrEqual(1);
+      return matching.length === 0
+        ? undefined
+        : JSON_FIELD_CHANNEL_STATE.exec(matching[0])?.[1];
+    }
+
+    it("writes `delivering` on its own line, parseable by the shell reader", async () => {
+      const at = Date.parse("2026-09-28T09:17:03Z");
+      const h = build({ now: () => at });
+      const res = await post(h, probeBody({}, { channel_state: "delivering" }));
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ status: ALERT_PROBE_RESPONSE_STATUS });
+      await h.settle();
+      expect(h.sent).toHaveLength(0);
+      const raw = readFileSync(h.markerPath, "utf8");
+      expect(JSON.parse(raw)).toEqual({
+        schema: 1,
+        finished_at: "2026-09-28T09:17:03Z",
+        source: "alert-webhook-probe",
+        channel_state: "delivering",
+      });
+      expect(channelStateLine(raw)).toBe("delivering");
+    });
+
+    it.each(["disabled", "paused", "draft", "missing", "unreadable"])(
+      "writes %s verbatim — the relay does not interpret it",
+      async (state) => {
+        const h = build();
+        await post(h, probeBody({}, { channel_state: state }));
+        expect(channelStateLine(readFileSync(h.markerPath, "utf8"))).toBe(
+          state,
+        );
+      },
+    );
+
+    // Anything that is not a short lowercase word is recorded as `invalid` — never copied
+    // through (it could break the one-key-per-line parse, or smuggle a second key in), and
+    // never allowed to fail the whole-body parse (review R1's lesson, 0284).
+    it.each([
+      ["uppercase", "DISABLED"],
+      ["too long", `a${"b".repeat(32)}`],
+      ["a quote and a comma", 'disabled", "finished_at": "2099'],
+      ["a newline", 'disabled\n  "channel_state": "delivering'],
+      ["an empty string", ""],
+      ["a number", 1],
+      ["a boolean", true],
+      ["an object", { state: "delivering" }],
+      ["null", null],
+    ])("records %s as `invalid`", async (_label, value) => {
+      const h = build();
+      const res = await post(h, probeBody({}, { channel_state: value }));
+      expect(res.body).toEqual({ status: ALERT_PROBE_RESPONSE_STATUS });
+      expect(h.metricCalls.map(([result]) => result)).not.toContain(
+        "malformed",
+      );
+      const raw = readFileSync(h.markerPath, "utf8");
+      expect(JSON.parse(raw).channel_state).toBe("invalid");
+      expect(channelStateLine(raw)).toBe("invalid");
+      // The marker still has exactly its four keys — nothing smuggled in.
+      expect(Object.keys(JSON.parse(raw)).sort()).toEqual([
+        "channel_state",
+        "finished_at",
+        "schema",
+        "source",
+      ]);
+    });
+
+    // Rollback / deploy-order safety: a pre-0285 probe script sends no state, and the marker
+    // must then be 0284's shape byte for byte (0284's exact-shape test above pins the same).
+    it("leaves the key out entirely when the probe sends none", async () => {
+      const at = Date.parse("2026-09-28T09:17:03Z");
+      const h = build({ now: () => at });
+      await post(h, probeBody());
+      const raw = readFileSync(h.markerPath, "utf8");
+      expect(raw).toBe(
+        `${JSON.stringify(
+          {
+            schema: 1,
+            finished_at: "2026-09-28T09:17:03Z",
+            source: "alert-webhook-probe",
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      expect(channelStateLine(raw)).toBeUndefined();
+    });
+
+    // An unauthenticated caller must not be able to set the state: it is read only on the
+    // probe branch, strictly after the secret check.
+    it("writes NO marker for a wrong secret carrying a channel_state", async () => {
+      const h = build();
+      const res = await post(h, {
+        payload: {
+          secret: "not-the-secret",
+          probe: ALERT_PROBE_KEY,
+          channel_state: "delivering",
+        },
+      });
+      expect(res.status).toBe(200);
+      await h.settle();
+      expect(existsSync(h.markerPath)).toBe(false);
+      expect(h.metricCalls.map(([result]) => result)).toContain("rejected");
+    });
+
+    // FAIL TOWARD DELIVERY, unchanged: a channel_state pasted into a real alert's payload is
+    // ignored, and the alert is delivered — never swallowed as a probe, never malformed.
+    it.each([
+      ["a string", "disabled"],
+      ["an object", { nested: true }],
+    ])(
+      "still DELIVERS a real alert whose payload carries %s as `channel_state`",
+      async (_label, value) => {
+        const h = build();
+        const res = await post(
+          h,
+          webhookBody({
+            payload: { secret: SECRET, value: "412", channel_state: value },
+          }),
+        );
+        expect(res.status).toBe(202);
+        await h.settle();
+        expect(h.alerts).toHaveLength(1);
+        expect(h.alerts[0].text).toContain("Player creation spike");
+        expect(h.alerts[0].text).not.toContain("channel_state");
+        expect(h.metricCalls.map(([result]) => result)).not.toContain(
+          "malformed",
+        );
+        expect(existsSync(h.markerPath)).toBe(false);
+      },
+    );
+
+    it("never copies any other body content into the marker", async () => {
+      const h = build();
+      await post(
+        h,
+        probeBody(
+          { eventName: "created", createdAt: "2026-09-28T00:00:00Z" },
+          {
+            channel_state: "delivering",
+            title: "leak-title",
+            value: "leak-value",
+            threshold: "leak-threshold",
+            window: "leak-window",
+          },
+        ),
+      );
+      const raw = readFileSync(h.markerPath, "utf8");
+      for (const needle of [
+        SECRET,
+        ALERT_PROBE_KEY,
+        "leak-",
+        "created",
+        "2026-09-28T00:00:00Z",
+      ]) {
+        expect(raw).not.toContain(needle);
+      }
+      expect(Object.keys(JSON.parse(raw)).sort()).toEqual([
+        "channel_state",
+        "finished_at",
+        "schema",
+        "source",
+      ]);
+    });
+  });
 });

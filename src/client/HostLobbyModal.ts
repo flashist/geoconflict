@@ -36,6 +36,7 @@ export class HostLobbyModal extends LitElement {
   @query("o-modal") private modalEl!: HTMLElement & {
     open: () => void;
     close: () => void;
+    isModalOpen: boolean;
   };
   @state() private selectedMap: GameMapType = GameMapType.World;
   @state() private selectedDifficulty: Difficulty = Difficulty.Medium;
@@ -67,7 +68,12 @@ export class HostLobbyModal extends LitElement {
   // Review R7: bumped by open(). A Start begun in an earlier opening (e.g. an ad
   // call that never answered) must neither clear the new opening's in-flight
   // flag nor go on to start the new lobby.
+  // Task 0327: also bumped by every close, so neither a Start nor a lobby still
+  // being created acts on a lobby whose window has closed.
   private openGeneration = 0;
+  // Task 0327: this opening has dispatched `join-lobby`, so a close the host
+  // makes must leave the lobby.
+  private hasJoinedLobby = false;
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Add a new timer for debouncing bot changes
@@ -87,13 +93,20 @@ export class HostLobbyModal extends LitElement {
   private handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Escape") {
       e.preventDefault();
-      this.close();
+      // Task 0327: a window-wide listener, so it also fires while the window is
+      // hidden — including in a match, where a leave would end the match.
+      if (this.modalEl?.isModalOpen) {
+        this.modalEl.close();
+      }
     }
   };
 
   render() {
     return html`
-      <o-modal title=${translateText("host_modal.title")}>
+      <o-modal
+        title=${translateText("host_modal.title")}
+        @modal-close=${this.handleModalClose}
+      >
         <div class="lobby-id-box">
           <button class="lobby-id-button">
             <!-- Visibility toggle icon on the left -->
@@ -612,6 +625,7 @@ export class HostLobbyModal extends LitElement {
     // one's Start disabled until a page reload.
     this.isStarting = false;
     this.openGeneration++;
+    const generation = this.openGeneration;
     this.requestUpdate();
     this.lobbyCreatorClientID = generateID();
     this.lobbyIdVisible = this.userSettings.get(
@@ -619,29 +633,60 @@ export class HostLobbyModal extends LitElement {
       true,
     );
 
-    createLobby(this.lobbyCreatorClientID)
-      .then((lobby) => {
-        this.lobbyId = lobby.gameID;
-        // join lobby
-      })
-      .then(() => {
-        this.dispatchEvent(
-          new CustomEvent("join-lobby", {
-            detail: {
-              gameID: this.lobbyId,
-              clientID: this.lobbyCreatorClientID,
-            } as JoinLobbyEvent,
-            bubbles: true,
-            composed: true,
-          }),
-        );
-      });
+    createLobby(this.lobbyCreatorClientID).then((lobby) => {
+      // Task 0327: the window closed (or reopened) while the lobby was being
+      // created — do not join a lobby nobody is looking at.
+      if (generation !== this.openGeneration) {
+        return;
+      }
+      this.lobbyId = lobby.gameID;
+      // join lobby
+      this.hasJoinedLobby = true;
+      this.dispatchEvent(
+        new CustomEvent("join-lobby", {
+          detail: {
+            gameID: this.lobbyId,
+            clientID: this.lobbyCreatorClientID,
+          } as JoinLobbyEvent,
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
     this.modalEl?.open();
     this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
   }
 
+  // Programmatic close (a successful Start, the match-start close list): never
+  // leaves the lobby.
   public close() {
+    this.reset();
     this.modalEl?.close();
+  }
+
+  // Task 0327 (owner ruling 2026-09-28, Q1 "Host leaves cleanly"): every close
+  // the host makes (✕, a click outside, Escape) ends in o-modal's
+  // `modal-close`. A joined host leaves the lobby exactly once; after a
+  // programmatic close, reset() has already cleared `hasJoinedLobby`.
+  private handleModalClose() {
+    const wasJoined = this.hasJoinedLobby;
+    const lobbyId = this.lobbyId;
+    this.reset();
+    if (!wasJoined) {
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent("leave-lobby", {
+        detail: { lobby: lobbyId },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  private reset() {
+    this.hasJoinedLobby = false;
+    this.openGeneration++;
     this.copySuccess = false;
     if (this.playersInterval) {
       clearInterval(this.playersInterval);
@@ -652,6 +697,7 @@ export class HostLobbyModal extends LitElement {
       clearTimeout(this.botsUpdateTimer);
       this.botsUpdateTimer = null;
     }
+    this.requestUpdate();
   }
 
   private async handleRandomMapToggle() {

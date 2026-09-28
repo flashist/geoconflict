@@ -57,12 +57,12 @@ describe("citizenship_tenure_grant localization (task 0253)", () => {
   it("the owner-approved copy, verbatim", () => {
     expect(en[SECTION]).toEqual({
       title: "Thanks for being with us!",
-      body: "Thank you for playing Geoconflict! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
+      body: "Thank you for playing! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
       cta: "Great!",
     });
     expect(ru[SECTION]).toEqual({
       title: "Спасибо, что вы с нами!",
-      body: "Спасибо, что играете в Geoconflict! В благодарность за то, что вы с нами так давно, мы дарим вам {xp} XP. Теперь у вас {total} / {threshold} XP.",
+      body: "Спасибо, что играете! В благодарность за то, что вы с нами так давно, мы дарим вам {xp} XP. Теперь у вас {total} / {threshold} XP.",
       cta: "Отлично!",
     });
   });

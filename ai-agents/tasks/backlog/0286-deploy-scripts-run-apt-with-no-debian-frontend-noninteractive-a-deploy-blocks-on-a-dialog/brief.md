@@ -6,7 +6,7 @@
 > ℹ️ **ID allocation, checked 2026-09-18 before filing — recorded so it is not re-checked.** `0286`: **no
 > folder** named `0286*` under `ai-agents/tasks/{backlog,done,cancelled}/`, and **no `## ID` field**
 > anywhere under `ai-agents/tasks/` holds the value. **Highest existing task id was `0285`.** `0286` was
-> also pre-flagged as free in [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)'s
+> also pre-flagged as free in [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)'s
 > own ID note; **this brief is the allocation.** Nothing was renumbered (ADR-035).
 
 ## Sprint
@@ -60,7 +60,7 @@ kept as the record of how it was ranked at filing time:
 
 1. **The cost recurs inside this sprint, not after it.** Sprint 4 is still actively deploying to these boxes —
    [`0283`](../../done/0283-daily-digest-of-pending-name-change-reviews/brief.md) and
-   [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
+   [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
    both end in a deploy — so the owner pays this toll again on each one.
 2. **The fix is minutes, not a day.** See *Effort*.
 3. **The Backlog board has a demonstrated hold-forever failure mode** —

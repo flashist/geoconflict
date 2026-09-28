@@ -37,6 +37,22 @@ export class Client {
    */
   public profilePlayerId: string | null = null;
 
+  /**
+   * The player's approved display name (task 0322), from the same profile resolve
+   * as `isCitizen`; null when there is none, it failed the join rule, or no resolve
+   * has answered yet. Stored TRIMMED and already checked against the join rule;
+   * `GameServer.matchDisplayName` checks it once more at the swap and otherwise
+   * falls back to the typed `username`.
+   *
+   * SERVER-SIDE, and never logged. It comes through the ADR-103 identity funnel
+   * (`GameServer.getCreditableYandexId`), so it is only as trusted as that
+   * UNTRUSTED client-claimed id: someone who sends a citizen's id gets that
+   * citizen's approved name — an owner-accepted risk until verified identity lands.
+   * Only ever set from a resolve of THIS client's identity, or carried across a
+   * reconnect presenting that same identity.
+   */
+  public approvedName: string | null = null;
+
   constructor(
     public readonly clientID: ClientID,
     public readonly persistentID: string,

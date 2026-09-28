@@ -100,15 +100,132 @@ describe("profile API routes", () => {
       .get("/v1/profile")
       .set("Authorization", CALLER);
     expect(res.status).toBe(200);
-    expect(res.body.xp).toBe(1200);
+    // Task 0250 S1, owner ruling Q-A: every citizen reads exactly 100 (true 1200).
+    expect(res.body.xp).toBe(100);
     expect(res.body.is_citizen).toBe(true);
     expect(res.body).not.toHaveProperty("is_paid_citizen");
     expect(res.body).not.toHaveProperty("citizenship_purchased_at");
+    // Task 0250 S1: equalized for an unverified caller — never the true stamp.
+    expect(res.body.citizenship_earned_at).toBeNull();
+    expect(res.body.updated_at).toBe(fullProfile().created_at);
     // The token IS the caller: no identity lookup at all (task 0273 removed the
     // legacy fallback, so this is the only path left).
     expect(repo.findPlayerByIdentity).not.toHaveBeenCalled();
     // The repository is keyed by the INTERNAL id, never the Yandex id.
     expect(repo.getProfile).toHaveBeenCalledWith(PLAYER_ID);
+  });
+
+  // Task 0250 S1, leaks L1/L2: attempt the leak on a paid-not-earned citizen and
+  // an earned one. Every predicate must give the same answer, and the bodies must
+  // be identical.
+  describe("GET /v1/profile equalizes paid state (task 0250 S1, L1/L2)", () => {
+    const CREATED_AT = "2026-06-01T00:00:00.000Z";
+    const base = {
+      schema_version: 1 as const,
+      display_name: "Commander",
+      created_at: CREATED_AT,
+    };
+    const fixtures: Record<string, PlayerProfile> = {
+      paidAt0: {
+        ...base,
+        xp: 0,
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_earned_at: null,
+        citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        updated_at: "2026-06-24T11:00:00.000Z",
+      },
+      paidAt30: {
+        ...base,
+        xp: 30,
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_earned_at: null,
+        citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        updated_at: "2026-06-24T11:00:00.000Z",
+      },
+      paidAt99: {
+        ...base,
+        xp: 99,
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_earned_at: null,
+        citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        updated_at: "2026-06-24T11:00:00.000Z",
+      },
+      paidThenEarnedAt140: {
+        ...base,
+        xp: 140,
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_earned_at: "2026-06-26T10:00:00.000Z",
+        citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        updated_at: "2026-06-26T10:00:00.000Z",
+      },
+      earnedAt100: {
+        ...base,
+        xp: 100,
+        is_citizen: true,
+        is_paid_citizen: false,
+        citizenship_earned_at: "2026-06-20T10:00:00.000Z",
+        citizenship_purchased_at: null,
+        updated_at: "2026-06-20T10:00:00.000Z",
+      },
+      // Review R1/R3, owner ruling Q-A: an earned citizen whose xp has MOVED
+      // past 100 must read the same too — a floor alone let it show 1200.
+      earnedAt1200: {
+        ...base,
+        xp: 1200,
+        is_citizen: true,
+        is_paid_citizen: false,
+        citizenship_earned_at: "2026-06-20T10:00:00.000Z",
+        citizenship_purchased_at: null,
+        updated_at: "2026-06-25T10:00:00.000Z",
+      },
+    };
+    const read = async (profile: PlayerProfile) =>
+      request(
+        appWithSession(
+          mockRepo({ getProfile: jest.fn().mockResolvedValue(profile) }),
+        ),
+      )
+        .get("/v1/profile")
+        .set("Authorization", CALLER);
+    const leakL1 = (p: {
+      is_citizen: boolean;
+      citizenship_earned_at: unknown;
+    }) => p.is_citizen && p.citizenship_earned_at === null;
+    const leakL2 = (p: { is_citizen: boolean; xp: number }) =>
+      p.is_citizen && p.xp < 100;
+
+    // Movement (review R1/R3): any citizen xp other than exactly 100.
+    const leakMoved = (p: { is_citizen: boolean; xp: number }) =>
+      p.is_citizen && p.xp !== 100;
+
+    describe.each(["earnedAt100", "earnedAt1200"])(
+      "against %s",
+      (earnedName) => {
+        test.each(["paidAt0", "paidAt30", "paidAt99", "paidThenEarnedAt140"])(
+          "%s reads exactly like the earned citizen",
+          async (name) => {
+            const paid = await read(fixtures[name]);
+            const earned = await read(fixtures[earnedName]);
+            expect(paid.status).toBe(200);
+            expect(earned.status).toBe(200);
+            expect(leakL1(paid.body)).toBe(leakL1(earned.body));
+            expect(leakL2(paid.body)).toBe(leakL2(earned.body));
+            expect(leakMoved(paid.body)).toBe(false);
+            expect(leakMoved(earned.body)).toBe(false);
+            expect(paid.body).toEqual(earned.body);
+            expect(JSON.stringify(paid.body).length).toBe(
+              JSON.stringify(earned.body).length,
+            );
+            // The badge still works.
+            expect(paid.body.is_citizen).toBe(true);
+          },
+        );
+      },
+    );
   });
 
   // Task 0273 (S4), owner ruling D1: the legacy client-asserted Yandex id is GONE.
@@ -235,7 +352,7 @@ describe("profile API routes", () => {
       expect(currentRepo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
-    test("find-or-creates as game_server and returns only { playerId, isCitizen }", async () => {
+    test("find-or-creates as game_server and returns only { playerId, isCitizen, displayName }", async () => {
       const res = await resolve({
         platform: "yandex_games",
         platformUserId: "yandex-1",
@@ -244,7 +361,11 @@ describe("profile API routes", () => {
         xp: 999999,
       });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ playerId: PLAYER_ID, isCitizen: true });
+      expect(res.body).toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: true,
+        displayName: "Commander",
+      });
       expect(currentRepo.resolveOrCreatePlayer).toHaveBeenCalledTimes(1);
       expect(currentRepo.resolveOrCreatePlayer).toHaveBeenCalledWith(
         "yandex_games",
@@ -271,7 +392,34 @@ describe("profile API routes", () => {
         platform: "yandex_games",
         platformUserId: "yandex-1",
       });
-      expect(res.body).toEqual({ playerId: PLAYER_ID, isCitizen: false });
+      expect(res.body).toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: false,
+        displayName: "Commander",
+      });
+    });
+
+    // Task 0322: null — never approved, or cleared by task 0314 — is sent as an
+    // explicit null (not omitted), which the game server reads as "clear it".
+    test("sends displayName null for a player with no approved name", async () => {
+      currentRepo = mockRepo({
+        resolveOrCreatePlayer: jest.fn().mockResolvedValue({
+          playerId: PLAYER_ID,
+          created: true,
+          profile: { ...fullProfile(), display_name: null },
+        }),
+      });
+      const res = await resolve({
+        platform: "yandex_games",
+        platformUserId: "yandex-1",
+      });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: true,
+        displayName: null,
+      });
+      expect(res.body).toHaveProperty("displayName", null);
     });
 
     test("is 500 when find-or-create throws, and the log line names no id", async () => {

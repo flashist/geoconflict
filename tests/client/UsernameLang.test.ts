@@ -29,6 +29,24 @@ describe("username localization (task 0307)", () => {
     expect(Object.keys(ru).sort()).toEqual(Object.keys(en).sort());
   });
 
+  // Task 0321: the locked name box's hint (owner ruling Q4, 2026-09-28),
+  // pointing at the card by its own title and carrying no game name (0311).
+  it.each([
+    [
+      "en.json",
+      en,
+      "This is your approved name. You can change it on the Citizenship card.",
+    ],
+    [
+      "ru.json",
+      ru,
+      "Это ваше одобренное имя. Сменить его можно в карточке «Гражданство».",
+    ],
+  ])("%s has the owner-ruled locked_hint", (_file, section, text) => {
+    expect(section.locked_hint).toBe(text);
+    expect(section.locked_hint).not.toMatch(/geoconflict|геоконфликт/i);
+  });
+
   it("the Russian invalid_chars no longer says Latin letters only", () => {
     expect(ru.invalid_chars).not.toMatch(/латинск/i);
     expect(ru.invalid_chars).toContain("буквы");

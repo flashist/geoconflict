@@ -1042,6 +1042,16 @@ cat > "$UPTRACE_DIR/alert-probe.sh" << 'PROBEEOF'
 # The relay answers 2xx and SENDS NOTHING for a probe: this never produces a Telegram
 # message, and it never touches the notification channel's state.
 #
+# Task 0285: it also READS that state — the channel's `status` in the monitoring stack's own
+# Postgres — and carries it in the same POST as `channel_state`, so the profile box's check 13
+# can page on a channel that is ALREADY disabled (a failure that has since healed leaves the
+# probe green and alerting dead). Read-only: one fixed SELECT inside a read-only transaction.
+# The state read can never break the liveness probe: it is bounded, never aborts the script,
+# and the POST is sent whatever it returned.
+# Schema verified against: uptrace/uptrace:2.0.2 (task 0285 — table notif_channels, column
+# status, enum draft/delivering/paused/disabled, webhook URL at params->>'url'). The hardening
+# harness fails if the compose image tag stops matching this line: re-verify, then bump both.
+#
 # ⛔ Never add `set -x` — it would echo the shared secret into the log.
 set -uo pipefail
 
@@ -1059,6 +1069,80 @@ if [ -z "${ALERT_PROBE_URL:-}" ] || [ -z "${ALERT_PROBE_SECRET:-}" ]; then
     exit 1
 fi
 
+# Task 0285 — the notification channel's OWN state, echoed as one word:
+#   the channel(s) whose URL equals ALERT_PROBE_URL → their status, the WORST one if several
+#   (disabled > paused > draft > anything else > delivering);
+#   no such channel → `missing`; psql failed, timed out or printed anything unexpected →
+#   `unreadable`, followed by a fixed cause class for the LOG only (review R2):
+#   `unreadable (timed out)` · `unreadable (killed, rc=137)` · `unreadable (exec or psql
+#   failed, rc=N)` · `unreadable (unexpected output)`. The caller POSTs the first word alone.
+#   What the classes mean (review R3, measured on real psql with stderr discarded): rc 1 = the
+#   query failed — a schema change (missing table or column), a statement_timeout cancel, or
+#   `compose exec` on a service that is not running, all with EMPTY stdout; rc 2 = psql could not
+#   connect, incl. PGCONNECT_TIMEOUT; timed out / killed = the docker client itself hung (both
+#   server bounds sit under the client's 20 s); `unexpected output` = rc 0 with a wrong-shaped row.
+#   Anything but `delivering` means alerts are dropped at source.
+# The URL is compared HERE, in bash: it never enters the SQL, a docker/psql argv or the log.
+# ⛔ Nothing read from psql is ever echoed — only fixed words, a validated status and an exit
+# code — so neither the URL nor raw psql output can reach the log.
+# The channel's secret column is never selected. PGOPTIONS makes the transaction read-only,
+# so Postgres itself refuses any write.
+# The bound (review R1): this box has frozen on OOM before, and a wedged Postgres must not
+# stall the liveness POST. `timeout -k 5 20` sends SIGTERM at 20 s and SIGKILL 5 s later, so a
+# docker client that ignores SIGTERM is still gone. Killing the client does NOT kill the psql
+# inside the container, so Postgres bounds the same work itself: `statement_timeout=15s` (under
+# the client's 20 s) cancels the query server-side, and PGCONNECT_TIMEOUT bounds the connect —
+# otherwise a wedged Postgres would collect one orphaned psql per hour.
+read_channel_state() {
+    local rows rc=0 line status url worst="" worst_rank=-1 rank
+    rows="$(cd "$DIR" && timeout -k 5 20 docker compose exec -T \
+        -e PGOPTIONS='-c default_transaction_read_only=on -c statement_timeout=15s' \
+        -e PGCONNECT_TIMEOUT=10 \
+        postgres psql -X -q -tA -F $'\t' -v ON_ERROR_STOP=1 -U uptrace -d uptrace \
+        -c "SELECT status, coalesce(params->>'url', '') FROM notif_channels" \
+        2>/dev/null </dev/null)" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        case "$rc" in
+            124) echo "unreadable (timed out)" ;;
+            137) echo "unreadable (killed, rc=137)" ;;
+            *)   echo "unreadable (exec or psql failed, rc=${rc})" ;;
+        esac
+        return 0
+    fi
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        case "$line" in
+            *$'\t'*) ;;
+            *) echo "unreadable (unexpected output)"; return 0 ;;
+        esac
+        status="${line%%$'\t'*}"
+        url="${line#*$'\t'}"
+        # Only a short lowercase word is a status this reader understands; anything else means
+        # the output is not what the verified schema produces.
+        if ! [[ "$status" =~ ^[a-z][a-z-]{0,31}$ ]]; then
+            echo "unreadable (unexpected output)"
+            return 0
+        fi
+        [ "$url" = "$ALERT_PROBE_URL" ] || continue
+        case "$status" in
+            disabled)   rank=4 ;;
+            paused)     rank=3 ;;
+            draft)      rank=2 ;;
+            delivering) rank=0 ;;
+            *)          rank=1 ;;
+        esac
+        if [ "$rank" -gt "$worst_rank" ]; then
+            worst_rank="$rank"
+            worst="$status"
+        fi
+    done <<< "$rows"
+    echo "${worst:-missing}"
+}
+# The log gets the whole line (the cause class, when there is one); the POST gets the state word
+# only, which is all the relay's value pattern accepts.
+channel_state_log="$(read_channel_state)"
+channel_state="${channel_state_log%% *}"
+
 # The body goes on STDIN, never in argv: --data '{"secret":…}' would expose the secret in
 # ps / /proc/<pid>/cmdline for the life of the call.
 # ⚠️ The secret is embedded in JSON, so it must contain no " and no \ (hex or alphanumeric
@@ -1070,12 +1154,12 @@ probe_rc=0
 probe_body="$(curl -fsS -m 10 --retry 2 -X POST \
      -H 'Content-Type: application/json' --data-binary @- "$ALERT_PROBE_URL" \
      2>/dev/null <<JSON
-{"payload":{"secret":"${ALERT_PROBE_SECRET}","probe":"liveness"}}
+{"payload":{"secret":"${ALERT_PROBE_SECRET}","probe":"liveness","channel_state":"${channel_state}"}}
 JSON
 )" || probe_rc=$?
 
 if [ "$probe_rc" -ne 0 ]; then
-    say "FAILED to reach the alert webhook (curl exit ${probe_rc}). Check the profile box's PROFILE_INTERNAL_ALLOW_IPS against this box's egress address, then re-enable the notification channel by hand — fixing the address does NOT undo a disable."
+    say "FAILED to reach the alert webhook (curl exit ${probe_rc}). Check the profile box's PROFILE_INTERNAL_ALLOW_IPS against this box's egress address, then re-enable the notification channel by hand — fixing the address does NOT undo a disable. channel state: ${channel_state_log}"
     exit 1
 fi
 
@@ -1091,11 +1175,11 @@ fi
 # other than the relay, and the same rule that discards curl's stderr applies to it.
 case "$probe_body" in
     *probe-accepted*)
-        say "accepted — the relay recorded the probe and wrote its marker"
+        say "accepted — the relay recorded the probe and wrote its marker; channel state: ${channel_state_log}"
         exit 0
         ;;
 esac
-say "REACHED the alert webhook, but it did NOT record a probe: the reply was a 2xx WITHOUT the probe status, which is the relay's deliberate 200 on a DROPPED call. The likeliest cause is that ALERT_PROBE_SECRET here does not match the profile box's PROFILE_ALERT_WEBHOOK_TOKEN. No marker was written, so the profile box's daily check will page."
+say "REACHED the alert webhook, but it did NOT record a probe: the reply was a 2xx WITHOUT the probe status, which is the relay's deliberate 200 on a DROPPED call. The likeliest cause is that ALERT_PROBE_SECRET here does not match the profile box's PROFILE_ALERT_WEBHOOK_TOKEN. No marker was written, so the profile box's daily check will page. channel state: ${channel_state_log}"
 exit 1
 PROBEEOF
 chmod 700 "$UPTRACE_DIR/alert-probe.sh"

@@ -51,14 +51,17 @@ export const PlayerProfileSchema = z.object({
 export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
 
 /**
- * Public projection of a profile — the shape returned by `GET /v1/profile` and
- * parsed by the client card. Sprint 4's read is unauthenticated, so the fields a
- * caller shouldn't be able to resolve by guessing a (non-secret) yandexPlayerId are
- * omitted: paid state (`is_paid_citizen`, `citizenship_purchased_at`). No identity
- * is on the profile at all, so no player id can leak through it. Derived from
- * `PlayerProfileSchema` so the server return
- * type and the client parse share ONE source of truth and cannot drift.
- * See `toPublicProfile()` in src/profile-server/Routes.ts.
+ * Public projection of a profile — the shape returned by `GET /v1/profile` (and
+ * `profile` on `POST /v1/login`) and parsed by the client card. The read is behind
+ * a Bearer session (`resolveCaller`), but that session is `vfy:false`: anyone who
+ * asserts a platform id gets one. So paid state (`is_paid_citizen`,
+ * `citizenship_purchased_at`) is omitted, and the server also EQUALIZES `xp`,
+ * `citizenship_earned_at` and `updated_at` so a paid citizen and an earned
+ * citizen look the same (task 0250 S1) — same keys, same types, only the values
+ * change. No identity is on the profile at all, so no player id can leak through
+ * it. Derived from `PlayerProfileSchema` so the server return type and the client
+ * parse share ONE source of truth and cannot drift.
+ * See `toPublicProfile()` in src/profile-server/PublicProjection.ts.
  */
 export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
   is_paid_citizen: true,

@@ -41,6 +41,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       isCitizenshipUiEnabled: jest.fn().mockResolvedValue(true),
       getCatalogProduct: jest.fn().mockReturnValue(null),
       whenPaymentsCatalogSettled: jest.fn(),
+      whenPlatformRecoveredLate: jest.fn(),
     },
   },
 }));
@@ -53,6 +54,7 @@ jest.mock("../../src/client/PaymentsReconciliation", () => ({
 jest.mock("../../src/client/NameChangeRequest", () => ({
   submitNameChangeRequest: jest.fn(),
   cancelNameChangeRequest: jest.fn(),
+  dismissNameChangeRejection: jest.fn(),
 }));
 jest.mock("../../src/client/TenureGrantClaim", () => ({
   maybeClaimTenureGrant: jest.fn(),
@@ -65,7 +67,15 @@ import {
   resetCitizenshipSeenReportedForTests,
   type CitizenshipLoginSucceededDetail,
 } from "../../src/client/CitizenshipCard";
+import {
+  getApprovedName,
+  resetApprovedNameForTests,
+} from "../../src/client/ApprovedName";
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
+import {
+  CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+  type CitizenshipGrantedMidSessionDetail,
+} from "../../src/client/CitizenshipRestartOffer";
 import {
   getCitizenshipStatus,
   resetCitizenshipStatusForTests,
@@ -77,10 +87,16 @@ import {
 } from "../../src/client/flashist/FlashistFacade";
 import {
   cancelNameChangeRequest,
+  dismissNameChangeRejection,
   submitNameChangeRequest,
 } from "../../src/client/NameChangeRequest";
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import {
+  reportBackOnStartScreen,
+  resetStartScreenPresenceForTests,
+  setStartScreenPresenceSource,
+} from "../../src/client/StartScreenPresence";
 import { maybeClaimTenureGrant } from "../../src/client/TenureGrantClaim";
 import { translateText } from "../../src/client/Utils";
 
@@ -94,11 +110,14 @@ const getCatalogProduct = FlashistFacade.instance
   .getCatalogProduct as jest.Mock;
 const whenPaymentsCatalogSettled = FlashistFacade.instance
   .whenPaymentsCatalogSettled as jest.Mock;
+const whenPlatformRecoveredLate = FlashistFacade.instance
+  .whenPlatformRecoveredLate as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const loadProfile = loadPlayerProfileView as jest.Mock;
 const runPurchase = runCitizenshipPurchase as jest.Mock;
 const submitNameChange = submitNameChangeRequest as jest.Mock;
 const cancelNameChange = cancelNameChangeRequest as jest.Mock;
+const dismissRejection = dismissNameChangeRejection as jest.Mock;
 const claimTenureGrant = maybeClaimTenureGrant as jest.Mock;
 
 const CITIZENSHIP_PRODUCT = {
@@ -118,6 +137,8 @@ const NON_CITIZEN_PROFILE = {
   isCitizen: false,
   // Confirmed by a successful server read — the CTA precondition (review R1).
   isAuthoritative: true,
+  // No approved name (task 0321).
+  approvedName: null,
 };
 
 describe("CitizenshipCard", () => {
@@ -139,12 +160,17 @@ describe("CitizenshipCard", () => {
     // settles (the card only subscribes — must not hang or throw).
     getCatalogProduct.mockReturnValue(null);
     whenPaymentsCatalogSettled.mockReturnValue(new Promise(() => {}));
+    // Late platform recovery (task 0329): by default the platform never
+    // recovers late — the signal never settles.
+    whenPlatformRecoveredLate.mockReturnValue(new Promise(() => {}));
     runPurchase.mockResolvedValue("error");
     submitNameChange.mockResolvedValue({ status: "ok" });
     cancelNameChange.mockResolvedValue({ status: "ok" });
     claimTenureGrant.mockResolvedValue({ status: "skipped" });
     resetCitizenshipSeenReportedForTests();
     resetCitizenshipStatusForTests();
+    resetApprovedNameForTests();
+    resetStartScreenPresenceForTests();
   });
 
   afterEach(() => {
@@ -781,9 +807,157 @@ describe("CitizenshipCard", () => {
       await settle(card);
 
       expect(show).toHaveBeenCalledTimes(1);
-      expect(show).toHaveBeenCalledWith({ xpAwarded: 30, xp: 55 });
+      expect(show).toHaveBeenCalledWith(
+        { xpAwarded: 30, xp: 55 },
+        expect.any(Function),
+      );
       expect(loadProfile).toHaveBeenCalledTimes(2);
       expect(card.textContent).toContain("55");
+    });
+
+    // Task 0303 (owner ruling Q-A, 2026-09-28): a gift that MADE the player a
+    // citizen offers the restart popup, after the thank-you popup is closed.
+    describe("restart offer after a gift that made a citizen (task 0303)", () => {
+      let signals: CitizenshipGrantedMidSessionDetail[] = [];
+      const onSignal = (event: Event) => {
+        signals.push(
+          (event as CustomEvent<CitizenshipGrantedMidSessionDetail>).detail,
+        );
+      };
+
+      beforeEach(() => {
+        signals = [];
+        window.addEventListener(
+          CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+          onSignal,
+        );
+      });
+
+      afterEach(() => {
+        window.removeEventListener(
+          CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+          onSignal,
+        );
+      });
+
+      const CITIZEN_PROFILE = {
+        ...NON_CITIZEN_PROFILE,
+        xp: 100,
+        isCitizen: true,
+      };
+      const closeThankYou = (show: jest.Mock) =>
+        (show.mock.calls[0][1] as () => void)();
+
+      it("fires tenure only once the thank-you popup is closed", async () => {
+        const show = appendModal();
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          .mockResolvedValue(CITIZEN_PROFILE);
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 40,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(signals).toEqual([]);
+
+        closeThankYou(show);
+        await settle(card);
+
+        expect(signals).toEqual([{ source: "tenure" }]);
+      });
+
+      it("fires once the re-read lands, when the popup was closed first", async () => {
+        const show = appendModal();
+        let resolveReRead: (value: unknown) => void = () => {};
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          .mockReturnValue(
+            new Promise((resolve) => {
+              resolveReRead = resolve;
+            }),
+          );
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 40,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+        expect(signals).toEqual([]);
+
+        resolveReRead(CITIZEN_PROFILE);
+        await settle(card);
+
+        expect(signals).toEqual([{ source: "tenure" }]);
+      });
+
+      it("an existing citizen who gets the gift: nothing", async () => {
+        const show = appendModal();
+        loadProfile.mockResolvedValue(CITIZEN_PROFILE);
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 20,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(signals).toEqual([]);
+      });
+
+      it("a gift that leaves the player below the threshold: nothing", async () => {
+        const show = appendModal();
+        loadProfile
+          .mockResolvedValueOnce(NON_CITIZEN_PROFILE)
+          .mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 55 });
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 30,
+          xp: 55,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+
+        expect(signals).toEqual([]);
+      });
+
+      it("a failed re-read: nothing (the next load catches up)", async () => {
+        const show = appendModal();
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          // The zero-state fallback of a failed read: not authoritative.
+          .mockResolvedValue({
+            ...NON_CITIZEN_PROFILE,
+            xp: 0,
+            isAuthoritative: false,
+          });
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 40,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+
+        expect(signals).toEqual([]);
+      });
     });
 
     it.each([
@@ -908,6 +1082,682 @@ describe("CitizenshipCard", () => {
     });
   });
 
+  // Task 0321: the start-screen name box locks to what the card publishes.
+  describe("publishes the approved name (task 0321)", () => {
+    const APPROVED_PROFILE = {
+      ...NON_CITIZEN_PROFILE,
+      isCitizen: true,
+      displayName: "Commander",
+      approvedName: "Commander",
+    };
+
+    it("publishes approved for an authoritative read with a display_name", async () => {
+      loadProfile.mockResolvedValue(APPROVED_PROFILE);
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({
+        kind: "approved",
+        name: "Commander",
+      });
+    });
+
+    // Owner ruling Q1 (2026-09-28): the lock follows display_name, not
+    // citizenship. This also pins the 0319/0325 watch item: if display_name
+    // ever stops reaching unverified reads, the lock silently stops.
+    it("publishes approved for a NON-citizen with a display_name (Q1)", async () => {
+      loadProfile.mockResolvedValue({
+        ...APPROVED_PROFILE,
+        isCitizen: false,
+      });
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({
+        kind: "approved",
+        name: "Commander",
+      });
+    });
+
+    it("publishes none for an authoritative read without one", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({ kind: "none" });
+    });
+
+    it("publishes nothing for a guest", async () => {
+      loadProfile.mockResolvedValue(null);
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({ kind: "unknown" });
+    });
+
+    it("publishes nothing for a zero-state (failed or timed-out) read", async () => {
+      loadProfile.mockResolvedValue({
+        ...APPROVED_PROFILE,
+        isAuthoritative: false,
+        approvedName: null,
+      });
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({ kind: "unknown" });
+    });
+
+    it("publishes nothing while the card is disabled", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      loadProfile.mockResolvedValue(APPROVED_PROFILE);
+      await appendCard({ visible: true });
+      expect(getApprovedName()).toEqual({ kind: "unknown" });
+      expect(loadProfile).not.toHaveBeenCalled();
+    });
+
+    it("a failed re-read after a good one leaves the approved name in place", async () => {
+      loadProfile.mockResolvedValue(APPROVED_PROFILE);
+      await appendCard({ visible: true });
+      loadProfile.mockResolvedValue({
+        ...APPROVED_PROFILE,
+        isAuthoritative: false,
+        approvedName: null,
+      });
+
+      window.dispatchEvent(new Event(PURCHASES_RECONCILED_EVENT));
+      await flushMicrotasks();
+
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(getApprovedName()).toEqual({
+        kind: "approved",
+        name: "Commander",
+      });
+    });
+
+    it("a re-read showing the name cleared publishes none (task 0314)", async () => {
+      loadProfile.mockResolvedValue(APPROVED_PROFILE);
+      await appendCard({ visible: true });
+      loadProfile.mockResolvedValue({
+        ...APPROVED_PROFILE,
+        approvedName: null,
+      });
+
+      window.dispatchEvent(new Event(PURCHASES_RECONCILED_EVENT));
+      await flushMicrotasks();
+
+      expect(getApprovedName()).toEqual({ kind: "none" });
+    });
+
+    it("stays the single profile reader: one load, one read", async () => {
+      loadProfile.mockResolvedValue(APPROVED_PROFILE);
+      await appendCard({ visible: true });
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ── Task 0326: a slow, older profile read never overwrites a newer one ──
+  // Owner ruling Q1 (2026-09-28): drop a read only if a NEWER read has already
+  // been applied. Ruling Q2: prove one server read per refresh, never retried —
+  // `Citizenship:Earned:XP` is dormant (task 0250 S1, D4), so it fires zero
+  // times and cannot be counted here.
+  describe("stale-read guard (task 0326)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button") as HTMLButtonElement | null;
+
+    // Two chained reads need more than one flush to drain.
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    /** A read the test resolves by hand, to control the landing order. */
+    function deferredRead(): {
+      promise: Promise<unknown>;
+      resolve: (value: unknown) => void;
+    } {
+      let resolve: (value: unknown) => void = () => {};
+      const promise = new Promise((r) => {
+        resolve = r;
+      });
+      return { promise, resolve };
+    }
+
+    const reconcile = () =>
+      window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+
+    const CITIZEN_PROFILE = {
+      ...NON_CITIZEN_PROFILE,
+      xp: 100,
+      isCitizen: true,
+    };
+
+    it("the first read landing after the reconciliation re-read is dropped", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      const firstRead = deferredRead();
+      loadProfile
+        .mockReturnValueOnce(firstRead.promise)
+        .mockResolvedValueOnce({ ...CITIZEN_PROFILE, approvedName: "New" });
+
+      const card = await appendCard({ visible: true });
+      // The first read is in flight; reconciliation re-grants meanwhile.
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      reconcile();
+      await settle(card);
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+
+      // The slow first read finally lands with the older, non-citizen answer.
+      firstRead.resolve({ ...NON_CITIZEN_PROFILE, approvedName: "Old" });
+      await settle(card);
+
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+      expect(getCitizenshipStatus()).toBe("citizen");
+      expect(getApprovedName()).toEqual({ kind: "approved", name: "New" });
+      // One read per refresh: nothing dropped is ever retried.
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+    });
+
+    describe("an awaiting caller still resumes when its read is superseded", () => {
+      let signals: CitizenshipGrantedMidSessionDetail[] = [];
+      const onSignal = (event: Event) => {
+        signals.push(
+          (event as CustomEvent<CitizenshipGrantedMidSessionDetail>).detail,
+        );
+      };
+
+      beforeEach(() => {
+        signals = [];
+        window.addEventListener(
+          CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+          onSignal,
+        );
+      });
+
+      afterEach(() => {
+        window.removeEventListener(
+          CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+          onSignal,
+        );
+      });
+
+      function appendModal(): jest.Mock {
+        const modal = document.createElement("tenure-grant-modal");
+        const show = jest.fn();
+        Object.assign(modal, { show });
+        document.body.appendChild(modal);
+        return show;
+      }
+      const closeThankYou = (show: jest.Mock) =>
+        (show.mock.calls[0][1] as () => void)();
+
+      it("tenure: a stale re-read is dropped and the restart offer still fires", async () => {
+        const show = appendModal();
+        const tenureReRead = deferredRead();
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          .mockReturnValueOnce(tenureReRead.promise)
+          .mockResolvedValueOnce(CITIZEN_PROFILE);
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 40,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        // The tenure re-read is in flight; a newer reconciliation read lands.
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+        reconcile();
+        await settle(card);
+
+        tenureReRead.resolve({ ...NON_CITIZEN_PROFILE, xp: 60 });
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+
+        expect(signals).toEqual([{ source: "tenure" }]);
+        expect(card.textContent).toContain("citizenship_card.citizen_badge");
+        expect(loadProfile).toHaveBeenCalledTimes(3);
+      });
+
+      it("name submit: a superseded re-read still clears the in-flight flag", async () => {
+        const IDLE_CITIZEN = { ...CITIZEN_PROFILE, nameChange: null };
+        loadProfile.mockResolvedValue({
+          ...IDLE_CITIZEN,
+          displayName: "Before",
+        });
+        const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+        const card = await appendCard({ visible: true });
+
+        async function submitName(name: string): Promise<void> {
+          (
+            card.querySelector(
+              "#citizenship-name-change-cta",
+            ) as HTMLButtonElement
+          ).click();
+          await flushLit(card);
+          const input = card.querySelector<HTMLInputElement>(
+            "#citizenship-name-change-input",
+          )!;
+          input.value = name;
+          input.dispatchEvent(new Event("input"));
+          await flushLit(card);
+          card
+            .querySelector<HTMLButtonElement>(
+              "#citizenship-name-change-submit",
+            )!
+            .click();
+          await flushLit(card);
+        }
+
+        const submitReRead = deferredRead();
+        loadProfile
+          .mockReturnValueOnce(submitReRead.promise)
+          .mockResolvedValueOnce({ ...IDLE_CITIZEN, displayName: "Fresh" });
+        await submitName("NewName");
+        await settle(card);
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+        reconcile();
+        await settle(card);
+
+        submitReRead.resolve({ ...IDLE_CITIZEN, displayName: "Stale" });
+        await settle(card);
+
+        expect(card.textContent).toContain("Fresh");
+        expect(card.textContent).not.toContain("Stale");
+        expect(loadProfile).toHaveBeenCalledTimes(3);
+
+        // The flag was cleared, so a second submit goes through.
+        loadProfile.mockResolvedValue({
+          ...IDLE_CITIZEN,
+          displayName: "Fresh",
+        });
+        await submitName("OtherName");
+        await settle(card);
+        expect(submitNameChange).toHaveBeenCalledTimes(2);
+        expect(submitNameChange).toHaveBeenLastCalledWith("OtherName");
+        expect(loadProfile).toHaveBeenCalledTimes(4);
+        expect(warn).not.toHaveBeenCalled();
+      });
+
+      // Owner ruling Q1: an older read that is still newer than the screen is
+      // applied, so the tenure check sees the gift even while a later read is
+      // still loading.
+      it("tenure: the re-read applies while a newer read is still loading", async () => {
+        const show = appendModal();
+        const tenureReRead = deferredRead();
+        const laterRead = deferredRead();
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          .mockReturnValueOnce(tenureReRead.promise)
+          .mockReturnValueOnce(laterRead.promise);
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 40,
+          xp: 100,
+        });
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+        reconcile();
+        await settle(card);
+        expect(loadProfile).toHaveBeenCalledTimes(3);
+
+        tenureReRead.resolve(CITIZEN_PROFILE);
+        await settle(card);
+        closeThankYou(show);
+        await settle(card);
+
+        expect(signals).toEqual([{ source: "tenure" }]);
+        laterRead.resolve(CITIZEN_PROFILE);
+        await settle(card);
+        expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      });
+    });
+
+    it("an older read that lands while a newer one is pending is applied, then the newer one", async () => {
+      loadProfile.mockResolvedValueOnce(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      const olderRead = deferredRead();
+      const newerRead = deferredRead();
+      loadProfile
+        .mockReturnValueOnce(olderRead.promise)
+        .mockReturnValueOnce(newerRead.promise);
+      reconcile();
+      reconcile();
+      await settle(card);
+      expect(loadProfile).toHaveBeenCalledTimes(3);
+
+      olderRead.resolve({ ...CITIZEN_PROFILE, displayName: "Middle" });
+      await settle(card);
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(card.textContent).toContain("Middle");
+      expect(getCitizenshipStatus()).toBe("citizen");
+
+      newerRead.resolve({ ...CITIZEN_PROFILE, displayName: "Latest" });
+      await settle(card);
+      expect(card.textContent).toContain("Latest");
+      expect(card.textContent).not.toContain("Middle");
+      expect(loadProfile).toHaveBeenCalledTimes(3);
+    });
+
+    // Review R1, accepted residual "Fast-failing newer read wins": the guard
+    // ranks reads by issue order, not quality. A newer read that FAILS fast
+    // (the non-authoritative zero-state) is applied, and the older good read
+    // landing after it is dropped. This pins today's behaviour; changing it is
+    // an owner decision, not a fix.
+    it("pins R1: a newer read failing fast wins over an older good read landing later", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      const firstRead = deferredRead();
+      loadProfile.mockReturnValueOnce(firstRead.promise).mockResolvedValueOnce({
+        displayName: "Игрок_7734",
+        xp: 0,
+        isCitizen: false,
+        isAuthoritative: false,
+        nameChange: null,
+        approvedName: null,
+      });
+
+      const card = await appendCard({ visible: true });
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      // The newer reconciliation read fails fast and lands first.
+      reconcile();
+      await settle(card);
+
+      // The older, good read lands last with an authoritative citizen answer.
+      firstRead.resolve({ ...CITIZEN_PROFILE, approvedName: "Good" });
+      await settle(card);
+
+      // Dropped: the card stays on the zero-state for this page load.
+      expect(card.textContent).not.toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+      expect(getCitizenshipStatus()).toBe("not_citizen");
+      expect(getApprovedName()).toEqual({ kind: "unknown" });
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ── Task 0329: a card hidden on a degraded boot re-checks its gate when the
+  // Yandex platform recovers late. Owner ruling Q1 (2026-09-28): the card
+  // listens whenever the flag check hides it; on the signal it re-reads the flag
+  // and reveals only if the flag is really on (0291 fail-closed kept).
+  describe("late platform recovery (task 0329)", () => {
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    /** The facade's recovery signal, resolved by hand. */
+    function deferredRecovery(): { recover: () => void } {
+      let recover: () => void = () => {};
+      whenPlatformRecoveredLate.mockReturnValue(
+        new Promise<void>((resolve) => {
+          recover = () => resolve();
+        }),
+      );
+      return { recover: () => recover() };
+    }
+
+    const reconcile = () =>
+      window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+
+    it("reveals the card when the flag is on after a late recovery", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+      const card = await appendCard({ visible: true });
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(card.textContent!.trim()).toBe("");
+      expect(loadProfile).not.toHaveBeenCalled();
+
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+      recovery.recover();
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(false);
+      expect(card.textContent).toContain("citizenship_card.title");
+      expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(2);
+    });
+
+    it("publishes the citizenship status once revealed (perk no longer unknown)", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        isCitizen: true,
+      });
+
+      const card = await appendCard({ visible: true });
+      expect(getCitizenshipStatus()).toBe("unknown");
+
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+      recovery.recover();
+      await settle(card);
+
+      expect(getCitizenshipStatus()).toBe("citizen");
+    });
+
+    it("stays hidden when the flag is still off after recovery", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+
+      const card = await appendCard({ visible: true });
+      recovery.recover();
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(card.textContent!.trim()).toBe("");
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(2);
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(getCitizenshipStatus()).toBe("unknown");
+    });
+
+    it("stays hidden when the platform never recovers", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(whenPlatformRecoveredLate).toHaveBeenCalledTimes(1);
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(1);
+      expect(loadProfile).not.toHaveBeenCalled();
+    });
+
+    // Owner ruling Q2 on 0326: `Citizenship:Earned:XP` is dormant (0250 S1,
+    // D4), so one server read per refresh stands in for it.
+    it("reads the profile once across a recovery; reconciliation reads only after the reveal", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      // Hidden: the reconciliation listener is not registered yet.
+      reconcile();
+      await settle(card);
+      expect(loadProfile).not.toHaveBeenCalled();
+
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+      recovery.recover();
+      await settle(card);
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+
+      reconcile();
+      await settle(card);
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+    });
+
+    it("does nothing extra for a card already shown at the gate", async () => {
+      const recovery = deferredRecovery();
+
+      const card = await appendCard({ visible: true });
+      recovery.recover();
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(false);
+      expect(whenPlatformRecoveredLate).not.toHaveBeenCalled();
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(1);
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      expect(
+        logEventAnalytics.mock.calls.filter(
+          ([event]) => event === "Citizenship:Seen",
+        ),
+      ).toHaveLength(1);
+    });
+
+    it("does not reveal a card disconnected before the signal", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+      const card = await appendCard({ visible: true });
+      card.remove();
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+      recovery.recover();
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(1);
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("does not reveal a card disconnected while the second flag read is pending", async () => {
+      const recovery = deferredRecovery();
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+      const card = await appendCard({ visible: true });
+      let resolveFlag: (value: boolean) => void = () => {};
+      isCitizenshipUiEnabled.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          resolveFlag = resolve;
+        }),
+      );
+      recovery.recover();
+      await settle(card);
+      expect(isCitizenshipUiEnabled).toHaveBeenCalledTimes(2);
+
+      card.remove();
+      resolveFlag(true);
+      await settle(card);
+
+      expect(card.classList.contains("hidden")).toBe(true);
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("never subscribes when the local CITIZENSHIP_CARD_ENABLED flag is off", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+
+      await appendCard({ visible: true });
+
+      expect(whenPlatformRecoveredLate).not.toHaveBeenCalled();
+    });
+
+    // Review R1: `YaGames.init()` has no upper bound, so the recovery can land
+    // after the player joined a lobby or match. The late reveal (and with it the
+    // tenure gift popup and Citizenship:Seen) waits for the start screen — a
+    // lobby or match is never interrupted (the 0303 rule).
+    describe("recovery while away from the start screen (review R1)", () => {
+      /** A stand-in for the real <tenure-grant-modal> in the page. */
+      function appendModal(): jest.Mock {
+        const modal = document.createElement("tenure-grant-modal");
+        const show = jest.fn();
+        Object.assign(modal, { show });
+        document.body.appendChild(modal);
+        return show;
+      }
+
+      let away = false;
+      beforeEach(() => {
+        away = false;
+        setStartScreenPresenceSource(() => away);
+        loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+        claimTenureGrant.mockResolvedValue({
+          status: "granted",
+          xpAwarded: 30,
+          xp: 55,
+        });
+      });
+
+      it("waits for the start screen: no reveal, gift popup or Seen during a lobby or match", async () => {
+        const show = appendModal();
+        const recovery = deferredRecovery();
+        isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+        const card = await appendCard({ visible: true });
+        away = true; // the player joined a lobby, then the platform recovered
+        isCitizenshipUiEnabled.mockResolvedValue(true);
+        recovery.recover();
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(true);
+        expect(loadProfile).not.toHaveBeenCalled();
+        expect(claimTenureGrant).not.toHaveBeenCalled();
+        expect(show).not.toHaveBeenCalled();
+        expect(logEventAnalytics).not.toHaveBeenCalled();
+
+        away = false; // back on the start screen (left the lobby)
+        reportBackOnStartScreen();
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(false);
+        expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
+        expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(loadProfile).toHaveBeenCalledTimes(2); // first read + gift re-read
+      });
+
+      it("reveals at once when the player is on the start screen", async () => {
+        const show = appendModal();
+        const recovery = deferredRecovery();
+        isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+        const card = await appendCard({ visible: true });
+        isCitizenshipUiEnabled.mockResolvedValue(true);
+        recovery.recover();
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(false);
+        expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
+        expect(show).toHaveBeenCalledTimes(1);
+      });
+
+      it("does not reveal a card disconnected while it waits for the start screen", async () => {
+        const recovery = deferredRecovery();
+        isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+        const card = await appendCard({ visible: true });
+        away = true;
+        isCitizenshipUiEnabled.mockResolvedValue(true);
+        recovery.recover();
+        await settle(card);
+
+        card.remove();
+        away = false;
+        reportBackOnStartScreen();
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(true);
+        expect(loadProfile).not.toHaveBeenCalled();
+        expect(claimTenureGrant).not.toHaveBeenCalled();
+        expect(logEventAnalytics).not.toHaveBeenCalled();
+      });
+
+      it("does not change a card already shown at the gate", async () => {
+        const show = appendModal();
+        away = true; // the gate reveal is not the late path: unchanged
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(false);
+        expect(show).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
   describe("name change", () => {
     const CITIZEN_PROFILE = {
       displayName: "Игрок_7734",
@@ -915,6 +1765,7 @@ describe("CitizenshipCard", () => {
       isCitizen: true,
       isAuthoritative: true,
       nameChange: null,
+      approvedName: null,
     };
 
     const nameCta = (card: CitizenshipCard) =>
@@ -931,6 +1782,8 @@ describe("CitizenshipCard", () => {
       card.querySelector<HTMLButtonElement>("#citizenship-name-change-retry");
     const nameError = (card: CitizenshipCard) =>
       card.querySelector("#citizenship-name-change-error");
+    const nameDismiss = (card: CitizenshipCard) =>
+      card.querySelector<HTMLButtonElement>("#citizenship-name-change-dismiss");
 
     async function openEditor(card: CitizenshipCard) {
       (nameCta(card) as HTMLButtonElement).click();
@@ -1245,6 +2098,135 @@ describe("CitizenshipCard", () => {
         nameSubmit(card)!.click();
         await flushLit(card);
         expect(submitNameChange).toHaveBeenCalledWith("BetterName");
+      });
+
+      // ── Task 0314, owner ruling Q1: a Hide button, remembered by the server ──
+      describe("Hide (task 0314)", () => {
+        const IDLE = { ...CITIZEN_PROFILE, nameChange: null };
+        const PENDING_AFTER = {
+          ...CITIZEN_PROFILE,
+          nameChange: {
+            status: "pending" as const,
+            requested_name: "BetterName",
+            decided_at: null,
+          },
+        };
+
+        async function tapHide(card: CitizenshipCard) {
+          nameDismiss(card)!.click();
+          await flushLit(card);
+          await flushMicrotasks();
+          await flushLit(card);
+        }
+
+        it("shows a Hide button next to Try another name", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          const card = await appendCard({ visible: true });
+          expect(nameDismiss(card)).not.toBeNull();
+          expect(nameDismiss(card)!.textContent).toContain(
+            "citizenship_name_change.dismiss",
+          );
+          expect(nameRetry(card)).not.toBeNull();
+        });
+
+        it("is offered ONLY on the declined notice — not idle, pending or approved", async () => {
+          for (const profile of [
+            IDLE,
+            PENDING_AFTER,
+            {
+              ...CITIZEN_PROFILE,
+              nameChange: {
+                status: "approved" as const,
+                requested_name: "NewName",
+                decided_at: "2026-08-28T10:00:00.000Z",
+              },
+            },
+          ]) {
+            document.body.innerHTML = "";
+            loadProfile.mockResolvedValue(profile);
+            const card = await appendCard({ visible: true });
+            expect(nameDismiss(card)).toBeNull();
+          }
+        });
+
+        it("tap → dismiss → re-reads the profile → the card is idle", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          dismissRejection.mockResolvedValue({ status: "ok" });
+          const card = await appendCard({ visible: true });
+          loadProfile.mockClear();
+          loadProfile.mockResolvedValue(IDLE);
+          await tapHide(card);
+          expect(dismissRejection).toHaveBeenCalledTimes(1);
+          // The idle state comes from the SERVER, never latched locally.
+          expect(loadProfile).toHaveBeenCalledTimes(1);
+          expect(nameCta(card)).not.toBeNull();
+          expect(card.textContent).not.toContain(
+            "citizenship_name_change.rejected_label",
+          );
+          expect(nameError(card)).toBeNull();
+        });
+
+        it("stores nothing on the device", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          dismissRejection.mockResolvedValue({ status: "ok" });
+          const card = await appendCard({ visible: true });
+          loadProfile.mockResolvedValue(IDLE);
+          const before = localStorage.length;
+          await tapHide(card);
+          expect(localStorage.length).toBe(before);
+        });
+
+        it("on error, keeps the notice and shows the error line", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          dismissRejection.mockResolvedValue({ status: "error" });
+          const card = await appendCard({ visible: true });
+          loadProfile.mockClear();
+          await tapHide(card);
+          expect(loadProfile).not.toHaveBeenCalled();
+          expect(card.textContent).toContain(
+            "citizenship_name_change.rejected_label",
+          );
+          expect(nameError(card)!.textContent).toContain(
+            "citizenship_name_change.error_generic",
+          );
+        });
+
+        it("ignores a second tap while one is in flight", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          let resolveDismiss: (value: { status: "ok" }) => void = () => {};
+          dismissRejection.mockReturnValue(
+            new Promise((resolve) => {
+              resolveDismiss = resolve;
+            }),
+          );
+          const card = await appendCard({ visible: true });
+          nameDismiss(card)!.click();
+          nameDismiss(card)!.click();
+          await flushLit(card);
+          expect(dismissRejection).toHaveBeenCalledTimes(1);
+          resolveDismiss({ status: "ok" });
+          await flushMicrotasks();
+        });
+
+        it("after hiding, CTA → editor → submit still reaches pending", async () => {
+          loadProfile.mockResolvedValue(REJECTED);
+          dismissRejection.mockResolvedValue({ status: "ok" });
+          submitNameChange.mockResolvedValue({ status: "ok" });
+          const card = await appendCard({ visible: true });
+          loadProfile.mockResolvedValue(IDLE);
+          await tapHide(card);
+          await openEditor(card);
+          await typeName(card, "BetterName");
+          loadProfile.mockResolvedValue(PENDING_AFTER);
+          nameSubmit(card)!.click();
+          await flushLit(card);
+          await flushMicrotasks();
+          await flushLit(card);
+          expect(submitNameChange).toHaveBeenCalledWith("BetterName");
+          expect(card.textContent).toContain(
+            "citizenship_name_change.pending_label",
+          );
+        });
       });
     });
 

@@ -41,6 +41,19 @@ routes do dispatch `leave-lobby`** (leaving a public-lobby card, closing the pri
 *Context*, and (c) how the Yandex Games iframe treats Back / hash navigation has **not been checked**,
 so "unreachable" rests on the desktop-browser observation only.
 
+> ⚠️ **2026-09-28 — reason (b) above partly rested on a wrong route-table row.** Only **one** of the "two
+> shipped pre-start routes" is shipped today; the private-lobby modal close is not (see the correction under
+> the route table; `0303` review R1, `0327`). The **Medium** rank itself is **unchanged** and still the
+> producer's, not the owner's — re-ranking is **left for the owner** (ruling of 2026-09-28 scoped the fix to
+> striking the row). Reasons (a) and (c) are unaffected.
+
+> ✅ **OWNER RULING 2026-09-28 — rank stays Medium; it is now the OWNER's rank.** Given live via
+> `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; recorded by a spawned
+> `fkit-producer` with no owner channel (ADR-021/037) — ⛔ not producer precedent. Answer: **"Keep Medium
+> (Recommended)"**. Option text: *"Once 0327 fixes the second button, the same leak applies to it again — so
+> Medium stays right."* The two notes above stay as written (the *"producer's, not the owner's"* wording
+> there was true when written); this ruling settles the re-rank they left open.
+
 ## Status
 🔲 Backlog
 
@@ -76,7 +89,18 @@ relying on any of them.**
 | URL hash change in-game, or Back after a `pushState` | `hashchange` / `popstate` → `onHashUpdate` → `handleLeaveLobby()` when `gameStop !== null` (`Main.ts:503-516`) | Reachable by a player typing in the address bar or pressing Back; **not** a button. ⚠️ Iframe (Yandex Games) behaviour **unchecked** |
 | `document.dispatchEvent(new CustomEvent("leave-lobby"))` | listener at `Main.ts:287` | Synthetic — 0231's test route |
 | Leaving a **public-lobby card** before the game starts | `PublicLobby.ts:345` dispatches `leave-lobby` | **Yes, shipped — pre-start only** |
-| Closing the **private-lobby modal** (`closeAndLeave`) | `JoinPrivateLobbyModal.ts:137` dispatches `leave-lobby` | **Yes, shipped — pre-start only** |
+| ~~Closing the **private-lobby modal** (`closeAndLeave`)~~ | ~~`JoinPrivateLobbyModal.ts:137` dispatches `leave-lobby`~~ | ~~**Yes, shipped — pre-start only**~~ **Not shipped — struck 2026-09-28, see the note below this table.** |
+
+> ❌ **Correction — 2026-09-28, by OWNER RULING** (*"Fix it now (Recommended)"* — option text: *"Strike the
+> wrong line (append-only) so nobody reading 0252 meanwhile is misled. Small producer edit."* — given live via
+> `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`,
+> ADR-021/037; ⛔ not producer precedent). **The struck row above was wrong.** `closeAndLeave` has **no
+> caller** anywhere in `src/client`, so closing the private-lobby modal does **not** send `leave-lobby` today —
+> per [`0303`](../../done/0303-the-whole-game-reflects-a-purchase-without-a-reload/review.md) review **R1** and
+> [`0327`](../../done/0327-closing-a-joined-private-lobby-window-does-not-leave-the-lobby/brief.md), which is the task
+> that makes this route real (Sprint 6). **Read every "two shipped pre-start routes" in this brief as ONE
+> today** (leaving a public-lobby card). The text is kept as written, not edited. Once `0327` ships, the
+> private-lobby close becomes a second shipped pre-start route and step 2's measurement applies to it again.
 
 ⚠️ **The two shipped pre-start routes were NOT measured by 0231** (its 1b/1c/1d all left an
 already-started game). On those routes no `GameRenderer` exists yet, so the canvas / rAF / renderer

@@ -202,6 +202,8 @@ separate bucket. *(The owner has not ruled on this; it is the producer's recomme
   reported empty as of 2026-06-01.~~ ✅ **DONE 2026-09-22** — names confirmed and emptiness
   re-measured; see *"📐 MEASURED STATE OF BLOCKER 2"* under `## Dependencies`. ⚠️ Read that section's
   ceiling: working tree, not a deployed host.
+- 📌 **Routing note from [`0303`](../../done/0303-the-whole-game-reflects-a-purchase-without-a-reload/brief.md) (2026-09-28, `0303` plan step 11; added by a spawned `fkit-producer` at `fkit-lead`'s request):**
+  *"after a purchase the popup offers a restart and a match end reloads anyway, so a perk may read status at load time. A grant made by session-start reconciliation applies from the next load unless the perk listens to `PURCHASES_RECONCILED_EVENT`."*
 
 ### ✅ RESOLVED 2026-09-22 — THE BLOCKER COUNT STAYS **TWO**. `0009` IS **NOT** A THIRD BLOCKER.
 

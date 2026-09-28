@@ -108,3 +108,4 @@ The design rules that make this a seam rather than just a shortcut:
 - `../architecture.md` §7, §11 R1, §13 open question 5
 - ADR-101 — the fail-soft crediting path this seam feeds
 - `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md` — the rejected hashing approach
+- [ADR-115](adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) (2026-09-28, task `0322`) — widens this seam's scope to a third user: after crediting/resolve and the `0302` private-lobby gate, the funnel now also decides which approved name other players see in a match; the forged-id case is an owner-accepted risk (D3) there, closed by `0325` plus the join-token second step with no change to that code.

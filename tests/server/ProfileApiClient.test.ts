@@ -253,6 +253,44 @@ describe("ProfileApiClient", () => {
       });
     });
 
+    // Task 0322: the approved display name rides on the same reply.
+    test("returns the displayName when the profile server sends one", async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse(200, {
+          playerId: PLAYER_ID,
+          isCitizen: true,
+          displayName: "Name_1",
+        }),
+      ) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await expect(client.resolvePlayer("yx-1")).resolves.toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: true,
+        displayName: "Name_1",
+      });
+    });
+
+    // Task 0322: a malformed name must NOT cost the player the whole resolve —
+    // the XP credit id and the ★ still come through, and the name reads as absent.
+    test("a malformed displayName still returns playerId and isCitizen", async () => {
+      global.fetch = jest.fn().mockResolvedValue(
+        jsonResponse(200, {
+          playerId: PLAYER_ID,
+          isCitizen: true,
+          displayName: { not: "a string" },
+        }),
+      ) as unknown as typeof fetch;
+
+      const { client, child } = newClient();
+      const resolved = await client.resolvePlayer("yx-1");
+      expect(resolved).not.toBeNull();
+      expect(resolved?.playerId).toBe(PLAYER_ID);
+      expect(resolved?.isCitizen).toBe(true);
+      expect(resolved?.displayName).toBeUndefined();
+      expect(child.warn).not.toHaveBeenCalled();
+    });
+
     test("returns null and never fetches when the profile API is unconfigured", async () => {
       const fetchMock = jest.fn();
       global.fetch = fetchMock as unknown as typeof fetch;

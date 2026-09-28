@@ -38,7 +38,10 @@ import {
   type TelegramSendOutcome,
 } from "../core/notifications/TelegramNotifier";
 import { formatError, logger } from "./Logger";
-import { describeRequestedNameForModerator } from "./NameChangeRepository";
+import {
+  describeRequestedNameForModerator,
+  wouldMatchFilterHideName,
+} from "./NameChangeRepository";
 
 const log = logger.child({ comp: "name-change-digest" });
 
@@ -83,7 +86,10 @@ export type NameChangeDigestResult = "sent" | "failed";
  * import-surface note in sendNameChangeDigest.ts). ⚠️ Since task 0315 the CLI DOES load
  * zod, through ./NameChangeRepository (the list reuses 0307's name display) — a known,
  * accepted cost: decideNameChange.ts already loads zod on the same box, and nothing on
- * that path reaches ./Server, ./Routes or ./Telemetry. A TORN write would leave an
+ * that path reaches ./Server, ./Routes or ./Telemetry. Since task 0322 it also loads
+ * `obscenity` (the match's rude-name matcher, for the list's warning) the same way — a
+ * small, accepted memory cost on the low-RAM box, again nowhere near those three
+ * modules. A TORN write would leave an
  * unparseable `finished_at`, which profile-checks.sh reads as a FAIL — the safe
  * direction, but a page for no reason.
  */
@@ -255,7 +261,13 @@ export function formatPendingNameChangeList(
       `${index + 1}. <code>${escapeTelegramHtml(entry.playerId)}</code>` +
       ` · ${html}` +
       ` · waiting ${formatWaitingTime(at.getTime() - entry.requestedAt.getTime())}` +
-      (hasHiddenCharacters ? " ⚠️ hidden characters" : "");
+      (hasHiddenCharacters ? " ⚠️ hidden characters" : "") +
+      // Task 0322. Needed here, not only in the per-request message: the per-player
+      // notification cooldown means some requests never get a message of their own,
+      // so this list is the only place they are flagged. Counted in the budget below.
+      (wouldMatchFilterHideName(entry.requestedName)
+        ? " ⚠️ rude-name filter"
+        : "");
     if (length + line.length + 1 + reserved > PENDING_LIST_MAX_LENGTH) break;
     lines.push(line);
     length += line.length + 1;

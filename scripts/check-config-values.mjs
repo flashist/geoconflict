@@ -41,11 +41,14 @@
 //
 // EXIT CONTRACT (mirrors the parity guard's)
 //   --report-only  exits 0 for every analysis outcome.
-//   --enforce      exits 1 on any REQUIRED, VALUE-UNKNOWN, PARSE-FAILURE or SKIP. Built
-//                  and tested, but wired to nothing — arming it is task 0298.
+//   --enforce      exits 1 on any REQUIRED, VALUE-UNKNOWN, PARSE-FAILURE or SKIP. ARMED by
+//                  task 0298 (owner ruling 2026-09-28, Q1 = "arm both"): deploy.sh's
+//                  run_config_value_guard passes it and returns its exit status, and the
+//                  call site stops the deploy on a non-zero one. A missing checker, a
+//                  missing node, a failed --list-sources or an empty source list stop it
+//                  too. Value rules still judge PROD only, so dev/staging can stop only on
+//                  a wiring fault.
 //   Bad or missing arguments (including --deploy-env, one of dev|staging|prod) exit 2.
-//   THE ABSOLUTE "this cannot fail a deploy" is guaranteed by the CALL SITE's `|| true`
-//   in deploy.sh, not by this file.
 //
 // Zero dependencies: Node stdlib only.
 

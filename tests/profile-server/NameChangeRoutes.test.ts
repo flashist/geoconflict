@@ -39,7 +39,9 @@ function mockNameChange(
   return {
     requestNameChange: jest.fn().mockResolvedValue({ status: "ok", id: 1 }),
     cancelNameChange: jest.fn().mockResolvedValue({ status: "ok" }),
+    dismissRejection: jest.fn().mockResolvedValue({ status: "ok" }),
     decideNameChange: jest.fn().mockResolvedValue({ status: "ok" }),
+    clearDisplayName: jest.fn().mockResolvedValue({ status: "ok" }),
     getLatestState: jest.fn().mockResolvedValue(null),
     ...overrides,
   };
@@ -329,6 +331,105 @@ describe("name-change routes", () => {
     });
   });
 
+  // Task 0314, owner ruling Q1: hide a declined notice, remembered on the server.
+  describe("POST /v1/profile/name-change-dismiss", () => {
+    it("hides the caller's own declined request and 200s", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({})
+        .expect(200, { status: "ok" });
+      expect(nameChange.dismissRejection).toHaveBeenCalledWith(PLAYER_ID);
+    });
+
+    it("400s a non-object body before the repository", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .set("Content-Type", "application/json")
+        .send("[1]")
+        .expect(400, { error: "bad_request" });
+      expect(nameChange.dismissRejection).not.toHaveBeenCalled();
+    });
+
+    it("401s without a token, without reaching the repository", async () => {
+      const nameChange = mockNameChange();
+      await request(appWith(nameChange))
+        .post("/v1/profile/name-change-dismiss")
+        .send({})
+        .expect(401, { error: "session_invalid" });
+      expect(nameChange.dismissRejection).not.toHaveBeenCalled();
+    });
+
+    it("403s a non-citizen", async () => {
+      await request(
+        appWith(
+          mockNameChange({
+            dismissRejection: jest
+              .fn()
+              .mockResolvedValue({ status: "not_citizen" }),
+          }),
+        ),
+      )
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({})
+        .expect(403, { error: "not_citizen" });
+    });
+
+    it("503s with no usable session secret", async () => {
+      const nameChange = mockNameChange();
+      await request(
+        createApp(mockRepo(), undefined, undefined, nameChange, undefined),
+      )
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({})
+        .expect(503, { error: "session_unavailable" });
+      expect(nameChange.dismissRejection).not.toHaveBeenCalled();
+    });
+
+    it("500s (without leaking) when the repository throws", async () => {
+      const res = await request(
+        appWith(
+          mockNameChange({
+            dismissRejection: jest.fn().mockRejectedValue(new Error("db down")),
+          }),
+        ),
+      )
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({})
+        .expect(500);
+      expect(res.body).toEqual({ error: "internal_error" });
+    });
+
+    it("fails CLOSED with 503 when the feature is unwired", async () => {
+      await request(appWith(null))
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({})
+        .expect(503, { error: "name_change_unavailable" });
+    });
+
+    it("answers the CORS preflight with 204 + headers, and sets CORS on the answer", async () => {
+      const preflight = await request(appWith())
+        .options("/v1/profile/name-change-dismiss")
+        .expect(204);
+      expect(preflight.headers["access-control-allow-origin"]).toBe("*");
+      expect(preflight.headers["access-control-allow-methods"]).toContain(
+        "POST",
+      );
+      const res = await request(appWith())
+        .post("/v1/profile/name-change-dismiss")
+        .set("Authorization", CALLER)
+        .send({});
+      expect(res.headers["access-control-allow-origin"]).toBe("*");
+    });
+  });
+
   describe("POST /internal/v1/name-change/decide", () => {
     it("401s without the internal token — it is NOT player-reachable", async () => {
       await request(appWith())
@@ -488,6 +589,131 @@ describe("name-change routes", () => {
         .expect(409, { error: "name_taken" });
     });
 
+    // ── Task 0314, owner ruling Q2: the operator's "clear" ──
+    describe("decision: clear", () => {
+      const CLEAR = {
+        playerId: PLAYER_ID,
+        decision: "clear",
+        expectedName: "OldName",
+        reason: "offensive",
+      };
+
+      it("clears through clearDisplayName (never decideNameChange) and 200s", async () => {
+        const nameChange = mockNameChange();
+        await request(appWith(nameChange))
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send(CLEAR)
+          .expect(200, { status: "ok" });
+        expect(nameChange.clearDisplayName).toHaveBeenCalledWith(
+          PLAYER_ID,
+          "OldName",
+          "offensive",
+        );
+        expect(nameChange.decideNameChange).not.toHaveBeenCalled();
+      });
+
+      it("404s no_custom_name when there is no name to remove", async () => {
+        await request(
+          appWith(
+            mockNameChange({
+              clearDisplayName: jest
+                .fn()
+                .mockResolvedValue({ status: "no_custom_name" }),
+            }),
+          ),
+        )
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send(CLEAR)
+          .expect(404, { error: "no_custom_name" });
+      });
+
+      it("409s name_mismatch and hands back the CURRENT name", async () => {
+        await request(
+          appWith(
+            mockNameChange({
+              clearDisplayName: jest.fn().mockResolvedValue({
+                status: "name_mismatch",
+                currentName: "RealName",
+              }),
+            }),
+          ),
+        )
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send(CLEAR)
+          .expect(409, { error: "name_mismatch", current_name: "RealName" });
+      });
+
+      it("400s a clear with a missing or blank reason, or without expectedName", async () => {
+        const nameChange = mockNameChange();
+        for (const body of [
+          { ...CLEAR, reason: undefined },
+          { ...CLEAR, reason: "" },
+          { ...CLEAR, reason: "   " },
+          { ...CLEAR, expectedName: undefined },
+        ]) {
+          await request(appWith(nameChange))
+            .post("/internal/v1/name-change/decide")
+            .set("Authorization", `Bearer ${TOKEN}`)
+            .send(body)
+            .expect(400, { error: "bad_request" });
+        }
+        expect(nameChange.clearDisplayName).not.toHaveBeenCalled();
+      });
+
+      it("401s without the internal token", async () => {
+        const nameChange = mockNameChange();
+        await request(appWith(nameChange))
+          .post("/internal/v1/name-change/decide")
+          .send(CLEAR)
+          .expect(401);
+        expect(nameChange.clearDisplayName).not.toHaveBeenCalled();
+      });
+
+      it("500s (without leaking) when the repository throws", async () => {
+        const res = await request(
+          appWith(
+            mockNameChange({
+              clearDisplayName: jest
+                .fn()
+                .mockRejectedValue(new Error("db down")),
+            }),
+          ),
+        )
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send(CLEAR)
+          .expect(500);
+        expect(res.body).toEqual({ error: "internal_error" });
+      });
+
+      it("fails CLOSED with 503 when the feature is unwired", async () => {
+        await request(appWith(null))
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send(CLEAR)
+          .expect(503, { error: "name_change_unavailable" });
+      });
+
+      it("leaves approve and reject answers unchanged — expectedName still OPTIONAL for them", async () => {
+        const nameChange = mockNameChange();
+        await request(appWith(nameChange))
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send({ playerId: PLAYER_ID, decision: "approve" })
+          .expect(200, { status: "ok" });
+        await request(appWith(nameChange))
+          .post("/internal/v1/name-change/decide")
+          .set("Authorization", `Bearer ${TOKEN}`)
+          .send({ playerId: PLAYER_ID, decision: "reject", reason: "r" })
+          .expect(200, { status: "ok" });
+        expect(nameChange.decideNameChange).toHaveBeenCalledTimes(2);
+        expect(nameChange.clearDisplayName).not.toHaveBeenCalled();
+      });
+    });
+
     it("sets NO CORS header — internal routes are never browser-reachable", async () => {
       const res = await request(appWith())
         .post("/internal/v1/name-change/decide")
@@ -555,7 +781,9 @@ describe("name-change routes", () => {
         .set("Authorization", CALLER)
         .expect(200);
       expect(res.body).not.toHaveProperty("name_change");
-      expect(res.body.xp).toBe(1000);
+      // A citizen reads exactly 100 to an unverified caller (task 0250 S1,
+      // owner ruling Q-A); the row holds 1000.
+      expect(res.body.xp).toBe(100);
     });
 
     it("does not query name-change state for a profile that does not exist", async () => {

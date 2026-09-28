@@ -24,6 +24,10 @@ export class TenureGrantModal extends LitElement {
   @state()
   private params: TenureGrantModalParams | null = null;
 
+  // Task 0303: the card waits for this before offering the restart popup, so
+  // the two popups come one after the other, never stacked.
+  private onClosed: (() => void) | null = null;
+
   static styles = css`
     .modal-overlay {
       display: none;
@@ -106,7 +110,7 @@ export class TenureGrantModal extends LitElement {
                   threshold: CITIZENSHIP_XP_THRESHOLD,
                 })}
           </p>
-          <button id="tenure-grant-modal-cta" @click=${this.hide}>
+          <button id="tenure-grant-modal-cta" @click=${this.onCtaTap}>
             ${translateText("citizenship_tenure_grant.cta")}
           </button>
         </div>
@@ -114,8 +118,9 @@ export class TenureGrantModal extends LitElement {
     `;
   }
 
-  show(params: TenureGrantModalParams) {
+  show(params: TenureGrantModalParams, onClosed?: () => void) {
     this.params = params;
+    this.onClosed = onClosed ?? null;
     this.isVisible = true;
     this.requestUpdate();
   }
@@ -124,4 +129,11 @@ export class TenureGrantModal extends LitElement {
     this.isVisible = false;
     this.requestUpdate();
   }
+
+  private readonly onCtaTap = (): void => {
+    this.hide();
+    const onClosed = this.onClosed;
+    this.onClosed = null;
+    onClosed?.();
+  };
 }

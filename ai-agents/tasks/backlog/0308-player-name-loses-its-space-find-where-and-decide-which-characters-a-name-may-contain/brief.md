@@ -106,6 +106,17 @@ each path safe on its own.
 - **Related:** `0067` (name change, which reused this rule on the server by owner ruling) · `0068`
   (citizen verified icon) · `0296` (after-deploy production checks) · the Sprint 6 *Nickname Styling System* row (will draw names too). *(Reworded 2026-09-26: it cited a
   board rank, which the re-rank of that day changed.)*
+- **Look-alike names — to be revisited HERE (owner ruling D6 on `0317`, 2026-09-27).** *Added 2026-09-27 by a
+  spawned `fkit-producer` with no owner channel, on an owner ruling given live via `AskUserQuestion` in the
+  `fkit lead` session and relayed by `fkit-lead` (ADR-021/037); ⛔ not producer precedent.* `0317` re-raised
+  `0307`'s *"Accept for now"* look-alike residual, because its re-raise condition is now met: approved names
+  will be shown to other players in matches ([`0322`](../../done/0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md)).
+  The owner, verbatim: **"Keep accepting, revisit in 0308 (Recommended)"** — option text *"You, as moderator,
+  catch look-alikes when approving. Handle it properly with 0308 (which characters a name may contain)."* So
+  this task's character rule must also decide how look-alike names are handled (today uniqueness among approved
+  names is `lower()` only, with no normalization — [`0317` report](../../../knowledge-base/reports/2026-09-27-0317-approved-name-in-matches.md)
+  §2 point 3). ⚠️ The owner-approved `plan.md` predates this ruling and says the look-alike residual is **not**
+  reopened (its opening notes); raise the conflict at the plan gate. This note changes neither this task's status nor its plan.
 - **Privacy:** never write the owner's real name into a brief, worklog, test or report.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
 

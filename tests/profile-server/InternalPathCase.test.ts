@@ -81,6 +81,8 @@ function mockNameChange(): NameChangeRepo {
   return {
     requestNameChange: jest.fn().mockResolvedValue({ status: "ok", id: 1 }),
     cancelNameChange: jest.fn().mockResolvedValue({ status: "ok" }),
+    dismissRejection: jest.fn().mockResolvedValue({ status: "ok" }),
+    clearDisplayName: jest.fn().mockResolvedValue({ status: "ok" }),
     decideNameChange: jest.fn().mockResolvedValue({ status: "ok" }),
     getLatestState: jest.fn().mockResolvedValue(null),
   };

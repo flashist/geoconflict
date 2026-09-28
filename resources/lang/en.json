@@ -25,7 +25,7 @@
     "single_play_mission": "Одиночная миссия"
   },
   "main": {
-    "title": "Geoconflict (ALPHA)",
+    "title": "Online strategy",
     "join_discord": "Join the Discord!",
     "login_discord": "Login with Discord",
     "checking_login": "Checking login...",
@@ -77,6 +77,7 @@
     "rejected_label": "Request declined",
     "rejected_hint": "“{name}” was not approved. Check your inbox for the reason, then try another name.",
     "try_again": "Try another name",
+    "dismiss": "Hide",
     "error_name_taken": "That name is already taken.",
     "error_pending_exists": "You already have a request awaiting review.",
     "error_not_citizen": "Name changes are available to citizens only.",
@@ -84,7 +85,7 @@
   },
   "citizenship_tenure_grant": {
     "title": "Thanks for being with us!",
-    "body": "Thank you for playing Geoconflict! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
+    "body": "Thank you for playing! As a thank-you for being with us for so long, we're giving you {xp} free XP. You now have {total} / {threshold} XP.",
     "cta": "Great!"
   },
   "locked_feature": {
@@ -95,24 +96,38 @@
     "body": "This feature is available only to citizens.",
     "close": "Close"
   },
+  "citizenship_restart_modal": {
+    "title": "Citizenship is active!",
+    "body": "Restart the game to finish applying it. If you tap \"Later\", it will apply after your next match or the next time you open the game.",
+    "restart": "Restart now",
+    "later": "Later"
+  },
   "inbox": {
     "empty": "No personal messages yet.",
     "templates": {
       "citizenship_earned": {
-        "title": "You've earned Geoconflict Citizenship!",
+        "title": "You've earned citizenship!",
         "body": "You've reached 100 XP and earned citizenship. You now have access to citizen benefits."
       },
       "citizenship_paid": {
         "title": "Welcome, Citizen!",
         "body": "Your citizenship purchase was successful. You now have access to citizen benefits."
       },
+      "citizenship_granted": {
+        "title": "Welcome, Citizen!",
+        "body": "You are now a citizen. Citizen benefits are now available to you."
+      },
       "name_change_approved": {
         "title": "Your name change was approved",
-        "body": "Your new display name ''{name}'' is now active."
+        "body": "Your new display name ''{name}'' has been approved."
       },
       "name_change_rejected": {
         "title": "Your name change request was rejected",
         "body": "Your requested name ''{name}'' was not approved — {reason}. You can submit a new request at any time."
+      },
+      "name_change_cleared": {
+        "title": "Your display name was removed",
+        "body": "Your display name ''{name}'' was removed by a moderator — {reason}. You can request a new name at any time."
       }
     }
   },
@@ -336,7 +351,8 @@
     "too_short": "Username must be at least {min} characters long.",
     "too_long": "Username must not exceed {max} characters.",
     "invalid_chars": "Username can only contain letters, numbers, spaces, underscores, and [square brackets].",
-    "rules_hint": "{min}–{max} characters: letters, numbers, spaces, _ and [ ]."
+    "rules_hint": "{min}–{max} characters: letters, numbers, spaces, _ and [ ].",
+    "locked_hint": "This is your approved name. You can change it on the Citizenship card."
   },
   "host_modal": {
     "title": "Private Lobby",

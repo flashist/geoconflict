@@ -176,7 +176,10 @@ RUN("tenure XP grant over real Postgres (integration)", () => {
     expect(await xpOf(playerId)).toBe(60);
 
     const res = await claim(token, { daysPlayed: 80, gameRecordDays: 0 });
-    expect(res.body).toEqual({ status: "granted", xpAwarded: 50, xp: 110 });
+    // The claim made them a citizen, and every citizen reads exactly 100 to an
+    // unverified caller (task 0250 S1, owner ruling Q-A); the store holds 110.
+    expect(res.body).toEqual({ status: "granted", xpAwarded: 50, xp: 100 });
+    expect(await xpOf(playerId)).toBe(110);
 
     const row = await pool.query(
       "SELECT is_citizen, citizenship_earned_at FROM players WHERE id = $1",

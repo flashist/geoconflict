@@ -21,6 +21,10 @@
 #     A stale marker means that box can no longer reach the route — the failure that permanently
 #     disables the notification channel (403 ⇒ channel disabled, silently, forever). It proves
 #     REACHABILITY only: not Telegram delivery, and not a channel that is already disabled.
+#   - the SAME probe marker's channel_state (task 0285): the probe also reads the notification
+#     channel's status from the monitoring stack's own Postgres and carries it here. Anything but
+#     `delivering` means that stack is dropping every alert at source — the STATE check 11 cannot
+#     see (a channel disabled yesterday by a failure that has since healed).
 #   - the name-change digest marker /opt/profile/digest/last-name-change-digest.json (task 0283):
 #     the digest CLI stamps it INSIDE the container only when its daily message actually reached
 #     Telegram. A stale marker means Telegram delivery from this box has stopped — the one thing
@@ -458,7 +462,7 @@ check_players_growth() {
 #     ⛔ What this does NOT cover, so nobody over-reads a green line: it proves REACHABILITY
 #     only — not Telegram delivery, not that a human saw anything, not the secret the
 #     monitoring stack's own channel config holds, and NOT a channel that is already
-#     disabled. It catches the CAUSE within ~24h, never the STATE.
+#     disabled. It catches the CAUSE within ~24h, never the STATE — check 13 reads the state.
 #     ⛔ Variable names only in the FAIL text — never a host, an address or a token.
 check_alert_probe() {
   local name="alert-path-probe" finished age_h
@@ -519,6 +523,62 @@ check_name_change_digest() {
   fi
 }
 
+# 13) The notification channel's OWN state (task 0285). Check 11 catches the CAUSE; this
+#     catches the STATE: a transient 401/403/404 yesterday disabled the channel, the address is
+#     fine today, check 11 is green — and the monitoring stack still drops EVERY alert at source,
+#     because it refuses to send unless the channel's status is `delivering`.
+#     The hourly probe on the monitoring box reads that status from the stack's own Postgres
+#     (read-only) and carries it in the SAME marker check 11 reads, as `channel_state`. So the
+#     signal travels the probe → relay → marker → dead-man's switch path, never the alert
+#     channel it is checking.
+#     Unreadable ⇒ FAIL, every run (owner ruling Q2, 2026-09-28): a check that cannot read the
+#     state cannot say alerting is alive. A deliberate image upgrade is caught at BUILD time
+#     instead — the hardening harness pins the image tag the query was verified against.
+#     ⛔ What a green line does NOT mean: it is the stack's own record only — not that a message
+#     reaches Telegram or a human, not that a monitor is attached, not the secret the channel
+#     holds.
+#     ⛔ Variable names only in the FAIL text — never a host, an address, a URL or a token.
+check_alert_channel_state() {
+  local name="alert-channel-state" finished age_h state
+  if [ ! -f "$PROBE_MARKER" ]; then
+    fail "$name" "no alert-path probe marker, so the notification channel's state is UNKNOWN — no probe has arrived to carry it (see alert-path-probe)"
+    return 0
+  fi
+  finished="$(json_field "$PROBE_MARKER" finished_at)"
+  age_h="$(hours_since "$finished")"
+  if [ -z "$age_h" ]; then
+    fail "$name" "the probe marker's finished_at is unparseable ('${finished}'), so the channel state in it is UNKNOWN (see alert-path-probe)"
+    return 0
+  elif [ "$age_h" -lt 0 ]; then
+    fail "$name" "the probe marker's finished_at is ${age_h#-}h in the FUTURE ('${finished}'), so the channel state in it is UNKNOWN — a negative age must never read GREEN (see alert-path-probe)"
+    return 0
+  elif [ "$age_h" -gt "$MAX_ALERT_PROBE_AGE_HOURS" ]; then
+    fail "$name" "the last probe is ${age_h}h old (> ${MAX_ALERT_PROBE_AGE_HOURS}h), so the channel state is UNKNOWN — an old reading is not today's state (see alert-path-probe)"
+    return 0
+  fi
+  state="$(json_field "$PROBE_MARKER" channel_state)"
+  case "$state" in
+    delivering)
+      ok "$name" "the monitoring stack records its alert channel as delivering, ${age_h}h ago — its own record only, NOT proof a message arrives" ;;
+    '')
+      fail "$name" "the probe marker carries no channel_state — the probe script on the monitoring box or the profile relay predates task 0285. Redeploy both (build-deploy-telemetry.sh and build-deploy-profile.sh)" ;;
+    disabled)
+      fail "$name" "the monitoring stack records its alert notification channel as DISABLED (${age_h}h ago) — EVERY alert is being dropped at source. Re-enable it in the monitoring UI, then find the cause (usually a 401/403/404 reply; check PROFILE_INTERNAL_ALLOW_IPS). Fixing the cause does NOT undo the disable" ;;
+    paused)
+      fail "$name" "the monitoring stack records its alert notification channel as PAUSED (${age_h}h ago) — someone paused it, and every alert is dropped until it is set back to delivering in the monitoring UI" ;;
+    draft)
+      fail "$name" "the monitoring stack records its alert notification channel as DRAFT (${age_h}h ago) — it was never finished saving, and every alert is dropped until it is saved in the monitoring UI" ;;
+    missing)
+      fail "$name" "no notification channel's URL equals TELEMETRY_ALERT_PROBE_URL — either the channel was deleted, or the probe is testing a different URL than alerts use. Compare the channel's URL in the monitoring UI with TELEMETRY_ALERT_PROBE_URL" ;;
+    unreadable)
+      fail "$name" "the probe could not read the channel state — the monitoring stack's Postgres is down, or its schema changed (was the monitoring image upgraded?). /var/log/uptrace-alert-probe.log on the monitoring box names the latest run's cause: 'exec or psql failed, rc=1' = the query failed: the schema changed, it hit the server-side statement_timeout, or the Postgres service is not running; 'exec or psql failed, rc=2' = psql cannot connect to Postgres (down, refusing, or the connect timeout); 'timed out' or 'killed' = the docker client itself hung and was stopped (rc=137 can also be the OOM killer); 'unexpected output' = psql succeeded but the rows are the wrong shape (a column changed type?)" ;;
+    invalid)
+      fail "$name" "the relay rejected the channel state the probe sent as malformed ('invalid') — the probe script and the relay disagree. Redeploy both (build-deploy-telemetry.sh and build-deploy-profile.sh)" ;;
+    *)
+      fail "$name" "unexpected channel state '${state}' — only 'delivering' means alerts are sent. Check the channel in the monitoring UI" ;;
+  esac
+}
+
 # ── Report: log summary, then ping the dead-man's switch ──────────────────────
 # curl's stderr is discarded on purpose: its error text can carry the URL. The service alerts on
 # a MISSING ping, so an undelivered ping is logged, exits non-zero, and still pages.
@@ -558,4 +618,5 @@ check_disk_usage
 check_players_growth
 check_alert_probe
 check_name_change_digest
+check_alert_channel_state
 report

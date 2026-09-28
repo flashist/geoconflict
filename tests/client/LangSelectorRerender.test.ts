@@ -18,6 +18,8 @@ describe("LangSelector.applyTranslation re-render list", () => {
     "game-starting-modal",
     // Task 0302: the interim citizens-only notice.
     "citizens-only-modal",
+    // Task 0303: the "restart to apply" popup.
+    "citizenship-restart-modal",
   ])("re-renders <%s>", (tag) => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     const element = document.createElement(tag);
