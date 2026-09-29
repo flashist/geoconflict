@@ -135,6 +135,13 @@ ranked onto the sprint instead.
 ## Status
 ✅ Done (agent-closed — not owner-verified)
 
+> 📌 **Pointer, added 2026-09-29 (link note only — nothing above or below was changed):** this task's deploy, its real
+> run on the box (verification step 2), its drill (step 3) and its "no write" check (step 6) are tracked by
+> [`0341`](../../backlog/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md)
+> (*Verify 0285 in production: deploy it and run its disabled-channel drill*), filed on Sprint 6 by an OWNER RULING
+> given 2026-09-29 live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`. The close above is
+> unchanged.
+
 ## Owner
 fkit-coder
 

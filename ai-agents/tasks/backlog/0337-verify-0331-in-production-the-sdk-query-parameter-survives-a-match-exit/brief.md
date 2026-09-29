@@ -49,6 +49,13 @@ the regular weekend deploy slot unless something is urgent
 ([weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md)). At filing, 0331's
 change was **not committed and not deployed**.
 
+> 📌 **2026-09-29 — the deploy that carries 0331 is planned** (undated). 0331 is committed (`572d134`) and rides
+> the next slot's **game deploy** (`./build-deploy.sh prod`), step **N2** of the
+> [weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan
+> (written 2026-09-29)* (slot order owner-ruled 2026-09-29: telemetry → game → profile). Per that plan, P1 can
+> run as soon as N2's smoke checks pass; it does not wait for the profile deploy. Step 1 below still records the
+> deploy as it actually ran.
+
 ⚠️ **This task does NOT block Sprint 6's deploy.** It runs *after* the deploy, by definition; nothing in Sprint 6
 waits on it, and Sprint 6's deploy must not be held for it.
 

@@ -165,6 +165,35 @@ architecture decision in the `0250` design report §6.
    > 📝 **2026-09-29:** S2 shipped in `0325` (not yet deployed); **S3a is now task `0340`**, gated on `0339`'s
    > S2 exit plus an explicit owner approval. The rollout above is unchanged. See the dated note under
    > *Citation frame* at the top of this file.
+
+   > 📝 **Clarification, 2026-09-29 — the deploy order for the next weekend slot** (added by
+   > `fkit-architect`, spawned by `fkit-lead`, under `decisions/README.md` § *Immutability starts at
+   > `accepted`* — the clarification carve-out. The *Deploy order* bullet above is kept as written.)
+   > **For this slot the order is telemetry → game (`0250` S1 client + `0325` S2 client) → profile (`0250`
+   > S1 server + `0325` S2 server).** Why: S1 and S2 are both committed on `dev` now (`68303d5`, `df3c6b3`),
+   > so one game build carries both client halves and one profile build carries both server halves. The
+   > bullet's "profile server S2 → game client S2" cannot happen without extra deploys, and `0250` S1's rule
+   > is client first. The S2 client going out before the S2 server is safe:
+   > - the deployed server's `LoginRequestSchema` is a plain `z.object`, so it drops the unknown
+   >   `signature` field (`5b3e6ec:src/core/profile/LoginContract.ts:25`, the 0.0.154 commit);
+   > - the old login route never logs the body (`5b3e6ec:src/profile-server/Routes.ts:687` parses it; the
+   >   route's only log line is the `formatError` catch).
+   >
+   > The cost: until the profile deploy, logins are not counted by the metric, and `0314`'s name "Hide"
+   > button gets a 404. **This decision's invariant is kept:** the claim is widened before the first mint,
+   > because S3a (`0340`) is not built. The rollback rule is unchanged.
+   > **Why this is a clarification, not a reversal:** `0325` `plan.md` § *Deploy order and rollback*,
+   > step 2, already recorded *"Either order would be safe for the body"*. Server first was preferred only
+   > so the metric would be live on day one. If a later reader finds the S2 server-before-client order
+   > load-bearing, that needs a superseding ADR, not another note.
+   > **Owner ruling, 2026-09-29**, given live in the `fkit lead` session via `AskUserQuestion` and relayed
+   > by `fkit-lead`. Verbatim answer: **"Game first, record it (Recommended)"**. Option text: *"Keeps
+   > 0250's client-first rule. Cost: a few minutes where the new login check isn't counted yet, and the
+   > rarely used name 'Hide' button shows an error until profile is deployed. Nothing breaks or is lost.
+   > ADR-116 and 0339 get a dated note."*
+   > Steps, checks and rollback: [`../weekend-deploy-slot-runbook.md`](../weekend-deploy-slot-runbook.md) §
+   > *Next window — plan (written 2026-09-29)*. ⚠️ That section was being written in parallel when this
+   > note was added, so it did not exist yet. Check the anchor once it lands.
 7. **One key serves payments and identity.** `YANDEX_PAYMENTS_SECRET`, read once in
    `src/profile-server/Server.ts:118`, is passed to login as well as payments. No new env var; config parity
    is unchanged.

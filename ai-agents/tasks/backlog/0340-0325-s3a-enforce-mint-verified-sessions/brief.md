@@ -23,6 +23,8 @@ Sprint 7
 > ⚠️ **Rank is position, not "ready".** This task cannot start until `0339`'s S2 exit is met **and** the owner
 > has separately approved enforcing (see *Gate*). Until then the next open rows are worked around it.
 
+> 📌 **2026-09-29, later — `0339` moved to Sprint 6; this task did NOT move.** On an OWNER RULING 2026-09-29, typed directly by the owner in the `fkit lead` session (the owner's own message, not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Mov ethe 0339 into the Sprint 6 to the top of priorities."* (typo as typed; meaning: move `0339` into Sprint 6, at the top of its priorities). `0339` is now on [Sprint 6](../../../sprints/plan-sprint-6.md) (owner-ruled top priority, board rank 45). This task stays on Sprint 7 at rank 3, now directly below `0339`'s `➡️ Moved` row (not renumbered — ADR-035). **The gate is unchanged** — `0339`'s S2 exit plus a separate owner approval to enforce — it now waits on a task on another board. Where this brief says *"after the verify task"* or *"directly below `0339`"*, read it as the order of work, not board position.
+
 ## Status
 🔲 Backlog
 

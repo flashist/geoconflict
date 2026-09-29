@@ -1,5 +1,10 @@
 # Weekend deploy-slot runbook — one window, eleven tasks, four deploys
 
+> ## 📌 2026-09-29 — THE NEXT WINDOW IS PLANNED (undated): telemetry → game → profile. Plan: § *Next window — plan (written 2026-09-29)* at the end of this file.
+>
+> Owner rulings 2026-09-29, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021). Everything between
+> this line and that section describes the **2026-09-26** window.
+
 > ## ✅ 2026-09-26 — THE WINDOW RAN (W0–W14; W14's acceptance criterion MET). Results: § *2026-09-26 — THE WINDOW RAN* at the end of this file.
 >
 > Owner-executed, output read by `fkit-lead`, recorded by a spawned `fkit-producer` (ADR-021). ⛔ **The
@@ -1458,3 +1463,180 @@ the same day's game box and it changes W15.
   **0.0.153 was never served**). ⚠️ Still confirm the exact `service.version` values in Uptrace first. The
   ≥ 24 h clock still runs from W12 (0.0.152).
 - **`0268`:** the ~60-day tenure-claim clock started **2026-09-26** (players got the popup on 0.0.154).
+
+---
+
+## 📌 Next window — plan (written 2026-09-29) (appended; nothing above renumbered, ADR-035)
+
+**AUTHORITY / PROVENANCE.** Three **OWNER RULINGS given live in the `fkit lead` session via `AskUserQuestion`
+on 2026-09-29**, relayed by `fkit-lead` to a spawned `fkit-producer` with **no owner channel** (ADR-021). ⛔ Not
+producer precedent. The step content is **`fkit-architect`'s verified plan of 2026-09-29** (it ran the
+config-parity guard and `npm test` that day), checked against the plans of `0250`, `0325`, `0331` and `0285`.
+Written by the producer; **no code, no deploy, no `## Status` changed, no mover run.**
+
+| Question | Owner's answer (verbatim) | Option text (verbatim) |
+|---|---|---|
+| Check and write the combined order? | **"Yes, check and write it (Recommended)"** | *"The architect checks the combined order against 0250, 0325, 0331 and 0285's plans; the producer writes it as a step list into the weekend-deploy-slot runbook. No code, no deploy."* |
+| The order | **"Game first, record it (Recommended)"** | *"Keeps 0250's client-first rule. Cost: a few minutes where the new login check isn't counted yet, and the rarely used name 'Hide' button shows an error until profile is deployed. Nothing breaks or is lost. ADR-116 and 0339 get a dated note."* |
+| The other tasks riding the builds | **"List them + 3 quick checks (Recommended)"** | *"Runbook lists them as 'ships in this deploy, checked later', plus 3 cheap checks: digest heartbeat arrives, migration 007 applied, one approved name shows in a match."* |
+
+⛔ **This window is UNDATED.** No date was ruled; do not infer one.
+
+🚩 **Step names.** The steps below are **N0–N6** (N = next window). They are the architect's "Step 0–6",
+renamed only so they cannot collide with the W-steps above or with a task's own step numbers (see § *Step
+letters collide*). Task-internal steps are always written with their task: `0341` Step 1.3, `0298` owner step 1.
+
+### ⚠️ This order overrides the order written in four task files — recorded, not hidden
+
+| Where | What it says | What this window does |
+|---|---|---|
+| [`0339`](../tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) *Precondition* (from `0325` plan § *Deploy order*) | profile S2, then game S2 | **telemetry → game → profile** (owner ruling above). Dated note in `0339`. |
+| [`0341`](../tasks/backlog/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) Step 1 | profile deploy, then monitoring deploy | **telemetry first** (an older relay ignores the new field, so it is safe). Dated note in `0341`. |
+| [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) worklog owner step 3 / plan § *Deploy order* | profile first — **for cost only** (its guard runs before build and lock) | **game before profile**, because `0250` S1's rule is client first. Dated note in `0298`'s worklog. |
+| ADR-116 | — | The architect writes its dated note (not this producer). |
+
+**The cost of game first, in plain terms:** between N2 and N3 (minutes) the old profile server ignores the new
+login signature, so the metric does not count it yet; the name "Hide" button (dismiss) shows a generic error;
+`0322`'s approved names do not show yet. Nothing breaks and nothing is lost.
+
+### What ships in this deploy — "ships in this deploy, checked later"
+
+**The slot ships everything committed since the 2026-09-26 deploys** (about 100 non-test files). Listed so
+nobody is surprised; each is checked later by its own task, except the three quick checks marked below.
+
+- **Game image:** `0302` (private-lobby start gate), `0303`, `0307`, `0311`, `0314` client (the new
+  `/v1/profile/name-change-dismiss` call), `0316`, `0321`, `0322` (game server reads `displayName` from
+  resolve), `0326`–`0330`, plus `0250` S1 client, `0325` S2 client, `0331`.
+- **Profile image:** `0312` (decide command), `0313`, `0314` + **migration `007`**, `0315` (digest sends at
+  deploy), the `0322` resolve field, plus `0250` S1 server, `0325` S2 server, `0285` relay + `profile-checks.sh`
+  check 13.
+- **Telemetry:** `0285`'s probe.
+- 🚨 **`0298` Part B: the FIRST ARMED run of the config guards.** `build-deploy.sh:58` and
+  `build-deploy-profile.sh:84` run the name guard with `--enforce`; `deploy.sh:362` runs the value guard with
+  `--enforce`. **No override exists.** A finding now **stops** the deploy.
+
+**The three quick checks (owner ruling):** #1 the name-change digest heartbeat arrives (N3) · #2 migration
+`007` applied (N3) · #3 one approved name shows in a match (N3).
+
+### Preconditions
+
+- [ ] HEAD on `dev` contains `df3c6b3` (`0325` S2), `572d134` (`0331`), `68303d5` (`0250` S1, `0285`, `0298`
+      Part B).
+- [ ] `git status` is clean outside `ai-agents/`. ⚠️ The checker walks the filesystem, so a **stray untracked
+      `src/` file counts**.
+- [ ] **OWNER** confirms no further S2 work sits on another machine.
+
+### N0 — Pre-flight (read-only; agent-runnable unless marked OWNER)
+
+- [ ] **N0.1** The tree check above.
+- [ ] **N0.2** `node scripts/check-config-parity.mjs --pipeline=all --enforce --block-on=game,client,profile`
+      exits 0. *(Architect, 2026-09-29: exit 0, REQUIRED 0 on game / profile / client. The new env reads
+      `NAME_CHANGE_*` are allowlisted; `playerSignatureSecret` reuses `YANDEX_PAYMENTS_SECRET`.)*
+- [ ] **N0.3** `npm test` + `npm run lint`. *(Architect, 2026-09-29: 1 of 3221 failed —
+      `TenureGrantRoutes.test.ts`, `socket hang up`, the known supertest flake family, no SIGSEGV; that file
+      re-ran 37/37. **Lint was NOT run.**)* Also recommended: `npm run test:integration` (migration `007`,
+      `PaidStateEqualization.it.test.ts`) — needs Docker, which **the OWNER starts**.
+- [ ] **N0.4 OWNER** — `0298` owner step 1: in Uptrace, confirm prod game-server logs/metrics arrived after
+      2026-09-26 with the OTEL header blank. A precondition of the first armed deploy; **no record it was ever
+      done.**
+- [ ] **N0.5 OWNER** — rollback targets exist: game tag `20260926-143311` (0.0.154) is **in the registry** (the
+      game box no longer holds it — F-D). Note the **current profile image digest** on the box (it becomes the
+      "previous" image the prune keeps).
+- [ ] **N0.6 OWNER** — Better Stack `profile-daily-checks` has **NO open incident**. (W10's close was never
+      confirmed; the `0341` drill needs a fresh page to be visible.)
+- [ ] **N0.7 Timing** — no profile deploy between **02:00 and 03:15 UTC**; the profile deploy + the hand-run
+      probe (N3.3) finish **before the next 08:00 UTC `checks.sh`**; a **supervised drill slot** is available;
+      `PROFILE_INTERNAL_ALLOW_IPS` carries the full list (**append, never replace** — § *The allowlist trap*).
+
+### N1 — OWNER · Telemetry · `npm run deploy:telemetry`
+
+- [ ] **Smoke:** no prompt; stack up (`setup-telemetry.sh:598` force-recreates clickhouse / uptrace /
+      otelcol, **so Uptrace blips**); run `/opt/uptrace/alert-probe.sh` by hand; its log ends
+      `channel state: delivering` (the old relay ignores the new field).
+- **Rollback:** redeploy from an older tree; nothing is coupled. Check 13 then FAILs with "predates 0285"
+  (intended).
+
+### N2 — OWNER · Game · `./build-deploy.sh prod`
+
+- [ ] **Smoke:** the early name guard passes **before the version bump**; the value guard passes
+      `REQUIRED 0 / OPTIONAL 6`; the container is Up on the new tag; assets carry the new `?v=`.
+- [ ] DevTools on a **logged-in** load: exactly **one** `POST /v1/login`, and its body **HAS a `signature`
+      key** (presence only — **never copy the value**). A **guest** load sends **zero**.
+- [ ] GameAnalytics: **one** `Profile:Login:Signature:*` event per logged-in load.
+- [ ] Game log: `failed after retries` = **0**; partial-config warnings = **0**.
+- [ ] `0337`'s P1 can run from here on.
+- **Expected until N3, harmless:** the old server drops `signature` (metric not live yet); name "Hide"
+  (dismiss) returns **404** with a generic error; `0322` sees no `displayName`.
+- 🚨 **STOP RULE: if N2 fails or is rolled back, do NOT run N3** (`0250` S1 order). **Exception:** a failure
+  **before anything was served** (like F-F) — re-run N2 first.
+- **Rollback:** `./deploy.sh prod 20260926-143311` (0.0.154; **needs a re-pull**). ⚠️ It rolls back **EVERY
+  task in the game image** — `0302`'s gate and `0322`'s names are product consequences. ⛔ **Never roll back to
+  0.0.153** (never served).
+
+### N3 — OWNER · Profile · `npm run deploy:profile` · straight after N2
+
+- [ ] **Smoke:** no prompt; the name guard passes; value parity **0 findings**.
+- [ ] `migrate` shows 001–004 and 006 applied, **`007` applied**, no 005. ← **quick check #2**
+- [ ] Both containers healthy; `/health` + `/ready` 200; `alerting: yes`.
+- [ ] **The name-change digest heartbeat arrives in Telegram at deploy (`0315`) — expected, NOT an alert.**
+      ← **quick check #1**
+- [ ] Agent probe from a **non-allowed** host: `name-change-dismiss` no longer 404 (**401** with no session);
+      `tenure-grant` with an empty body still **400**.
+- [ ] Profile error lines since boot = **0**. Game log `failed after retries` = **0** across the recreate. ⚠️
+      A credit dropped in that window is **lost, not queued** (standing cost).
+- [ ] One approved name shows in a match (`0322`). ← **quick check #3**
+- [ ] **N3.1** Uptrace: `geoconflict.profile.login.verification` exists; `no_secret` = **0** (anything else
+      means the key is not reaching login); `ok` appears. **This starts `0339` Step 2 (the metric); that watch runs for days.** *(The architect's plan said "`0339` Step 1"; in `0339`'s brief Step 1 is the deploy record and Step 2 is the metric — corrected here by the producer, 2026-09-29.)*
+- [ ] **N3.2** *(optional, OWNER's citizen account)* after a reload, the bell shows the new "Welcome,
+      Citizen!" message (`0250` S1).
+- [ ] **N3.3 Right away** — `0341` Step 1.3–1.5: run the probe by hand; the marker holds `channel_state`;
+      `checks.sh` shows `alert-channel-state … OK` and `alert-path-probe … OK`; the probe posted **nothing** to
+      Telegram.
+- [ ] **N3.4** `0341` Step 2 ("no write"): counters, probe, counters. **MUST run before the drill (N5).**
+- **Rollback:** redeploy the previous image (kept on the box). **Caveats — all of them stand:**
+  - A **`0250` S1 rollback reopens the leak**, and old-bundle devices that stored `""` under the **OLD
+    analytics prefix** can fire **false `Citizenship:Earned:XP`** — **record the rollback time** so analytics
+    can be discounted.
+  - `0325` S2 → pre-S2 is **safe** (no `vfy:true` was minted).
+  - **`007` STAYS applied** (no down migration). Old code tolerates it **except a `'cleared'` row**, because
+    the old code casts status unchecked (`NameChangeRepository.ts:427` at 0.0.154) ⇒ 🚨 **do not run `0314`'s
+    "clear" operator command until this deploy is accepted.**
+  - An older image **lacks `0312`'s decide command**.
+  - Check 13 **FAILs daily after a rollback** (intended).
+  - A profile rollback **VOIDS a running `0289` window**.
+
+### N4 — OWNER · Watch
+
+- [ ] Watch until any rollback decision is closed, with at least one `match credit results: … credited` line
+      and real `ok` outcomes in view.
+
+### N5 — OWNER · `0341` Step 3 · the drill
+
+- [ ] **Supervised, short, after N4.** ⚠️ It takes alert delivery down; an alert about the fresh deploy during
+      the drill **would not arrive**.
+- ⛔ If re-enabling does not return the state to `delivering`: **restore alerting and do NOT start `0289`.**
+- Its "alerting is live" firing may serve as **`0289`'s Phase A warm-up** — **record its time**.
+
+### N6 — OWNER · `0289`
+
+- [ ] Only **after N5 ends and alerting is confirmed live**.
+- The quiet gap is **≥ 8 h** and must **not cross 07:00 MSK** (owner ruling Q1).
+- ⛔ **NO profile / telemetry deploy or restart until the gap ends** (a telemetry recreate stops monitors
+  firing).
+- Start only **once no rollback is possible**.
+
+### Ongoing — `0339`'s watch
+
+Runs for days from N3. **The OWNER picks the window and makes the S2-exit call.**
+
+### ⛔ Never roll back to
+
+- Game **0.0.153** (never served).
+- A profile state that expects `007` to be reverted by hand.
+- Never point a hotfix at the **old analytics prefix** — keep `_v2`.
+- **After this slot:** keep an **S2-or-later profile image** as S3a's ([`0340`](../tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) future rollback target.
+
+### ⚠️ Not verified by the architect (2026-09-29)
+
+Lint · integration tests · the registry holding the rollback tag · Better Stack incident state · `0298`'s
+Uptrace owner step. **Each is an N0 item above; none may be treated as done.**

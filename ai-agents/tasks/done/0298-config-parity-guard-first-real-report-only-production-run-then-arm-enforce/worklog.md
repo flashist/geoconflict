@@ -164,6 +164,22 @@ as the header the finding named; fixed with it (same wording defect, comment-onl
    → game dev if a dev box is in use → game prod (`./build-deploy.sh prod`; name problems now stop before the
    version bump; value problems still cost a version number). Record each first armed run's guard output here
    (names only) — closes verification step 5's record.
+
+   > 📌 **2026-09-29 — for the next slot the owner ruled GAME BEFORE PROFILE** (OWNER RULING live in the
+   > `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ⛔
+   > not producer precedent). Owner's answer: **"Game first, record it (Recommended)"**, option text *"Keeps 0250's
+   > client-first rule. Cost: a few minutes where the new login check isn't counted yet, and the rarely used name
+   > 'Hide' button shows an error until profile is deployed. Nothing breaks or is lost. ADR-116 and 0339 get a
+   > dated note."* **Why:** "profile first" above was chosen **for cost only** (`plan.md` § *Deploy order*: the
+   > profile guard runs before build and lock, so a block there costs nothing). This slot's profile build also
+   > carries `0250` S1's server half, and `0250`'s rule is **client first** — that outranks a cost preference.
+   > The slot's order is **telemetry → game prod → profile**. What it costs this task: the first armed name guard
+   > now runs in `build-deploy.sh` (before the version bump, so a name block still costs nothing); a **value**
+   > block on the game deploy still costs a version number. No dev-box step is planned in that slot. The
+   > pre-flight `node scripts/check-config-parity.mjs --pipeline=all --enforce --block-on=game,client,profile`
+   > (exit 0 when `fkit-architect` ran it on 2026-09-29) lowers that risk. Full step list:
+   > [weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan
+   > (written 2026-09-29)* (owner step 1 = its N0.4). The order above is kept as history.
 4. **Rollback if a false block appears:** add an allowlist entry WITH a reason, or restore
    `--report-only || true` on the one call-site line (and `run_config_value_guard || true`), commit, redeploy.
    No override flag exists (Q2).

@@ -108,7 +108,17 @@ without traffic that does not exist**; this is a **verification of alerting that
 already runs in production**. Different blockers, different urgency.
 
 ## Status
-🚧 Blocked — plan approved 2026-09-28 (no code); waiting on the OWNER-run drill, which runs after 0285 is deployed and its drill is done (owner ruling Q3). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
+🚧 Blocked — plan approved 2026-09-28 (no code); waiting on 0341 (verify 0285 in production: its deploy and its disabled-channel drill), then the OWNER-run drill (owner ruling Q3). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
+
+> 📌 **Repointed 2026-09-29** — an OWNER RULING given that day live in the `fkit lead` session via `AskUserQuestion`
+> (relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel, ADR-021/037; ⛔ not producer precedent)
+> filed [`0341`](../0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) as the tracked
+> task for what this one waits on: `0285` closed 2026-09-28 with its deploy and drill never done, and no task tracked
+> them. The blocker itself is unchanged in substance. **Order constraint, unchanged:** this task's quiet window must not
+> overlap `0341`'s deploy or drill; `0341`'s final "alerting is live" firing can be this task's Phase A warm-up (plan Q3).
+> *Earlier value, kept as history — true 2026-09-28 to 2026-09-29:* ~~🚧 Blocked — plan approved 2026-09-28 (no code);
+> waiting on the OWNER-run drill, which runs after 0285 is deployed and its drill is done (owner ruling Q3). Driven by
+> `/fkit-sprint-ship-loop` (fkit-lead).~~
 
 ## Owner
 fkit-coder
@@ -344,8 +354,14 @@ worklog must not round it up into one.**
 - **Depends on:** [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md) (the relay and the
   channel — both landed, and it carries the `0061` retry this drill first exercises in production),
   [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
-  (the probe whose hourly warmth is a variable to account for — landed)
+  (the probe whose hourly warmth is a variable to account for — landed),
+  [`0341`](../0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (verify `0285` in
+  production: its deploy and its disabled-channel drill — hard; this task's quiet window starts only after `0341`'s drill
+  has finished and alerting is confirmed live, plan Q3)
 - **Blocks:** nothing.
+- 📌 *Dependency note, 2026-09-29: `0341` was added to the list above by the owner ruling recorded under `## Status`.
+  Earlier, the list named only `0277` and `0284`; the wait on "`0285` deployed and its drill done" lived only in
+  `## Status` and plan Q3, with no task tracking it.*
 - **Related:**
   - [`0274`](../../done/0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) — **where amendment A1
     came from.** It is `0274`'s §7.6 drill that this task strengthens. ⚠️ **`0274` also owns alert rule
