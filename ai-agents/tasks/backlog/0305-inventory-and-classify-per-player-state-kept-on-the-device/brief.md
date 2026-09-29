@@ -93,3 +93,29 @@ runtime, `src/client/flashist/`, any third-party SDK wrapper).
   with no link to the grant.
 - `settings.keybinds` on a phone vs a desktop is a good example of a value that may be right to keep per
   device even for logged-in players — the owner decides.
+
+## Addendum — 2026-09-29: the mission-progress row is ruled
+
+**Recorded 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021)**, on owner rulings
+given live 2026-09-29 in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead`.
+⛔ Not producer precedent. **Append-only** — nothing above was edited, renumbered or reordered.
+
+- **Row `geoconflict.sp.nextMissionLevel` — class: move to server (logged-in players).** Its owner
+  rulings, verbatim (full record in
+  [`0345`](../0345-keep-single-player-mission-progress-on-the-server-for-logged-in-players/brief.md)):
+  - **Merge rule — Q1: *"The higher level wins (Recommended)"*.** This is a ruling **for mission
+    progress specifically**, not a general merge rule for every key. It supersedes the owner's starting
+    suggestion *"server-profile takes priority over browser-saved data all the time"*, because that rule
+    would reset a first-time-login guest at level 123 to the server's 1.
+  - Q2 *"Into any account (Recommended)"* — a device's guest progress merges into any account that logs
+    in on it. Q3 *"The device's own level (Recommended)"* — logged out, the device shows its own level.
+  - **Order — Q4 *"Yes, missions first (Recommended)"*** — mission progress is the first key the epic
+    moves.
+  - `geoconflict.sp.lastCompletedAt` was **not** ruled (it is written but never read back — a
+    delete-or-keep candidate for step 2).
+- **Conflict check (2026-09-29):** this brief carries **no** general or owner-ruled merge rule — only the
+  producer's examples in step 2 (tutorial: completed anywhere = completed; announcements: the newer by
+  position). "Higher level wins" does not conflict with either; it is the same shape (keep the most
+  progress). Every other key still needs its own ruling here.
+- Related new task: [`0344`](../0344-investigate-why-single-player-mission-progress-resets-to-level-1/brief.md)
+  (why the reset happens).

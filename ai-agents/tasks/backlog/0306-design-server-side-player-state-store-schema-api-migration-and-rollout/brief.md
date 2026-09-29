@@ -92,3 +92,84 @@ A design spec that answers each of these, grounded in the code:
   reset), ADR-113 (internal player id), `0012` (inbox read state — already server-side; a model for
   per-player read state), `0268` / `0253` (tenure — out of scope unless the owner rules otherwise in
   `0305`).
+
+## Addendum — 2026-09-29: mission progress is the first key, with owner-ruled merge rules
+
+**Recorded 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021)**, on owner rulings
+given live 2026-09-29 in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead`.
+⛔ Not producer precedent. **Append-only** — nothing above was edited, renumbered or reordered.
+
+- **Mission progress (`geoconflict.sp.nextMissionLevel`) is the first key to design for** (OWNER RULING
+  Q4, verbatim *"Yes, missions first (Recommended)"*). Its rules are owner-ruled, verbatim and in full in
+  [`0345`](../0345-keep-single-player-mission-progress-on-the-server-for-logged-in-players/brief.md):
+  Q1 *"The higher level wins (Recommended)"*; Q2 *"Into any account (Recommended)"*; Q3 *"The device's own
+  level (Recommended)"*; Q5 *"Wait for 0340"* (the mission-progress slice ships only after verified
+  logins). "Higher wins" already has the run-it-any-number-of-times property item 6 asks for.
+- ⚠️ **NEEDS-DECISION — not settled here.** Item 7 above (producer-written, not an owner ruling) says a
+  device shared by two Yandex accounts must not leak account A's values into account B. For mission
+  progress, the owner's Q1–Q3 mean the device keeps **one** level that merges up into whichever account
+  logs in next — so a level account A reached on that device can flow into account B. Raised to the lead
+  2026-09-29; the design must present it, not resolve it silently.
+- Related new task: [`0344`](../0344-investigate-why-single-player-mission-progress-resets-to-level-1/brief.md)
+  (why the reset happens — may change what the design must guard against).
+
+## Addendum — 2026-09-29 (later): the shared-device NEEDS-DECISION is ruled
+
+**Recorded 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021).** OWNER RULING given
+live 2026-09-29 in the `fkit lead` session via `AskUserQuestion` (free-text answer), relayed by
+`fkit-lead`. ⛔ Not producer precedent. **Append-only** — nothing above was edited; where this narrows an
+earlier line, that line stays as history and this section wins.
+
+The owner, verbatim:
+> *"No, it shouldn't reach the level of another account. I think what should be done is that we should
+> implement the behaviour as simple as possible, but guaranteeing saving progress to not logged in users.
+> Let's focus on the naive simple but robust solution first and then do any additions later."*
+
+**The lead's reading — recorded as `fkit-lead`'s interpretation, NOT owner text.** The owner has been
+told this reading and may correct it:
+
+1. **One account's level must NOT flow into another account** (A at 80 must not lift B). This keeps
+   `0306` item 7's no-leak rule and **narrows Q2**: only **true guest progress** (played while not logged
+   in) carries into the account that logs in; progress earned while logged in as account A does not
+   carry into account B.
+2. ~~**Saving guest (not-logged-in) progress must be guaranteed and robust.** Guests keep device-only
+   progress, so this also raises the weight of `0344` (the reset investigation).~~ ⛔ **SUPERSEDED
+   2026-09-29 by the owner's typo correction below** — the guarantee is for **logged-in** players; guests
+   losing data in some cases is acceptable.
+3. **Scope discipline:** v1 is the naive, simple, robust version. Extras (cross-device niceties,
+   edge-case polish, analytics, …) are later additions, not v1. The `0306` design proposes the simplest
+   mechanism that satisfies 1 + 2 and lists what it defers.
+
+Q1–Q5 stand as recorded (the higher level wins; missions first; wait for `0340`; …).
+
+- The ⚠️ **NEEDS-DECISION** in the addendum above is **answered**: item 7's no-leak rule **stands** for
+  mission progress.
+- **Ask of this design (from reading 3):** propose the simplest mechanism that (a) never lets one
+  account's level lift another's, (b) carries true guest progress into the account that logs in, and
+  (c) keeps guest saving robust — and **list what v1 defers**.
+- One point the design must answer, because the device today does not tell guest progress apart from
+  logged-in progress: what counts as "guest progress" for the value **already on a device** the first time
+  a player logs in after this ships (it may have been earned partly while logged in).
+
+## Addendum — 2026-09-29 (latest): owner correction — the save guarantee is for LOGGED-IN players
+
+**Recorded 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021).** OWNER CORRECTION
+given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead`. ⛔ Not producer precedent.
+**Append-only** — superseded text above is struck or overridden here, never deleted.
+
+The owner, verbatim:
+> *"Regarding this: there was a typo, what I meant to say is that we should guarantee saves to LOGGED IN
+> users, and if there are cases when NOT LOGGED IN users can lose their data, it's acceptable"*
+
+- It corrects the phrase *"guaranteeing saving progress to not logged in users"* in the ruling above:
+  **the guarantee is for LOGGED-IN players. Guests (not logged in) losing their data in some cases is
+  acceptable.**
+- The lead's reading **point 2 is SUPERSEDED** (struck above). **Points 1 and 3 stand:** one account's
+  level never flows into another account; v1 is the naive, simple, robust version, extras later.
+- **Q1–Q5 stand, including Q2** — true guest progress (played while not logged in) still carries into
+  the account that logs in. The owner did not withdraw it.
+- The *"Ask of this design"* in the addendum above changes at **(c)**: not *"keep guest saving robust"*
+  but **"guarantee a logged-in player's progress reaches and stays in the server copy"** — including a
+  win made while the profile server was unreachable (no durable queue today, so the next launch/login
+  pushes the device's higher level up). Guest saving stays best-effort device storage. (a), (b), the
+  deferred-extras list and the first-login question about the value already on a device all stand.

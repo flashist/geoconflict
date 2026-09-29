@@ -138,3 +138,34 @@ The epic is done when **all** of these hold, each shown by a child's own evidenc
   `game-records`) is device-local **by owner ruling** (0253, 2026-09-14: *"it's also fine, even if it
   lives only on the localStorage of a user"*), and `0268` removes the claim logic ~60 days after release.
   Producer's recommendation: **this epic does not touch it.** Owner question recorded in `0305`.
+
+## Addendum — 2026-09-29: mission progress added, and ruled FIRST
+
+**Recorded 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021)**, on owner rulings
+given live 2026-09-29 in the `fkit lead` session via `AskUserQuestion` and relayed by `fkit-lead`.
+⛔ Not producer precedent. **Append-only** — nothing above was edited, renumbered or reordered.
+
+- **Two new tasks under this epic** (filed 2026-09-29 on an owner request about players losing mission
+  progress, e.g. level 123 back to 1):
+  [`0344`](../0344-investigate-why-single-player-mission-progress-resets-to-level-1/brief.md) — investigate
+  why the reset happens (findings only; depends on nothing) — and
+  [`0345`](../0345-keep-single-player-mission-progress-on-the-server-for-logged-in-players/brief.md) — keep
+  mission progress on the server for logged-in players (this epic's mission-progress slice).
+- **OWNER RULING Q4, verbatim: *"Yes, missions first (Recommended)"*.** Single-player mission progress is
+  the **first** key this epic moves, ahead of the tutorial flag and announcements last-seen. This
+  **replaces the order** of the *"Provisional shape"* step 4 above (*"tutorial first, then
+  announcements…"*), which is kept as written for history.
+- **Mission-progress rulings** (full text in `0345`): Q1 the higher level wins (supersedes the owner's
+  starting suggestion *"server always wins"*); Q2 guest progress on a device goes into any account that
+  logs in there; Q3 logged out, the device shows its own level; Q5 `0345` waits for verified logins
+  (`0340`, Sprint 7).
+- The children table above is not edited; `0344` and `0345` are listed here instead.
+
+- **2026-09-29 (later) — OWNER RULING, relayed by `fkit-lead` (⛔ not producer precedent):** on a shared
+  device one account's mission level must not reach another's; build the naive, simple but robust version
+  first, with guest progress saving guaranteed, and add extras later. Verbatim text and the lead's reading
+  in [`0345`](../0345-keep-single-player-mission-progress-on-the-server-for-logged-in-players/brief.md)
+  and [`0306`](../0306-design-server-side-player-state-store-schema-api-migration-and-rollout/brief.md).
+- **2026-09-29 (latest) — OWNER CORRECTION, relayed by `fkit-lead` (⛔ not producer precedent):** the line
+  above had a typo — the save guarantee is for **LOGGED-IN** players; guests losing data in some cases is
+  acceptable. Verbatim text in `0345` and `0306`.
