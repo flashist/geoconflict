@@ -38,6 +38,8 @@ No new maps are planned before Sprint 6. Sprint 6 already has two map tracks sco
 
 Both briefs are intentionally deferred until Sprint 5 is underway.
 
+📌 **2026-09-29 — Tasks 1 and 2 are no longer brief-less rows on Sprint 6.** On an OWNER RULING relayed by `fkit-lead` (ADR-021/037), Sprint 6's brief-less rows were replaced by two **discussion** briefs: Task 1 (free historical maps) is item C of [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (Backlog board); Task 2 (paid map packs) is item A of [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (Sprint 8). Both are discussion agendas, not implementation briefs. The text above is kept as written; this note governs where it says the briefs are TBD or that the map tasks stay on Sprint 6.
+
 ---
 
 ## Next Step

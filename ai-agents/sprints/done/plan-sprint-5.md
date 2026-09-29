@@ -473,6 +473,7 @@ launch sprint, the owner answered, verbatim: *"Rename it, but use the current na
 ### 10. Leaderboard — Rewards Layer
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 3 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in ~~`0342` on the Backlog board~~ [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** *(repointed the same day by owner ruling C)* (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 3–5 days
 **Experiments:** ✅ Test via Yandex experiments API — badges and rank icons are additive display elements. Players not in the experiment group see the leaderboard without badges. Success metric: return visit rate and match frequency for top-ranked players in the experiment group vs control.
 
@@ -496,6 +497,7 @@ The exact visual design of badges and icons is a separate design task. The devel
 ### 8a. Nickname Styling System
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 4 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 1–2 weeks
 **Experiments:** ✅ Test via Yandex experiments API — styling options are purely additive and only visible to players who have already purchased a verified nickname. Players not in the experiment group simply don't see the styling purchase options. Success metric: upsell conversion rate among verified nickname owners.
 
@@ -526,6 +528,7 @@ Once players can purchase a verified nickname (Task 8), offer additional purchas
 ### 11. Coin Economy + Rewarded Ads Full Version
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 5 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in ~~`0342` on the Backlog board~~ [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** *(repointed the same day by owner ruling C)* (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 3–4 weeks
 **Experiments:** ❌ Excluded — running two parallel economic models creates player fairness issues (players in different groups earn and spend at different rates) and significant support complexity. Ship to all users simultaneously.
 
@@ -544,6 +547,7 @@ Design:
 ### 12. Clans
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 6 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in ~~`0342` on the Backlog board~~ [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** *(repointed the same day by owner ruling C)* (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 3–4 weeks
 **Experiments:** ✅ Test via Yandex experiments API — clan creation, clan tags, and auto-team placement are additive. Players not in the experiment group see no clan-related UI. Success metric: session frequency and match completion rate for clan members vs non-clan players.
 
@@ -561,6 +565,7 @@ Gate this on lobby health: only build clans when analytics shows lobbies are con
 ### 14. Map Voting for Verified Players
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 7 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 1–2 weeks
 **Experiments:** ✅ Test via Yandex experiments API — map voting UI is additive and only visible to verified players. Non-verified players and the control group see no change. Success metric: voting participation rate among verified players, and whether sessions containing a voted map show higher match completion rates than sessions with random maps only.
 
@@ -605,6 +610,7 @@ This means:
 ### 13. Replay Access as Premium Feature
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 8 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 3–5 days
 **Experiments:** ❌ Excluded — depends on Task 11's tier and pricing system. Introducing two parallel pricing models during an experiment creates fairness and support issues. Ship alongside or after Task 11.
 
@@ -620,6 +626,7 @@ Design:
 ### 15. Custom Uploaded Flags & Patterns — Paid Citizens Only
 
 > ➡️ **Row moved to [Sprint 6](../plan-sprint-6.md) on 2026-09-26 — priority 9 there** (owner ruling; see the 2026-09-26 addendum under the status table). No brief exists yet; this section stays here as the task's only prose and is not copied.
+> 📌 **2026-09-29 — now a discussion item in [`0343`](../../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on [Sprint 8](../plan-sprint-8.md)** (owner ruling, relayed by `fkit-lead`; Sprint 6's brief-less rows were replaced by two discussion briefs). This section's prose is copied verbatim into that brief's appendix; *"no brief exists yet"* and *"only prose"* above are kept as written, true until then.
 **Effort:** 2–3 weeks
 **Experiments:** ❌ Excluded — paid feature with moderation overhead; running two parallel pricing models creates fairness and support complexity.
 

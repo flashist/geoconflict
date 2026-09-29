@@ -8,10 +8,18 @@
 > held by toolkit prose in `.claude/` — see `0339`'s note). No task folder, no `## ID` hit, no `.claude/` hit.
 
 ## Sprint
-Sprint 7
+Sprint 6
+
+📌 **Moved from Sprint 7 to Sprint 6 on 2026-09-29** — OWNER RULING given live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. As relayed: *"Move 0340 into Sprint 6."* Reason: [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — and so `0248` and `0301` — on [Sprint 6](../../../sprints/plan-sprint-6.md) cannot close until this task ships. Record: the 2026-09-29 `0340` addendum under Sprint 6's status table. `## Status` unchanged; no folder moved; no mover run. **The gate below is unchanged.** ⚠️ Because the gate includes a watch window of days after a deploy, Sprint 6 cannot close as fully done until this task has shipped — flagged for the owner.
+
+*(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 7~~
 
 ## Priority
-3
+47
+
+> 📌 **2026-09-29 — rank 47 on [Sprint 6](../../../sprints/plan-sprint-6.md) is APPEND RANK, not a merit ranking — flagged for owner confirmation.** The owner named no rank; this board's highest was 46 (`0341`). **On merit this belongs directly below `0339`**, because `0339`'s S2 exit is this task's gate, and above `0250`, whose slice S3b waits on it. ADR-035: appended, never inserted; nothing was renumbered. The note below about rank 3 describes the Sprint 7 board and is kept as history.
+>
+> *(Earlier value, kept as history — true on Sprint 7 until 2026-09-29:)* ~~3~~
 
 > **Rank 3 is OWNER-RULED placement** — the owner's ruling of 2026-09-29 (see *Context*): *"a separate 'S3a
 > enforce' build task after it"* (after the verify task, `0339`). It was **appended** at rank 13 (ADR-035:
@@ -23,7 +31,7 @@ Sprint 7
 > ⚠️ **Rank is position, not "ready".** This task cannot start until `0339`'s S2 exit is met **and** the owner
 > has separately approved enforcing (see *Gate*). Until then the next open rows are worked around it.
 
-> 📌 **2026-09-29, later — `0339` moved to Sprint 6; this task did NOT move.** On an OWNER RULING 2026-09-29, typed directly by the owner in the `fkit lead` session (the owner's own message, not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Mov ethe 0339 into the Sprint 6 to the top of priorities."* (typo as typed; meaning: move `0339` into Sprint 6, at the top of its priorities). `0339` is now on [Sprint 6](../../../sprints/plan-sprint-6.md) (owner-ruled top priority, board rank 45). This task stays on Sprint 7 at rank 3, now directly below `0339`'s `➡️ Moved` row (not renumbered — ADR-035). **The gate is unchanged** — `0339`'s S2 exit plus a separate owner approval to enforce — it now waits on a task on another board. Where this brief says *"after the verify task"* or *"directly below `0339`"*, read it as the order of work, not board position.
+> 📌 **2026-09-29, later — `0339` moved to Sprint 6; this task did NOT move.** On an OWNER RULING 2026-09-29, typed directly by the owner in the `fkit lead` session (the owner's own message, not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Mov ethe 0339 into the Sprint 6 to the top of priorities."* (typo as typed; meaning: move `0339` into Sprint 6, at the top of its priorities). `0339` is now on [Sprint 6](../../../sprints/plan-sprint-6.md) (owner-ruled top priority, board rank 45). This task stays on Sprint 7 at rank 3, now directly below `0339`'s `➡️ Moved` row (not renumbered — ADR-035). **The gate is unchanged** — `0339`'s S2 exit plus a separate owner approval to enforce — it now waits on a task on another board. Where this brief says *"after the verify task"* or *"directly below `0339`"*, read it as the order of work, not board position. *(📌 Superseded later on 2026-09-29, kept as written: this task **did** then move to Sprint 6 by owner ruling, and now sits on the same board as `0339` — see `## Sprint` above.)*
 
 ## Status
 🔲 Backlog
