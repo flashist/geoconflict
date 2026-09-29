@@ -181,3 +181,35 @@ answer: S2 exit met, or not met.
 - **Possible later task, not filed:** an alert on the `ok` share, if the owner wants one after seeing the numbers.
 - **Privacy:** counts and durations only. Never paste ids, signatures, tokens, hosts or URLs into any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+## 📌 2026-09-29 — deploy done; first-minutes readings (appended; nothing above edited, ADR-035)
+
+**Provenance.** Written by a spawned `fkit-producer` (no owner channel, ADR-021) on an OWNER RULING given live in
+the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead`: **"Yes, do all three
+(Recommended)"** — items 2 (*a note about the early "stale" share*) and 3 (*record tonight's deploy*). ⛔ Not
+producer precedent. Facts are `fkit-lead`'s own checks and the owner's live reports; the producer verified none.
+**`## Status` unchanged. This is not the Step 1–4 record in full; the task is still open.**
+
+**Step 1 — deploy facts known so far.**
+- Date: **2026-09-29** (a Tuesday — the owner's own choice, outside the weekend-slot ruling).
+- Order: **telemetry → game → profile**, as owner-ruled (see *Context*). The profile server with S2 started at
+  **20:04:48 UTC**.
+- Game tag / version: **not recorded** (not reported to the lead).
+- N2's DevTools one-login / `signature`-key check and the GameAnalytics check: **not reported.**
+- Full record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*.
+
+**Step 2 — first minutes only.** ⚠️ **Minutes of data, not a conclusion.** Nothing below is Step 2's record,
+and no S2-exit call is made or implied.
+- The counter **exists** in Uptrace (as `geoconflict_profile_login_verification`). ✅
+- Outcomes seen in the first minutes: **`ok` and `stale` only**, roughly **half each** (peaks about 6/min each).
+- `no_secret`: **none**. ✅
+- `absent`: **none seen**.
+- Profile box clock: NTP synchronized, matches real time — so **clock skew on our side is ruled out** as the
+  cause of `stale`. The cause is **not known**.
+
+**Why it matters, and the decision it may feed.** A `stale` share near half, if it holds over the real watch
+window, is not "large majority `ok`". This brief already names the lever: verification step 7 — *"The `stale`
+count is recorded, so `0340`'s plan can keep or retune the 900 s / 300 s window before enforcing"* (and *Context*,
+quoting `0325`'s plan: the counts *"justify or tune the 900 s / 300 s window **before** anything is enforced"*).
+That retune is the decision these readings may feed — **not decided here.** If the share holds, verification step
+6 (file a new task with the readings) may also apply; that is the owner's call at Step 4.

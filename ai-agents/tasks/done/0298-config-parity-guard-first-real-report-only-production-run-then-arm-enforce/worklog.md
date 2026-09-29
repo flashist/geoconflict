@@ -183,3 +183,22 @@ as the header the finding named; fixed with it (same wording defect, comment-onl
 4. **Rollback if a false block appears:** add an allowlist entry WITH a reason, or restore
    `--report-only || true` on the one call-site line (and `run_config_value_guard || true`), commit, redeploy.
    No override flag exists (Q2).
+
+## 📌 2026-09-29 — owner step 1 done; first armed deploys ran (appended; nothing above edited, ADR-035)
+
+**Provenance.** Written by a spawned `fkit-producer` (no owner channel, ADR-021) on an OWNER RULING given live in
+the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead`: **"Yes, do all three
+(Recommended)"** — item 3 (*record tonight's deploy*). ⛔ Not producer precedent. Facts are `fkit-lead`'s own checks
+and the owner's live reports; the producer verified none. The task stays closed as it was; no status changed.
+
+- **Owner step 1 (Q1) — done 2026-09-29, before the deploys**, by `fkit-lead` through the owner's Chrome, in
+  Uptrace: service `openfront` (game server) logs arriving on 2026-09-29, ~165 info lines/min, 1 host. ⚠️ **Logs
+  only, not metrics; the environment label was not seen.** (Runbook N0.4.)
+- **Owner step 3 — the first armed deploys ran on 2026-09-29**, in the order **telemetry → game prod → profile**
+  (the order in the dated note above). Pre-flight `--enforce` over all pipelines: exit 0, REQUIRED 0. **The guards
+  did not stop any deploy** (owner reported no failure). ⚠️ **The guards' own output (names) was NOT captured**, so
+  the record this step asks for — *"Record each first armed run's guard output here (names only)"* — does not
+  exist for these runs. Game tag / version: not recorded.
+- **Related rule, now filled:** the runbook's *"after this slot, keep an S2-or-later profile image"* (S3a's future
+  rollback target) is now profile image `sha256:75fd196a18223e546122b031239596b92f2987fc9bd1626a0bb71e5e8eee28e0`.
+- Full record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*.

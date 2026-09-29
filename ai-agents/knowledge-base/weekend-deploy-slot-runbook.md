@@ -1640,3 +1640,59 @@ Runs for days from N3. **The OWNER picks the window and makes the S2-exit call.*
 
 Lint · integration tests · the registry holding the rollback tag · Better Stack incident state · `0298`'s
 Uptrace owner step. **Each is an N0 item above; none may be treated as done.**
+
+## 📌 What happened 2026-09-29 — the Next window ran (appended; nothing above edited or renumbered, ADR-035)
+
+**PROVENANCE.** Recorded by a spawned `fkit-producer` (no owner channel, ADR-021) on an OWNER RULING given live
+in the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead`: **"Yes, do all three
+(Recommended)"** (item 3: *record tonight's deploy in the runbook and task files*). ⛔ Not producer precedent.
+**Every fact below comes from `fkit-lead`'s own checks that night or from the owner's live reports to the lead;
+the producer verified none of it.** The check boxes in § *Next window — plan* above are **left unticked on
+purpose** (append-only); this table is the record. Times are UTC.
+
+**When and in what order.** The owner deployed on **2026-09-29, a Tuesday** — the owner's own choice, outside the
+same day's *"weekend slots"* ruling. Order: **telemetry → game → profile**, as planned (owner: *"I've updated all
+servers"*). **Game tag / version: not recorded** (not reported to the lead).
+
+| Step | Result | Verdict |
+|---|---|---|
+| Precondition — HEAD holds `df3c6b3`, `572d134`, `68303d5`; clean outside `ai-agents/`; `dev` = `origin/dev` | Lead checked. No code changes after `df3c6b3`. | ✅ |
+| Precondition — no S2 work on another machine | Owner confirmation **implied, not explicitly stated**. | ⚠️ not explicitly confirmed |
+| **N0.1** tree check | As above. | ✅ |
+| **N0.2** config-parity `--enforce` | Exit 0, REQUIRED 0. | ✅ |
+| **N0.3** lint + tests | `npm run lint` exit 0 · `npm test` **3221/3221**, **179/179** suites · `npm run test:integration` **12/12** suites, **155/155** (lead ran it; owner re-ran it, OK). | ✅ |
+| **N0.4** `0298` owner step 1 | Done by the lead through the owner's Chrome, in Uptrace: service `openfront` (game server) logs arriving on 2026-09-29, ~165 info lines/min, 1 host. **Logs only, not metrics; the environment label was not seen.** | ✅ (logs only) |
+| **N0.5** rollback targets | Game tag `20260926-143311` present in the registry (manifest inspect). Previous profile-api image digest: `sha256:f60f6a25aab96d1cdcd5815cf4f172aad59bef789c8d1c51334e7f811f8041e1`. | ✅ |
+| **N0.6** Better Stack | No open `profile-daily-checks` incident (latest: 4 days ago, ~1 day long, closed/acknowledged — likely W10's). Two Better Stack built-in "Sample incident" rows are ongoing — unrelated. | ✅ |
+| **N0.7** timing | Not separately reported. The profile deploy ran ~20:05, outside 02:00–03:15. | — not reported |
+| **N1** telemetry | Owner-run probe log at 18:51:37: `alert-probe: accepted — … channel state: delivering`. | ✅ |
+| **N2** game | The DevTools one-login / `signature`-key check, the GameAnalytics event check and the game-log check were explained to the owner; **results were NOT reported.** Deploy completed (owner). | ⚠️ checks not reported |
+| **N3** profile — deploy | `profile-api` started **20:04:48**, healthy; new image digest `sha256:75fd196a18223e546122b031239596b92f2987fc9bd1626a0bb71e5e8eee28e0`. `postgres` healthy and **not recreated** (started 2026-09-26 08:45). | ✅ |
+| **N3** quick check #2 — migrations | 001–004, 006, **007** applied (007 at **20:05:04**); no 005. | ✅ |
+| **N3** `/health`, `/ready` | Both 200 (public). | ✅ |
+| **N3** endpoint probes | `name-change-dismiss` without a session → **401**; `tenure-grant` with an empty body → **400**. Run from the lead's laptop — whether that is a "non-allowed host" was **not separately verified** (401 is consistent with it). | ✅ (host caveat) |
+| **N3** quick check #1 — digest heartbeat | Arrived in Telegram (owner). | ✅ |
+| **N3** profile error lines since boot = 0 | **NOT met: 4 lines at 20:05:01** — `name-change state lookup failed: error: column "dismissed_at" does not exist`. All **before** `007` finished (20:05:04); **none after** (checked 20:07). The new code served ~11–16 s before its migration applied. → filed as [`0346`](../tasks/backlog/0346-profile-deploy-applies-migrations-before-new-code-serves-requests/brief.md) (Backlog board). | ❌ → `0346` |
+| **N3** game log `failed after retries` = 0 across the recreate | Not reported. | — not reported |
+| **N3** `0312` decide command | Owner approved one name → `HTTP 200: approved`. | ✅ |
+| **N3** quick check #3 — approved name shows in a match | **PENDING, owner.** | 🔲 pending |
+| **N3.1** Uptrace login-verification metric | `geoconflict_profile_login_verification` exists. First minutes: outcomes `ok` and `stale` only, roughly half each (peaks 6/min each); `no_secret` **none**; `absent` **none seen**. Profile box clock: NTP synchronized, matches real time — **clock skew ruled out** as the `stale` cause. Minutes of data, not a conclusion — see [`0339`](../tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). | ✅ exists · ⚠️ `stale` ≈ half |
+| **N3.2** citizen bell message | Not reported. | — not reported |
+| **N3.3** `0341` Step 1.3–1.5 hand-run probe after the profile deploy | **NOT done by hand.** The hourly probe cron covers it before 08:00 UTC — **unverified**. | ⚠️ not done |
+| **N3.4** `0341` Step 2 ("no write") | Not done. | 🔲 not done |
+| **N4** watch · **N5** drill · **N6** `0289` | **Not done.** The owner deferred the drill and `0289` to a quiet day. | 🔲 not done |
+
+**Observation, not resolved:** § *Scheduling constraints* above says *"Each profile deploy recreates BOTH
+containers (including postgres)"*. On this deploy `postgres` was **not** recreated (still running since
+2026-09-26 08:45). Recorded only; nobody checked why, and the earlier line is left as written.
+
+**`0298` Part B — first armed deploys.** The armed config guards did **not** stop any of the three deploys (owner
+reported no failure). **The guards' own output (names) was not captured** — the record `0298` owner step 3 asks
+for does not exist.
+
+**§ *Never roll back to*, the "after this slot" rule:** the **S2-or-later profile image** to keep as `0340`'s future
+rollback target is now `sha256:75fd196a18223e546122b031239596b92f2987fc9bd1626a0bb71e5e8eee28e0`.
+
+**Still owed from this window:** N2's three checks (results) · quick check #3 · N3.2 · N3.3 by hand (or confirm the
+cron probe's result) · N3.4 · N4 · N5 · N6 · `0339`'s multi-day watch · `0298`'s guard-output record (lost for these
+three runs).

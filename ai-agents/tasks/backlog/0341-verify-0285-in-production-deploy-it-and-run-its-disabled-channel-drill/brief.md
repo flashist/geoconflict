@@ -196,3 +196,21 @@ its time so `0289` can start its quiet window from it.
   artifact. This file is tracked in git.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
+
+## 📌 2026-09-29 — Step 1 record, as far as it goes (appended; nothing above edited, ADR-035)
+
+**Provenance.** Written by a spawned `fkit-producer` (no owner channel, ADR-021) on an OWNER RULING given live in
+the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead`: **"Yes, do all three
+(Recommended)"** — item 3 (*record tonight's deploy*). ⛔ Not producer precedent. Facts are `fkit-lead`'s own checks
+and the owner's live reports; the producer verified none. **`## Status` unchanged; the task is still open.**
+
+- **Step 1.2 (monitoring box deploy):** done **2026-09-29**, first in the slot. Owner-run probe log at
+  **18:51:37 UTC** ends `channel state: delivering`. ✅
+- **Step 1.1 (profile box deploy):** done **2026-09-29**, last in the slot (after game); `profile-api` started
+  **20:04:48 UTC**, healthy. ✅
+- **Steps 1.3–1.5 (hand-run probe, marker `channel_state`, `checks.sh` OK lines, nothing posted to Telegram):**
+  **NOT done by hand** after the profile deploy. The hourly probe cron covers the probe before the next 08:00 UTC
+  `checks.sh` — **unverified**; no reading recorded.
+- **Step 2 ("no write"):** not done. **Step 3 (the drill):** not done — the owner deferred it (and `0289`) to a
+  quiet day. Step 2 must still run **before** the drill.
+- Full record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*.
