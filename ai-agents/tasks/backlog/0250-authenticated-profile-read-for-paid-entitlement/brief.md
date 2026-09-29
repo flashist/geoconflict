@@ -22,7 +22,13 @@
 >    for a claim on the number.
 
 ## Sprint
-Sprint 6
+Sprint 7
+
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (still `🚧 Blocked` with its reason); no folder moved; no mover run. The bare-token warning below still applies — the token is now `Sprint 7`.
+
+🚨 **This move changes only WHERE `0250` is tracked. Slice S1 — the leak fix, built + reviewed 2026-09-27, verdict *Ready to merge*, committed on `dev` in `68303d5`, NOT deployed — STILL SHIPS IN THIS WEEKEND'S DEPLOY SLOT**, exactly as planned in the [weekend deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan (written 2026-09-29)* (checked 2026-09-29: that section still carries `0250` S1 — client in the game deploy, server in the profile deploy after it). It has to: [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md), Sprint 6's owner-ruled top priority, cannot start until S1 is live, and until S1 is deployed the paid-state leak stays live. Only slice **S3b** (which waits on [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) is Sprint 7 work.
+
+*(Earlier value, kept as history — true from 2026-09-26 until 2026-09-29:)* ~~Sprint 6~~
 
 ⚠️ **The field above is the bare token `Sprint 6` (was `Backlog` until 2026-09-26) on purpose** —
 `dashboard.sh`'s drift rule compares it against the board's identity, and a decorated value is reported
@@ -55,7 +61,9 @@ ONCE rather than absorbed into either.** ⛔ **They did NOT rule what it is wort
 — see *Priority*, where the rank is the **producer's**.
 
 ## Priority
-9
+17
+
+📌 **2026-09-29 — rank 17 on [Sprint 7](../../../sprints/plan-sprint-7.md) is APPEND RANK, not a merit ranking** (see *Sprint*). On merit it sits directly below `0340`, whose ship its slice S3b waits on — which is where it is. *Earlier value, kept:* ~~9~~ (Sprint 6) —
 
 📌 **Shifted 4 → 9 later on 2026-09-26** by a third OWNER RULING (R2/R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): five appended name-change rows (`0312`, `0313`, `0315`, `0314`, `0317`) were placed above it. Still directly above `0248`; order relative to `0248`, `0301` and `0303` unchanged. ⛔ Not a merit re-rank of this task. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~4~~ —
 

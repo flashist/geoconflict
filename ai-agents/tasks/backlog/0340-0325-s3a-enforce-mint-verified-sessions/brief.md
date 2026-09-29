@@ -8,14 +8,22 @@
 > held by toolkit prose in `.claude/` — see `0339`'s note). No task folder, no `## ID` hit, no `.claude/` hit.
 
 ## Sprint
-Sprint 6
+Sprint 7
+
+📌 **Moved BACK from Sprint 6 to Sprint 7 on 2026-09-29, latest** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). Appended on [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 16; its earlier Sprint 7 row (rank 3) stays there as a closed `➡️ Moved` row (ADR-035). `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. **The gate below is unchanged.** The Sprint 6 note directly below (*Sprint 6 cannot close as fully done until this task has shipped*) no longer applies — this task is no longer on Sprint 6.
+
+*(Earlier value, kept as history — true from earlier on 2026-09-29 until this move:)* ~~Sprint 6~~
 
 📌 **Moved from Sprint 7 to Sprint 6 on 2026-09-29** — OWNER RULING given live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. As relayed: *"Move 0340 into Sprint 6."* Reason: [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — and so `0248` and `0301` — on [Sprint 6](../../../sprints/plan-sprint-6.md) cannot close until this task ships. Record: the 2026-09-29 `0340` addendum under Sprint 6's status table. `## Status` unchanged; no folder moved; no mover run. **The gate below is unchanged.** ⚠️ Because the gate includes a watch window of days after a deploy, Sprint 6 cannot close as fully done until this task has shipped — flagged for the owner.
 
 *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 7~~
 
 ## Priority
-47
+16
+
+> 📌 **2026-09-29, latest — rank 16 on [Sprint 7](../../../sprints/plan-sprint-7.md) is APPEND RANK, not a merit ranking.** The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. **On merit** this sits at the top of Sprint 7's open work, directly below `0337` — where its earlier Sprint 7 row (rank 3) stood — because `0250` S3b, `0332`, `0323` and `0319` wait on it. Its own gate, `0339`, stays on Sprint 6. The notes below about ranks 47 and 3 are kept as history.
+>
+> *(Earlier value, kept as history — true on Sprint 6 earlier on 2026-09-29:)* ~~47~~
 
 > 📌 **2026-09-29 — rank 47 on [Sprint 6](../../../sprints/plan-sprint-6.md) is APPEND RANK, not a merit ranking — flagged for owner confirmation.** The owner named no rank; this board's highest was 46 (`0341`). **On merit this belongs directly below `0339`**, because `0339`'s S2 exit is this task's gate, and above `0250`, whose slice S3b waits on it. ADR-035: appended, never inserted; nothing was renumbered. The note below about rank 3 describes the Sprint 7 board and is kept as history.
 >
