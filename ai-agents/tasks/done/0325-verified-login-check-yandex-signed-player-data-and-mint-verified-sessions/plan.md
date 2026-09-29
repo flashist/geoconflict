@@ -332,3 +332,262 @@ The key lives only on the profile box, so the signature has to travel to the box
 - **Q2 (build before S0's answer?):** "Test first, then build (Recommended)" — No wasted work; waits for your ~45 minutes.
 - **Q3 (if S0 finds no timestamp):** "Stop and come back to me (Recommended)" — Don't hand out verified sessions on data that can be replayed forever; look for another design.
 - **Plan approval:** "Approve (Recommended)" — 2026-09-28. The "Carried for approval with the plan" items above are approved with it.
+
+---
+
+## S0-informed amendment (2026-09-29)
+
+- **Who / what:** written by `fkit-coder`, a plan-only unit spawned by `fkit-lead` after the owner chose
+  *"Build 0325 (Recommended)"* (2026-09-29, live via `AskUserQuestion`). No source, no tests, nothing
+  committed.
+- **The approved text above is unchanged** (blob `deb67836680bd77c779c5c1038db8f801798b7a7`). This section
+  is appended beneath it.
+- **Precedence:** where this section differs from the text above, this section governs **once the owner
+  approves it**. Items marked ⏳ wait for an owner ruling (**D1–D3**, listed at the end).
+- **S0 facts used** (`worklog.md` § *2026-09-29 — S0 result*): decoded-JSON construction only; id at
+  `data.id` and `data.uniqueID` (both equal `getUniqueID()`); top-level `algorithm` (string), `issuedAt`
+  (number, seconds), `requestPayload` (string), `data`; signature length 733; one signed-call sample of
+  6852 ms with a `net::ERR_SOCKET_NOT_CONNECTED` logged (retry likely, inferred), on a connection that was
+  slow that session (a 5517 ms loader fetch).
+
+### A. The payload-dependent values (plan § *Gating*), resolved
+
+**A1. `SIGNATURE_MAX = 2932`** — the approved formula: `max(4 × 733, 2048) = 2932`, under the `8192` cap.
+- **New, plan gap found: the client must also drop an over-long signature.** The server answers an
+  over-bound `signature` with **400**. `ProfileSession.postLogin` treats any non-OK status as `error`
+  (`ProfileSession.ts:221-222`), and `login()` then latches D3 (`:162-170`): **no profile session for the
+  rest of the page load.** That would break the plan's fail rule (*failure ⇒ an unverified session, never
+  a refused login*).
+- **Fix, inside the plan's intent:** `takeYandexPlayerSignature()` returns `null` for a signature longer
+  than `SIGNATURE_MAX`, imported from `src/core/profile/LoginContract.ts`. An over-long signature then
+  just reads as `absent`.
+- **Rule for later:** never lower `SIGNATURE_MAX` on the server ahead of the client.
+- **Tests (added):** client, over-bound signature → `null` and the body has no `signature` key.
+
+**A2. The id field: `verifySignedPlayer` reads `data.uniqueID` only.**
+- It must be a non-empty string; otherwise `bad_payload`.
+- `data.id` is not read, and `data.id === data.uniqueID` is **not** required.
+- **Why `uniqueID`:**
+  - it is the field the SDK's `getUniqueID()` is named after;
+  - `getUniqueID()` is exactly what the client asserts today (`getYandexUniqueId`,
+    `FlashistFacade.ts:1664`) and what `player_identities` stores;
+  - so the `id_mismatch` check compares like with like.
+- **Why not require equality:** both fields sit inside the same HMAC-covered payload, so a forger can set
+  neither. Requiring them equal adds no security. It only adds a way to fail: if Yandex ever made `id`
+  differ (for example a per-app id), every login would turn `bad_payload`.
+- **No fallback to `data.id`** when `uniqueID` is missing. A silent fallback would hide the very *"Yandex
+  changed the payload"* signal that `bad_payload` exists to show.
+
+**A3. `issuedAt`: top level, in seconds, and now REQUIRED.**
+- Missing, not a number, or not finite → `bad_payload`.
+- **This replaces** *"Freshness is checked only if `issuedAt` exists (per S0)"* (step 5). S0 proved the
+  field exists. Owner ruling Q3 (*"Don't hand out verified sessions on data that can be replayed
+  forever"*) means a payload without it must not verify.
+- The `ok` result's `issuedAtMs` becomes required: `issuedAt × 1000`.
+
+**A4. The freshness window, as approved: 900 s old / 300 s future.**
+- `stale` if `nowSec − issuedAt > 900`, or if `issuedAt − nowSec > 300`.
+- Exactly 900 s old, or exactly 300 s ahead, counts as fresh.
+- **Tests (added):** 900 / 901 s old; 300 / 301 s ahead; `issuedAt` missing, a string, `NaN`.
+
+**A5. The HMAC construction: unchanged.** Both constructions are still accepted (step 4, ADR residual 10).
+Yandex's public purchase docs HMAC the decoded JSON in their Node example, which matches S0. Dropping the
+base64 construction stays with `0309`/`0310`.
+
+### B. The client's wait for the signed call — ⏳ D1 (and D2)
+
+**B1. Traced flow on today's tree** (`572d134`):
+1. Platform-init stage 2 calls `initPlayer()` (`FlashistFacade.ts:746` → `:1587`). The plain
+   `getPlayer()` is at `:1595`. **The plan's pre-fetch starts here**, after that call resolves and the
+   player is authorized. It is not awaited.
+2. Platform init then finishes: flags, payments, language and name. After that, `Bootstrap` downloads
+   the `app` chunk (`Bootstrap.ts:27-37,54`) and calls `startClient()`.
+3. `startClient()` fires `void startProfileSession()` (`Main.ts:1102`). That is fire-and-forget: menus,
+   matchmaking and play never wait on it.
+4. `ensureSession` → `isYandexAuthorized` / `getYandexUniqueId` (instant by now) → `resolveApiBase`
+   (the `/api/env` fetch, `ConfigLoader.ts:33`, cached after the first call) → `login()` →
+   **[new: take the signature]** → `postLogin` (its own 5 s fetch timeout, `ProfileSession.ts:39,208`).
+
+- **The head start:** the signed call runs during step 2 plus the `/api/env` fetch. **Not measured.**
+  Plausibly under a second on a fast connection, and several seconds on a slow one.
+- **Who waits on the login:** every `profileFetch` caller joins the login in flight (`ensureSession`,
+  `ProfileSession.ts:104-116`). That covers:
+  - the citizenship card's first profile read (`CitizenshipCard.ts:237` → `PlayerProfileView.ts:79,182`);
+  - the inbox;
+  - the tenure claim;
+  - name change;
+  - the payments intent.
+- `profileFetch`'s `timeoutMs` bounds only the request made after the session exists, **not** the wait
+  for the login itself.
+
+**B2. What a logged-in player sees while the login waits** (true today, and made longer by any signature
+wait):
+- `CitizenshipCard` renders `profile === null` as the **guest** card (`CitizenshipCard.ts:417-420`): a
+  "log in" button, no XP, no citizen status, and the approved-name lock (0321) not yet applied. This lasts
+  until the first read lands.
+- Tapping that false "log in" button opens the auth dialog and asks for a full restart
+  (`CitizenshipCard.ts:364-410`).
+- Today this is bounded by about 5 s of login plus 5 s of read. Fixing it is **not** in scope; it is noted
+  as a possible task.
+
+**B3. The options, from the player's side.** For a player whose signed call finishes before login asks,
+all three options behave the same.
+
+| Option | Worst-case extra wait | Worst case for the card (login ask → card filled) | Cost |
+|---|---|---|---|
+| (a) Plan formula, `max(2000, 3 × 6852)` ≈ **20.5 s** | ≈ 20.5 s of the false guest card | ≈ 30 s | Fewest unverified sessions |
+| **(b) Fixed 5 s wait (Rec)** | ≤ 5 s | ≈ 15 s (vs ≈ 10 s today) | A player whose signed call takes longer than *head start + 5 s* is unverified for that page load |
+| (c) No wait: use it only if it is already there | 0 | ≈ 10 s (unchanged) | The unverified share is unknown, and likely highest on slow connections |
+
+- **What "unverified" costs:**
+  - **In S2: nothing a player can see.** S2 is shadow only.
+  - **After S3a + `0250` S3b:** the player sees the unverified card (an earned citizen reads 100 / 100,
+    `0250` Q-A) until the next page load.
+- **Why 5 s:** it matches the codebase's existing bounded waits: `LOGIN_TIMEOUT_MS`,
+  `PROFILE_FETCH_TIMEOUT_MS` and `PLATFORM_INIT_DEADLINE_MS` are all 5000.
+- **Not guaranteed:** the total budget is the head start plus 5 s. That covers S0's single 6852 ms sample
+  only if the head start is at least about 1.9 s.
+
+**B4. The recommended design** (option b), replacing step 10's timeout bullet:
+- **`SIGNED_PLAYER_WAIT_MS = 5000`:** the longest `takeYandexPlayerSignature()` waits, counted from the
+  moment login asks. The same cap applies whether it is waiting on the pending pre-fetch or on a fresh
+  call.
+- **The pre-fetch has no timeout of its own.** If it misses the wait, it is abandoned: its result is
+  thrown away when it lands, never held for the next take.
+- **Held-signature age limit:** a pre-fetched signature held longer than **300 s** (timed from when it was
+  fetched) is discarded, and a fresh call is made.
+  - This covers a login that could not start at boot (for example `/api/env` failed, so `resolveApiBase`
+    returned null) and runs minutes later from a `profileFetch`. Without the limit, that signature would
+    arrive `stale`.
+  - 300 s is well inside the 900 s window.
+- **Relogin (a 401):** a fresh call, with the same 5 s cap (unchanged from step 10).
+- **Degraded-boot recovery** (`FlashistFacade.ts:1099-1118` fetches the player late) has no pre-fetch.
+  The first take makes a fresh call, capped at 5 s.
+- **Retune before S3a** from D2's data, if D2 is approved.
+- **Tests (added to `FlashistFacade.test.ts`):**
+  - a pending pre-fetch that settles inside the wait → used;
+  - one that settles after the wait → `null`, and the late value is **not** returned by the next take;
+  - a held signature older than 300 s → a fresh call;
+  - the recovery path with no pre-fetch → a fresh call;
+  - over-bound → `null` (A1).
+
+**B5. ⏳ D2 — measure the signed call (optional; reverses step 12's "no new client events").**
+- **Four client analytics events, at most one per take**, carrying nothing but their name:
+  - `Profile:Login:Signature:Ready`: the pre-fetch was done before login asked;
+  - `Profile:Login:Signature:Waited`: it arrived inside the wait;
+  - `Profile:Login:Signature:Timeout`;
+  - `Profile:Login:Signature:Failed`: the call threw, returned no string, or was over bound.
+- **Guests fire none.**
+- **Where they are added:** the `flashistConstants.analyticEvents` enum and
+  `analytics-event-reference.md`, next to `Profile:Login:*`.
+- **Without them:** the server's `absent` count mixes timeouts, failures and old bundles, so nothing tells
+  us whether 5 s is right before S3a.
+
+### C. `algorithm` — ⏳ D3
+
+**Recommendation: ignore it.** It is never read and never pinned.
+- **Pinning adds no security.** Our check hardcodes HMAC-SHA256. The field sits inside the signed payload
+  and cannot choose the algorithm (unlike JWT's `alg` header).
+- **It adds only change detection, which we already get.** A real algorithm change at Yandex would break
+  our HMAC check, and that shows as a `bad_signature` spike.
+- **It adds a risk.** A label-only change (casing, say) would turn every login `bad_payload`. In S2 that
+  is a false alarm; after S3a, everyone becomes unverified.
+- **The value is unconfirmed.** S0 recorded only the type. Yandex's purchase docs show `"HMAC-SHA256"`.
+- **Alternative:** confirm the value with one extra line in a re-run of Step A (`json.algorithm` is not
+  personal data), then pin it.
+
+### D. `requestPayload` — stays accepted residual 8; not in S2 or S3a
+
+- **The docs:** Yandex's `getPlayer` docs (fetched 2026-09-29) list only `{ signed: true }`: no payload or
+  nonce option. The only documented `requestPayload` is in the purchase-signature example.
+- **The repo cannot answer it.** `src/client/yandexGamesSdk_test.js` is the SDK **loader** only (6.9 KB:
+  `YaGames.init` and script loading). It contains no `getPlayer` code.
+- **Even if a nonce existed**, it would need a server-issued challenge: another round trip plus server
+  state. That is a design change, beyond this plan.
+- **The verifier never reads `requestPayload`.** Residual 8 (replay within 15 min, plus 5 min of skew) is
+  unchanged.
+- **Re-raise** if Yandex documents a `getPlayer` payload option.
+
+### E. Line-reference drift against HEAD `572d134`
+
+`68303d5` (0250 S1 and others) and `572d134` both landed after this plan was grounded.
+
+| Plan cites | Today | Note |
+|---|---|---|
+| `FlashistFacade.ts:450,1631` (the SDK field, the `window` exposure) | `:516`, `:1949` | moved |
+| `FlashistFacade.ts:1269-1284` `initPlayer`, pre-fetch hook `:1277` | `:1587-1603`, plain `getPlayer()` at `:1595` | moved |
+| `FlashistFacade.ts:1339-1357` `getYandexUniqueId` | `:1656-1675` | moved |
+| *(not in the plan)* | `FlashistFacade.ts:1099-1118`, the late-SDK player recovery | new path; see B4 |
+| `Telemetry.ts:135-148` interface; `:234-398` counters | `:135-157`; `:234-396` | small |
+| `Server.ts:170-190` | `createApp` at `:170-193`. The secret goes in the **last** options object, beside `metrics`. | small |
+| `Routes.ts:444-449` (the `resolveCaller` doc) | the *"drops in HERE"* line is `:442` | −2 |
+| `PublicProjection.ts:3,16,44-54` | `:3`, `:16-17`, `:45`, `:54` | small |
+| `tests/client/ProfileSession.test.ts:9-13` | `:9-15` | small |
+| Unchanged: `SessionToken.ts` (`:36`, `:54`, `:86`; `signSessionToken` at `:71`), `YandexSignature.ts:105-153`, `LoginContract.ts:5-28`, `Routes.ts` `:193`, `:299`, `:418`, `:475-497`, `:640-736`, `ProfileSession.ts:162-270`, and the three `ProfileMetrics` mocks | — | — |
+
+**Other corrections:**
+- **Step 12:** `analytics-event-reference.md` does not cover server metrics, so there is **no doc change
+  for the new metric**. The doc changes only if D2 is approved.
+- **The ADR:** the plan's *"115 today"* is stale. ADR-115 was taken in `68303d5`. **ADR-116** now exists
+  as an untracked, *proposed* draft by `fkit-architect` (2026-09-29). Its § *Points NOT decided here* is
+  settled by A2 and D1–D3. After the rulings, that text needs a follow-up edit by the architect, not the
+  coder.
+
+### F. Deploy order — unchanged and confirmed
+
+- S2 may be **built** now.
+- **Deploy precondition (unchanged):** `0250` S1 fully deployed, client first, then profile server. S1 is
+  committed but **not deployed** (weekend slot). Every profile-server build from this tree carries S1's
+  server half.
+- **Then:** profile server S2 → game client S2 → the owner's observation window → the owner's S3a gate →
+  profile server S3a.
+- The client S2 bundle also carries S1's client. It ships after S1 by this order anyway.
+- Rollback rules are unchanged (never S3a → pre-S2).
+
+### Owner decisions this amendment needs
+- **D1:** the client's wait for the signed call. Rec: (b) 5 s, with the B4 design.
+- **D2:** add the four `Profile:Login:Signature:*` events. Rec: yes.
+- **D3:** `algorithm`. Rec: ignore it (never read, never pin).
+- **Carried for approval with this amendment (not separate questions):**
+  - A1's client over-bound guard;
+  - A2 (`data.uniqueID` only);
+  - A3 (`issuedAt` required);
+  - B4's 300 s held-signature limit;
+  - D (`requestPayload` stays residual 8).
+
+## Owner rulings on the amendment (2026-09-29)
+
+Given live via `AskUserQuestion` in the `fkit lead` session, relayed by fkit-lead to the S2 Build worker
+(`fkit-coder`). Recorded verbatim. Where these differ from the amendment above, **these govern**.
+
+- **Amendment approval:** "Approve and build (Recommended)". The amendment's carried items are approved
+  with it: A1 client over-bound guard, A2 `data.uniqueID` only, A3 `issuedAt` required, B4's 300 s
+  held-signature limit, D `requestPayload` stays residual 8.
+- **D1 (the client's wait for the signed call):** the owner REJECTED all three offered options and
+  answered: *"I think we should not have any limit, and the only case of the "fallback/fail" state is
+  when the request is actually failed."* Follow-up question: "What if Yandex's request hangs and never
+  answers?" Answer: *"#1, but add the analytic event that we can then analyse to find out how big the
+  problem is."* Option #1 was: *"60 s safety net for hangs (Recommended) — Wait for the answer as you
+  asked; only a request still silent after 60 s counts as failed and the player logs in unverified.
+  Normal slow requests (like our 7 s) are never cut off."*
+  - ⇒ **This replaces B4's 5 s cap:** `SIGNED_PLAYER_HANG_MS = 60000`, a hang safety net only, counted
+    from when login asks for the signature. A real failure (throw / non-string / over-bound) falls back
+    immediately. A pending pre-fetch is awaited up to the hang net. The rest of B4's design stays
+    (take-once, the 300 s held-signature age limit, abandoned late results never reused, a fresh call on
+    relogin and on the degraded-recovery path), with the hang net in place of 5 s.
+- **D2:** "Yes, add them (Recommended)": the four events `Profile:Login:Signature:Ready` / `Waited` /
+  `Timeout` / `Failed`, at most one per take, guests fire none, added to the
+  `flashistConstants.analyticEvents` enum and `ai-agents/knowledge-base/analytics-event-reference.md`.
+  Under D1, **`Timeout` now means the 60 s hang net fired**. It is the event the owner asked for, to size
+  the hang problem. If the analytics facade already supports a numeric value on an event, the elapsed
+  wait in ms MAY be attached to `Waited` and `Timeout`.
+- **D2 follow-up — the ms value (2026-09-29, live via `AskUserQuestion` in the `fkit lead` session, relayed
+  by fkit-lead):** question *"The 'Waited' and 'Timeout' analytics events also carry the wait time in
+  milliseconds (no ids or personal data). That was my addition, not your words. OK to keep?"* Answer:
+  **"Keep it (Recommended)"** — option text *"Lets you see not just how often the signed call is slow,
+  but how slow (e.g. 3 s vs 40 s). Already built and tested."*
+  - ⇒ The ms value on `Waited` / `Timeout` is now a first-hand owner ruling, not only the lead's
+    allowance above. No build change.
+- **D3:** "Ignore it (Recommended)": `algorithm` is never read and never pinned.
+- **Scope of this build:** S2 steps 1–12 as amended, plus their tests. **S3a (steps 13–15) is not built**;
+  it keeps its own later owner gate. No `vfy:true` is minted anywhere.

@@ -74,7 +74,7 @@ paid benefit, and every additional paid perk `PROJECT.md` promises ("name change
 lobbies, spectating") will want the same seam.
 
 ## Status
-🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0325` (verified login). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**
+🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0340` (verified sessions — `0325`'s slice S3a, split into its own task 2026-09-29; was ~~`0325`~~, which closed as the S2 build). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**
 
 ## Owner
 fkit-coder
@@ -273,7 +273,7 @@ below). Phase 1 is **done**. Phase 2 is now **two slices of this task**, in this
 - **S3b — the verified-only view.** A **verified** caller (`vfy:true`) gets its own true `xp`,
   `citizenship_earned_at`, the original inbox keys, and — per D1 — the raw facts **`is_paid_citizen`** and
   **`citizenship_purchased_at`**, to itself only. **Hard-depends on
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)**
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)**
   (verified login). Design: report §8 S3b, with D1 replacing its `entitlements: { ad_free }` payload.
 - ⛔ **Verified login itself (report slices S0, S2, S3a) is NOT in this task** — it is `0325` (D3).
 
@@ -289,14 +289,14 @@ below). Phase 1 is **done**. Phase 2 is now **two slices of this task**, in this
   📌 *Answered 2026-09-27 by the design report (§6):* verified login does **not** close ADR-103 by itself —
   the game server never sees the profile session. It needs a second step (the session token in the
   WebSocket join), which is **not filed**; see
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
   *Out of scope*. Still out of scope here.
 - ⛔ **The inbox routes' `resolvePlayerId()` seam** (`src/profile-server/Routes.ts:128-137`), which
   carries the same "signature drops in here" note. Same rule: **flag the overlap, file it separately,
   do not absorb it.**
   📌 **Narrowed 2026-09-27 by OWNER RULING D5 — read before relying on the bullet above.** The seam
   (now `resolveCaller`) and the signature check **stay out of scope**; they are filed separately as
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (D3).
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (D3).
   But the **inbox projection** (leak L4: the `citizenship_paid` inbox template tells a payer apart) and the
   **tenure-grant response** (leak L3: it returns the true XP) are now **IN scope** — D5 widened this task for
   **these two leaks only**, so slice S1 closes all four known leaks at once.
@@ -338,14 +338,27 @@ phase 1 chooses, all of these must hold:**
 
 ## Notes
 
-- **Depends on:** [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
-  (verified login) — **hard, for slice S3b only** (owner ruling D3, 2026-09-27). **Slice S1 (the MUST-FIX)
-  depends on nothing** and ships first. The task as a whole cannot close until `0325` ships.
+- **Depends on:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified sessions —
+  `0325`'s slice S3a, split into its own task 2026-09-29) — **hard, for slice S3b only** (owner ruling D3,
+  2026-09-27). **Slice S1 (the MUST-FIX) depends on nothing** and ships first. The task as a whole cannot
+  close until `0340` ships. *Repointed 2026-09-29 (see the dated note below), kept as written:*
+  ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)
+  (verified login) — hard, for slice S3b only … The task as a whole cannot close until `0325` ships.~~
   *Superseded 2026-09-27, kept as written:* ~~nothing on the boards. ⚠️ **But possibly on an external
   gate:** if phase 1 chooses a Yandex-signature design, it needs the per-game secret key, tracked as
   [`0014`](../../done/0014-yandex-catalog-registration/brief.md) `## Verification` item 3, whose state is
   **unknown**. ⛔ **Check it; do not assume.**~~ — the key is configured and correct (open question 3,
   answered below).
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned
+  `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in
+  the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build
+  (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build
+  task after it."* `0325` closed as the S2 build (shadow mode: checks the signature, still mints only
+  `vfy:false`). The verified session that slice **S3b** needs now comes from
+  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a, enforce), which waits on
+  [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
+  explicit owner approval. Where the slice table and deploy order below say *"`0325` (S3a)"*, read `0340`.
+  Slice S1 is unaffected.
 - **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,
   paid-only confirmed), and that flag cannot reach the client until this task ships.
@@ -402,7 +415,7 @@ phase 1 chooses, all of these must hold:**
    (`0065`); and a **read-only probe on 2026-09-27** showed the payments gate passes (a deliberately
    non-existent payments path answered 404, not the 503 a missing key gives). ⚠️ **Still NOT established:**
    whether the same key verifies signed **player** data, and the payload's fields — that is
-   [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)'s
+   [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)'s
    spike S0. *The question as asked, kept:*
    ~~**Is the per-game payments secret key collected?** Unknown — `0014` open item 1. **It decides whether
    candidate 1 is plannable at all today.**~~
@@ -441,7 +454,7 @@ producer precedent. The questions are D1–D5 of the design report
 - **D2 — `0248` stays paid-only.** It waits on this task's slice S3b. Candidate 4 of the report (re-scope
   `0248` to `is_citizen`) is **declined**.
 - **D3 — verified login is its own task:**
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md), filed
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md), filed
   2026-09-27 with the report's slices **S0** (owner-run spike), **S2** (shadow mode) and **S3a** (mint
   `vfy:true`), plus the ADR recording the first verified identity (owner sign-off pending). This task keeps
   **S1** and **S3b**; S3b hard-depends on `0325`. ⚠️ The owner ruled `0325` *"directly above 0250"*; on the

@@ -12,6 +12,13 @@ import { PublicPlayerProfileSchema } from "./PlayerProfile";
  * (0267). A `vfy:false` session never counts as a proven owner (e.g. 0250 paid
  * state).
  *
+ * `signature` (task 0325, S2 — shadow mode) is Yandex's signed player data
+ * (`getPlayer({ signed: true }).signature`). The server checks it and COUNTS the
+ * outcome, but still mints only `vfy:false`: nothing depends on it yet. Once 0325's
+ * S3a ships, a `vfy:true` session — and only that — is the proven owner. The field
+ * is optional forever: a missing or bad signature means an unverified session,
+ * never a refused login. ⛔ It is a credential: never log it, never persist it.
+ *
  * Errors:
  *   400 bad_request                                     — body fails this schema / malformed JSON
  *   401 session_expired | session_invalid               — Bearer routes (never login itself)
@@ -21,10 +28,21 @@ import { PublicPlayerProfileSchema } from "./PlayerProfile";
  *   500 internal_error
  */
 
+/**
+ * Upper bound on `signature` (task 0325): `max(4 × 733, 2048)`, where 733 is the
+ * length S0 observed on a real signed payload. Well under Express's 100 kb body
+ * limit. The client drops a longer signature rather than send it, because the
+ * server's 400 would latch its login failure for the page load.
+ * ⚠️ Never lower this on the server ahead of the client.
+ */
+export const SIGNATURE_MAX = 2932;
+
 /** Design §8 Q4 default: 1–128 characters until real Yandex ids are sampled. */
 export const LoginRequestSchema = z.object({
   platform: PlatformSchema,
   platformUserId: z.string().min(1).max(128),
+  // Omitted (never "") when the client has none — an empty string is a 400.
+  signature: z.string().min(1).max(SIGNATURE_MAX).optional(),
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 

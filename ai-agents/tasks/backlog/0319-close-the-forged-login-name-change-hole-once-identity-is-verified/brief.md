@@ -101,7 +101,7 @@ producer before building — the route list above still stands, the mechanism ma
 
 ## Notes
 
-- **Depends on:** 0325 (verified login — filed 2026-09-27, see the dated note at the end of *Notes*). *Earlier text, kept:* ~~0267 (the identity-verification investigation and its owner-approved recommendation) — and on the implementation task that builds verified login from it, which is not filed yet.~~
+- **Depends on:** 0340 (verified sessions — `0325`'s slice S3a, split into its own task 2026-09-29; see the 2026-09-29 note at the end of *Notes*). *Repointed 2026-09-29, kept as written:* ~~0325 (verified login — filed 2026-09-27, see the dated note at the end of *Notes*).~~ *Earlier text, kept:* ~~0267 (the identity-verification investigation and its owner-approved recommendation) — and on the implementation task that builds verified login from it, which is not filed yet.~~
 - **Blocks:** nothing
 - **Related:**
   - [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) — the root fix (investigation).
@@ -118,7 +118,16 @@ producer before building — the route list above still stands, the mechanism ma
 - 📌 **2026-09-27 — dependency now filed (append-only).** Added by a spawned `fkit-producer` on OWNER RULING
   D3 on `0250` (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ADR-021/037).
   The *"implementation task that builds verified login … not filed yet"* in *Depends on* above **is now
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)** — it
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)** — it
   mints `vfy:true` sessions and makes `resolveCaller` report `verified`. **This task depends on `0325`**; it
   then gates its routes on `verified`. `0267`'s Yandex half is answered by the `0250` design report, so `0267`
   no longer stands between this task and the fix.
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only; the note above is kept as
+  written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29
+  live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close
+  0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a
+  enforce' build task after it."* `0325` closed as the S2 build: it checks the signature at login but still
+  mints only `vfy:false`, and `resolveCaller` does not yet report `verified`. Both now come from
+  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a, enforce), which waits on
+  [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
+  explicit owner approval. **This task now depends on `0340`.**

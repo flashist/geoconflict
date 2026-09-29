@@ -133,7 +133,7 @@ look-alike, as today (D1, D6). `0267` closes the first case later with no change
 - 📌 **2026-09-27 — where the forged-id case actually closes (append-only; pointer, not a dependency).** Added
   by a spawned `fkit-producer` after OWNER RULING D3 on `0250` (relayed by `fkit-lead`; ADR-021/037). Verified
   login is filed as
-  [`0325`](../../backlog/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md), but
+  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md), but
   **`0325` alone does not close this task's forged-id case**: the game server learns the id from the WebSocket
   join and never sees the profile session. It needs a **second step on top of `0325`** — the client sends its
   session token in the join, and the game server asks the profile server to vouch for it (design report

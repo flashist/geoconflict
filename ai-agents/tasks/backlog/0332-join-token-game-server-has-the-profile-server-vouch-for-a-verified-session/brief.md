@@ -10,7 +10,9 @@
 Sprint 7
 
 ## Priority
-7
+9
+
+> 📌 **2026-09-29 — rank 7 → 9.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
 > 📌 **2026-09-29 — rank 6 → 7.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
@@ -47,7 +49,7 @@ WebSocket join. Nothing checks it — that is [ADR-103](../../../knowledge-base/
 an accepted risk. Anyone who sends another player's Yandex id is treated as that player at the one place the
 game server learns identity (`GameServer.getCreditableYandexId`, ADR-103's single "funnel").
 
-[`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) makes the
+[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) makes the
 **profile server** able to prove who a player is: at login it checks Yandex's signed player data and issues a
 **verified** session (`vfy:true`). But the game server never sees that session — so `0325` alone changes
 nothing for the game server
@@ -166,7 +168,8 @@ Built from the design. In outline only — the design decides the shape:
 
 ## Notes
 
-- **Depends on:** [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)
+- **Depends on:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — there is no verified session to send until it ships; it is `0325`'s slice S3a, split into its own task 2026-09-29). *Repointed 2026-09-29, kept as written:* ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)~~
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). The verified session this task sends in the join now comes from [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval. Where this brief says *"`0325`"* or *"its slice S3a"* for the verified session, read `0340`.
 - **Blocks:** [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard — the mark is only honest once the game server can check who the player is; owner ruling on `0323`, 2026-09-28)
 - **Closes (when phase 2 ships and the owner's per-user policy is applied):** ADR-103's forged-id risk for
   XP crediting · the `0068` ★ forged-id case · the `0302` private-lobby-gate forged-id case · ADR-115

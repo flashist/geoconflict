@@ -7,7 +7,9 @@
 Sprint 7
 
 ## Priority
-6
+8
+
+> 📌 **2026-09-29 — rank 6 → 8.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
 > 📌 **2026-09-29 — rank 5 → 6.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
@@ -64,7 +66,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
 
 ## Notes
 
-- **Depends on:** `0322` (hard — the swap) · [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login) · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
+- **Depends on:** `0322` (hard — the swap) · [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — verified sessions; `0325`'s slice S3a, split into its own task 2026-09-29) *(repointed 2026-09-29, kept as written: ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login)~~)* · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
 - ~~**Depends on:** `0322`~~ *(superseded 2026-09-28 — owner ruling below)*
 - ~~**Soft dependencies (not blocking):** `0267` (makes the mark identity-verified with no change here).~~ *(superseded 2026-09-28 — verified identity is now a hard dependency, via `0325` plus the join-token step)*
 - **Related:** [`0317`](../../done/0317-investigate-show-a-citizens-approved-name-in-matches/brief.md) (source) ·
@@ -95,6 +97,8 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
   (Recommended)"** — *"Sits right after 0323's dependencies; it can't start before 0325 is done anyway."* `0332`
   sits at the end of Sprint 7 (rank 6, directly after this task's row), depends on `0325`, and **blocks this
   task**. The *Depends on* line above now links it.
+
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only; the notes above are kept as written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). Verified sessions now come from [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval. Where the notes above say *"`0325`"* as the verified-login dependency, read `0340`. `0332` (the join token) is unchanged and now also depends on `0340`.
 
 ### Open questions for the owner
 1. What should the mark look like, and should it replace ★ for these players or sit next to it? (Asked at the

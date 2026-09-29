@@ -89,6 +89,29 @@ export type LoginOutcome =
  */
 export type SessionRejectedReason = "expired" | "invalid" | "absent";
 
+/**
+ * What the login's signed-player-data check found (task 0325, S2 — shadow mode:
+ * counted, and used for nothing else yet). Seven bounded values, in check order:
+ *  - `absent`        — no signature in the body: an old client bundle, or the
+ *                      client's signed call failed / hung past its 60 s safety net.
+ *  - `no_secret`     — the box has no YANDEX_PAYMENTS_SECRET, so nothing can verify.
+ *  - `bad_signature` — bad structure / base64, or the HMAC did not match. A spike is
+ *                      forgery — or Yandex changed its algorithm or key.
+ *  - `bad_payload`   — the HMAC passed but `data.uniqueID` or `issuedAt` is missing:
+ *                      the "Yandex changed the payload" signal.
+ *  - `stale`         — outside the 900 s old / 300 s future window.
+ *  - `id_mismatch`   — a genuine signature for a DIFFERENT id than the one asserted.
+ *  - `ok`            — would verify (S3a mints `vfy:true` for exactly these).
+ */
+export type LoginVerificationOutcome =
+  | "absent"
+  | "no_secret"
+  | "bad_signature"
+  | "bad_payload"
+  | "stale"
+  | "id_mismatch"
+  | "ok";
+
 /** 2xx…5xx. Bounded on purpose — the raw status code would be a wider label. */
 export type StatusClass = "1xx" | "2xx" | "3xx" | "4xx" | "5xx";
 
@@ -142,6 +165,8 @@ export interface ProfileMetrics {
     durationMs: number,
   ): void;
   sessionRejected(reason: SessionRejectedReason): void;
+  /** Once per `POST /v1/login` whose body parsed (task 0325, S2). */
+  loginVerification(outcome: LoginVerificationOutcome): void;
   /** Once per `POST /v1/profile/tenure-grant` request (task 0253). */
   tenureClaim(outcome: TenureClaimOutcome): void;
   /**
@@ -184,6 +209,7 @@ export const noopProfileMetrics: ProfileMetrics = {
   playerCreated: () => {},
   httpRequest: () => {},
   sessionRejected: () => {},
+  loginVerification: () => {},
   tenureClaim: () => {},
   alertRelay: () => {},
 };
@@ -255,6 +281,13 @@ export function createProfileMetrics(
   const sessionRejected = meter.createCounter(
     "geoconflict.profile.session.rejected",
     { description: "Bearer session tokens refused, by reason" },
+  );
+  const loginVerifications = meter.createCounter(
+    "geoconflict.profile.login.verification",
+    {
+      description:
+        "POST /v1/login signed-player-data check outcomes (shadow mode), by outcome",
+    },
   );
   const tenureClaims = meter.createCounter(
     "geoconflict.profile.tenure.claims",
@@ -379,6 +412,9 @@ export function createProfileMetrics(
     },
     sessionRejected: (reason) => {
       sessionRejected.add(1, { reason });
+    },
+    loginVerification: (outcome) => {
+      loginVerifications.add(1, { outcome });
     },
     tenureClaim: (outcome) => {
       tenureClaims.add(1, { outcome });

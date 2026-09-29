@@ -1,0 +1,37 @@
+// The login's verification decision, as one pure function (task 0325).
+//
+// S2 (shadow mode): the login route calls this, COUNTS the outcome
+// (`geoconflict.profile.login.verification`), and uses it for nothing else — every
+// login still gets a `vfy:false` session. S3a will mint `vfy:true` from `verified`.
+//
+// The fail rule, for every outcome but `ok`: an UNVERIFIED session, never a refused
+// login. ⛔ Never log the signature (see PlayerSignature.ts).
+
+import { verifySignedPlayer } from "./PlayerSignature";
+import type { LoginVerificationOutcome } from "./Telemetry";
+
+export interface LoginVerification {
+  outcome: LoginVerificationOutcome;
+  /** True only for `ok`: a fresh, genuine signature for the SAME id the login asserts. */
+  verified: boolean;
+}
+
+export function classifyLoginSignature(
+  signature: string | undefined,
+  assertedPlatformUserId: string,
+  secret: string,
+  nowMs: number,
+): LoginVerification {
+  if (signature === undefined) {
+    return { outcome: "absent", verified: false };
+  }
+  const result = verifySignedPlayer(signature, secret, nowMs);
+  if (result.status !== "ok") {
+    return { outcome: result.status, verified: false };
+  }
+  // A genuine signature for someone else is not proof of THIS login's id.
+  if (result.platformUserId !== assertedPlatformUserId) {
+    return { outcome: "id_mismatch", verified: false };
+  }
+  return { outcome: "ok", verified: true };
+}

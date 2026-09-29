@@ -3,6 +3,7 @@ import { GameAnalytics } from "gameanalytics";
 import { setOtelUser } from "../OtelBrowserInit";
 import { isMobileDevice } from "../Utils";
 import version from "../../version";
+import { SIGNATURE_MAX } from "../../core/profile/LoginContract";
 import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
 import {
   consumePendingSessionEnd,
@@ -202,6 +203,19 @@ export const flashistConstants = {
     PROFILE_LOGIN_FAILED_ERROR: "Profile:Login:Failed:Error",
     // A held token was rejected (401) and a fresh login was started for it.
     PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
+
+    // Yandex signed player data for the login (task 0325, S2; owner ruling D2).
+    // At most ONE per login's take of the signature; guests fire none. They carry
+    // nothing but the name — plus, on Waited/Timeout, the wait in ms as the value.
+    // The pre-fetch had already finished when login asked for it.
+    PROFILE_LOGIN_SIGNATURE_READY: "Profile:Login:Signature:Ready",
+    // Login waited for it and it arrived; value = ms waited.
+    PROFILE_LOGIN_SIGNATURE_WAITED: "Profile:Login:Signature:Waited",
+    // The 60 s hang safety net fired (owner ruling D1); value = ms waited. The
+    // player logs in unverified. This is the event that sizes the hang problem.
+    PROFILE_LOGIN_SIGNATURE_TIMEOUT: "Profile:Login:Signature:Timeout",
+    // The signed call threw, returned no string, or returned an over-long one.
+    PROFILE_LOGIN_SIGNATURE_FAILED: "Profile:Login:Signature:Failed",
 
     // Restart-after-login (task 0273, owner ruling D3). Requested fires when the
     // auth dialog reported success; exactly one of Performed / Suppressed:* follows.
@@ -446,9 +460,33 @@ const YANDEX_SDK_INIT_TIMEOUT_MS = 1000;
 // experiment flags). On expiry the app continues in degraded mode instead of
 // hanging on the loading screen.
 const PLATFORM_INIT_DEADLINE_MS = 5000;
+/**
+ * Task 0325 (S2). The longest `takeYandexPlayerSignature()` waits for the signed
+ * call, counted from the moment login asks. A HANG safety net only — owner ruling
+ * D1 (2026-09-29): no limit on a slow answer; only a request still silent after
+ * this long counts as failed (the player then logs in unverified). A real failure
+ * falls back at once, never waiting on this.
+ */
+export const SIGNED_PLAYER_HANG_MS = 60_000;
+/**
+ * A pre-fetched signature held longer than this (timed from when it was fetched)
+ * is discarded and a fresh call made — well inside the server's 900 s freshness
+ * window, so a login that could only start minutes after boot is not `stale`.
+ */
+export const SIGNED_PLAYER_HELD_MAX_AGE_MS = 300_000;
 const sleepMs = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 type YandexLoginStatus = "logged-in" | "guest" | "unknown";
+/** One `getPlayer({ signed: true })` outcome. ⛔ `signature` is a credential. */
+interface SignedPlayerFetch {
+  signature: string | null;
+  fetchedAtMs: number;
+}
+interface SignedPlayerPrefetch {
+  promise: Promise<SignedPlayerFetch>;
+  /** Set once `promise` settles, so a take can tell "ready" from "still waiting". */
+  settled?: SignedPlayerFetch;
+}
 
 // Yandex catalog product shape (docs: sdk-purchases, re-checked 2026-08-14).
 // Note it's `priceCurrencyCode`, not `currencyCode`.
@@ -1601,6 +1639,131 @@ export class FlashistFacade {
 
       throw error;
     }
+
+    // Task 0325 (S2): start the signed call now, for the profile login to take
+    // later. NOT awaited, so it never extends the platform-init deadline.
+    if (this.isYandexLoggedIn()) {
+      this.startSignedPlayerPrefetch();
+    }
+  }
+
+  // ── Signed player data for the profile login (task 0325, S2) ────────────────
+  // ⛔ The signature is a credential: never logged, never stored beyond the one
+  // take, never put in analytics, and NEVER assigned to yandexSdkPlayerObject (the
+  // boot path's plain player stays untouched).
+  //
+  // Optional: tests build facades via Object.create (no field initializers).
+  private signedPlayerPrefetch?: SignedPlayerPrefetch;
+
+  private startSignedPlayerPrefetch(): void {
+    const prefetch: SignedPlayerPrefetch = {
+      promise: this.fetchSignedPlayer(),
+    };
+    void prefetch.promise.then((result) => {
+      prefetch.settled = result;
+    });
+    this.signedPlayerPrefetch = prefetch;
+  }
+
+  /** One signed call. Never rejects; an unusable answer is `signature: null`. */
+  private async fetchSignedPlayer(): Promise<SignedPlayerFetch> {
+    let signature: string | null = null;
+    try {
+      const signedPlayer = await this.yandexGamesSDK.getPlayer({
+        signed: true,
+      });
+      const value: unknown = signedPlayer?.signature;
+      // Over-long ⇒ dropped: the server would answer 400, and a failed login
+      // latches for the page load (ProfileSession D3). Absent beats refused.
+      if (
+        typeof value === "string" &&
+        value.length > 0 &&
+        value.length <= SIGNATURE_MAX
+      ) {
+        signature = value;
+      }
+    } catch {
+      // Deliberately not logged: the error is counted by the Failed event, and
+      // nothing about this call's payload may reach a log.
+    }
+    return { signature, fetchedAtMs: Date.now() };
+  }
+
+  /**
+   * The signed player data for ONE profile login, or null (guest, no SDK, the
+   * call failed, or it hung past SIGNED_PLAYER_HANG_MS). Never rejects.
+   *
+   * Take-once: the first call gets the boot pre-fetch and clears it; every later
+   * call (a relogin, or a degraded boot that recovered late and never pre-fetched)
+   * makes a fresh call. A pre-fetch abandoned by the hang net is never reused — its
+   * late answer lands nowhere. Fires at most one Profile:Login:Signature:* event.
+   */
+  public async takeYandexPlayerSignature(): Promise<string | null> {
+    try {
+      const prefetch = this.signedPlayerPrefetch;
+      this.signedPlayerPrefetch = undefined;
+      if (!this.yandexGamesSDK || !this.isYandexLoggedIn()) {
+        return null; // A guest has nothing to sign — and fires no event.
+      }
+      const askedAtMs = Date.now();
+      const held = prefetch?.settled;
+      if (held === undefined) {
+        return await this.awaitSignedPlayer(
+          prefetch?.promise ?? this.fetchSignedPlayer(),
+          askedAtMs,
+        );
+      }
+      if (held.signature === null) {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_FAILED,
+        );
+        return null;
+      }
+      if (askedAtMs - held.fetchedAtMs > SIGNED_PLAYER_HELD_MAX_AGE_MS) {
+        // Held too long to arrive fresh at the server — fetch a new one.
+        return await this.awaitSignedPlayer(
+          this.fetchSignedPlayer(),
+          askedAtMs,
+        );
+      }
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_READY,
+      );
+      return held.signature;
+    } catch {
+      return null;
+    }
+  }
+
+  private async awaitSignedPlayer(
+    pending: Promise<SignedPlayerFetch>,
+    askedAtMs: number,
+  ): Promise<string | null> {
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    const hang = new Promise<null>((resolve) => {
+      hangTimer = setTimeout(() => resolve(null), SIGNED_PLAYER_HANG_MS);
+    });
+    const result = await Promise.race([pending, hang]);
+    clearTimeout(hangTimer);
+    const waitedMs = Date.now() - askedAtMs;
+    if (result === null) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_TIMEOUT,
+        waitedMs,
+      );
+      return null;
+    }
+    if (result.signature === null) {
+      flashist_logEventAnalytics(
+        flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_FAILED,
+      );
+      return null;
+    }
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_WAITED,
+      waitedMs,
+    );
+    return result.signature;
   }
 
   private isYandexLoggedIn(): boolean {

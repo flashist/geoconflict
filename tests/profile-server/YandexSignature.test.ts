@@ -1,5 +1,8 @@
 import { createHmac } from "crypto";
-import { verifySignedPayload } from "../../src/profile-server/YandexSignature";
+import {
+  verifyHmacEnvelope,
+  verifySignedPayload,
+} from "../../src/profile-server/YandexSignature";
 
 const SECRET = "test-secret-key";
 
@@ -149,5 +152,43 @@ describe("verifySignedPayload", () => {
     expect(
       verifySignedPayload(sign({ purchaseToken: "t" }), SECRET),
     ).toBeNull();
+  });
+});
+
+// Task 0325: the HMAC half, extracted unchanged so the login's signed-player-data
+// check shares it. Every case above passing unmodified is the proof that the
+// extraction is a pure refactor; these pin the extracted function on its own.
+describe("verifyHmacEnvelope", () => {
+  const ANY_JSON = { anything: "at all", issuedAt: 1 };
+
+  it("returns the decoded JSON under the base64-payload construction", () => {
+    expect(verifyHmacEnvelope(sign(ANY_JSON), SECRET)).toEqual({
+      decodedJson: JSON.stringify(ANY_JSON),
+    });
+  });
+
+  it("returns the decoded JSON under the decoded-JSON construction", () => {
+    expect(verifyHmacEnvelope(signOverDecodedJson(ANY_JSON), SECRET)).toEqual({
+      decodedJson: JSON.stringify(ANY_JSON),
+    });
+  });
+
+  it("does not look inside the payload: non-JSON text with a valid HMAC passes", () => {
+    const text = "not json {";
+    const encoded = Buffer.from(text).toString("base64");
+    const signature = createHmac("sha256", SECRET)
+      .update(encoded)
+      .digest("base64");
+    expect(verifyHmacEnvelope(`${signature}.${encoded}`, SECRET)).toEqual({
+      decodedJson: text,
+    });
+  });
+
+  it("rejects the wrong key, an empty key, and malformed envelopes", () => {
+    expect(verifyHmacEnvelope(sign(ANY_JSON, "other-key"), SECRET)).toBeNull();
+    expect(verifyHmacEnvelope(sign(ANY_JSON), "")).toBeNull();
+    for (const bad of ["", ".", "abc", ".abc", "abc.", "!!!.e30="]) {
+      expect(verifyHmacEnvelope(bad, SECRET)).toBeNull();
+    }
   });
 });

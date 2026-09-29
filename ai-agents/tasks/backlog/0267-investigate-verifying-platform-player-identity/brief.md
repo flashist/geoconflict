@@ -99,7 +99,7 @@ investigate the options.** Two were named by the owner as examples:
   answers **items 1, 3 and 5** for Yandex (signed player data checked once at login, a `vfy:true` session;
   cost and the routes it covers — §2.4–2.6, §3, §6). It also rejects item 2 (a client-computed hash; §3.6).
   **Still open here:** item 4 (other platforms) and the game-server path (ADR-103's exit). The build is filed
-  as [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md).
+  as [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md).
   Owner D3 wording: *"0267 (the identity investigation) is closed or narrowed using this report."* ⚠️
   **Closing or narrowing this task is a PENDING producer/owner step — it was NOT done here.** Nothing was
   closed, cancelled or moved.

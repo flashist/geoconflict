@@ -98,14 +98,17 @@ function normalizePurchases(parsed: unknown): VerifiedPurchase[] | null {
 }
 
 /**
- * Verify a `<signature>.<payload>` signed string against the per-game secret
- * and normalize its purchase(s). Returns null on ANY failure — bad structure,
- * bad base64/JSON, HMAC mismatch, empty secret. Never throws.
+ * The HMAC half of a Yandex `<signature>.<payload>` signed string, shared by the
+ * purchase check below and the login's signed-player-data check
+ * (PlayerSignature.ts, task 0325). Returns the decoded payload text when the
+ * envelope is well-formed and the HMAC matches under EITHER construction (see the
+ * header comment); null on ANY failure — bad structure, bad base64, HMAC mismatch,
+ * empty secret. Looks at nothing inside the payload. Never throws.
  */
-export function verifySignedPayload(
+export function verifyHmacEnvelope(
   signed: string,
   secret: string,
-): VerifiedPayload | null {
+): { decodedJson: string } | null {
   if (secret.length === 0) {
     return null; // Fail closed — never verify against an empty key.
   }
@@ -138,6 +141,23 @@ export function verifySignedPayload(
   if (!signatureMatches) {
     return null;
   }
+  return { decodedJson: decodedPayload };
+}
+
+/**
+ * Verify a `<signature>.<payload>` signed string against the per-game secret
+ * and normalize its purchase(s). Returns null on ANY failure — bad structure,
+ * bad base64/JSON, HMAC mismatch, empty secret. Never throws.
+ */
+export function verifySignedPayload(
+  signed: string,
+  secret: string,
+): VerifiedPayload | null {
+  const envelope = verifyHmacEnvelope(signed, secret);
+  if (envelope === null) {
+    return null;
+  }
+  const decodedPayload = envelope.decodedJson;
 
   let parsed: unknown;
   try {

@@ -171,6 +171,7 @@ function build(): { app: ReturnType<typeof createApp>; deps: Deps } {
     playerCreated: () => {},
     httpRequest: () => {},
     sessionRejected: () => {},
+    loginVerification: () => {},
     tenureClaim: () => {},
     alertRelay: (result, keyed) => alertRelayMetric(result, keyed),
   };

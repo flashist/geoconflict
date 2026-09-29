@@ -90,6 +90,14 @@ The design rules that make this a seam rather than just a shortcut:
 - **Residual risks / "re-raise only if":**
   - **The Yandex secret key is issued** — then implement verification *inside*
     `getCreditableYandexId()` and supersede this ADR. This is the expected exit, not a failure.
+    - ⚠️ **2026-09-29 — this trigger fired** (dated note, append-only; added by `fkit-architect` on the
+      owner's acceptance of ADR-116, 2026-09-29, relayed by `fkit-lead`; the bullet above is left as
+      written). The key was issued **2026-09-12**. Verification is being built at the **profile login**
+      ([ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md), task `0325`), **not**
+      in `getCreditableYandexId()`. The game-server seam is still client-asserted, so **this ADR stands for
+      the game server** and is **amended, not superseded** (owner-approved with the `0325` plan,
+      2026-09-28). **Its exit is now `0332`** (the join token: the game server has the profile server
+      vouch for a verified session).
   - **Paid citizenship ships before the key arrives**, so paid value is reachable through an
     unverified identity (open question 5 in `../architecture.md` §13).
   - **Observed XP-farming or identity-collision abuse in production.**
@@ -109,3 +117,4 @@ The design rules that make this a seam rather than just a shortcut:
 - ADR-101 — the fail-soft crediting path this seam feeds
 - `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md` — the rejected hashing approach
 - [ADR-115](adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) (2026-09-28, task `0322`) — widens this seam's scope to a third user: after crediting/resolve and the `0302` private-lobby gate, the funnel now also decides which approved name other players see in a match; the forged-id case is an owner-accepted risk (D3) there, closed by `0325` plus the join-token second step with no change to that code.
+- [ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md) (accepted 2026-09-29, task `0325`) — the first verified identity: Yandex signed player data checked once at the profile login, carried as `vfy:true`. It **amends, does not supersede** this ADR: this ADR's key-issued trigger fired (dated note above), the game-server seam stays client-asserted, and the exit moves to `0332` (join token).

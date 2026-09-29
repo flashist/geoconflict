@@ -28,7 +28,7 @@ ADR-035 forbids even under an owner ruling, and a new row may never be inserted 
   other open row on the board, whatever its rank number says.**
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 📌 **2026-09-29 — S0 PASSED; unblocked, ready to build.** The owner ran S0 live on 2026-09-29: **the key verifies Yandex's signed player data, via the decoded-JSON construction only**; the signed id equals `getUniqueID()`; `issuedAt` exists, in seconds. Full results: `worklog.md` § *2026-09-29 — S0 result* (written by `fkit-coder`). **Next step: the build (S2 shadow mode → S3a enforce)**, under the plan approved 2026-09-28 (owner ruling Q2, *"Test first, then build"*). Nobody is building it yet, so it is `🔲 Backlog`, not `🔄 In progress`. **Open for the build:** pin `algorithm`; `requestPayload` as a possible nonce (check Yandex docs); ~6.9 s signed-call latency (1 sample, a socket error was logged, retry likely). Recorded by a spawned `fkit-producer` from `fkit-lead`'s relay.
 
@@ -50,7 +50,7 @@ precedent.** Question D3 of the `0250` design report (where does verified login 
 verbatim: **"New task, above 0250 (Recommended)"**. Option text, verbatim: *"Its own build task in Sprint 6,
 directly above 0250; 0250 waits on it. 0267 (the identity investigation) is closed or narrowed using this
 report."* The full set of rulings (D1–D5) is recorded in the
-[`0250` brief](../0250-authenticated-profile-read-for-paid-entitlement/brief.md), section *Owner rulings
+[`0250` brief](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md), section *Owner rulings
 (2026-09-27)*.
 
 **Source report — read it first:**
@@ -171,9 +171,9 @@ not close without that sign-off, or an owner ruling that it may.
 ### Out of scope — named so it is not absorbed
 
 - ⛔ **The equalized projection and the verified-only view of paid state** — that is
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slices S1 and S3b).
+  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slices S1 and S3b).
 - ⛔ **Gating the name-change routes on a verified caller** — that is
-  [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md).
+  [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md).
 - ⛔ **The game server trusting the id (ADR-103), and `0322`'s forged-id case.** The game server learns the id
   from the WebSocket join and never sees the profile session. Closing that needs a **second step on top of
   this task**: the client sends its session token in the join, and the game server asks the profile server
@@ -213,22 +213,22 @@ not close without that sign-off, or an owner ruling that it may.
 
 - **Depends on: nothing on the boards.** Slice S0 needs the **owner** in the live Yandex iframe — a person,
   not a task. Soft ordering: the report ships `0250`'s slice S1 first; nothing here needs it.
-- **Blocks:** [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b only —
-  hard) and [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard).
+- **Blocks:** [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b only —
+  hard) and [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard).
 - **Second step on top of this, not filed:** the session token in the WebSocket join, which is what
   [`0322`](../../done/0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md)'s forged-id
   case and ADR-103's exit need. See *Out of scope*.
 - 📌 **2026-09-28 — blocks widened, and the second step is now filed (append-only; the two bullets above are
   kept as written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request.
-  - **Now also blocks [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md)** (hard), in
+  - **Now also blocks [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md)** (hard), in
     addition to `0250` slice S3b and `0319` — by an owner ruling on `0323` given 2026-09-28 live via
     `AskUserQuestion` in the `fkit lead` session (*"Wait for verified login (Recommended)"*, recorded verbatim in
     the `0323` brief).
-  - **The second step is filed as [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (Sprint 7, owner ruling 2026-09-28: *"File it, end of Sprint 7
+  - **The second step is filed as [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (Sprint 7, owner ruling 2026-09-28: *"File it, end of Sprint 7
     (Recommended)"*). It is the follow-up that closes ADR-103's forged-id risk and
     [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md)'s
     residual 1. Where this brief says that step is *"not filed"* (above, and in *Out of scope*), read `0332`.
-- **Related:** [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md) (this task builds its
+- **Related:** [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md) (this task builds its
   Yandex half; closing or narrowing `0267` is a pending producer/owner step) ·
   [`0014`](../../done/0014-yandex-catalog-registration/brief.md) (the key) ·
   [`0065`](../../done/0065-citizenship-paid-live-verification/brief.md) (the key verifies real purchases) ·
@@ -244,9 +244,9 @@ not close without that sign-off, or an owner ruling that it may.
 **Source:** owner ruling **Q3**, 2026-09-27, live via `AskUserQuestion` in the `fkit lead` session, relayed by
 fkit-lead — verbatim: *"Accept as known risk (Recommended)"* — *"Record it next to the other accepted
 'watching' risk, in the verified-login design note."* Recorded verbatim in
-[`0250`'s `plan.md`](../0250-authenticated-profile-read-for-paid-entitlement/plan.md), section *Owner rulings*.
+[`0250`'s `plan.md`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/plan.md), section *Owner rulings*.
 The residual list is that plan's **§8** (*Left for the owner*) and the
-[`0250` `worklog.md`](../0250-authenticated-profile-read-for-paid-entitlement/worklog.md) (2026-09-27 build,
+[`0250` `worklog.md`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/worklog.md) (2026-09-27 build,
 *Left open*).
 
 **What the ADR must do.** Next to **L5** (the polling hole — accepted by owner ruling D4 on `0250`, which already
@@ -275,3 +275,14 @@ citizens see '100 / 100' on their own card instead of their real XP until 0325 +
 item 3 here, beside L5 — plus the new accepted cost: **an earned citizen's own card reads 100 / 100 until
 verified reads ship (this task + `0250` S3b).** Items 1 and 2 are kept above as history, not deleted.
 Source: `0250`'s `review.md`, findings R1 and R3, and its `worklog.md` (round-1 process-review entry).
+
+## 📌 Closed 2026-09-29 as the S2 build — S3a and the live check moved to two new tasks
+
+**Closed `(agent-closed — not owner-verified)`** by a spawned `fkit-producer`, on an OWNER RULING given 2026-09-29
+live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`: **"Split it (Recommended)"**. What
+this brief calls **S3a** (and verification steps 4–6) is now
+[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md); the live proof of S2 and the deploy
+order (verification step 8) is now
+[`0339`](../../backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). **At close, S2
+was not committed and not deployed.** The tasks this brief says it *Blocks* (`0250` S3b, `0319`, and `0323`) now
+depend on `0340`. Evidence: `worklog.md` § *2026-09-29 — Closed as the S2 build*.

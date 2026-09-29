@@ -3,6 +3,7 @@
 // exactly one way, so a pass means that one check fired — not a lucky mismatch.
 
 import { createHmac } from "crypto";
+import { z } from "zod";
 import {
   MIN_SESSION_SECRET_LENGTH,
   SESSION_TTL_SECONDS,
@@ -133,9 +134,23 @@ describe("SessionToken", () => {
       ["a.b", () => "a.b"],
       ["a.b.c.d", () => "a.b.c.d"],
       ["validly signed non-JSON", () => signRaw("not json {")],
+      // Task 0325 widened `vfy` to a boolean (a validly signed vfy:true is now ok,
+      // see "the vfy claim" below) — but only a real boolean.
       [
-        "validly signed vfy:true",
-        () => signRaw(JSON.stringify(claims({ vfy: true }))),
+        'validly signed vfy:"true" (a string, not a boolean)',
+        () => signRaw(JSON.stringify(claims({ vfy: "true" }))),
+      ],
+      [
+        "validly signed vfy:1 (a number, not a boolean)",
+        () => signRaw(JSON.stringify(claims({ vfy: 1 }))),
+      ],
+      [
+        "validly signed with no vfy claim",
+        () => {
+          const rest: Record<string, unknown> = claims();
+          delete rest.vfy;
+          return signRaw(JSON.stringify(rest));
+        },
       ],
       [
         "validly signed non-uuid pid",
@@ -187,6 +202,83 @@ describe("SessionToken", () => {
       expect(verifySessionToken(SECRET, forged, NOW_MS)).toEqual({
         status: "invalid",
       });
+    });
+  });
+
+  // Task 0325, S2: `vfy` widened from `false` to a boolean ahead of the first
+  // `vfy:true` mint (S3a). These pin the deploy-order reasoning in plan.md.
+  describe("the vfy claim (task 0325)", () => {
+    /** A test-local copy of the PRE-0325 claims schema: `vfy: z.literal(false)`. */
+    const OldClaimsSchema = z.strictObject({
+      pid: z.string(),
+      plt: z.literal("yandex_games"),
+      iat: z.number().int().nonnegative(),
+      exp: z.number().int().nonnegative(),
+      vfy: z.literal(false),
+    });
+
+    function decodePayload(token: string): unknown {
+      return JSON.parse(
+        Buffer.from(token.split(".")[1], "base64url").toString("utf8"),
+      );
+    }
+
+    test("a hand-built old-shape vfy:false token still verifies under the new code", () => {
+      const result = verifySessionToken(
+        SECRET,
+        signRaw(JSON.stringify(claims())),
+        NOW_MS,
+      );
+      expect(result.status).toBe("ok");
+      expect(result.status === "ok" && result.claims.vfy).toBe(false);
+    });
+
+    test("an S2 mint (no `verified`) parses under the OLD schema — S2 is safe to roll back", () => {
+      expect(OldClaimsSchema.safeParse(decodePayload(genuine())).success).toBe(
+        true,
+      );
+    });
+
+    test("verified:false and a non-boolean truthy value both mint vfy:false", () => {
+      for (const verified of [false, undefined, "yes" as unknown as boolean]) {
+        const token = signSessionToken(
+          SECRET,
+          { playerId: PLAYER_ID, platform: "yandex_games", verified },
+          NOW_MS,
+        ).token;
+        const result = verifySessionToken(SECRET, token, NOW_MS);
+        expect(result.status === "ok" && result.claims.vfy).toBe(false);
+      }
+    });
+
+    test("a verified:true mint gives claims.vfy === true", () => {
+      const token = signSessionToken(
+        SECRET,
+        { playerId: PLAYER_ID, platform: "yandex_games", verified: true },
+        NOW_MS,
+      ).token;
+      const result = verifySessionToken(SECRET, token, NOW_MS);
+      expect(result.status).toBe("ok");
+      expect(result.status === "ok" && result.claims.vfy).toBe(true);
+    });
+
+    test("flipping vfy false→true in the payload without the key is invalid (MAC)", () => {
+      const [, , macB64] = genuine().split(".");
+      const forged = `v1.${b64url(JSON.stringify(claims({ vfy: true })))}.${macB64}`;
+      expect(verifySessionToken(SECRET, forged, NOW_MS)).toEqual({
+        status: "invalid",
+      });
+    });
+
+    test("a vfy:true token FAILS the old schema — why S3a must never roll back to pre-S2", () => {
+      const token = signSessionToken(
+        SECRET,
+        { playerId: PLAYER_ID, platform: "yandex_games", verified: true },
+        NOW_MS,
+      ).token;
+      expect(OldClaimsSchema.safeParse(decodePayload(token)).success).toBe(
+        false,
+      );
     });
   });
 

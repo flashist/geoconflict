@@ -11,6 +11,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       isYandexAuthorized: jest.fn(),
       getYandexUniqueId: jest.fn(),
+      takeYandexPlayerSignature: jest.fn(),
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -40,14 +41,18 @@ import {
   getLoginOutcome,
   profileFetch,
   resetProfileSessionForTests,
+  SIGNATURE_TAKE_BACKSTOP_MS,
   startProfileSession,
 } from "../../src/client/ProfileSession";
+import { SIGNATURE_MAX } from "../../src/core/profile/LoginContract";
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 
 const isYandexAuthorized = FlashistFacade.instance
   .isYandexAuthorized as jest.Mock;
 const getYandexUniqueId = FlashistFacade.instance
   .getYandexUniqueId as jest.Mock;
+const takeYandexPlayerSignature = FlashistFacade.instance
+  .takeYandexPlayerSignature as jest.Mock;
 const getServerConfig = getServerConfigFromClient as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 
@@ -124,6 +129,7 @@ beforeEach(() => {
   sessionStorage.clear();
   isYandexAuthorized.mockResolvedValue(true);
   getYandexUniqueId.mockResolvedValue(YANDEX_ID);
+  takeYandexPlayerSignature.mockResolvedValue(null);
   getServerConfig.mockResolvedValue({ profileApiUrl: () => BASE });
 });
 
@@ -646,5 +652,142 @@ describe("the restart latch", () => {
 
     await expect(ensureSession()).resolves.toBe(TOKEN);
     removeItem.mockRestore();
+  });
+});
+
+// Task 0325, S2: the login carries Yandex's signed player data when the facade has
+// it — and a missing, failed or hung signature NEVER costs the player their login.
+describe("the signed player data on the login body (task 0325)", () => {
+  const SIGNATURE = "c3ludGhldGljLW1hYw==.eyJzeW50aGV0aWMiOnRydWV9";
+  const SIGNATURE_B = "c3ludGhldGljLW1hYy1i.eyJzeW50aGV0aWMiOiJiIn0=";
+
+  function bodyOf(call: Call): Record<string, unknown> {
+    return JSON.parse(String(call.init.body)) as Record<string, unknown>;
+  }
+
+  function okLogin() {
+    return routedFetch({
+      "/v1/login": () => ({ status: 200, body: loginBody() }),
+    });
+  }
+
+  // Mutation: drop the spread → the key is missing, red.
+  it("is sent when the facade has one", async () => {
+    takeYandexPlayerSignature.mockResolvedValue(SIGNATURE);
+    const fetchMock = okLogin();
+
+    await expect(ensureSession()).resolves.toBe(TOKEN);
+    expect(bodyOf(loginCalls(fetchMock)[0])).toEqual({
+      platform: "yandex_games",
+      platformUserId: YANDEX_ID,
+      signature: SIGNATURE,
+    });
+    expect(takeYandexPlayerSignature).toHaveBeenCalledTimes(1);
+  });
+
+  // Mutation: send `signature: null` or "" → the key is present, red (a "" is a 400).
+  it("the key is ABSENT (not null, not empty) when there is none", async () => {
+    const fetchMock = okLogin();
+
+    await expect(ensureSession()).resolves.toBe(TOKEN);
+    expect(bodyOf(loginCalls(fetchMock)[0])).not.toHaveProperty("signature");
+  });
+
+  it.each<[string, () => void]>([
+    [
+      "the facade rejects",
+      () => takeYandexPlayerSignature.mockRejectedValue(new Error("synthetic")),
+    ],
+    [
+      "the facade throws synchronously",
+      () =>
+        takeYandexPlayerSignature.mockImplementation(() => {
+          throw new Error("synthetic");
+        }),
+    ],
+    [
+      "the facade returns a non-string",
+      () => takeYandexPlayerSignature.mockResolvedValue({ signature: "x" }),
+    ],
+    [
+      "the facade returns an empty string",
+      () => takeYandexPlayerSignature.mockResolvedValue(""),
+    ],
+    [
+      "the facade returns an over-bound string (it would be a 400 → D3 latch)",
+      () =>
+        takeYandexPlayerSignature.mockResolvedValue(
+          "a".repeat(SIGNATURE_MAX + 1),
+        ),
+    ],
+  ])(
+    "%s → the login is still sent, without it, and succeeds",
+    async (_label, arrange) => {
+      arrange();
+      const fetchMock = okLogin();
+
+      await expect(ensureSession()).resolves.toBe(TOKEN);
+      expect(loginCalls(fetchMock)).toHaveLength(1);
+      expect(bodyOf(loginCalls(fetchMock)[0])).not.toHaveProperty("signature");
+      expect(logEventAnalytics).toHaveBeenCalledWith("Profile:Login:Succeeded");
+    },
+  );
+
+  it("the facade hangs forever → the backstop sends the login without it", async () => {
+    jest.useFakeTimers();
+    takeYandexPlayerSignature.mockReturnValue(new Promise(() => {}));
+    const fetchMock = okLogin();
+
+    const pending = ensureSession();
+    await jest.advanceTimersByTimeAsync(SIGNATURE_TAKE_BACKSTOP_MS - 1);
+    expect(loginCalls(fetchMock)).toHaveLength(0);
+    await jest.advanceTimersByTimeAsync(1);
+    await expect(pending).resolves.toBe(TOKEN);
+    expect(loginCalls(fetchMock)).toHaveLength(1);
+    expect(bodyOf(loginCalls(fetchMock)[0])).not.toHaveProperty("signature");
+  });
+
+  it("a guest never asks for a signature", async () => {
+    isYandexAuthorized.mockResolvedValue(false);
+    routedFetch({});
+
+    await expect(ensureSession()).resolves.toBeNull();
+    expect(takeYandexPlayerSignature).not.toHaveBeenCalled();
+  });
+
+  // Mutation: cache the first signature in ProfileSession → the re-login re-sends
+  // SIGNATURE, red.
+  it("a re-login after a 401 takes again — a fresh signature, never the first one", async () => {
+    takeYandexPlayerSignature
+      .mockResolvedValueOnce(SIGNATURE)
+      .mockResolvedValueOnce(SIGNATURE_B);
+    let logins = 0;
+    const fetchMock = routedFetch({
+      "/v1/login": () => {
+        logins += 1;
+        return { status: 200, body: loginBody(logins === 1 ? TOKEN : TOKEN_B) };
+      },
+      "/v1/profile": (call) =>
+        headerOf(call, "Authorization") === `Bearer ${TOKEN_B}`
+          ? { status: 200, body: { ok: true } }
+          : { status: 401, body: { error: "session_expired" } },
+    });
+
+    const result = await profileFetch("/v1/profile", { timeoutMs: 100 });
+    expect(result.kind === "response" && result.response.status).toBe(200);
+    const loginRequests = loginCalls(fetchMock);
+    expect(loginRequests).toHaveLength(2);
+    expect(takeYandexPlayerSignature).toHaveBeenCalledTimes(2);
+    expect(bodyOf(loginRequests[0]).signature).toBe(SIGNATURE);
+    expect(bodyOf(loginRequests[1]).signature).toBe(SIGNATURE_B);
+  });
+
+  it("concurrent callers share ONE login and ONE take", async () => {
+    takeYandexPlayerSignature.mockResolvedValue(SIGNATURE);
+    const fetchMock = okLogin();
+
+    await Promise.all([ensureSession(), ensureSession(), ensureSession()]);
+    expect(takeYandexPlayerSignature).toHaveBeenCalledTimes(1);
+    expect(loginCalls(fetchMock)).toHaveLength(1);
   });
 });

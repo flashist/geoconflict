@@ -112,4 +112,4 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
   sessions never get it** (and they see the equalized profile from `0250` S1), so `PaidCitizen` is only known
   on verified sessions; the plan must decide how an unverified paid citizen is counted. Still depends on
   `0250` (now its slice S3b, which waits on
-  [`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)).
+  [`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md)).

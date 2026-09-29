@@ -122,6 +122,7 @@ function build(
     playerCreated: () => {},
     httpRequest: () => {},
     sessionRejected: () => {},
+    loginVerification: () => {},
     tenureClaim: () => {},
     alertRelay: (result, keyed) => {
       metricCalls.push([result, keyed]);

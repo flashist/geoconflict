@@ -22,6 +22,7 @@ import {
   metricsExportUrl,
   noopProfileMetrics,
   startProfileTelemetry,
+  type LoginVerificationOutcome,
   type ProfileMetricsHandle,
 } from "../../src/profile-server/Telemetry";
 
@@ -34,6 +35,7 @@ const ALLOWED_ATTRIBUTE_KEYS: Record<string, readonly string[]> = {
   "geoconflict.profile.players.created": ["platform", "source"],
   "geoconflict.profile.http.duration": ["route", "method", "status_class"],
   "geoconflict.profile.session.rejected": ["reason"],
+  "geoconflict.profile.login.verification": ["outcome"],
   "geoconflict.profile.tenure.claims": ["outcome"],
   "geoconflict.profile.alert.relay": ["result", "keyed"],
   "geoconflict.profile.db.pool.waiting": [],
@@ -178,11 +180,47 @@ describe("createProfileMetrics", () => {
     find(collected, "geoconflict.profile.http.duration");
   });
 
+  // Task 0325, S2. Seven bounded values, one label — the sessionRejected discipline.
+  test("login verification: one counter, label `outcome`, exactly the seven bounded values", async () => {
+    handle = makeHandle(harness);
+    const outcomes: LoginVerificationOutcome[] = [
+      "absent",
+      "no_secret",
+      "bad_signature",
+      "bad_payload",
+      "stale",
+      "id_mismatch",
+      "ok",
+    ];
+    for (const outcome of outcomes) {
+      handle.metrics.loginVerification(outcome);
+    }
+    handle.metrics.loginVerification("ok");
+
+    const collected = await harness.collect();
+    const verification = find(
+      collected,
+      "geoconflict.profile.login.verification",
+    );
+    expect(verification.dataPoints).toHaveLength(7);
+    expect(
+      verification.dataPoints.map((point) => point.attributes.outcome).sort(),
+    ).toEqual([...outcomes].sort());
+    for (const point of verification.dataPoints) {
+      expect(Object.keys(point.attributes)).toEqual(["outcome"]);
+    }
+    const ok = verification.dataPoints.find(
+      (point) => point.attributes.outcome === "ok",
+    );
+    expect(ok?.value).toBe(2);
+  });
+
   test("no instrument carries an attribute key outside its allowlist", async () => {
     handle = makeHandle(harness);
     handle.metrics.loginRequest("unknown", "bad_request");
     handle.metrics.playerCreated("unknown", "login");
     handle.metrics.sessionRejected("invalid");
+    handle.metrics.loginVerification("bad_signature");
     handle.metrics.tenureClaim("below_minimum");
     handle.metrics.alertRelay("malformed", "unkeyed");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);
@@ -386,6 +424,7 @@ describe("startProfileTelemetry", () => {
       noopProfileMetrics.playerCreated("unknown", "game_server");
       noopProfileMetrics.httpRequest("/x", "GET", "5xx", 1);
       noopProfileMetrics.sessionRejected("expired");
+      noopProfileMetrics.loginVerification("ok");
       noopProfileMetrics.tenureClaim("granted");
       noopProfileMetrics.alertRelay("failed", "unkeyed");
     }).not.toThrow();

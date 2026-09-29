@@ -59,6 +59,7 @@ import {
 } from "./AlertRelay";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
+import { classifyLoginSignature } from "./LoginVerification";
 import type {
   CancelOutcome,
   ClearOutcome,
@@ -98,6 +99,7 @@ import {
   noopProfileMetrics,
   statusClassOf,
   type LoginOutcome,
+  type LoginVerificationOutcome,
   type MetricPlatform,
   type ProfileMetrics,
   type SessionRejectedReason,
@@ -201,6 +203,13 @@ export interface AppOptions {
    * Here rather than on ProfileRepo so the many ProfileRepo mocks stay unchanged.
    */
   tenureGrant?: TenureGrantRepo;
+  /**
+   * Task 0325. The Yandex per-game secret that signs player data — the SAME key as
+   * the payments secret (Server.ts passes one value to both). Absent or "" ⇒ every
+   * login's signature check counts `no_secret`; the login itself is unaffected.
+   * ⛔ Never logged.
+   */
+  playerSignatureSecret?: string;
 }
 
 /**
@@ -434,6 +443,8 @@ export function createApp(
   const alertRelayConfig = options?.alertRelay;
   // Task 0253. Undefined ⇒ the tenure-grant route fails closed with 503.
   const tenureGrant = options?.tenureGrant;
+  // Task 0325. "" ⇒ the login's signature check counts `no_secret`, nothing else.
+  const playerSignatureSecret = options?.playerSignatureSecret ?? "";
 
   /**
    * The ONE place every player-facing route learns who is asking (task 0012
@@ -575,7 +586,8 @@ export function createApp(
   // Client-facing profile read. Rate-limited per-IP: since task 0273 the caller must
   // hold a session token, so there is no id to enumerate here any more, but the cap
   // still bounds abuse of the read itself. TODO(0267): verify a Yandex signature at
-  // login so a token can only ever be minted for its real owner.
+  // login so a token can only ever be minted for its real owner. Task 0325 checks it
+  // at login in shadow mode (counted, not enforced); its S3a mints vfy:true.
   const profileReadLimiter = rateLimit({
     windowMs: 60_000,
     max: 60,
@@ -655,6 +667,14 @@ export function createApp(
   // ⚠️ Accepted, monitored risk that the switch does NOT close: anyone can open a
   // WebSocket join with a made-up Yandex id and create a player through the game
   // server. That path is slow, and alert A1 counts creations from BOTH sources.
+  //
+  // ── Signed player data (task 0325, S2 — SHADOW MODE) ────────────────────────
+  // An optional `signature` (Yandex's signed player data) is checked and its outcome
+  // COUNTED (`geoconflict.profile.login.verification`) — and used for nothing else:
+  // the resolve, the response and the token (`vfy:false`) are exactly as without it.
+  // The fail rule is fixed: a missing, bad or stale signature, or a check that
+  // throws, is an unverified session — NEVER a refused login. ⛔ Never log the
+  // signature, never persist it, never pass it to the repository.
   app.use("/v1/login", publicCors("POST"));
   app.post("/v1/login", async (req, res) => {
     // The order below is load-bearing and asserted by tests: unavailable, then
@@ -684,6 +704,20 @@ export function createApp(
       return;
     }
     const platformLabel = metricPlatform(parsed.data.platform);
+    // Task 0325, S2: count what the signature would prove, then carry on unchanged.
+    // Its own try/catch — a throw here must never cost the player their login.
+    let verificationOutcome: LoginVerificationOutcome;
+    try {
+      verificationOutcome = classifyLoginSignature(
+        parsed.data.signature,
+        parsed.data.platformUserId,
+        playerSignatureSecret,
+        Date.now(),
+      ).outcome;
+    } catch {
+      verificationOutcome = "bad_signature";
+    }
+    metrics.loginVerification(verificationOutcome);
     try {
       const resolved = loginCreateEnabled
         ? await repo.resolveOrCreatePlayer(

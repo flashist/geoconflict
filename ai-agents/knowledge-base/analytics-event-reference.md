@@ -431,6 +431,37 @@ player-visible.
 > as a retry-adjusted error rate. `Profile:Session:Relogin` is **not** a retry of a failed
 > login; it only ever follows a token that had worked.
 
+### Profile Login Signature Events
+
+Yandex signed player data for the profile login (task `0325`, S2 — shadow mode; owner rulings
+D1 + D2, 2026-09-29). Each login asks the facade once for `getPlayer({ signed: true })`'s
+signature (`takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`) and sends
+it with `POST /v1/login`. The server only **counts** what it proves for now (server metric
+`geoconflict.profile.login.verification`, not in this doc).
+
+- **At most one of these four per take.** A take happens once per login — so once per page load,
+  plus once per `Profile:Session:Relogin`.
+- **Guests fire none**, and neither does a load with no SDK.
+- **Not gated by `CITIZENSHIP_CARD_ENABLED`**, like the session events above.
+- ⛔ They carry nothing but their name, plus a wait in ms on `Waited` / `Timeout`. **Never the
+  signature.**
+- **No wait limit on a slow answer (owner ruling D1).** Only a call still silent 60 s after login
+  asked counts as failed. That is `Timeout`, the event that sizes the hang problem. A real
+  failure falls back at once. In every non-`Ready`/`Waited` case the login is still sent, just
+  without a signature, so it is unverified. It is never refused.
+
+| Enum Key                          | Event String                      | When Fired                                                                                                                                                                                 |
+| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PROFILE_LOGIN_SIGNATURE_READY`   | `Profile:Login:Signature:Ready`   | The boot pre-fetch (started right after the plain `getPlayer()`) had already finished when login asked, and was at most 300 s old (held exactly 300 s still counts). No wait at all                                             |
+| `PROFILE_LOGIN_SIGNATURE_WAITED`  | `Profile:Login:Signature:Waited`  | Login waited for the signed call and it answered with a usable signature. **Value:** ms waited, counted from when login asked. A relogin, a held signature over 300 s old, and a degraded boot that recovered late all make a fresh call, so they land here |
+| `PROFILE_LOGIN_SIGNATURE_TIMEOUT` | `Profile:Login:Signature:Timeout` | The 60 s hang safety net fired: the signed call never answered. **Value:** ms waited (≈ 60 000 by construction; the count is what matters). The late answer, if any, is thrown away |
+| `PROFILE_LOGIN_SIGNATURE_FAILED`  | `Profile:Login:Signature:Failed`  | The signed call threw, returned no string, or returned an empty or over-long one (over `SIGNATURE_MAX` = 2932, which the server would refuse with 400). If the boot pre-fetch had already failed, fires when login asks; otherwise fires when the failed answer comes back while login waits |
+
+> **Reading them.** `Timeout` ÷ (all four) is the share of logged-in logins lost to a hung signed
+> call. `Waited`'s value spread shows how long the call really takes on slow connections. Before
+> this task's S3a gate, compare the sum of `Timeout` + `Failed` with the server's `absent` count.
+> Their difference is roughly the old client bundles still in circulation.
+
 ### Profile Login Restart Events
 
 The restart after an in-page login (task `0273`, owner ruling D3). The citizenship card's

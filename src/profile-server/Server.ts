@@ -179,6 +179,10 @@ const app = createApp(
   {
     loginCreateEnabled,
     metrics,
+    // Task 0325: the SAME Yandex per-game key signs player data as signs purchases,
+    // so one value serves both — no new env var. A leak of it now forges identity as
+    // well as purchases. S2 only counts the check's outcome; nothing is enforced.
+    playerSignatureSecret: yandexPaymentsSecret,
     // Tenure XP grant (task 0253): the profile repository owns the transaction.
     tenureGrant: profiles,
     alertRelay: {

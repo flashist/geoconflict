@@ -6,6 +6,13 @@
 // gets one). It takes Yandex ids out of URLs and logs and gives 0267 one place to
 // verify. It must never count as a proven owner (paid state, task 0250).
 //
+// Task 0325 (S2 — shadow mode): each login also sends Yandex's signed player data
+// (`signature`) when the facade has one. The server only COUNTS what it proves for
+// now. No signature — the signed call failed, hung past the facade's 60 s safety
+// net, anything — just means the body goes without it; it never fails the login.
+// ⛔ The signature is a credential too: memory only, like the token, for the one
+// request that carries it. Never logged, never persisted.
+//
 // ⛔ Never log the token, and never persist it. It lives in a module variable for
 // the life of the page load only:
 //   * the client logs in every load anyway, so storage buys nothing;
@@ -25,6 +32,7 @@
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
   LoginResponseSchema,
+  SIGNATURE_MAX,
   type LoginResponse,
 } from "../core/profile/LoginContract";
 import type { Platform } from "../core/profile/Platform";
@@ -39,6 +47,14 @@ import { PROFILE_LOGIN_RESTART_LATCH_KEY } from "./GameRestart";
 const LOGIN_TIMEOUT_MS = 5000;
 
 const PLATFORM: Platform = "yandex_games";
+
+/**
+ * Backstop only (task 0325). The facade's own hang net (SIGNED_PLAYER_HANG_MS,
+ * 60 s) always answers first; this exists so a take that somehow never settles can
+ * never hold the login forever. A literal because the tests mock the facade module
+ * wholesale — SignedPlayerFacade.test.ts pins it above the facade's constant.
+ */
+export const SIGNATURE_TAKE_BACKSTOP_MS = 65_000;
 
 /** What `getLoginOutcome()` exposes — task 0253's seam. Never the token. */
 export type LoginOutcome = Pick<LoginResponse, "created" | "grantChecks">;
@@ -160,7 +176,8 @@ type LoginAttempt =
   | { kind: "error" };
 
 async function login(base: string, yandexId: string): Promise<string | null> {
-  const attempt = await postLogin(base, yandexId);
+  const signature = await takeSignature();
+  const attempt = await postLogin(base, yandexId, signature);
   if (attempt.kind !== "ok") {
     loginFailed = true;
     // No `outcome = null` here on purpose: login() is only ever reached with
@@ -195,10 +212,42 @@ const FAILURE_EVENTS: Record<Exclude<LoginAttempt["kind"], "ok">, string> = {
   error: flashistConstants.analyticEvents.PROFILE_LOGIN_FAILED_ERROR,
 };
 
+/**
+ * The signed player data for this login, or null. Never rejects, never throws:
+ * a missing facade method, a rejection, a non-string or an over-long value, or
+ * the backstop firing all read as "no signature" — sent without, never refused.
+ */
+async function takeSignature(): Promise<string | null> {
+  let backstopTimer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const backstop = new Promise<null>((resolve) => {
+      backstopTimer = setTimeout(
+        () => resolve(null),
+        SIGNATURE_TAKE_BACKSTOP_MS,
+      );
+    });
+    const signature: unknown = await Promise.race([
+      FlashistFacade.instance.takeYandexPlayerSignature(),
+      backstop,
+    ]);
+    // Over-long would be a 400, which latches D3 — absent beats refused.
+    return typeof signature === "string" &&
+      signature.length > 0 &&
+      signature.length <= SIGNATURE_MAX
+      ? signature
+      : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(backstopTimer);
+  }
+}
+
 /** ⛔ Never log the request body or the response — both carry identity. */
 async function postLogin(
   base: string,
   yandexId: string,
+  signature: string | null,
 ): Promise<LoginAttempt> {
   const controller = new AbortController();
   let timedOut = false;
@@ -210,7 +259,12 @@ async function postLogin(
     const response = await fetch(`${base}/v1/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ platform: PLATFORM, platformUserId: yandexId }),
+      // The key is omitted, never "", when there is no signature (a "" is a 400).
+      body: JSON.stringify({
+        platform: PLATFORM,
+        platformUserId: yandexId,
+        ...(signature !== null ? { signature } : {}),
+      }),
       signal: controller.signal,
     });
     // Any 503 is fail-soft and indistinguishable to the client: today

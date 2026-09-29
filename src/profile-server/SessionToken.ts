@@ -1,12 +1,18 @@
 // Stateless login session token (task 0271, ADR-113; design report §2).
 //
 //   v1.<base64url(JSON payload)>.<base64url(HMAC-SHA256(secret, "v1." + payloadB64))>
-//   payload = { pid, plt, iat, exp, vfy: false }   (iat/exp in seconds, TTL 24 h)
+//   payload = { pid, plt, iat, exp, vfy }   (iat/exp in seconds, TTL 24 h)
 //
 // 🔓 Security gained today: NONE. Anyone who asserts a Yandex id at POST /v1/login
 // gets a token for it. The token takes Yandex ids out of URLs and logs and gives one
 // later verification point (0267). A `vfy:false` token must NEVER count as a proven
 // owner — not for paid state (0250), not for anything else.
+//
+// `vfy` is a boolean since task 0325, S2, which WIDENED the claim ahead of the first
+// `vfy:true` mint (S3a) so that a live verified token still parses if the server is
+// rolled back to S2. S2 itself still mints only `false` — no caller passes
+// `verified: true` yet. ⛔ Never roll a server that minted `vfy:true` straight back
+// to a pre-S2 build: every live verified token would turn `session_invalid`.
 //
 // The payload is base64, NOT encrypted: whoever holds a token can read its `pid`.
 // Accepted (owner ruling D2, 2026-09-15): the holder only ever sees their OWN internal
@@ -15,8 +21,9 @@
 // Key rotation: one key, no key id, no "previous key" overlap. Rotating (a new
 // PROFILE_SESSION_SECRET, or rm the box's persist file and redeploy) makes every live
 // token `session_invalid`; the client logs in again once and nothing stored is lost.
-// Once 0267 issues `vfy:true` tokens, revisit a key id / dual key — a `v2` prefix is
-// the upgrade path. No refresh endpoint and no revocation (design §2).
+// Once 0325 issues `vfy:true` tokens, rotation also drops every VERIFIED session (the
+// client's next login re-verifies). Revisit a key id / dual key then — a `v2` prefix
+// is the upgrade path. No refresh endpoint and no revocation (design §2).
 //
 // ⛔ Never log a token, a claim, or the secret from here or from a caller.
 
@@ -33,7 +40,8 @@ export interface SessionClaims {
   plt: Platform;
   iat: number;
   exp: number;
-  vfy: false;
+  /** True only for a login whose Yandex signed player data verified (0325 S3a). */
+  vfy: boolean;
 }
 
 export type SessionVerification =
@@ -51,7 +59,7 @@ const SessionClaimsSchema = z.strictObject({
   plt: PlatformSchema,
   iat: z.number().int().nonnegative(),
   exp: z.number().int().nonnegative(),
-  vfy: z.literal(false),
+  vfy: z.boolean(),
 });
 
 const INVALID: SessionVerification = { status: "invalid" };
@@ -70,7 +78,7 @@ function computeMac(secret: string, signingInput: string): Buffer {
 
 export function signSessionToken(
   secret: string,
-  subject: { playerId: string; platform: Platform },
+  subject: { playerId: string; platform: Platform; verified?: boolean },
   nowMs: number = Date.now(),
 ): { token: string; expiresAt: string } {
   if (!isUsableSessionSecret(secret)) {
@@ -83,7 +91,9 @@ export function signSessionToken(
     plt: subject.platform,
     iat,
     exp: iat + SESSION_TTL_SECONDS,
-    vfy: false,
+    // Strictly `=== true`: anything else — absent, undefined, a truthy non-boolean —
+    // mints an unverified session.
+    vfy: subject.verified === true,
   };
   const payloadB64 = Buffer.from(JSON.stringify(claims), "utf8").toString(
     "base64url",
