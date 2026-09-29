@@ -168,9 +168,25 @@ permanent either way, so faster detection only shortens how long you were blind.
 
 🚩 **What the probe does NOT prove** — see [[tasks/alert-path-liveness-probe]] for the full list of
 eight residuals. The loudest: ⛔ **it cannot see a channel that is ALREADY disabled** (it catches the
-**cause** within ~24 h, not the **state**; that hole is filed as `0285`), it does **not** check the
+**cause** within ~24 h, not the **state**; that hole is filed as `0285` — ✅ **built 2026-09-28 as check 13,
+`alert-channel-state`, NOT yet seen to trip on the real box**, see below), it does **not** check the
 secret the monitoring stack's own channel config holds (a second, separate copy), and it proves
 **nothing about Telegram delivery** — the marker is written on receipt, before any send.
+
+### Check 13 — the channel's own state (task `0285`, built 2026-09-28, owner drill still owed)
+
+The same hourly probe now also runs one read-only query of the monitoring stack's own Postgres — table
+`notif_channels`, column `status` (`draft` / `delivering` / `paused` / `disabled`), confirmed read-only on the
+box by the owner — keeps the channel whose URL equals the probe's own (worst state wins), and carries
+`channel_state` in the **same** POST. The relay copies it into the **same** marker, and `profile-checks.sh`
+**check 13, `alert-channel-state`**, FAILs on anything but `delivering` ⇒ the external dead-man's switch. It
+never selects the channel's `payload` (where the secret lives). An unreadable state FAILs on every run; a
+monitoring-image upgrade cannot cause surprise pages because the hardening harness fails `npm test` when the
+compose tag stops matching the probe's `Schema verified against:` pin. **Deploy the profile box first**, then
+the monitoring box, then run the probe by hand. ⛔ A green check 13 reads the stack's **own record** — it
+does not prove delivery, the channel's copy of the secret, or an attached monitor. 🚨 **Until the owner's
+drill** (disable with one SQL update → see the page → re-enable in the UI → see OK) **it is proven by tests
+only.** See [[tasks/uptrace-channel-state-check]].
 
 ### Three ways the probe will surprise you
 
@@ -361,6 +377,7 @@ only; idle-period delivery is still `0289`'s. See [[tasks/feedback-telegram-deli
 
 ## Related
 
+- [[tasks/uptrace-channel-state-check]] — task `0285`, check 13: the channel's own `status`, read by the probe and reported through the same marker
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR that placed the relay on the admin box
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, which built and proved the relay
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the guard on the 403 channel-disable trap
@@ -377,8 +394,9 @@ only; idle-period delivery is still `0289`'s. See [[tasks/feedback-telegram-deli
 - [[decisions/sprint-backlog]] — where `0258` (nothing reads the renewal log) and `0263` (the retention cap) sit
 - [[systems/architecture-overview]] — the tier map, corrected to record that the profile box is the admin server and does export telemetry
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, which built the metrics and the single existing alert rule, ran the drill recorded above, and closed with four rules deferred
-- [[decisions/sprint-5]] — where `0285` and `0289`, the two remaining alert-path checks, now sit
+- [[decisions/sprint-5]] — ~~where `0285` and `0289`, the two remaining alert-path checks, now sit~~ *(2026-09-26 both moved on to [[decisions/sprint-6]]; `0285` ✅ done 2026-09-28, `0289` 🚧 blocked on `0285`'s owner drill)*
 - [[systems/weekend-deploy-window]] — 🚨 the deploy window that writes `PROFILE_INTERNAL_ALLOW_IPS`: **this relay is the list's SECOND caller**, and every profile deploy in that window must carry the **full** list — ⛔ **append, never replace**, or the next alert's 403 disables the channel permanently
 - [[decisions/sprint-backlog]] — where `0294` sits; ⚠️ it is a **profile deploy**, so it carries this same allowlist constraint
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the player-feedback consumer of the same fix; closed 2026-09-26
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, which kept this relay's allowlist entry and closed step 5 on indirect evidence
+- [[tasks/name-change-digest-pending-list]] — task `0315` (2026-09-27): the digest's second message lists pending requests

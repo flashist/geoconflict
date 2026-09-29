@@ -83,3 +83,6 @@ task no longer gates the `PROFILE_INTERNAL_TOKEN` set at the window; its binding
 - [[decisions/sprint-4]] — the board it closed on
 - [[tasks/profile-identity-s4-client-login-session]] — task `0273`, the client login session whose `grantChecks` the claim reads
 - [[tasks/profile-identity-epic]] — epic `0266`, whose login reply this task's redesign waited on
+- [[tasks/citizenship-card-late-recovery-recheck]] — task `0329` (2026-09-28): the citizenship card re-checks its gate when the Yandex platform recovers late
+- [[tasks/citizenship-restart-prompt]] — task `0303` (2026-09-28): a "restart to apply" popup after a purchase or a citizenship-making tenure gift
+- [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name

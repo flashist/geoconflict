@@ -200,3 +200,5 @@ brief's **description of what was done** was wrong.
 - [[decisions/sprint-5]] — where `0238`, the launch-time observation this task handed onward, now sits
 - [[tasks/yandex-catalog-registration]] — task `0014`, which set the **remote** half (`citizenship_ui`) of
   the same kill switch; closed 2026-09-22, and carrying the unresolved flag-name/value residual
+- [[tasks/citizenship-card-late-recovery-recheck]] — task `0329` (2026-09-28): the citizenship card re-checks its gate when the Yandex platform recovers late
+- [[tasks/citizenship-card-vanishes-investigation]] — task `0318` (2026-09-28): why the citizenship card vanished after a match on a shaky connection

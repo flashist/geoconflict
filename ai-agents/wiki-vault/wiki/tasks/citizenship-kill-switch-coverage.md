@@ -228,3 +228,4 @@ exactly why a deploy cannot prove anything until launch flips layer 1.
 - [[systems/project-brief]] — the product ground truth for citizenship as the monetization spine this switch protects
 - [[tasks/yandex-catalog-registration]] — task `0014`, which SET the **remote** half of this kill switch (`citizenship_ui`) in the Yandex console; ⛔ set is not observed-working, and its name/value were never confirmed against the code
 - [[decisions/sprint-5]] — where `0238`, the validation of that remote half, now sits after the 2026-09-22 move
+- [[tasks/private-lobby-citizen-perk]] — task `0302` (2026-09-27): private lobbies become a citizen perk, locked for others; server start gate

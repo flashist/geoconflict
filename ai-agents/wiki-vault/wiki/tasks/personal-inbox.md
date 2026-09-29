@@ -108,3 +108,6 @@ launch.
 - [[tasks/hide-citizenship-card-flag]] — the flag the whole inbox is gated behind
 - [[decisions/sprint-4]] — the board this task closed on
 - [[decisions/sprint-5]] — where `0296`, which received the production checks, was filed
+- [[tasks/name-change-approved-message-wording]] — task `0316` (2026-09-28): the approve inbox message no longer says "now active" (template text, retroactive)
+- [[tasks/name-change-dismiss-and-clear]] — task `0314` (2026-09-27): Hide a declined request; operator clear of an approved name (migration `007`)
+- [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name

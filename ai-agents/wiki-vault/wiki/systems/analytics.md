@@ -64,7 +64,23 @@ The baseline events fire once per session from `FlashistFacade`; Yandex login st
 
 `Player:DaysPlayed` is the cumulative count of unique local calendar days on which the player opened the game. Same-day repeat sessions fire with the same value; returning after a gap increments by exactly `1`, not by the gap length. The shipped storage keys are `geoconflict.player.daysPlayed` and `geoconflict.player.lastPlayedDate`, matching the existing `geoconflict.player.*` namespace. See [[tasks/analytics-p0-player-days-played]].
 
-`Session:PlatformInitTimeout` fires when a blocking platform-init stage exceeds the shared 5-second deadline and the app continues in degraded mode. Degraded mode uses default flags, localStorage username fallback, browser language, and no ads.
+`Session:PlatformInitTimeout` fires when a blocking platform-init stage exceeds the shared 5-second deadline and the app continues in degraded mode. Degraded mode uses default flags, localStorage username fallback, browser language, and no ads. **It fires at most once per boot (latched):** a stage-1 and a stage-2 deadline on the same boot log **one** event. *(Corrected 2026-09-28 by task `0328`: the reference doc used to say "at most once per stage", which the code never did.)*
+
+### Platform degraded, recovered and loader-retry events (tasks `0328`, `0330` — built 2026-09-28, not yet released)
+
+Added to measure how often the Yandex platform boots degraded, why, and whether the boot followed a match exit ([[tasks/citizenship-card-vanishes-investigation]]). Definitions of record: `ai-agents/knowledge-base/analytics-event-reference.md`.
+
+| Event | When | Value |
+|---|---|---|
+| `Session:PlatformDegraded:{Cause}` (enum `SESSION_PLATFORM_DEGRADED_FIRST_PART`) | At most **once per page load**, Yandex template only, at the game-init gate after awaiting the same flags load the card awaits, when SDK, player or flags are missing. Causes, **first match wins**: `ScriptFailed` · `ScriptTimeout` · `InitFailed` · `InitTimeout` · `NoSdk` · `NoPlayer` · `NoFlags`. Not fired on a healthy boot or the standalone page | `1` if this load follows a match exit (a `sessionStorage` marker written by `changeHref(rootPathname)`, consumed on every boot), else `0` — count = degraded loads, sum = degraded loads after a match. `reloadApp()` is not a match exit |
+| `Session:PlatformRecovered` | At most once per page load, when the degraded event already fired **with the flags missing** and the flags then arrived late. Since `0330` it can also follow `ScriptFailed` (a loader retry that succeeds after the deadline) | same 0/1 after-match value |
+| `Session:SdkLoaderRetry:{Recovered\|RecoveredLate\|GaveUp}` (enum `SESSION_SDK_LOADER_RETRY_FIRST_PART`) | At most once per page load, only when the **first** loader download failed. `Recovered` = a retry loaded it before the 5 s deadline (no `ScriptFailed` then); `RecoveredLate` = after the deadline; `GaveUp` = every retry failed | number of re-downloads (1–5; `0` only for a missing loader tag) |
+
+> ⚠️ **`Session:PlatformDegraded:*` is NOT a count of hidden citizenship cards.** The card hides only when the **flags** are missing; `NoPlayer`, and a timeout whose flags arrived before the check, fire with the card shown (task `0328` review R1).
+>
+> ⚠️ **`Session:SdkLoaderRetry` outcomes undercount failures, and the save rate reads HIGH.** `GaveUp` fires only after the last background retry, about 67 s after the first failure; a page closed earlier sends no outcome at all. And `Recovered` / `RecoveredLate` count **loader downloads, not platform recovery** — `YaGames.init()` can still fail after either.
+>
+> Since `0330`, `Player:YandexUnknown`'s 1-second window starts once the loader has actually loaded (including after a retry). For a degraded boot's cause, read `Session:PlatformDegraded:*`, not `Player:YandexUnknown`, which remains only an upper bound. See [[tasks/platform-degraded-analytics-event]] and [[tasks/sdk-loader-download-retry]].
 
 `Player:YandexLoggedIn`, `Player:YandexGuest`, and `Player:YandexUnknown` segment the session by Yandex identity reach. After the bootstrap refactor, exactly one `Player:Yandex*` event fires per booted session. `Player:YandexGuest` means either standalone/non-Yandex context or an actual Yandex guest. `Player:YandexUnknown` means the page is on the Yandex platform, but auth state could not be determined by the bounded platform-init deadline: SDK script failure, `YaGames.init()` rejection, slow SDK init, hung/rejected `getPlayer()`, or timeout. See [[tasks/analytics-p0-yandex-login-status]] and [[tasks/app-bootstrap-single-entry-point]].
 
@@ -337,6 +353,22 @@ the card**. They fire only after a successful `POST /v1/login` whose reply says 
 `Claimed` / `Rejected:*` fire at most once per player except when two tabs race. ⛔ **"ClaimFailed, never
 Claimed" does not mean ungranted** — the server's grant table is the truth. See [[tasks/tenure-xp-grant]].
 
+## Citizenship Restart Prompt Events (task `0303` — built 2026-09-28, not yet seen live)
+
+| Event | When |
+|---|---|
+| `Citizenship:RestartPrompt:Shown` | The "restart to apply" popup actually appeared — after a server-confirmed purchase (`granted`), or after the tenure-gift thank-you popup when that gift made the player a citizen. At most once per page load; **never** after session-start reconciliation; behind the kill switch. **Not split by source** (gift-triggered ≈ `Shown` − `Purchase:Completed:Citizenship`, approximate) |
+| `Citizenship:RestartPrompt:Restart` | The player tapped **Restart now**, right before `reloadApp()`. Separate from the login restart funnel (`Profile:Login:Restart:*`) on purpose |
+| `Citizenship:RestartPrompt:Later` | The player tapped **Later** — the only way to dismiss it |
+
+See [[tasks/citizenship-restart-prompt]].
+
+## Locked Feature Events (task `0302` — built 2026-09-27, not yet released)
+
+`LockedFeature:Tap:{FeatureId}` — one event per tap on a citizen perk shown **locked**. Today only `LockedFeature:Tap:PrivateLobby` (the locked "Create Lobby" button; never for a citizen, never while the row is hidden). Fire only through `onLockedFeatureTap(featureId)` in `src/client/LockedFeature.ts`; ids in `flashistConstants.lockedFeatureIds`. The "explainer opened" event belongs to `0301`. See [[tasks/private-lobby-citizen-perk]].
+
+> ⚠️ **`Citizenship:Earned:XP` is DORMANT** per the reference doc, from task `0250`'s slice S1 profile-server deploy until its slice S3b — an unverified profile read now carries `citizenship_earned_at: null` for every player (owner ruling D4), so no client can observe the transition. In the committed tree (`68303d5`) the client no longer calls `reportEarnedCitizenshipTransition` at all (`src/client/PlayerProfileView.ts`, the "deliberately NOT called (task 0250" comment). ⚠️ `0250` itself is still **🚧 Blocked** (S1 built and reviewed; S3b waits on `0325`), and no S1 deploy is recorded in the repo. See [[systems/player-profile-store]].
+
 ## Experiment Event Pattern
 
 `Experiment:{flagName}:{flagValue}` — built at runtime from Yandex flag response. Enables per-cohort funnel comparison:
@@ -450,3 +482,9 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, the `Ad:Interstitial` baseline event
 - [[tasks/profile-identity-s4-client-login-session]] — task `0273`, which added the client login events; client deployed 2026-09-26
 - [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200
+- [[tasks/platform-degraded-analytics-event]] — task `0328`, `Session:PlatformDegraded:{Cause}`, `Session:PlatformRecovered`, and the `PlatformInitTimeout` "once per boot" correction
+- [[tasks/sdk-loader-download-retry]] — task `0330`, `Session:SdkLoaderRetry:{Outcome}`
+- [[tasks/citizenship-card-vanishes-investigation]] — task `0318`, the measurement gap these events close
+- [[tasks/citizenship-restart-prompt]] — task `0303`, the three `Citizenship:RestartPrompt:*` events
+- [[tasks/private-lobby-citizen-perk]] — task `0302`, `LockedFeature:Tap:PrivateLobby` and the `private_lobbies` flag
+- [[tasks/citizenship-card-late-recovery-recheck]] — task `0329`, whose effect `Session:PlatformRecovered` sizes

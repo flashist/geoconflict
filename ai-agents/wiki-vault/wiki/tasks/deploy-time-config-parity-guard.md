@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 · task `0064` · config-parity track (`0063` → `0062` → `0195` → `0064` → `0060`)
 
+> 🆕 **2026-09-28 — `0298` is DONE and both guards are ARMED in the committed tree (`68303d5`)** —
+> `(agent-closed — not owner-verified)`. Owner rulings: *"Arm both; password may be blank"*, *"No override"*,
+> *"Yes, check names first"*. The name guard runs `--enforce --block-on=<its own pipelines>` in `deploy.sh`,
+> `build-deploy-profile.sh` and (before the version bump) `build-deploy.sh`; the value guard runs `--enforce` in
+> `deploy.sh`; a missing guard script or `node` stops the deploy; `OTEL_AUTH_HEADER` is now `optional`. 🚨 **No
+> armed deploy is recorded yet** — the first ones are owner steps (a profile deploy leaves no git artifact). See [[tasks/config-parity-guard-arm-enforce]].
+
 > 📌 **2026-09-26 — the first real production run happened (report-only, `0298` Part A, runbook W12).**
 > `./build-deploy.sh prod` (release `0.0.152`): the **names** guard reported **REQUIRED 0** on game,
 > profile and client; the prod **value** guard reported **REQUIRED 1** — the expected
@@ -86,6 +93,7 @@ this same task — not a new task"*) was **superseded 2026-09-23** by the split 
 
 ## Related
 
+- [[tasks/config-parity-guard-arm-enforce]] — task `0298`, split out of this task: the first real report-only run (Part A) and the arming (Part B)
 - [[decisions/config-parity-failure-class]] — the class this guard exists to catch
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items that must all land before `--enforce` is wired
 - [[tasks/forward-profile-internal-token]] — task `0062`, the acceptance test's defect

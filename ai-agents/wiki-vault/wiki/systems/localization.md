@@ -37,3 +37,7 @@ The start-screen redesign also renamed "Single Player" to `Custom Game` / `Св�
 - [[systems/architecture-overview]] — statically-bundled language files and selection precedence
 - [[tasks/citizenship-name-change]] — task 0067's `citizenship_name_change` section, 15 keys, en/ru parity asserted by a dedicated test
 - [[tasks/win-check-clientless-leader-guard]] — task 0022's `win_modal.bot_team` key, added to `en.json` and `ru.json` only; its review recorded the other 31 shipped locales falling back to English as **accepted** under this convention, with no follow-up task filed
+- [[tasks/name-change-approved-message-wording]] — task `0316` (2026-09-28): the approve inbox message no longer says "now active" (template text, retroactive)
+- [[tasks/player-name-path-security-review]] — task `0307` (2026-09-26/27): security review of every player-name path — no injection through the name; five fixes
+- [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name
+- [[tasks/start-screen-approved-name-lock]] — task `0321` (2026-09-28): the start-screen name box prefills and locks to a citizen's approved name

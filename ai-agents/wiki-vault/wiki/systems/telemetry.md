@@ -196,7 +196,7 @@ Current ClickHouse log, memory, and swap settings:
 > - 🚨 **A `401`/`403`/`404` reply PERMANENTLY DISABLES the notification channel**, silently. The nginx
 >   allowlist answers 403 on a source-IP miss, so **one address change kills alerting for good**.
 >   Owner-accepted; the probe catches the **cause** within ~24 h, **not an already-disabled state**
->   (filed as `0285`).
+>   (filed as `0285` — built 2026-09-28 as check 13, owner drill still owed: [[tasks/uptrace-channel-state-check]]).
 >
 > ✅ **The section's own Telegram recommendation was VINDICATED and is now fact**: delivery does reuse the
 > existing helper and `TELEGRAM_PROXY_URL`. ⚠️ **But that helper LOSES MESSAGES SILENTLY on a stale pooled
@@ -246,6 +246,7 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 
 ## Related
 
+- [[tasks/uptrace-channel-state-check]] — task `0285`: the probe reads the monitoring stack's own `notif_channels.status`, read-only
 - [[systems/game-overview]] — overall project context
 - [[systems/project-operations]] — environment and operational boundaries for production-only observability
 - [[systems/configuration]] — OTEL endpoint/auth and environment config gates

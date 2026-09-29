@@ -4,6 +4,15 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — Phase 2 citizenship benefits — task `0068`
 
+> 🆕 **2026-09-28 — this task's seam now carries more than a cosmetic flag; two of its residuals were
+> re-decided.** (1) **Private lobbies** (`0302`) gate a **permission** on the resolved citizen flag, so the
+> "acceptable only while cosmetic" condition is void for that path — the owner accepted the forged-id bypass
+> there *"for now"* ([[tasks/private-lobby-citizen-perk]]). (2) **The same resolve now carries the approved
+> name** (`0322`), and **R3 is widened**: the unauthenticated lobby poll now shows a citizen's **stable,
+> unique** approved name next to the clientID — owner-accepted in [[decisions/adr-115-approved-name-in-matches]].
+> The carried rules "freshness bounded by last join" and "a slow lookup freezes the match as typed" are
+> unchanged. ★ still shows only from the next match after a purchase (`0303` Q3).
+
 > ✅ Done (agent-closed 2026-08-28 — **not owner-verified**). Closed by a producer spawned by the sprint ship-loop; no owner channel existed at close, so **no human verified this work**.
 >
 > 🚨 **Nothing here is verified in production**, exactly as with `0067`. Everything below is local or local-stack evidence.
@@ -61,6 +70,11 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 
 ## Related
 
+- [[decisions/adr-115-approved-name-in-matches]] — the same resolve seam now carries the approved name; R3 widened
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, the build that rides this task's resolve
+- [[tasks/private-lobby-citizen-perk]] — task `0302`, the first permission gated on this flag
+- [[tasks/citizenship-restart-prompt]] — task `0303`: ★ from the next match, accepted
+- [[tasks/approved-name-in-matches-investigation]] — task `0317`, which chose to reuse this seam
 - [[tasks/citizenship-name-change]] — task `0067`, the other Phase 2 citizenship benefit, built the same day and independent of this one
 - [[systems/player-profile-store]] — the `is_citizen` column and the `upsertProfile` response this flag reads
 - [[systems/networking]] — the lobby-poll payload and the frozen-roster broadcast the flag rides

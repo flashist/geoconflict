@@ -1,9 +1,53 @@
 # Sprint 6 — Full F2P Loop & Social Features *(renamed 2026-09-26; was ~~More Content~~)*
 
 **Date**: 2026-04-17
-**Status**: proposed
+**Status**: proposed *(page-type field; the board itself is **🔄 In progress since 2026-09-26** — see below)*
 
-> # 🆕 2026-09-26 (latest, `899df29`) — 37 ROWS: `0297` APPENDED LAST; SPRINT 5 CLOSED; NO SPRINT IS ACTIVE
+> # 🆕 2026-09-28 (latest, `68303d5`) — SPRINT 6 IS IN PROGRESS: 46 ROWS, 20 CLOSED, 5 MOVED TO SPRINT 7
+>
+> **Re-counted at `HEAD` = `68303d5`, by each row's leading status glyph: 46 rows — 20 `✅ Done` · 16
+> `🔲 Backlog` · 5 `🚧 Blocked` · 5 `➡️ Moved`; 21 OPEN** (was 37, all open). ⚠️ Counted by me this run.
+> **Every close is `(agent-closed — not owner-verified)`** — no human checked any of the 20.
+>
+> - **Started 2026-09-26.** Line-3 banner now `🔄 In progress — 2026-09-26` (was `🔲 Backlog — 2026-09-23`).
+>   Owner, via `AskUserQuestion`: **"Start Sprint 6, then drive (Recommended)"** — driven by
+>   `/fkit-sprint-ship-loop` from `0307`, the owner approving each task's plan before any code. **This is the
+>   active sprint.**
+> - **Closed (20), code in `390c4b4` and `68303d5`:**
+>   - name-change moderation and name safety — [[tasks/player-name-path-security-review]] (`0307`),
+>     [[tasks/name-change-operator-decide-command]] (`0312`), [[tasks/name-change-decision-resets-notify-limit]]
+>     (`0313`), [[tasks/name-change-dismiss-and-clear]] (`0314`), [[tasks/name-change-digest-pending-list]]
+>     (`0315`), [[tasks/name-change-approved-message-wording]] (`0316`);
+>   - approved name in matches — [[tasks/approved-name-in-matches-investigation]] (`0317`),
+>     [[tasks/start-screen-approved-name-lock]] (`0321`), [[tasks/approved-name-in-multiplayer-matches]]
+>     (`0322`) and [[decisions/adr-115-approved-name-in-matches]];
+>   - perks and purchase — [[tasks/private-lobby-citizen-perk]] (`0302`), [[tasks/citizenship-restart-prompt]]
+>     (`0303`), [[tasks/private-lobby-close-leaves-lobby]] (`0327`), [[tasks/remove-game-name-from-player-texts]]
+>     (`0311`);
+>   - the vanishing card — [[tasks/citizenship-card-vanishes-investigation]] (`0318`),
+>     [[tasks/citizenship-card-newest-profile-read]] (`0326`), [[tasks/platform-degraded-analytics-event]]
+>     (`0328`), [[tasks/citizenship-card-late-recovery-recheck]] (`0329`), [[tasks/sdk-loader-download-retry]]
+>     (`0330`);
+>   - monitoring and deploy — [[tasks/uptrace-channel-state-check]] (`0285`),
+>     [[tasks/config-parity-guard-arm-enforce]] (`0298`).
+> - **Added out of band (owner rulings):** `0321`/`0322` from `0317`; **`0325`** verified login (Yandex signed
+>   player data → verified sessions) from `0250`'s design — ruled *"directly above 0250"* but appended;
+>   `0326`/`0327` moved in from the Backlog board; `0328`–`0331` filed from `0318`.
+> - **Moved to [[decisions/sprint-7]] 2026-09-27** (owner, verbatim: *"Move the tasks 0027, 0030, 0032, 0219,
+>   0221 to the Sprint 7"*): `0027`, `0030`, `0032`, `0219`, `0221`.
+> - **`0308` parked 2026-09-27** — reset `🔄 In progress` → `🔲 Backlog`, rank 6 → 35 (owner's own words:
+>   *"Let's come back to this task later, decrease the priority and put it to the end of the current
+>   sprint"*). Its build had not started. ⚠️ `0307`'s and ADR-115's "revisit in `0308`" items wait with it.
+> - **Open and blocked (5):** `0250` (slice S1, the paid-state leak fix, built and reviewed *Ready to merge*;
+>   S3b waits on `0325`); `0325` (waits on the owner-run S0 test); `0289` (waits on `0285`'s owner drill);
+>   `0331` keep the query on match exit (waits on the owner's probe P1 — *"Park it: mark 0331 Blocked"*);
+>   `0286` (unchanged, owner-executed step 8).
+> - **Still `🔲 Backlog` here:** `0248` ad-free for paid citizens, `0301` citizenship explainer popup (which
+>   `0302` must ship with), `0297`, `0308`, `0213`, the map tasks and the seven F2P / social items.
+>
+> ---
+>
+> # 🆕 2026-09-26 (`899df29`) — 37 ROWS: `0297` APPENDED LAST; SPRINT 5 CLOSED; NO SPRINT IS ACTIVE *(later the same day Sprint 6 was started — see above)*
 >
 > **Re-counted at `HEAD` = `899df29`, by each row's leading status glyph: 37 rows — 33 `🔲 Backlog` · 4
 > `🚧 Blocked`; all 37 OPEN** (was 36). ⚠️ Counted by me this run. **Line-3 banner still
@@ -142,3 +186,8 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 - [[tasks/citizenship-paid]] — the buy flow; `0250`, `0303` and `0318` act on its surfaces
 - [[tasks/citizenship-name-change]] — task `0067`, whose live moderation loop `0307` and `0312`–`0317` address
 - [[systems/weekend-deploy-window]] — where `0286` step 8 and `0298`'s first report-only run already ran
+- [[decisions/sprint-7]] — created 2026-09-27 to receive five rows moved out of this board; also holds this board's follow-ups `0323`, `0332`–`0336`
+- [[decisions/adr-115-approved-name-in-matches]] — the ADR carried by this board's `0322`
+- [[decisions/sprint-backlog]] — `0326` and `0327` were moved in from the Backlog board
+- [[systems/alert-delivery]] — how a monitoring alert reaches a human; `0285` and `0289`, its remaining checks, sit on this board
+- [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items for the config guard

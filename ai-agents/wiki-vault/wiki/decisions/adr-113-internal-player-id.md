@@ -153,3 +153,4 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/profile-identity-epic]] — epic `0266`, which delivered this decision; closed 2026-09-26
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`: resolve at join, credit by `playerId`
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`: the client login session and Bearer calls
+- [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks

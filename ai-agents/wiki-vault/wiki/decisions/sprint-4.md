@@ -3,6 +3,10 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> 📌 **2026-09-28 (`68303d5`) — closed board, link repoints only; still 106 rows, 0 open.** The moved rows for
+> `0030`, `0032`, `0219` and `0221` now point to [[decisions/sprint-7]] (owner ruling 2026-09-27); `0285` and
+> `0298` links now point to `tasks/done/`.
+>
 > 📌 **2026-09-26 (later, `2177ea6`) — no row, count or status changed on this closed board; re-counted:
 > 106 rows — 85 Done · 18 Moved · 3 Cancelled; 0 open.** What changed: (1) link paths — `0018`, `0065`,
 > `0238` and `0296` closed and moved to `tasks/done/`; (2) **the eight rows that sent `0030`, `0032`,
@@ -952,6 +956,8 @@ Sprint 4 is no longer just a future plan. The latest source brief records a mixe
 - **Three new briefs came out of the 2026-09-01 close-out and are filed on the Backlog board, not here:** `0201` (nothing runs the shell test harnesses, so they can rot unnoticed — from `0195`), `0202` (deploy-harness assertions that pass vacuously; priority **`Low` — owner-ruled 2026-09-01, and the task is open, NOT cancelled**), plus recorded inputs into `0064`. See [[decisions/sprint-backlog]].
 
 ## Related
+
+- [[decisions/sprint-7]] — where this board's moved rows for `0030`, `0032`, `0219`, `0221` now point
 
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-3]] — previous sprint

@@ -4,6 +4,30 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — Phase 2 citizenship benefits — task `0067`
 
+> 🆕 **2026-09-28 — the Sprint 6 follow-ups are built and closed `(agent-closed — not owner-verified)`; none is
+> verified live.** Several statements below are superseded — kept as history, read these first:
+>
+> - **The operator now has a working Approve AND Reject** — two ready-to-paste lines running a command inside
+>   the profile container, token never typed or printed; the old laptop `curl` got `403`
+>   ([[tasks/name-change-operator-decide-command]], `0312`). An approved name can now be **removed**
+>   (`decision: "clear"`), and a declined request can be **hidden** by the player
+>   ([[tasks/name-change-dismiss-and-clear]], `0314`, migration `007`).
+> - **Residual (c), the notify cooldown, changed:** an operator decision now **resets** the player's 10-minute
+>   slot, so the next request notifies at once; a withdraw still does not
+>   ([[tasks/name-change-decision-resets-notify-limit]], `0313`). Still in-process.
+> - **Residual (b) is re-stated, not closed:** `GET /v1/profile` now answers only the Bearer caller (`0273`), so
+>   *"publicly readable / unauthenticated"* below is **out of date** — but the session is minted `vfy:false`, so
+>   anyone who knows a player's Yandex id can still read the pending name. **Still open**
+>   ([[tasks/player-name-path-security-review]], `0307`); `0319` (Backlog board) tracks closing it.
+> - **The injection question is answered — no, not through the name** (`0307`, proven over real Postgres); the
+>   decide command is shell-safe for any name, and the moderator sees hidden characters as `⟨U+XXXX⟩`.
+> - **Ruling (b) "card only" is superseded:** the approved name now prefills and locks the start-screen box
+>   ([[tasks/start-screen-approved-name-lock]], `0321`) and is swapped in for other players in multiplayer at
+>   ADR-103 trust ([[tasks/approved-name-in-multiplayer-matches]], `0322`;
+>   [[decisions/adr-115-approved-name-in-matches]]). The approve message no longer says *"now active"*
+>   ([[tasks/name-change-approved-message-wording]], `0316`).
+> - The digest now also **lists** pending requests ([[tasks/name-change-digest-pending-list]], `0315`).
+>
 > 🆕 **2026-09-26 — the card is live (release `0.0.154`, [[tasks/citizenship-go-live]]) and this UI has now
 > been SEEN:** after earning citizenship the owner's card showed *"Сменить имя"* and the name-change form
 > opened (not submitted in that check — [[tasks/after-deploy-production-checks]] B1). The owner's live
@@ -124,6 +148,16 @@ Green at close, after both fix rounds: `npx tsc --noEmit`, `npm run lint`, prett
 
 ## Related
 
+- [[tasks/player-name-path-security-review]] — task `0307`, the security review of every name path; residual (b) re-stated as still open
+- [[tasks/name-change-operator-decide-command]] — task `0312`, the working Approve/Reject command
+- [[tasks/name-change-decision-resets-notify-limit]] — task `0313`, a decision resets the notify cooldown (residual (c))
+- [[tasks/name-change-dismiss-and-clear]] — task `0314`, Hide a declined request; operator clear of an approved name
+- [[tasks/name-change-digest-pending-list]] — task `0315`, the digest lists pending requests
+- [[tasks/name-change-approved-message-wording]] — task `0316`, the approve message no longer says "now active"
+- [[tasks/approved-name-in-matches-investigation]] — task `0317`, the follow-up ruling (b) promised
+- [[tasks/start-screen-approved-name-lock]] — task `0321`, the approved name prefills and locks the start-screen box
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, the approved name in multiplayer matches
+- [[decisions/adr-115-approved-name-in-matches]] — the trust level the in-match name runs at
 - [[tasks/citizen-verified-icon]] — task `0068`, the other Phase 2 citizenship benefit, built the same day and independent of this one
 - [[tasks/citizenship-xp-progress-ui]] — the citizenship card this feature attaches to
 - [[tasks/hide-citizenship-card-flag]] — task `0054`'s default-OFF flag, the reason this UI has never been seen in a browser

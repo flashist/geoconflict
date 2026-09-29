@@ -3,6 +3,38 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-09-28 (`68303d5`) — Sprint 6 changes to the store, all built and committed, NONE recorded as deployed
+> or verified live:**
+>
+> - **Migration `007_name_change_dismiss_and_clear.sql`** (task `0314`): `dismissed_at`, a nullable
+>   `new_display_name`, a `cleared` status and a CHECK that a cleared row has no name. New route
+>   `POST /v1/profile/name-change-dismiss`; `decision: "clear"` on the internal decide route frees an approved
+>   name. **Deploy the profile server before the client.** [[tasks/name-change-dismiss-and-clear]]
+> - **Operator decide command inside the image** (`npm run -s name-change:decide`, task `0312`) — the internal
+>   token is read from the container and never printed. [[tasks/name-change-operator-decide-command]]
+> - **The internal resolve reply carries the approved name** (`displayName`, three states, task `0322`) — the game
+>   server swaps it in for other players at ADR-103 trust ([[decisions/adr-115-approved-name-in-matches]]).
+> - **Name paths reviewed** (task `0307`): every name query uses placeholders — proven over real Postgres. 🔴
+>   The pending name is still readable by anyone who can assert a player's Yandex id (`vfy:false` session).
+>   [[tasks/player-name-path-security-review]]
+> - **`0250` (authenticated profile read for paid entitlement) — 🚧 Blocked, NOT closed.** Its design report
+>   (`ai-agents/knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md`, a proposal by
+>   `fkit-architect`) found paid state leaking to any `vfy:false` caller through **four** channels, not one — the
+>   profile read's `citizenship_earned_at`, `is_citizen` with `xp < 100`, the tenure-grant reply's true `xp`,
+>   and the inbox's `citizenship_paid` template key (the strongest: permanent) — plus a polling residual (L5).
+>   It recommends an **"equalized projection"** for unverified callers now, and **verified login** (Yandex signed
+>   player data checked at `POST /v1/login`, minting `vfy:true` sessions) later. The client-side SDK purchase
+>   read is **dead** — the citizenship purchase is consumed after the grant. Owner rulings 2026-09-27 (verbatim,
+>   from the Sprint 6 board): D1 *"Raw facts: paid + date"* · D2 *"Paid only (Recommended)"* · D3 *"New task,
+>   above 0250 (Recommended)"* ⇒ verified login filed as **`0325`** · D4 *"Accept all (Recommended)"* · D5 *"Fix
+>   all 4 in 0250 (Recommended)"*. **Slice S1 (the leak fix) is built and reviewed** (*Ready to merge*) — its
+>   known cost: a paid citizen under 100 XP sees **100 / 100** on an unverified read, and
+>   `Citizenship:Earned:XP` is **dormant** ([[systems/analytics]]). S1's deploy is owner-run, **client first,
+>   then profile server** (reversed, old clients drop the neutral inbox message). **S3b waits on `0325`**, itself
+>   blocked on an owner-run S0 test. The report also states that verified login alone does **not** reach the
+>   game server — that needs `0332` (Sprint 7). ⚠️ `0250` is not paged (not done); recorded here from its report
+>   and board row only.
+>
 > 🆕 **2026-09-26, later — CITIZENSHIP IS LIVE** (`CITIZENSHIP_CARD_ENABLED: true`, release `0.0.154`,
 > [[tasks/citizenship-go-live]]). The store now holds real citizens: the **first paid purchases** (a real
 > player's and the owner's test, both 200; `is_paid_citizen` set, processed-purchase row, intent marked
@@ -373,6 +405,11 @@ than picking silently.
 
 ## Related
 
+- [[tasks/name-change-dismiss-and-clear]] — task `0314`, migration `007` and the clear decision
+- [[tasks/name-change-operator-decide-command]] — task `0312`, the decide command shipped in the profile image
+- [[tasks/player-name-path-security-review]] — task `0307`, the name-path SQL proof and residual (b)
+- [[decisions/adr-115-approved-name-in-matches]] — the resolve reply's `displayName` and the trust level it runs at
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, which added `displayName` to the resolve reply
 - [[systems/player-infrastructure]] — pre-S4 identity/customization substrate
 - [[tasks/profile-cleanup-obsolete-secrets]] — task `0222`, the cleanup phase; 🔒 carries the standing that the **old** storage access key will **deliberately NOT be revoked** — ⛔ closed by owner decision, **not** revoked and **not** scope-established
 - [[systems/configuration]] — `/api/env` and `PROFILE_API_URL` runtime/deploy configuration

@@ -101,3 +101,4 @@ nothing, and is cheap to re-run. **Re-run it rather than rediscover it.**
 - [[systems/weekend-deploy-window]] — this task's eleven read-only probes are **re-run at W11**, to establish the baseline that makes a later **403 mean the allowlist and a 401 mean the token**
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, whose verification re-ran this task's probes on 2026-09-26
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, which depended on this fix before the token was set
+- [[tasks/name-change-operator-decide-command]] — task `0312` (2026-09-27): a working operator Approve/Reject command run on the profile box

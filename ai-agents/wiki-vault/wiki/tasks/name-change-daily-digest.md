@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0283`
 
+> 🆕 **2026-09-28 — a second message, the LIST, follows the heartbeat on days with pending requests (task
+> `0315`, built, not seen live).** Up to 20 requests, oldest first, with internal id, name (hidden characters as
+> `⟨U+XXXX⟩`) and waiting time; since `0322` a line can end `⚠️ rude-name filter`. 🚩 **The heartbeat is
+> byte-for-byte unchanged and is still the ONLY liveness proof** — it alone decides the marker, check 12 and the
+> exit code; a failed list pages **nothing**. See [[tasks/name-change-digest-pending-list]]. The runbook also
+> now covers deciding requests ([[tasks/name-change-operator-decide-command]], `0312`) and removing an approved
+> name ([[tasks/name-change-dismiss-and-clear]], `0314`).
+
 > ⛔ **No chat ids, topic ids, tokens, hosts, IPs, ports or proxy software names on this page** — the
 > brief, the plan, the worklog and the runbook are all written under that rule and the vault honours it.
 > Variable names, file paths and the cron expression are fine.
@@ -183,6 +191,10 @@ red. **Those are the guards working, not broken tests.**
 
 ## Related
 
+- [[tasks/name-change-digest-pending-list]] — task `0315`, the list message that follows this heartbeat
+- [[tasks/name-change-operator-decide-command]] — task `0312`, the decide section added to this task's runbook
+- [[tasks/name-change-dismiss-and-clear]] — task `0314`, the clear section added to the same runbook
+- [[tasks/player-name-path-security-review]] — task `0307`: this digest's heartbeat carries no name and stays unescaped, deliberately
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the dependency: topic routing and the connection fix this inherits rather than forks
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the **other half**: it proves the alert path is reachable, this proves Telegram delivery is alive. ⚠️ **Neither substitutes for the other**
 - [[systems/alert-delivery]] — the alerting path this digest must never be read as covering
@@ -195,3 +207,4 @@ red. **Those are the guards working, not broken tests.**
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose owner step 5 proved the **per-request** operator notification. ⛔ **A DIFFERENT mechanism from this digest**, and this digest does not discharge its amendment A1
 - [[decisions/sprint-backlog]] — the board this task was filed on before its promotion to Sprint 4
+- [[tasks/name-change-decision-resets-notify-limit]] — task `0313` (2026-09-27): an operator decision resets the player's 10-minute notify slot

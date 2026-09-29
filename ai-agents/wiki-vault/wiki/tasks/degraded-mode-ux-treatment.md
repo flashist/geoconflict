@@ -4,6 +4,22 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0049 / citizenship funnel prerequisite
 
+> 🔓 **2026-09-28 — "no active SDK retry" NARROWED by owner ruling; the locked text below is kept as written**
+> (append-only note at source). Owner ruling **D-1** on task `0318`, verbatim: **"Retry download only
+> (Recommended)"** — *"A couple of retries within the 5 s start-up limit, then quiet background retries. Never
+> retry Yandex's start-up call itself. ~1 day."*
+>
+> - **Narrowed for a failed SDK loader-script DOWNLOAD only**, built by [[tasks/sdk-loader-download-retry]]
+>   (`0330`). **The "no retry of `YaGames.init()`" part STILL HOLDS** — a rejected or hung `init()` is never
+>   retried.
+> - Why the reasoning did not carry over: it was about a rejected/timed-out `init()` (mostly deterministic); a
+>   failed download is transient ([[tasks/citizenship-card-vanishes-investigation]], report §2.4 — likely, but
+>   unmeasured).
+> - The **"late-recovery UI refresh deferred … revisit if `Session:PlatformInitTimeout` volume proves
+>   non-trivial"** decision is being revisited **as scheduled** — a revisit, not a reversal — by
+>   [[tasks/citizenship-card-late-recovery-recheck]] (`0329`). The trigger it named: `Player:YandexUnknown`'s
+>   upper bound of 0.8–1.2K unique users/day against 3.58–4.79K daily players (week 2026-09-07 to 09-13).
+
 ## Goal
 
 Give Yandex SDK timeout/failure (degraded mode) its own player-facing treatment on the citizenship card. The client previously collapsed three states into two: (a) standalone/no-Yandex-context (fixed by [[tasks/citizenship-card-guest-cta-no-sdk]]), (b) real Yandex guest with a healthy SDK, and (c) Yandex context where `YaGames.init()` timed out or failed. Case (c) looked identical to (b) — a degraded player saw the "Войти в Яндекс" CTA and tapping it silently did nothing. Owner-reclassified 2026-07-02: **must ship before earned or paid citizenship**, because a degraded player inside the citizenship funnel would hit a dead CTA at exactly the authentication moment.
@@ -38,3 +54,7 @@ The citizenship funnel now distinguishes "you're not logged in" from "we couldn'
 - [[decisions/sprint-4]] — the earned/paid citizenship gate this clears
 - [[tasks/hide-citizenship-card-flag]] — the 0054 follow-up hiding the whole card (this state included) until citizenship launches
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which **gives up the degraded-mode card state this task built** whenever the `citizenship_ui` flag is off: the card now fails **closed**. ⚠️ **Owner-accepted cost, ruled on 2026-09-21 and not to be re-litigated** — ⛔ **do not restore the fail-open to bring this state back**
+- [[tasks/sdk-loader-download-retry]] — task `0330`, which narrows this task's "no active SDK retry" to `init()` only (owner ruling D-1, 2026-09-28)
+- [[tasks/citizenship-card-late-recovery-recheck]] — task `0329`, the scheduled revisit of this task's deferred late-recovery refresh
+- [[tasks/citizenship-card-vanishes-investigation]] — task `0318`, which cited an upper bound for the trigger this task named (the real rate is not measurable yet) and brought D-1 to the owner
+- [[tasks/platform-degraded-analytics-event]] — task `0328`, the events that finally separate degraded-boot causes

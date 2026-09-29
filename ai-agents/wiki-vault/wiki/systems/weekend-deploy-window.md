@@ -5,6 +5,15 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> 📌 **2026-09-28 — the W12 checkboxes describe the window AS IT RAN (report-only).** The runbook now says so
+> in a dated pointer: for **later** deploys, `0298` Part B arms both config guards — the name guard `--enforce` in
+> `build-deploy.sh` (before the version bump), `deploy.sh` and `build-deploy-profile.sh`; the value guard
+> `--enforce` in `deploy.sh`; a missing guard or `node` stops the deploy; `OTEL_AUTH_HEADER` is `OPTIONAL`, so a
+> clean prod run reads `REQUIRED 0`, `OPTIONAL 6`; **no override exists**. The runbook's note was written when
+> Part B was built but not committed; it is committed in `68303d5`, and **no armed deploy is recorded yet**. See
+> [[tasks/config-parity-guard-arm-enforce]]. Other runbook changes this window: link paths only
+> (`0298` → `tasks/done/`).
+>
 > # 🆕 2026-09-26, later — SECOND GAME DEPLOY: CITIZENSHIP WENT LIVE (release `0.0.154`)
 >
 > **Provenance:** owner-run; the owner's screenshots and words relayed by `fkit-lead` to a spawned
@@ -553,6 +562,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 
 ## Related
 
+- [[tasks/config-parity-guard-arm-enforce]] — task `0298`: W12 was its first real report-only run; Part B armed both guards for later deploys
 - [[systems/alert-delivery]] — the second caller on `PROFILE_INTERNAL_ALLOW_IPS`, and the 403
   channel-disable trap in full
 - [[systems/player-profile-store]] — the profile/admin box every W-step on this page deploys to

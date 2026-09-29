@@ -12,7 +12,14 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
-> 🆕 **2026-09-26, later — `plan-index.md` (synced from `899df29`): NO SPRINT IS ACTIVE.** Sprint 5 was
+> 🆕 **2026-09-28 — `plan-index.md` (synced from `68303d5`): SPRINT 6 IS THE ACTIVE SPRINT, and a Sprint 7 board
+> exists.** Sprint 6's line-3 banner reads `🔄 In progress — 2026-09-26` — owner ruling via `AskUserQuestion`,
+> **"Start Sprint 6, then drive (Recommended)"**, driving from `0307` with the owner approving each plan. The
+> *"NO SPRINT IS ACTIVE"* note below is **struck at source, kept as history** (true until Sprint 6 started later
+> the same day). **Sprint 7** was created 2026-09-27 — **no theme name, no goal, not started** — to receive
+> `0027`, `0030`, `0032`, `0219`, `0221`. See [[decisions/sprint-6]] and [[decisions/sprint-7]].
+>
+> ~~🆕 **2026-09-26, later — `plan-index.md` (synced from `899df29`): NO SPRINT IS ACTIVE.**~~ *(superseded the same day — Sprint 6 started)* Sprint 5 was
 > closed that day by `/fkit-sprint-done` *(agent-closed — not owner-verified)*; its line-3 banner reads
 > `✅ Done — 2026-09-26` and the board now lives at `ai-agents/sprints/done/plan-sprint-5.md`. Sprint 6 is
 > pre-scoped and **not started** (owner ruling; its banner stays `🔲 Backlog`). The source records
@@ -83,6 +90,8 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - **Licensing shapes monetization defensibility** — GeoConflict can monetize, but AGPL and CC BY-SA obligations mean the durable moat is live operations, Yandex integration, localization, community, and iteration speed rather than exclusive control of forked code or modified OpenFront resource assets.
 
 ## Related
+
+- [[decisions/sprint-7]] — created 2026-09-27, listed in `plan-index.md`; no theme or goal yet
 
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding

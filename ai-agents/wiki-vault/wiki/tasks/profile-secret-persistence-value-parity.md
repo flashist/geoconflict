@@ -74,4 +74,4 @@ defect in the deploy output, not a behaviour defect. See [[systems/weekend-deplo
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, closed in the same owner ruling
 - [[decisions/sprint-5]] — the board that tracked its close
 - [[decisions/sprint-backlog]] — where `0294` (the live rotation proof) sits
-
+- [[tasks/config-parity-guard-arm-enforce]] — task `0298` (2026-09-28): the config guards' first real report-only run, then armed `--enforce`

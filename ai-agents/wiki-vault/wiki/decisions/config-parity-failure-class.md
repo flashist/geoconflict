@@ -3,6 +3,13 @@
 **Date**: 2026-08-28
 **Status**: accepted
 
+> 🆕 **2026-09-28 — `0298` is DONE and both guards are ARMED in the committed tree (`68303d5`)** —
+> `(agent-closed — not owner-verified)`. Owner rulings: *"Arm both; password may be blank"*, *"No override"*,
+> *"Yes, check names first"*. The name guard runs `--enforce --block-on=<its own pipelines>` in `deploy.sh`,
+> `build-deploy-profile.sh` and (before the version bump) `build-deploy.sh`; the value guard runs `--enforce` in
+> `deploy.sh`; a missing guard script or `node` stops the deploy; `OTEL_AUTH_HEADER` is now `optional`. 🚨 **No
+> armed deploy is recorded yet** — the first ones are owner steps (a profile deploy leaves no git artifact). See [[tasks/config-parity-guard-arm-enforce]].
+
 > This page records a **recurring failure class**, not a single defect. Three instances are confirmed.
 >
 > 📌 **2026-09-26 — the guards ran against a real production deploy for the first time** (report-only,
@@ -141,6 +148,7 @@ Three instances, all Sprint 4:
 
 ## Related
 
+- [[tasks/config-parity-guard-arm-enforce]] — task `0298`: the guard is armed; the first armed deploys are owner steps
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the config-drift sweep that first surfaced `0062`/`0063`/`0060`
 - [[systems/player-profile-store]] — the profile API whose crediting path `0062` no-ops and whose payments routes `0195` 503s
 - [[systems/configuration]] — `/api/env`, runtime public settings, and the deploy-environment plumbing this class breaks

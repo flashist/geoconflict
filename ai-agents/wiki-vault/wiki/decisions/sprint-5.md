@@ -3,7 +3,13 @@
 **Date**: 2026-04-16
 **Status**: accepted *(✅ **closed 2026-09-26** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-09-26~~; was `proposed` while pre-scoped)*
 
-> # 🆕 2026-09-26 (latest, `899df29`) — SPRINT 5 IS CLOSED; NO SPRINT IS ACTIVE
+> 📌 **2026-09-28 (`68303d5`) — closed board, link repoints only; counts unchanged (28 rows, 0 open).** The
+> moved rows for `0030`, `0032`, `0219` and `0221` now point to [[decisions/sprint-7]] (owner ruling 2026-09-27;
+> they had been carried on to Sprint 6 first). A new addendum records the owner ruling behind Sprint 5's close.
+> ⚠️ The *"NO SPRINT IS ACTIVE"* heading below is no longer current: Sprint 6 started later on 2026-09-26
+> ([[decisions/sprint-6]]).
+>
+> # 🆕 2026-09-26 (`899df29`) — SPRINT 5 IS CLOSED; NO SPRINT IS ACTIVE *(until Sprint 6 started later that day)*
 >
 > **Line-3 banner: `✅ Done — 2026-09-26. Closed by /fkit-sprint-done (agent-closed — not owner-verified).`**
 > The board moved to **`ai-agents/sprints/done/plan-sprint-5.md`**. ⚠️ **Agent-closed, not owner-verified.**
@@ -412,6 +418,8 @@ Source: `ai-agents/sprints/done/plan-sprint-5.md` *(moved from ~~`ai-agents/spri
 - Rewarded ads (deferred from Sprint 4) ship as part of Task 11 coin economy
 
 ## Related
+
+- [[decisions/sprint-7]] — where this board's moved rows for `0030`, `0032`, `0219`, `0221` now point
 
 - [[decisions/product-strategy]] — sprint ordering
 - [[decisions/sprint-4]] — previous sprint, provides citizenship infrastructure this sprint builds on

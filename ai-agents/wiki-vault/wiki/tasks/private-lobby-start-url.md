@@ -95,3 +95,5 @@ trimmable to the minimal join fix if the owner ever wants it that way. Never rul
 - [[systems/networking]] — the worker routing this URL has to hit
 - [[systems/architecture-overview]] — §9's table telling this trap apart from the port-3001 /
   dead-worker-0 local-dev trap
+- [[tasks/private-lobby-citizen-perk]] — task `0302` (2026-09-27): private lobbies become a citizen perk, locked for others; server start gate
+- [[tasks/private-lobby-close-leaves-lobby]] — task `0327` (2026-09-28): closing a joined private-lobby window now leaves the lobby

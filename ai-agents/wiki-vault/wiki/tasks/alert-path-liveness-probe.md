@@ -128,7 +128,9 @@ either alone misleads.**
 ### ⚠️ Residuals that SURVIVE this close — all eight
 
 1. **It catches the CAUSE, not the STATE.** An **already-disabled** channel reads green. **Filed as
-   `0285`.**
+   `0285`.** ✅ **2026-09-28: `0285` built check 13 (`alert-channel-state`) on top of this probe** — one extra
+   field in the same hourly POST, the same marker, the same dead-man's-switch path. ⚠️ **Not yet seen to
+   trip on the real box** (owner drill owed). See [[tasks/uptrace-channel-state-check]].
 2. It does **not** check the secret the monitoring stack's own **channel config** holds — a separate copy
    from the cron's.
 3. It proves **nothing about Telegram delivery** — the marker is written on receipt, **before** any send.
@@ -154,6 +156,7 @@ replacement for a probe that crosses the allowlist.
 
 ## Related
 
+- [[tasks/uptrace-channel-state-check]] — task `0285`, which closes residual 1 (the STATE) through this probe's marker
 - [[systems/alert-delivery]] — the path this guards, and the operator procedure when the check fails
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the relay this probes; it must exist first
 - [[decisions/adr-114-admin-server-alert-relay]] — ruling B, the accepted risk this is the mechanical half of

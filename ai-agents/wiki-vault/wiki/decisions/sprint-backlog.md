@@ -3,7 +3,29 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-09-26 (latest) at `HEAD` = `899df29` — `0026` AND `0029` MOVED FROM `sprint-backlog.md` TO `backlog.md`
+> # 📊 RE-COUNTED 2026-09-28 (latest) at `HEAD` = `68303d5` — TWO ROWS ADDED (`0319`, `0320`), TWO MOVED TO SPRINT 6 (`0326`, `0327`)
+>
+> **`backlog.md`: 99 rows — 71 `🔲 Backlog` · 20 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 74 OPEN** *(was 95 / 72)*. ⚠️ Counted by me this run, by each row's leading status glyph.
+> `sprint-backlog.md` did not change in this window.
+>
+> - **Two new rows, both `🔲 Backlog`, filed 2026-09-27** by spawned `fkit-producer`s on owner rulings
+>   relayed by `fkit-lead` (ADR-021/037; not paged — backlog briefs are not paged):
+>   - **`0319` — close the forged-login name-change hole (`0067` residual (b)) once player identity is
+>     verified.** Owner: *"File a small new task"*. Background: [[tasks/player-name-path-security-review]]
+>     re-stated residual (b) as **still open** (a `vfy:false` login lets anyone who knows a player's Yandex id
+>     act as that player on the name-change routes).
+>   - **`0320` — investigate: single-player accepts a max timer of 0** — does the game end at once, and should
+>     anything be fixed?
+> - **Moved to [[decisions/sprint-6]] by owner ruling (2026-09-28), rows kept here as `➡️ Moved` pointers:**
+>   `0326` (the citizenship card applies only the newest profile read — *"Yes, into Sprint 6 (Recommended)"*,
+>   placed just before `0318`'s follow-ups; [[tasks/citizenship-card-newest-profile-read]]) and `0327`
+>   (closing a joined private-lobby window leaves the lobby — *"End of Sprint 6 (Recommended)"*;
+>   [[tasks/private-lobby-close-leaves-lobby]]). Both are now ✅ Done there.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-09-26 (later still) at `HEAD` = `899df29` — `0026` AND `0029` MOVED FROM `sprint-backlog.md` TO `backlog.md`
 >
 > **`backlog.md`: 95 rows — 69 `🔲 Backlog` · 18 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
 > 72 OPEN** *(was 93 / 70)*. **`sprint-backlog.md`: still 25 rows — 21 `⬜ No sprint` · 2 `⏸ Parked` · 2

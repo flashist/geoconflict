@@ -119,3 +119,4 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose planning found this blocker and whose alert rules this delivery channel carries. ⛔ **This task shipped a proven pipeline with nothing feeding it — that is `0274`'s work**
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, whose connection fix this task carried (ND-2)
+- [[tasks/uptrace-channel-state-check]] — task `0285` (2026-09-28): check 13 reads the monitoring stack's own channel state

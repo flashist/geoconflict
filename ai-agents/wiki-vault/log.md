@@ -4183,3 +4183,51 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 9 touched pages (+ `index.md`):** 0 broken wiki-links; 0 unresolved index links; 0 one-way links (no new link targets were added).
 - 🔒 **Secret scan on the diff: clean** — no IP, URL, connection string or hex secret.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-09-28 — ingest (sync)
+
+- **Sync window:** `899df29` → HEAD (`68303d5`). 4 commits (`f2edd3d`, `b72fad8` "Sprint push"; `390c4b4` "Sprint 6: ship 0307, 0302, 0312, 0313, 0315; park 0308; file 0319/0320"; `68303d5` "Sprint 6: ship 0327, 0322, 0326, 0328, 0329, 0330; file 0332-0336; ADR-115"). Spawned by `fkit-lead` after the owner committed (owner ruling *"Wait, sync after I commit"*). Tree clean at sync start.
+- **Changed source files detected under `ai-agents/` (vault excluded): 134. Ingest-worthy after the filter: 43** (6 knowledge-base incl. 2 decisions, 4 reports, 6 sprint boards, 27 done briefs). Skipped by the filter: 36 `tasks/backlog/*` paths (briefs of open tasks incl. new `0319`–`0336`, recorded from the boards, not paged; plus `0250`/`0289`/`0308`/`0325` plans/worklogs and the `0325` helper `s0-hmac-check.mjs`) and 55 working artifacts in `tasks/done/` folders (54 `plan.md` / `worklog.md` / `review.md` + `0203`'s `decision-prep-2026-09-23.md`). ⚠️ The closed tasks' `worklog.md` files were **read as supporting evidence** (owner rulings, evidence, not-verified lists), not ingested as sources — the done briefs carry no outcome sections.
+- **Ingested — 20 new task pages:**
+  - `ai-agents/tasks/done/0307-…/brief.md` + `ai-agents/knowledge-base/reports/2026-09-26-0307-player-name-path-security-review.md` → **created** [[wiki/tasks/player-name-path-security-review]]
+  - `ai-agents/tasks/done/0312-…/brief.md` → **created** [[wiki/tasks/name-change-operator-decide-command]]
+  - `ai-agents/tasks/done/0313-…/brief.md` → **created** [[wiki/tasks/name-change-decision-resets-notify-limit]]
+  - `ai-agents/tasks/done/0314-…/brief.md` → **created** [[wiki/tasks/name-change-dismiss-and-clear]]
+  - `ai-agents/tasks/done/0315-…/brief.md` → **created** [[wiki/tasks/name-change-digest-pending-list]]
+  - `ai-agents/tasks/done/0316-…/brief.md` → **created** [[wiki/tasks/name-change-approved-message-wording]]
+  - `ai-agents/tasks/done/0311-…/brief.md` → **created** [[wiki/tasks/remove-game-name-from-player-texts]]
+  - `ai-agents/tasks/done/0317-…/brief.md` + `ai-agents/knowledge-base/reports/2026-09-27-0317-approved-name-in-matches.md` → **created** [[wiki/tasks/approved-name-in-matches-investigation]]
+  - `ai-agents/tasks/done/0321-…/brief.md` → **created** [[wiki/tasks/start-screen-approved-name-lock]]
+  - `ai-agents/tasks/done/0322-…/brief.md` → **created** [[wiki/tasks/approved-name-in-multiplayer-matches]]
+  - `ai-agents/tasks/done/0302-…/brief.md` → **created** [[wiki/tasks/private-lobby-citizen-perk]]
+  - `ai-agents/tasks/done/0303-…/brief.md` → **created** [[wiki/tasks/citizenship-restart-prompt]]
+  - `ai-agents/tasks/done/0327-…/brief.md` → **created** [[wiki/tasks/private-lobby-close-leaves-lobby]]
+  - `ai-agents/tasks/done/0326-…/brief.md` → **created** [[wiki/tasks/citizenship-card-newest-profile-read]]
+  - `ai-agents/tasks/done/0318-…/brief.md` + `ai-agents/knowledge-base/reports/2026-09-28-0318-citizenship-card-vanishes.md` → **created** [[wiki/tasks/citizenship-card-vanishes-investigation]] (the wiki ingest `0318`'s close note listed as still owed)
+  - `ai-agents/tasks/done/0328-…/brief.md` → **created** [[wiki/tasks/platform-degraded-analytics-event]]
+  - `ai-agents/tasks/done/0329-…/brief.md` → **created** [[wiki/tasks/citizenship-card-late-recovery-recheck]]
+  - `ai-agents/tasks/done/0330-…/brief.md` → **created** [[wiki/tasks/sdk-loader-download-retry]]
+  - `ai-agents/tasks/done/0285-…/brief.md` + `ai-agents/knowledge-base/alert-delivery-runbook.md` → **created** [[wiki/tasks/uptrace-channel-state-check]]
+  - `ai-agents/tasks/done/0298-…/brief.md` → **created** [[wiki/tasks/config-parity-guard-arm-enforce]]
+- **Ingested — decisions and boards:**
+  - `ai-agents/knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md` → **created** [[wiki/decisions/adr-115-approved-name-in-matches]] (function names cited instead of the source's `file:line`, per the vault citation rule)
+  - `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md` → **updated** [[wiki/decisions/adr-103-identity-trust-seam]] (one Related line at source: ADR-115 widens the seam to a third user)
+  - `ai-agents/sprints/plan-sprint-7.md` → **created** [[wiki/decisions/sprint-7]] — **11 rows, all open (8 Backlog · 3 Blocked)**; not started, no name, no goal
+  - `ai-agents/sprints/plan-sprint-6.md` → **updated** [[wiki/decisions/sprint-6]] — **in progress since 2026-09-26; re-counted at `68303d5`: 46 rows — 20 Done · 16 Backlog · 5 Blocked · 5 Moved; 21 open** (was 37, all open)
+  - `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **99 rows, 74 open** (was 95 / 72); `0319`, `0320` added; `0326`, `0327` moved to Sprint 6
+  - `ai-agents/sprints/plan-index.md` → **updated** [[wiki/decisions/product-strategy]] — Sprint 6 active; Sprint 7 listed
+  - `ai-agents/sprints/done/plan-sprint-4.md`, `ai-agents/sprints/done/plan-sprint-5.md` → **updated** [[wiki/decisions/sprint-4]], [[wiki/decisions/sprint-5]] — link repoints only (moved rows → Sprint 7; Sprint 5 close-ruling addendum); counts unchanged (106 / 0 open; 28 / 0 open). ⚠️ Counted by me this run.
+- **Ingested — knowledge-base docs and the remaining report:**
+  - `ai-agents/knowledge-base/analytics-event-reference.md` → **updated** [[wiki/systems/analytics]] — `Session:PlatformInitTimeout` **once per boot (latched)**, not per stage; new `Session:PlatformDegraded:{Cause}`, `Session:PlatformRecovered`, `Session:SdkLoaderRetry:{Outcome}`, `Citizenship:RestartPrompt:*`, `LockedFeature:Tap:PrivateLobby`, the `private_lobbies` flag; `Citizenship:Earned:XP` dormant
+  - (same sources) → **updated** [[wiki/systems/flashist-init]] — the loader download is now retried (`0330`), `init()` still never is; a late recovery re-checks the citizenship card (`0329`); every match exit is a full reload
+  - `ai-agents/knowledge-base/name-change-digest-runbook.md` → **updated** [[wiki/tasks/name-change-daily-digest]] and [[wiki/tasks/citizenship-name-change]] (follow-ups banner; residual (b) re-stated STILL OPEN; residual (c) changed; ruling (b) superseded)
+  - `ai-agents/knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md` → **updated** [[wiki/systems/player-profile-store]] (dated note; `0250` is 🚧 Blocked, not paged) — four paid-state leak channels, owner rulings D1–D5, S1 built, S3b waits on `0325`
+  - `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` → **updated** [[wiki/systems/weekend-deploy-window]] — W12 checkboxes describe the window as it ran; later deploys armed by `0298`
+  - `ai-agents/tasks/done/0049-…/brief.md` → **updated** [[wiki/tasks/degraded-mode-ux-treatment]] — "no active SDK retry" NARROWED by owner ruling D-1 (downloads only; `init()` still never)
+  - `ai-agents/tasks/done/{0064,0203}/brief.md` → **updated** [[wiki/tasks/deploy-time-config-parity-guard]], [[wiki/tasks/config-parity-guard-pre-arming-gate]] (+ [[wiki/decisions/config-parity-failure-class]]) — link paths at source; dated "armed by `0298`" note added
+  - `ai-agents/tasks/done/{0061,0217,0238,0296}/brief.md` → **checked, no page change** — link-path updates only (`0285`/`0298` → `done/`)
+- **Also updated (back-links and stale current-state claims, history kept):** [[wiki/systems/alert-delivery]] (check 13; stale "0285/0289 sit on Sprint 5" line struck), [[wiki/tasks/alert-path-liveness-probe]] (residual 1 closed in code), [[wiki/systems/telemetry]], [[wiki/tasks/citizen-verified-icon]] (permission use on `0302`; R3 widened by ADR-115). [[wiki/index]]: 22 new entries (2 decisions, 20 tasks); 20 entries annotated.
+- **Targeted lint on 57 touched pages (+ `index.md`):** 0 broken wiki-links (full vault also 0); every vault page indexed. **53 one-way links found and fixed** (all involving this run's new pages or new links); one auto-written back-link description was wrong and corrected by hand.
+- **Old-path sweep (caller-requested):** every `tasks/backlog/NNNN…` reference in wiki pages and `index.md` checked against the tree — **10 references, all to tasks still in `backlog/`; nothing to repoint.** No vault page cited a `backlog/` path for any task closed in this window.
+- 🔒 **Secret scan on the diff and new pages: clean** — no IP, URL, connection string, hex secret, host, token, player id or name. The runbooks' loopback address and box paths deliberately omitted.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

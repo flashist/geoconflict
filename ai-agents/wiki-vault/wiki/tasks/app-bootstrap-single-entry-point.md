@@ -38,3 +38,4 @@ The citizenship card later consumed the bootstrap/platform distinction: the no-S
 - [[tasks/citizenship-card-guest-cta-no-sdk]]
 - [[tasks/yandex-payments-investigation]]
 - [[tasks/analytics-p0-yandex-login-status]]
+- [[tasks/sdk-loader-download-retry]] — task `0330` (2026-09-28): a failed Yandex SDK loader download is retried (never `init()`)

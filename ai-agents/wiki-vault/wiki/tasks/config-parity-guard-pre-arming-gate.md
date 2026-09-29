@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 (pulled in from the Backlog board 2026-09-12, owner-ruled; unranked) · task `0203`
 
+> 🆕 **2026-09-28 — `0298` is DONE and both guards are ARMED in the committed tree (`68303d5`)** —
+> `(agent-closed — not owner-verified)`. Owner rulings: *"Arm both; password may be blank"*, *"No override"*,
+> *"Yes, check names first"*. The name guard runs `--enforce --block-on=<its own pipelines>` in `deploy.sh`,
+> `build-deploy-profile.sh` and (before the version bump) `build-deploy.sh`; the value guard runs `--enforce` in
+> `deploy.sh`; a missing guard script or `node` stops the deploy; `OTEL_AUTH_HEADER` is now `optional`. 🚨 **No
+> armed deploy is recorded yet** — the first ones are owner steps (a profile deploy leaves no git artifact). See [[tasks/config-parity-guard-arm-enforce]].
+
 > 🚨 **READ THIS FIRST — THIS TASK HARDENS THE GUARD; IT DOES NOT ARM IT.**
 > Closed **2026-09-24** by a spawned `fkit-producer` at the close step of `/fkit-sprint-ship-loop`,
 > **no owner present** (ADR-033 §5) ⇒ **`(agent-closed — not owner-verified)`**.
@@ -67,10 +74,11 @@ decision was taken before the window.
 
 ## Related
 
+- [[tasks/config-parity-guard-arm-enforce]] — task `0298`, which consumed these tags and armed `--enforce` per-pipeline
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, the guard these items harden
 - [[decisions/config-parity-failure-class]] — the failure class the guard catches
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, whose shape R12 had been silently dropping
 - [[systems/weekend-deploy-window]] — ruling 3, and its lift for this task
 - [[decisions/sprint-4]] — the board it closed on
-- [[decisions/sprint-5]] — the board carrying `0298`, which consumes the tags and arms `--enforce`
+- [[decisions/sprint-5]] — ~~the board carrying `0298`~~ *(`0298` moved on to [[decisions/sprint-6]] 2026-09-26 and closed there 2026-09-28)*, which consumes the tags and arms `--enforce`
 - [[decisions/sprint-backlog]] — the board it was first filed on

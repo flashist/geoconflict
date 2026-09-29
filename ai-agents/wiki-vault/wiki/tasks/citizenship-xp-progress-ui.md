@@ -56,3 +56,5 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which **removed this card's degraded-SDK fail-open carve-out** (2026-09-21, owner ruling) so the card now fails **closed** like the other three surfaces; ⚠️ **accepted cost: a degraded-SDK player now sees nothing rather than a "couldn't connect" state**
 - [[tasks/citizenship-earned]] — task `0017`, the grant that moves this card to State 3
 - [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200
+- [[tasks/citizenship-card-newest-profile-read]] — task `0326` (2026-09-28): the citizenship card applies only the newest profile read
+- [[tasks/citizenship-card-vanishes-investigation]] — task `0318` (2026-09-28): why the citizenship card vanished after a match on a shaky connection

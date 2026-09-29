@@ -8,6 +8,12 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md`
 
+> 🆕 **2026-09-28 — the canonical ADR gained one Related line: [[decisions/adr-115-approved-name-in-matches]] widens
+> this seam's scope to a THIRD user.** After crediting/resolve and the `0302` private-lobby gate, the funnel now
+> also decides which approved name **other players** see in a match. The forged-id case there is an
+> owner-accepted risk (D3), closed by `0325` (verified login) **plus** the join-token step (`0332`, Sprint 7) with
+> no change to that code. No rule of this ADR changed; its single-funnel rule is what ADR-115 relies on.
+
 > # 📌 CORRECTION — 2026-09-11. **THE CANONICAL ADR TAKES NO CHANGE. THIS MIRROR DID.**
 >
 > 🚨 **The figure `"10 XP per (game, account)"` IS NOT IN THE CANONICAL ADR AT ALL.** Verified against
@@ -59,6 +65,9 @@ The design rules that make this a seam rather than just a shortcut:
 
 ## Related
 
+- [[decisions/adr-115-approved-name-in-matches]] — extends this seam to a third user: the approved name other players see in a match
+- [[tasks/private-lobby-citizen-perk]] — task `0302`, the seam's second user: the private-lobby start gate
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, the third user's build
 - [[decisions/adr-101-fail-soft-xp-crediting]] — the fail-soft crediting path this seam feeds
 - [[systems/player-profile-store]] — the profile/XP backend and its trust boundary
 - [[tasks/yandex-identity-plumbing]] — the T3 task that plumbed the id through join
@@ -80,3 +89,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/personal-inbox]] — task `0012`, whose player inbox routes trust the client-asserted id through this seam (residual D1)
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: `getCreditableYandexId` stays the only reader of the Yandex id on the game server
 - [[tasks/profile-identity-epic]] — epic `0266`, which kept trusting the client-asserted id while moving everything else onto the internal id
+- [[tasks/approved-name-in-matches-investigation]] — task `0317`, the investigation that chose to swap the approved name in through the ADR-103 funnel
+- [[tasks/player-name-path-security-review]] — task `0307` (2026-09-26/27): security review of every player-name path — no injection through the name; five fixes
