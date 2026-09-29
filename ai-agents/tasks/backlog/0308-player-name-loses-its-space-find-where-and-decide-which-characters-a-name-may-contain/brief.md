@@ -4,10 +4,14 @@
 0308
 
 ## Sprint
-Sprint 6
+Sprint 7
+
+➡️ **Moved to [Sprint 7](../../../sprints/plan-sprint-7.md) on 2026-09-29 by OWNER RULING R1** (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent) — see the *Addendum 2026-09-29, later — plan APPROVED, moved to Sprint 7* at the end. *Earlier value, kept:* ~~Sprint 6~~
 
 ## Priority
-35
+15
+
+➡️ **15 — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), 2026-09-29.** ⚠️ **The owner gave no rank on Sprint 7**; 15 is the next rank after that board's highest (14, epic `0213`) — a position, **not** a merit rank and **not** owner-ruled. *Earlier value, kept (Sprint 6):* ~~35~~ —
 
 ⬇️ **35 — PARKED AT THE BOTTOM OF SPRINT 6 BY OWNER RULING, 2026-09-27** — the owner's own free-text answer live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Let's come back to this task later, decrease the priority and put it to the end of the current sprint"*. Rank 35 is the next append rank below `0297` (34). See the *PARK 2026-09-27* addendum on the Sprint 6 board. *Earlier value, kept:* ~~6~~ —
 
@@ -16,9 +20,9 @@ Sprint 6
 **Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. ⚠️ **Slot 3 is `fkit-lead`'s reconciliation, open to owner correction:** the owner put this task *"right below"* `0307` (Q1) and separately made `0302` *"the 2nd priority"* (Q3); the owner never ranked `0308` against `0302` directly. ~~23~~ was the append rank until then.
 
 ## Status
-🔲 Backlog *(parked by owner ruling 2026-09-27; approved plan.md kept; resume from Step 0)*
+🔲 Backlog *(moved to Sprint 7 by owner ruling R1, 2026-09-29: plan **approved** that day, build **not started**, **no source changed**; resume from Step 0 (the owner runs the snippet, R3) — see the *plan APPROVED, moved to Sprint 7* addendum at the end)*
 
-*Earlier value, kept:* ~~🔄 In progress — driven by `/fkit-sprint-ship-loop` (fkit-lead), 2026-09-27~~ — the build had not started and no source changed when the task was parked.
+*Earlier values, kept:* ~~🔄 In progress — driven by `fkit-lead`, 2026-09-29 *(unparked by owner ruling 2026-09-29; approved plan.md must be re-presented at the plan gate before any build; resume from Step 0 — see the UNPARK 2026-09-29 addendum at the end)*~~ (held for a few minutes on 2026-09-29) · ~~🔲 Backlog *(parked by owner ruling 2026-09-27; approved plan.md kept; resume from Step 0)*~~ · ~~🔄 In progress — driven by `/fkit-sprint-ship-loop` (fkit-lead), 2026-09-27~~ — the build had not started and no source changed when the task was parked.
 
 ## Owner
 fkit-coder
@@ -117,6 +121,8 @@ each path safe on its own.
   names is `lower()` only, with no normalization — [`0317` report](../../../knowledge-base/reports/2026-09-27-0317-approved-name-in-matches.md)
   §2 point 3). ⚠️ The owner-approved `plan.md` predates this ruling and says the look-alike residual is **not**
   reopened (its opening notes); raise the conflict at the plan gate. This note changes neither this task's status nor its plan.
+  - ✅ **Answered 2026-09-29 by owner ruling R2: option A, "Warn the moderator (Recommended)"** — see the
+    *plan APPROVED, moved to Sprint 7* addendum at the end. *(Appended 2026-09-29, ADR-035.)*
 - **Privacy:** never write the owner's real name into a brief, worklog, test or report.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
 
@@ -223,3 +229,70 @@ anywhere** (privacy note above).
 
 **Still open for Step 0:** the main account's code points — both the portal `displayName` and, ideally, the
 game's own `getName()` value — which likely needs the owner at the keyboard (ask; do not guess).
+
+## Addendum 2026-09-29 — UNPARK by owner ruling; status back to In progress; plan gate still required
+
+**Appended by a spawned `fkit-producer` with no owner channel (ADR-021), on an OWNER RULING given
+2026-09-29 live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` (ADR-021/037).**
+⛔ Not producer precedent. Append-only (ADR-035).
+
+**Authority chain:** owner → `AskUserQuestion` in the `fkit lead` session (2026-09-29) → `fkit-lead` →
+spawned `fkit-producer` (this edit).
+
+**The owner chose, verbatim:** **"Unpark and start it (Recommended)"** — relayed purpose: unpark it so coding
+can use this week while everything else waits on the weekend deploy.
+
+**Effect.**
+- `## Status`: `🔲 Backlog` (parked) → **`🔄 In progress` — driven by `fkit-lead`, 2026-09-29**. Old values kept, struck.
+- `## Priority` **unchanged at 35**; Sprint unchanged (Sprint 6). The ruling was to unpark and start, not to re-rank.
+- [Sprint 6](../../../sprints/plan-sprint-6.md) row Status cell updated to match.
+
+**Plan gate — still required.** Per the 2026-09-27 park addendum: the owner-approved [`plan.md`](plan.md)
+(blob `f7a579d`, rulings Q0–Q4) **must be re-presented to the owner at the plan gate before any build.** The
+2026-09-27 approval does not carry over on its own; this ruling unparks the task, it does **not** re-approve the
+plan. Refresh the plan first if code, rules or evidence have moved — in particular the known conflict with owner
+ruling D6 on `0317` (look-alike names to be revisited here; see Notes), which the plan predates. Resume from Step 0
+(the main account's code points are still unread and likely need the owner at the keyboard).
+
+**Unchanged:** everything else in this brief; no source changed by this edit.
+
+## Addendum 2026-09-29, later — plan APPROVED (with the refresh); moved to Sprint 7; four owner rulings
+
+**Appended by a spawned `fkit-producer` with no owner channel (ADR-021), on OWNER RULINGS given 2026-09-29 live
+in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` (ADR-021/037).** ⛔ Not producer
+precedent. Append-only (ADR-035). Recorded verbatim; the same four rulings are copied into
+[`plan.md`](plan.md) § *Refresh 2026-09-29* → *Owner rulings 2026-09-29*.
+
+**Authority chain:** owner → `AskUserQuestion` in the `fkit lead` session (2026-09-29) → `fkit-lead` → spawned
+`fkit-producer` (this edit).
+
+| # | Question | Owner's answer (verbatim) | What it means |
+|---|---|---|---|
+| **R1** | Plan gate | The owner's own free text: **"Plan approved, but move it to the next Sprint (Sprint 7). We're not doing it now, not delaying the deploy of the current sprint because of that."** | The plan approved = [`plan.md`](plan.md) **including** the `fkit-coder`'s appended `## Refresh 2026-09-29` section (its 4 additions: the `applyApprovedName` entry point from `0321`; the `Util.sanitize` removal also updating the `ApprovedNameInvariants` test and the `NameChangeRepository` comment, from `0322`; a game-server approved-name swap test plus the two-server deploy-order risk, from `0322`; the read-only legacy-data count query). Task moved to Sprint 7; not worked now; Sprint 6's deploy does not wait for it. |
+| **R2** | `0317` D6 — look-alike names | **"Warn the moderator (Recommended)"** — option **A** | The name-request Telegram message **and** the daily digest get a *"⚠️ looks like approved name … / mixes alphabets"* line, computed with a look-alike comparison key (NFKC + lowercase + a small Latin/Cyrillic/Greek look-alike map). The **stored name is never changed**; **no DB change**; **no automatic refusal**. This **supersedes** the approved plan's *"look-alike … residual is not reopened"* line and **answers `0317`'s D6** (*"revisit in 0308"*). |
+| **R3** | Step 0 method | **"I run the snippet (Recommended)"** | The owner runs the DevTools snippet on the **MAIN** account, console switched to the game iframe, and pastes back **shapes only** (no real name). **Supersedes** Q0's *"Drive my Chrome"* for Step 0 — a browser tool reading the portal page cannot reach the game's own `getName()`. |
+| **R4** | U+200B (zero-width space) between words | **"Turn it into a space (Recommended)"** | **If** Step 0 finds U+200B between words, U+200B becomes a normal space. Every other invisible character is still deleted per Q2. A **narrow amendment to Q2**, nothing wider. |
+
+**Effect.**
+- `## Sprint`: Sprint 6 → **Sprint 7** (old value struck, kept).
+- `## Priority`: **15**, the append rank on [Sprint 7](../../../sprints/plan-sprint-7.md) (after its highest, 14).
+  ⚠️ **The owner gave no rank on Sprint 7** — a position, not a merit rank. Sprint 6's 35 struck, kept.
+- `## Status`: `🔄 In progress — driven by fkit-lead, 2026-09-29` (held a few minutes) → **`🔲 Backlog`** (old value
+  struck, kept). The plan was **approved**; the build **had not started**; **no source file changed**.
+- [Sprint 6](../../../sprints/plan-sprint-6.md) row → `➡️ Moved to Sprint 7 — priority 15`; a row appended on
+  [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 15. No other row renumbered (ADR-035). No task folder moved.
+- The Notes' look-alike item (*"raise the conflict at the plan gate"*) is **answered** by R2.
+- `0317`'s brief (in `done/`) gained a dated one-line pointer under D6.
+
+**For whoever resumes this task.**
+- The owner **approved the plan (with the refresh) on 2026-09-29.** Whether a later resumed run must re-present
+  it at the plan gate (the ship-loop rule; see the 2026-09-27 park addendum) is **for the driver to decide at
+  resume time** — this addendum only records the date of the approval and the rulings above.
+- **Step 0 still comes first:** the owner runs the snippet on the MAIN account (R3). Nothing is built before the
+  main account's code points are read.
+- ⚠️ The approved plan text does not yet describe R2 (the look-alike warning) or R4 (U+200B → space) as build
+  steps; they are recorded here and in `plan.md`'s rulings subsection. The builder folds them in; if that changes
+  the plan's scope materially, say so at resume.
+
+**Unchanged:** everything else in this brief; no source changed by this edit; nothing committed; nothing under
+`ai-agents/wiki-vault/` touched.

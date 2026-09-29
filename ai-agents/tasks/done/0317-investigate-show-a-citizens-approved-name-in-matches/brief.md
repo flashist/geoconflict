@@ -124,4 +124,7 @@ report's rude-name filter point and the placement of the briefs. This satisfies 
 - **D6** → recorded as a note in
   [`0308`](../../backlog/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)'s
   Notes. `0308`'s status and plan unchanged.
+  - 📌 *Appended 2026-09-29 (ADR-035, pointer only; this brief's status unchanged):* **D6 was answered in `0308` as
+    option A, "Warn the moderator (Recommended)", by owner ruling R2 on 2026-09-29** — see `0308`'s *plan APPROVED,
+    moved to Sprint 7* addendum.
 - `## Status` of this brief was **not** changed here; the lead routes the close separately.

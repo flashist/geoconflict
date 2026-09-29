@@ -118,3 +118,102 @@ Written as a dated **0308 addendum to the 0307 report** plus the `worklog.md` en
 - **Q3 (disallowed characters when cleaning):** "Visible ones become a space (Recommended)" — emoji, `!`, `@` and other symbols become a space; invisible characters and leftover accent marks are deleted.
 - **Q4 (card name):** "Yes, same name (Recommended)" — the card cleans the Yandex name the same way; an empty name stays empty.
 - **Q0 (Step 0 method):** "Drive my Chrome" — the name shape is read by driving the owner's Chrome via the browser extension (owner logged in and watching); only the shape is recorded.
+
+---
+
+## Refresh 2026-09-29 — re-checked against `dev` at `380a4e0` (plan-only; no source touched)
+
+**Written by a spawned `fkit-coder` for `fkit-lead` (no owner channel, ADR-021). The approved text above and
+the owner rulings Q0–Q4 are unchanged and stay verbatim.** This section lists what moved since 2026-09-27
+and how the plan adapts. ⚠️ Approval does not carry over (brief, *parked* addendum): the plan above **plus
+this section** must be re-presented at the plan gate.
+
+### What moved in the code (tasks shipped since: `0312`, `0314`, `0315`, `0321`, `0322`, `0325`, …)
+
+| Plan said | Now | Effect on the plan |
+|---|---|---|
+| `FlashistFacade.ts:1317-1336` / `:1631` | `getCurPlayerName` `:1798`; `window.FlashistFacade` `:2112` | line refs only; Step 0 snippet still valid |
+| `PlayerProfileView.ts:69` / `:95` | Yandex fallback `:86-88`; card name `:119`; new `approvedName` field `:123` | line refs; Q4 cleaning applies to the fallback only, never to `approvedName` |
+| `CitizenshipCard.ts:660` submit | `:806` | line ref |
+| `UsernameInput.handleChange :117`, `getStoredUsername :133-170` | `handleChange :334-360` (trim `:343`); logic now in `resolveUsername :376-406` | line refs |
+| — | **NEW (`0321`)** `UsernameInput.applyApprovedName :137-165` does `state.name.trim()` + `checkUsernameRules` | **new entry point → add to step 3.4**: use `normalizeUsername`, so a legacy approved name holding e.g. a no-break space still locks (the server's join schema will accept it normalized; the client must agree) |
+| — | **NEW (`0322`)** `GameServer.checkedApprovedName` / `matchDisplayName` run `JoinUsernameSchema.safeParse` and use `.data` | no code change needed: once `JoinUsernameSchema` normalizes (step 3.4), the swapped-in approved name is normalized too. Add a test. |
+| `Util.sanitize()` has no test callers → remove | **`tests/core/ApprovedNameInvariants.test.ts` (0322) imports it**; `NameChangeRepository.ts:806` comment names it | step 3.5 grows: re-point invariant 2 to `sanitizeUsername` (it becomes the idempotence check), fix the `:806` comment, add `Анна-Мария` / `O'Neil` / `O’Neil` / `Jr.` shapes to `RULE_PASSING_NAMES`. Invariant 1 still holds: the roster's `SafeString` (`Schemas.ts:204-209`) allows `-` `.` `'`, and `’` (U+2019) is inside its `[ -㌀]` range — checked by reading, to be proven by the test |
+| `NameChangeRepository.requestNameChange :251` | `:298` (trim `:312`) | line ref |
+| `PLAIN_NAME_CHARACTER :599-600` | `:763-764`; also used by the **daily digest** (`NameChangeDigest.ts`, `0315`) | line ref; the digest gets the moderator fix for free |
+| "curl line", bash test `:1251` | now a `docker compose exec` line (`0312`), `buildDecideCommandBody :876-889` / `decideCommandLines :920`; escaping unchanged (`'` and all non-ASCII → `\uXXXX`); bash test `tests/profile-server/NameChangeRepository.test.ts:1547` (`O'Brien`) | security hop still safe; add `’` and `-` cases there |
+| `EventsDisplay.ts:676,688` | one site, `:720` | line ref; hop still safe (DOMPurify, a name still cannot carry `<`) |
+| `src/core/validations/username.ts` | matcher moved to new `profanity.ts` (`0322`); `isProfaneUsername` re-exported | no effect (matcher skips non-letters) |
+| `usernameRules.ts`, `Schemas.ts JoinUsernameSchema :255-260`, `GameRunner.ts:53,54,64`, `PlayerImpl.ts:118`, lang keys | **unchanged** | — |
+| integration `NameChange.it.test.ts` "odd spaces unchanged" | exact cases: `:471-490` (NBSP + Cyrillic look-alike stored byte-identical), `:505+` (ASCII-escaped body approves an NBSP name), `:496` (look-alike uniqueness pin) | NBSP cases flip (stored as a plain space); the command-body test switches to a non-ASCII name that survives normalization; `:496` flips only under D6 option B |
+
+### New items for the plan
+
+1. **Step 3.4 — add `UsernameInput.applyApprovedName`** (see table).
+2. **Legacy data check (read-only, during the build).** Approved names and pending requests stored before
+   0308 may hold characters the new pipeline changes (no-break space, tab, double space, Hangul fillers).
+   Run one read-only query on the profile box that prints **counts only** (no names): how many
+   approved/pending names change under `normalizeUsername`, and how many approved names would collide after
+   it. Zero ⇒ nothing to do. Non-zero ⇒ `NEEDS-DECISION` (a one-off data fix is not in this plan).
+3. **Deploy order now covers two servers.** Profile server first (unchanged). New since `0322`: the game
+   server re-checks approved names against its own join rule, so an approved `Анна-Мария` shows as the typed
+   name in matches (one warn line, no crash) until the game image with the new rule is deployed. Low risk:
+   an approval needs a human in between. Per the 2026-09-29 ruling, deploy is a weekend slot; a
+   production check goes in a separate verify task.
+4. **Security re-check list gains two hops:** the `0322` swap (approved name → start roster → every
+   client's `GameRunner` → `PlayerImpl` → the same sinks as a typed name) and the `0315` digest (same
+   `describeRequestedNameForModerator`).
+
+### Conflict to put to the owner at the plan gate — look-alikes (0317 ruling D6)
+
+The Summary above says *"The look-alike / full-width residual is **not** reopened."* That predates owner
+ruling **D6** on `0317` (2026-09-27), verbatim: **"Keep accepting, revisit in 0308 (Recommended)"** — option
+text *"You, as moderator, catch look-alikes when approving. Handle it properly with 0308 (which characters a
+name may contain)."* So that sentence is **superseded pending the owner's answer**.
+
+What the approved plan already closes, at no extra cost: names that differ only by an odd/invisible space or
+by split-vs-joined accents now become the **same** string, so the existing `lower()` uniqueness check catches
+them (for names stored after 0308 — see item 2 for older ones). What it does **not** close: letters from
+another alphabet that look the same (Cyrillic `а` vs Latin `a`), full-width letters, `lower()` quirks.
+
+Options (the question is in the hand-off report): **A** warn the moderator (a Telegram/digest line "looks
+like approved name …" / "mixes alphabets", no DB change) · **B** block automatically (new stored
+"look-alike key" column + unique index, migration + backfill on the live DB) · **C** stop at normalization,
+re-accept the rest. If A or B: `normalizeUsername` stays NFC (the key uses NFKC + case-fold + a small
+Latin/Cyrillic/Greek look-alike map, only for comparing, never for the stored or shown name).
+
+### Step 0 — method
+
+Ruling Q0 (*"Drive my Chrome"*) cannot reach the game's own `getName()`: the game is a cross-origin iframe,
+so a browser tool reads only the Yandex portal page. On 2026-09-27 that read the **second** account only.
+The decisive read needs the owner's own DevTools, console context switched to the game frame, running the
+snippet above (unchanged, re-checked: `FlashistFacade.instance` exists, storage keys are `username` and,
+since `0321`, `approved_username`). Put to the owner as a method question in the hand-off report.
+
+### Owner rulings 2026-09-29 (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`) — recorded verbatim
+
+*Copied here by a spawned `fkit-producer` (no owner channel, ADR-021/037); ⛔ not producer precedent. Append-only
+(ADR-035). The same record, with its effect, is the brief's* Addendum 2026-09-29, later — plan APPROVED, moved to
+Sprint 7. *Rulings Q0–Q4 above stay as written except where a ruling below says it supersedes or amends them.*
+
+- **R1 (plan gate):** the owner's own free text — **"Plan approved, but move it to the next Sprint (Sprint 7). We're
+  not doing it now, not delaying the deploy of the current sprint because of that."** The plan approved is this
+  file **including** this *Refresh 2026-09-29* section and its 4 additions (the `applyApprovedName` entry point from
+  `0321`; the `Util.sanitize` removal also updating the `ApprovedNameInvariants` test and the `NameChangeRepository`
+  comment, from `0322`; the game-server approved-name swap test plus the two-server deploy-order risk, from `0322`;
+  the read-only legacy-data count query). Task moved to Sprint 7, status `🔲 Backlog`; build not started.
+- **R2 (`0317` D6, look-alike names):** **"Warn the moderator (Recommended)"** — option **A**: the name-request
+  Telegram message and the daily digest get a *"⚠️ looks like approved name … / mixes alphabets"* line, via a
+  look-alike comparison key (NFKC + lowercase + a small Latin/Cyrillic/Greek look-alike map). The stored name is
+  never changed; no DB change; no automatic refusal. **Supersedes** the Summary's *"The look-alike / full-width
+  residual is not reopened"* line, and answers `0317`'s D6 (*"revisit in 0308"*). Per the conflict section above,
+  `normalizeUsername` stays NFC; the key is for comparing only.
+- **R3 (Step 0 method):** **"I run the snippet (Recommended)"** — the owner runs the DevTools snippet on the **MAIN**
+  account, console context switched to the game iframe, and pastes back **shapes only**. **Supersedes Q0**
+  (*"Drive my Chrome"*) for Step 0.
+- **R4 (U+200B):** **"Turn it into a space (Recommended)"** — **if** Step 0 finds U+200B between words, U+200B becomes
+  a normal space; all other invisible characters are still deleted per Q2. A **narrow amendment to Q2**.
+
+⚠️ R2 and R4 are recorded, not yet written into Step 3's build steps or the test list above; the builder folds them
+in at resume. Whether a resumed run re-presents this plan at the gate is the driver's call then; the approval date
+is 2026-09-29. **Step 0 (the owner's snippet on the MAIN account) still comes first.**
