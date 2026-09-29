@@ -123,7 +123,7 @@ against a single precise-looking number: the counts drift, and the timing is not
 for a point figure to mean anything.
 
 ⚠️ **AN ACCURACY NOTE, SO NOBODY MISREADS THE WORKING TREE.** `CLAUDE.md` **was modified on 2026-09-20**
-— one line added to its *consequence 1* list by the [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
+— one line added to its *consequence 1* list by the [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
 coder, under an owner ruling. ⛔ **That edit did NOT touch the cost figures.** **Do not read the file's
 modified state as `0280` having been partly done** — every stale number in the table above is still
 sitting in that file.

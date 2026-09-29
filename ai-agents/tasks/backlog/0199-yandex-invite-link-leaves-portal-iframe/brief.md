@@ -144,6 +144,18 @@ entirely on **whether any query parameter is load-bearing on the Yandex path** �
 this task's platform research has to answer anyway. That is why it is folded in here rather than
 filed separately: it is a sub-question of the same investigation, not an independently decidable one.
 
+> 📌 **Dated note — 2026-09-29 (producer's edit, per [`0331`](../../done/0331-keep-the-query-string-on-match-exit/brief.md)'s
+> *Coordinate with `0199`*).** Recorded by a spawned `fkit-producer` with no owner channel (ADR-021), from an
+> owner-run production probe relayed by `fkit-lead`. `0331`'s probe **P1**, run in the Yandex **game frame's**
+> console, found that the **first-load URL carries an `sdk` query parameter** (query length **120**), and that it
+> is **dropped after a match exit** (length **0**). ⇒ **At least one query parameter IS load-bearing on the Yandex
+> path**: Yandex's loader reads its SDK address from it (report `0318` §2.3). Detail: `0331/worklog.md`.
+> - **What this settles:** the yes/no half of step 3 — the answer is *yes*, and the parameter is named.
+> - **What it does NOT settle:** whether that parameter matters **for a joining client** — the `copyToClipboard()`
+>   re-raise condition above. An off-portal invite recipient is not loaded by the platform, so would not get
+>   its query in any case (producer's inference, not checked) — this is still this task's question. `0331` fixes only the match-exit navigation and does **not** touch
+>   `copyToClipboard()` or invite links.
+
 ### ⚠️ Working-tree state when this brief was written (2026-08-28)
 
 Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit on

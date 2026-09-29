@@ -1412,7 +1412,7 @@ written**; this section is the record of what happened.
 
 ### Still owed from this window
 
-- `0286` — the worklog note (date + package names), W2's third checkbox. **Not written.**
+- ~~`0286` — the worklog note (date + package names), W2's third checkbox.~~ ✅ written 2026-09-29 — [`0286` worklog](../tasks/done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/worklog.md) § *2026-09-29 — Step 8 result*.
 - ~~`0273` — the browser check (W13 first checkbox).~~ ✅ done 2026-09-26, owner-run (see the W13 row).
 - **W15 `0032` step 5** — the Uptrace re-measure, **≥ 24 h after W12** ⇒ not before about **2026-09-27
   09:00 UTC**, filtered to the new version.

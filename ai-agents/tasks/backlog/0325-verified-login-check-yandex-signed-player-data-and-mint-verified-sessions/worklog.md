@@ -147,8 +147,81 @@ Placeholders only: `<ssh-alias>` is your SSH alias for the profile box, and `<co
 4. **Paste back in chat only the three output lines.** (If the only line is `error: <name>`, paste that.)
 
 ### S0 exit — to be filled in after the owner's run (names and yes/no only)
-- Key verifies? Which construction: base64 payload / decoded JSON / both? — *pending*
-- Id field path — *pending*
-- `issuedAt` present? Unit? — *pending*
-- Signed id equals `getUniqueID()`? — *pending*
-- Signature length / signed-call latency — *pending*
+Filled 2026-09-29 from the owner's live run. Evidence and caveats: § *2026-09-29 — S0 result* below.
+- Key verifies? Which construction: base64 payload / decoded JSON / both? — **Yes, decoded JSON only.** Base64 payload: no. (Step B attempt 2, the valid run.)
+- Id field path — **`data.id` and `data.uniqueID`**. Both equal `getUniqueID()`.
+- `issuedAt` present? Unit? — **Yes, top level, a number, in seconds** (`issuedAtAgeIfSeconds` = 0).
+- Signed id equals `getUniqueID()`? — **Yes** (`signedObjectSameUniqueID` true).
+- Signature length / signed-call latency — **733 characters / 6852 ms.** One sample only. A socket error was logged on the signed request, so a retry is likely (inferred, not proven). See the build risk below.
+
+## 2026-09-29 — S0 result (owner-run, relayed by fkit-lead)
+
+The owner ran Steps A and B live in the `fkit lead` session. fkit-lead relayed each step and saw the
+output. Recorded by fkit-coder (a bounded spawn from fkit-lead). No source written, nothing committed,
+task status untouched. Field names and yes/no only: no id, name, signature text, secret, host or IP.
+
+**S0 verdict: the key verifies, via the decoded-JSON construction only.**
+
+### Step A — browser, game iframe, logged in
+| Row | Value |
+|---|---|
+| `authorized` | true |
+| `signedCallMs` | 6852 |
+| `signatureIsString` | true |
+| `totalLength` | 733 |
+| `dotCount` | 1 |
+| `payloadHasUrlSafeChars` | false |
+| `payloadDecodes` | true |
+| `topLevelKeys` | `{"algorithm":"string","issuedAt":"number","requestPayload":"string","data":"object"}` |
+| `dataKeys` | `{"id":"string","uniqueID":"string","lang":"string","publicName":"string","avatarIdHash":"string","scopePermissions":"object","payingStatus":"string","hasPremium":"boolean"}` |
+| `fieldsEqualToGetUniqueID` | `data.id,data.uniqueID` |
+| `signedObjectSameUniqueID` | true |
+| `issuedAtAgeIfSeconds` | 0, so `issuedAt` is in **seconds** |
+
+- **Build risk: the signed call can be slow.** The console showed a red `net::ERR_SOCKET_NOT_CONNECTED`
+  on the SDK's `player-signed` request, just above the table. The signed call still succeeded, in
+  6852 ms, so the SDK likely retried (inferred, not proven). If login waits on the signed call, logins
+  can be this slow. **One sample only**, so this is neither a typical figure nor a worst case.
+
+### Step B — the key check, on the profile box
+| Run | Output | Status |
+|---|---|---|
+| Dry run (`AAAA.e30=`) | `secret present: yes` / `HMAC over base64 payload: no` / `HMAC over decoded JSON: no` | as expected |
+| Real run, attempt 1 | `yes` / `no` / `no` | **INVALID — not a failed key check** |
+| Real run, attempt 2 | `secret present: yes` / `HMAC over base64 payload: no` / **`HMAC over decoded JSON: MATCH`** | **VALID** |
+
+- **Why attempt 1 is invalid.** Both B3 console lines were pasted together. `copy()` threw
+  `ReferenceError: copy is not defined`: DevTools' Command Line API is unavailable when a paste contains
+  top-level `await`. The pipe was then run anyway. The clipboard was not measured, so what was checked
+  is unknown.
+- **Why attempt 2 is valid.** Before the run, `pbpaste | wc -c` gave 733 and the dot count was 1, both
+  matching Step A. The clipboard was cleared afterwards.
+
+### Open items for the build (noted, not decided)
+- **`algorithm` is in the signed payload**, so the server can pin the expected value.
+- **`requestPayload` is in the signed payload.** It may allow a caller-supplied nonce for freshness.
+  Check the Yandex docs before relying on it.
+- **`payingStatus` and `hasPremium` are in the signed `data`.** Out of scope for login; only noted.
+
+### Runbook friction (for the next owner run)
+- **Long lines break when copied.** The long line 31 of the Step A snippet got truncated in the copy. A
+  version with short lines worked.
+- **Angle-bracket placeholders were pasted literally.** zsh read `<` as a redirect. Write placeholders
+  in words, with no angle brackets.
+- **No container name is needed.** This form works:
+  `ssh USER@PROFILE_HOST 'docker compose -f /opt/profile/docker-compose.yml exec -T profile-api node'`
+  (USER and PROFILE_HOST are placeholders).
+- **The two B3 console lines MUST be run separately.** Pasted together, `copy()` is unavailable (see
+  attempt 1).
+- **Pre-check the clipboard before the real run:** `pbpaste | wc -c` and the dot count must match
+  Step A's `totalLength` and `dotCount`. That would have caught attempt 1.
+
+## 2026-09-29 — `s0-hmac-check.mjs` excluded from lint (fkit-coder, spawned by fkit-lead)
+- **Why:** `npm run lint` failed on HEAD with one error — this helper is "not found by the project
+  service" (no tsconfig includes it) since it was committed in `68303d5`.
+- **Owner ruling (2026-09-29, live via `AskUserQuestion` in the fkit-lead session):** "Exclude it from
+  lint (Recommended)" — *"A coder adds that one file to the linter's ignore list. The helper stays as
+  evidence in case S0 needs re-running."*
+- **Change:** the file's exact path added to the top-level `ignores` list in `eslint.config.js`. Exact
+  path, not a glob, so no other file can be hidden. The helper itself is untouched and stays in place.
+- **Follow-up (same day, same ruling, fkit-lead judged in scope):** the exact path was widened to `ai-agents/tasks/*/0325-*/s0-hmac-check.mjs` — the exact path named `backlog/`, so the ignore would break when 0325 moves to `done/` or `cancelled/`; the wildcard status folder still matches only this one tracked file (checked with `git ls-files`), superseding "exact path, not a glob" above.

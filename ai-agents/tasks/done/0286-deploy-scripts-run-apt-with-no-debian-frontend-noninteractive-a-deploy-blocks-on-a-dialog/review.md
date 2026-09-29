@@ -1,6 +1,6 @@
 # Review — 0286
 
-Task: `ai-agents/tasks/backlog/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md`
+Task: `ai-agents/tasks/done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md`
 File(s) under review (working tree, uncommitted — scoped by the driver's change table, **not** by
 `git diff`, which also carries ~2 dozen unrelated `ai-agents/` + `wiki-vault/` edits from other agents):
 

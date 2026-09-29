@@ -165,7 +165,7 @@ layer weaker than it looks.
 - **Sequencing (soft — merge-conflict avoidance, not a dependency):** touches `setup-profile.sh` and
   the same hardening harness as
   [`0280`](../0280-correct-stale-test-figures-in-claude-md-and-stale-profile-route-table-in-architecture-md/brief.md)
-  item 3 and [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md).
+  item 3 and [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md).
   Different parts of the file; whoever goes second should expect a rebase.
 - **Related:** [`0282`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md)
   (where this was found — **it is not a regression from it**),

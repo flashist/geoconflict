@@ -908,21 +908,28 @@ export class FlashistFacade {
 
   // Single place for working with URLS
   public changeHref(value) {
+    let href = value;
     // Only the match exits navigate to the root path (the Stripe checkout URL
     // does not): mark the next boot as "follows a match exit" (task 0328).
     // markMatchExit never throws, so navigation always happens.
     if (value === this.rootPathname) {
       markMatchExit();
+      // Flashist Adaptation (task 0331): keep the query string the platform
+      // gave this iframe — Yandex's loader reads its SDK address from `sdk`.
+      // Read now, not at construction. The hash is still dropped, so a
+      // #join= / #refresh / #token-login is never replayed.
+      href = value + window.location.search;
     }
     // window.location.href = value;
-    window.location.href = value;
+    window.location.href = href;
   }
 
   /**
    * Reload the CURRENT url, query string and hash included (task 0273, S4).
-   * Deliberately not `changeHref(this.rootPathname)`: that drops the query and the
-   * hash, and the Yandex Games iframe url is handed to us by the platform. Same
-   * primitive as Bootstrap.ts's recovery reload and StaleBuildModal's REFRESH.
+   * Deliberately not `changeHref(this.rootPathname)`: that drops the hash (and,
+   * before task 0331, dropped the query too), and the Yandex Games iframe url is
+   * handed to us by the platform — a reload keeps the whole url. Same primitive
+   * as Bootstrap.ts's recovery reload and StaleBuildModal's REFRESH.
    */
   public reloadApp() {
     window.location.reload();

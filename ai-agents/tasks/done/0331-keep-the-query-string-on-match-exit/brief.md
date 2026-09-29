@@ -15,13 +15,22 @@ Sprint 6
 > independent of `0329`/`0330`; but it is gated on an owner probe, so last is the right place until P1 is in.
 
 ## Status
-🚧 Blocked — waiting on owner probe P1 (0318 report §5); OWNER RULING 2026-09-28 "Park it: mark 0331 Blocked (Recommended)", relayed by fkit-lead
+✅ Done (agent-closed — not owner-verified)
+
+📌 **2026-09-29 — unblocked: owner probe P1 confirmed trigger B.** Owner-run in production, in the game frame's
+console, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037): fresh first load
+`has("sdk")` **true** / query length **120**; after a match exit **false** / **0** (twice). **Step 0 is done; ready
+for Step 1 (build). Nobody is building it yet.** ⚠️ A "Cancel it" answer given on an earlier, misread sample was
+treated as **void** by the lead and nothing was cancelled; the standing ruling is `0318` D-2 *"B1+B2+B3, B4 if
+confirmed (Recommended)"*, and the owner may still ask to cancel. Detail, P1b and the ruling trail: `worklog.md`.
+*(Earlier value: `🚧 Blocked — waiting on owner probe P1 (0318 report §5); OWNER RULING 2026-09-28 "Park it: mark
+0331 Blocked (Recommended)", relayed by fkit-lead`.)*
 
 ## Owner
 fkit-coder
 
 > ⚠️ **Step 0 is the owner's**, not the coder's (a live DevTools probe in the owner's own Yandex session). The
-> coder does nothing until P1's answer is recorded.
+> coder does nothing until P1's answer is recorded. ✅ **Recorded 2026-09-29 — confirmed** (`worklog.md`).
 
 ## Context
 
@@ -97,3 +106,4 @@ console (not the portal page), run on a **first load**, and again **after exitin
   query).
 - **Privacy:** never paste query values, full URLs, ids, tokens or hosts into any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+- 📌 **2026-09-29 — verification item 4 SPLIT OUT by OWNER RULING** (given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`): this task is the **build** task; the owner's post-release P1 repeat now lives in [`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (rank 1, Sprint 7). Closed on items 1–3 only — see `worklog.md` § *Closed*.

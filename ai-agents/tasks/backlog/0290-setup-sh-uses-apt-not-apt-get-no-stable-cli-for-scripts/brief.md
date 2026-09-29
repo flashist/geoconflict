@@ -29,7 +29,7 @@ fkit-coder
 **What the owner ruled (2026-09-20, live in the `fkit lead` session via `AskUserQuestion`, relayed by
 `fkit-lead` to a spawned `fkit-producer` with no owner channel):** that this residual **be filed as its
 own task**. **That is all.** The owner did **not** rule which board it sits on, and did **not** rule its
-priority. Both the [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
+priority. Both the [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
 reviewer and `fkit-lead` recommended filing; the owner agreed. ⛔ **Not producer precedent — one ruling,
 one task.**
 
@@ -62,7 +62,7 @@ said they want elsewhere. **If the owner disagrees, promoting it is one edit.**
 
 ## Context
 
-**Source: [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)'s
+**Source: [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)'s
 worklog residual R3 and its review ledger's *Accepted residuals*.** ⛔ `0286` is **not edited by this
 filing** — its `## Status`, its Sprint 4 row, `plan.md`, `worklog.md` and `review.md` are all untouched.
 
@@ -150,7 +150,7 @@ write it up as *"proven on a box"*.
 ## Notes
 
 - **Depends on:** nothing. ⚠️ **Soft sequencing only:**
-  [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
+  [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
   touches the lines immediately above this one in `setup.sh`. If `0286` is still open, expect a trivial
   rebase. **Neither task blocks the other** — this is not `🚧 Blocked`.
 - **Blocks:** nothing.
@@ -161,7 +161,7 @@ write it up as *"proven on a box"*.
   hang — that was `0286`, and even there only `debconf` prompts are covered (a **dpkg conffile** prompt
   is still open as `0286`'s residual R1, owner-ruled D3 to record rather than close).
 - **Related:**
-  [`0286`](../0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
+  [`0286`](../../done/0286-deploy-scripts-run-apt-with-no-debian-frontend-noninteractive-a-deploy-blocks-on-a-dialog/brief.md)
   — the parent; this is its worklog residual **R3**, filed on the owner's 2026-09-20 ruling.
 - 🔒 No secrets, hosts, IPs or tokens in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.

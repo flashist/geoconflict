@@ -12,7 +12,9 @@
 Sprint 7
 
 ## Priority
-8
+9
+
+> 📌 **2026-09-29 — rank 8 → 9.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
 ⚠️ **Priority 8 is append rank, NOT a merit ranking — flagged for owner confirmation.** The **placement** is
 owner-ruled (end of the next sprint, 2026-09-28 — see *Context*); the number is this board's highest (7,

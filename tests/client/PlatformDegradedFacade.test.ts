@@ -363,6 +363,89 @@ describe("the after-match marker", () => {
   });
 });
 
+describe("match exit keeps the query string (task 0331)", () => {
+  // Production serves the game at a non-root path, so the URL is set there
+  // (wiki windoworigin-url-join-defect testing rule). Fake values only.
+  const IFRAME_PATH = "/yandex-games_iframe.html";
+
+  // jsdom performs no real navigation: it only updates `location` when the
+  // target equals the current URL minus its hash (the shape of a correct match
+  // exit), and logs "Not implemented: navigation" otherwise. Asserting that
+  // log is absent makes these tests fail loudly, not pass falsely, if a future
+  // jsdom stops doing this.
+  const navigationNotImplementedLogged = () =>
+    (console.error as jest.Mock).mock.calls.some((args) =>
+      args.some((arg) =>
+        String(arg?.message ?? arg).includes("Not implemented: navigation"),
+      ),
+    );
+
+  const currentUrl = () =>
+    window.location.pathname + window.location.search + window.location.hash;
+
+  afterEach(() => {
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("changeHref(rootPathname) keeps the query, drops the hash, and writes the marker", () => {
+    window.history.replaceState(
+      null,
+      "",
+      `${IFRAME_PATH}?sdk=fake&lang=ru#join=abc`,
+    );
+    const facade = makeFacade({ rootPathname: IFRAME_PATH });
+
+    facade.changeHref(IFRAME_PATH);
+
+    expect(currentUrl()).toBe(`${IFRAME_PATH}?sdk=fake&lang=ru`);
+    expect(window.sessionStorage.getItem(AFTER_MATCH_EXIT_KEY)).toBe("1");
+    expect(navigationNotImplementedLogged()).toBe(false);
+  });
+
+  it("reads the query at navigation time, not when the facade was built", () => {
+    window.history.replaceState(null, "", `${IFRAME_PATH}?sdk=fake`);
+    const facade = makeFacade({ rootPathname: IFRAME_PATH });
+    window.history.replaceState(null, "", `${IFRAME_PATH}?sdk=later#x`);
+
+    facade.changeHref(IFRAME_PATH);
+
+    expect(currentUrl()).toBe(`${IFRAME_PATH}?sdk=later`);
+    expect(navigationNotImplementedLogged()).toBe(false);
+  });
+
+  it("no query → navigates to the bare root path", () => {
+    window.history.replaceState(null, "", `${IFRAME_PATH}#frag`);
+    const facade = makeFacade({ rootPathname: IFRAME_PATH });
+
+    facade.changeHref(IFRAME_PATH);
+
+    expect(currentUrl()).toBe(IFRAME_PATH);
+    expect(navigationNotImplementedLogged()).toBe(false);
+  });
+
+  it("a non-root url gets no query appended and no marker", () => {
+    window.history.replaceState(null, "", `${IFRAME_PATH}?sdk=fake`);
+    const facade = makeFacade({ rootPathname: IFRAME_PATH });
+
+    facade.changeHref("#checkout");
+
+    expect(window.location.hash).toBe("#checkout");
+    expect(window.sessionStorage.getItem(AFTER_MATCH_EXIT_KEY)).toBeNull();
+  });
+
+  it("reloadApp() does not route through changeHref and writes no marker", () => {
+    window.history.replaceState(null, "", `${IFRAME_PATH}?sdk=fake#frag`);
+    const facade = makeFacade({ rootPathname: IFRAME_PATH });
+    const changeHref = jest.spyOn(facade, "changeHref");
+
+    facade.reloadApp();
+
+    expect(changeHref).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(AFTER_MATCH_EXIT_KEY)).toBeNull();
+    expect(currentUrl()).toBe(`${IFRAME_PATH}?sdk=fake#frag`);
+  });
+});
+
 describe("state recorded where each thing happens", () => {
   const recoveryStubs = () => ({
     yandexGamesReadyCallback: jest.fn(),

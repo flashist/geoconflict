@@ -21,7 +21,9 @@ Sprint 7
 📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
-**3** — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
+**4** — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
+
+> 📌 **2026-09-29 — rank 3 → 4.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
 ~~**30**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
 

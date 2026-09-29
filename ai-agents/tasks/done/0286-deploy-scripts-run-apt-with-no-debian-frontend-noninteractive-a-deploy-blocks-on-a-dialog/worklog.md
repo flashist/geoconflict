@@ -379,3 +379,58 @@ the opposite does. The owner ruled D2 accepting that risk, and the risk turns ou
   owner ruling D3.
 - The two `/etc/default/*` digests above are the **"before" half** of step 8's before/after capture,
   taken early. If they differ after the deploy, the fix altered box state and must be reconsidered.
+
+---
+
+## 2026-09-29 — Step 8 result: OWNER-executed on 2026-09-26, recorded here
+
+> ⚠️ **Written by `fkit-coder`, spawned by `fkit-lead` as a bounded unit on an owner ruling given
+> 2026-09-29 (*"Write note, then close"*).** ⛔ Not precedent. **This coder observed none of it.** Every
+> fact below is copied from what the record already says, with the source named on each line. Nothing
+> new was measured and nothing was re-run for this note. This entry supersedes the *"Step 8 — NOT RUN"*
+> heading above; that heading is left as written (it was true on 2026-09-20).
+
+**Date run:** **2026-09-26**, by the **owner**, on both boxes. Output was pasted into the `fkit lead`
+session and checked there. *Source:* `brief.md` § *Status*, block *2026-09-26 deploy window — results*;
+`ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` § *2026-09-26 — THE WINDOW RAN*.
+
+**Which deploys ran:** `npm run deploy:telemetry` (runbook step W2), then `npm run deploy:profile`
+(runbook step W3). *Source:* runbook § *THE WINDOW RAN*, rows W2 and W3.
+
+**Package names — the packages this fix actually touches (brief *What to build* 4; plan § 3 Step 8):**
+
+| Package | Why it is in scope | What the record shows | Source |
+|---|---|---|---|
+| `keyboard-configuration` | Prompted the owner on 2026-09-18 (country) | Telemetry box: stored debconf answers and `/etc/default/keyboard` **byte-identical** before and after the deploy | brief § *Context*; runbook row W2 |
+| `console-setup` | Prompted the owner on 2026-09-18 (encoding, then character set) | Telemetry box: stored debconf answers and `/etc/default/console-setup` **byte-identical** before and after. "Before" values: telemetry `CODESET="guess"`, profile `CODESET="Uni2"` | brief § *Context*; runbook rows W0.2 and W2 |
+| `needrestart` | Its restart question is a debconf prompt raised by `apt-get upgrade` | Installed on both boxes: profile **3.11-1ubuntu2**, telemetry **3.6-7ubuntu4.5**. Telemetry version unchanged after the deploy. With the export in place it switches to **list** mode and restarts nothing — read from its code on both boxes on 2026-09-20 | runbook rows W0.2 and W2; this worklog § *R2 RESOLVED* |
+
+Box releases at the time: profile **Ubuntu 26.04.1 LTS**, telemetry **Ubuntu 24.04.5 LTS**. *Source:*
+runbook row W0.2.
+
+**Result:**
+
+- **Verification step 1 (telemetry) — passed.** The deploy finished and the **owner reported no
+  prompt**. `fkit-lead` compared the "after" capture with the "before" one: all **34** debconf lines
+  (order ignored), both `/etc/default` files, `needrestart` and `os-release` — **byte-identical**. So the
+  prediction held: on the box where the defect was seen, the fix **changed no box settings**.
+  *Source:* runbook row W2; `brief.md` § *Status* table row 1.
+- **Verification step 2 (profile) — passed.** `fkit-lead` read the full log: **no debconf/whiptail
+  prompt**. ⚠️ **No "after" capture was reported for the profile box**, so "no settings changed" is
+  shown for the telemetry box only, not for this one. ⚠️ The **first** attempt failed on the local
+  machine at image build (`canvas` download timeout; the `node-gyp` fallback needs Python, which
+  `node:24-slim` lacks). **Nothing reached the box**; the re-run succeeded. That failure is **not
+  related to this task**. *Source:* runbook row W3; `brief.md` § *Status* table row 2.
+
+**Not in the record — stated, not guessed:**
+
+- ⚠️ **The list of packages that `apt-get upgrade` actually upgraded or installed during either deploy
+  was not captured anywhere.** The table above names the packages step 8 was designed to check (plan
+  § 3 Step 8: `debconf-show keyboard-configuration console-setup`, `dpkg -l needrestart`), not every
+  package the upgrade touched.
+- ⚠️ **The profile box's "after" capture** (see step 2 above).
+
+**The standing caveat, unchanged:** a clean run proves the deploys did **not stop on a debconf
+prompt**. A **dpkg conffile** prompt (*"Configuration file '/etc/…' … What would you like to do?"*) is
+**still not covered** — residual R1 above, recorded rather than fixed by owner ruling D3. ⛔ Do not
+write this up as *"the deploy can no longer hang."*

@@ -74,7 +74,7 @@ paid benefit, and every additional paid perk `PROJECT.md` promises ("name change
 lobbies, spectating") will want the same seam.
 
 ## Status
-🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0325` (verified login). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
+🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0325` (verified login). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**
 
 ## Owner
 fkit-coder

@@ -114,3 +114,81 @@ producer precedent. `## Status` of this task is **not** changed.
   profile box). This is a manual watch, not a monitor.
 - ⚠️ §4's **second** box (a second restart makes no network call once consumed) is not covered by a log
   line; it follows from the first, or from the hand test if that is used.
+
+## 2026-09-29 — §3 funnel analytics DONE; GA vs server cross-check; §4 reconcile watch (still zero)
+
+⛔ **Provenance.** Recorded by a spawned `fkit-producer` with **no owner channel** (ADR-021), from
+evidence relayed by `fkit-lead`: the **owner's own live checks** in the `fkit lead` session on
+2026-09-29 (GameAnalytics screenshots at 11:11 and 11:14 MSK; terminal pastes of read-only DB and nginx
+log queries on the profile box). The producer observed none of it directly. No secret, token, signed
+payload, host, IP or player id is recorded here.
+
+⛔ **The task is NOT closed and `## Status` is unchanged (`🔲 Backlog`).** Still open: §1 second box
+(which construction — `0309`'s job), §2 first box (inferred only), §4, §5.
+
+### §3 — Funnel analytics: ✅ DONE
+
+How observed: GameAnalytics → Explore → Design events → aggregation **Count** → date range **22–28 Sep
+2026** → split by event id (parts 02/03). Owner screenshots, 11:11 and 11:14 MSK.
+
+| Event | Count (22–28 Sep) |
+|---|---|
+| `UI:Tap:PurchaseCitizenship` | **631** |
+| `Purchase:Started:Citizenship` | **631** |
+| `Purchase:Abandoned:Citizenship` | **603** |
+| `Purchase:Completed:Citizenship` | **12** |
+
+- [x] **All three required events arrive** (`UI:Tap:PurchaseCitizenship`, `Purchase:Started:Citizenship`,
+      `Purchase:Completed:Citizenship`). `Purchase:Abandoned:Citizenship` arrives too.
+- **Tap = Started exactly** (631 = 631).
+- **631 − 603 − 12 = 16 started flows with no ending event** (neither Abandoned nor Completed). Probably a
+  closed tab or an untracked error path — **not diagnosed**.
+- **Completion rate ≈ 1.9 %** (12 / 631).
+- ⚠️ **GA showed a "You're viewing data in Demo mode" banner** on the page. Recorded as seen. The data
+  reads as real anyway: it lines up with the launch (N/A before 26 Sep). Not proven either way.
+
+### Server cross-check (owner-run, read-only, 2026-09-29)
+
+- `processed_purchases` row count: **11** (all time, as of 2026-09-29).
+- Host nginx access log: **11** `POST /v1/payments/yandex/complete`, **all 200**, one per purchase — no
+  repeated confirmations.
+- Timestamps (UTC): 26 Sep ×4 · 27 Sep ×2 · 28 Sep ×4 · 29 Sep ×1 ⇒ **10 fall inside GA's 22–28 Sep range**.
+
+### 🔎 Open finding — GA over-counts `Purchase:Completed:Citizenship` by 2 (not a task; owner ruled "Leave it", 2026-09-29)
+
+- GA: **12** Completed for 22–28 Sep. Server: **10** confirmed grants in the same range.
+- `Purchase:Completed:Citizenship` fires **only after a server-confirmed grant**
+  (`src/client/CitizenshipPurchase.ts:77-80`, re-read 2026-09-29), and **every** server confirmation is
+  accounted for above. ⇒ **The 2 extras are NOT lost purchases.**
+- **Cause not determined.** Candidates, all unproven: test/dev builds sharing the GA game key; a client
+  double-fire.
+- ⛔ **No task filed** — left for the owner, per the lead's instruction.
+- ✅ **OWNER RULING 2026-09-29 — "Leave it".** Given live via `AskUserQuestion` in the `fkit lead` session,
+  relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer
+  precedent. Asked *"file a small task to find out why?"*, the owner chose **"Leave it"** — option text:
+  *"Just keep the note in 0297. 2 events is small, and the server count is the one that matters for money."*
+  ⇒ **No task is filed; the cause stays undetermined by choice.** This note is the record.
+
+### §4 — Reconcile watch: still zero (stays open)
+
+- As of **2026-09-29 ~08:15 UTC**: **zero** `POST /v1/payments/yandex/reconcile` in the host nginx access
+  log, **all rotated files included** (searched with `zgrep`).
+- **The zero is real, not a wrong log location:** the same search for `/complete` returned the 11 lines
+  above.
+- §4 **stays open**. Suggested fallback unchanged: owner-run hand test if none appear by about
+  **2026-10-10** (a suggestion, not an owner-ruled date).
+
+### §1 — pointer only (not evidence for this task)
+
+- The construction question is still **`0309`'s job**. Pointer only: `0325`'s S0 run (2026-09-29) found
+  Yandex's signed **player** data verifies with the **decoded-JSON** construction. That is a hint for
+  purchase signatures, **not proof** — different payload, different SDK call.
+
+### Close-condition tracker (from *Verification steps*) — as of 2026-09-29
+
+1. Every box checked or owner-waived — **not yet.** Open: §1 which construction (`0309`), **§4**, **§5**.
+   ✅ §3 funnel analytics now done, so **§3 is complete**. ⚠️ Also still unchecked: §2's first box
+   (`'ready'` / `hasCatalogProduct` — inferred from the button showing, never read directly; left unchecked
+   on 2026-09-26 but missing from that day's tracker). Close it by a direct read or an owner waiver.
+2. §1 follow-up filed — ✅ **done** (`0309`, `0310`).
+3. `0195` value-correctness recorded — ✅ **done** (proven by the 200s, 2026-09-26).

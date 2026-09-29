@@ -27,6 +27,7 @@ Sprint 6
 
 - 📌 **§4 (watching real players for a successful `/reconcile`) is still open.**
 - 📌 A read-only check at about 16:xx UTC on 2026-09-26 still showed **2 `/complete` 200s and 0 `/reconcile` calls**.
+- 📌 **2026-09-29 (owner-run, ~08:15 UTC):** **11 `/complete` 200s, 0 `/reconcile` calls** (all rotated logs searched). §4 still open. See `worklog.md` § *2026-09-29*.
 
 ## Priority
 **34** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md): the **last row**, by OWNER RULING given 2026-09-26, the owner's own typed message live in the `fkit lead` session (not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent (*"Move it to the bottom of Sprint 6"*). ⛔ An append position, not a merit re-rank. **Supersedes the Sprint 5 row-1 position below.** *Earlier values, kept below:*
@@ -49,6 +50,8 @@ wrongly implied `0296` sits at the top of the board.)*
 
 ## Status
 🔲 Backlog
+
+📌 **2026-09-29 — progress, not a status change.** Still owner-run and open; nobody is actively working it, so it stays `🔲 Backlog`. **§3 is complete** (funnel analytics confirmed in GameAnalytics). **Still open:** §1 which HMAC construction matched (`0309`'s job), §2 first box (inferred, never read directly), **§4** (reconcile watch: zero `/reconcile` calls as of 2026-09-29; suggested hand-test fallback ~2026-10-10), **§5**. Close conditions 2 and 3 are done. Open finding, no task filed: **GA counts 2 more `Purchase:Completed:Citizenship` than the server confirmed** for 22–28 Sep — not lost purchases; cause unknown. **OWNER RULING 2026-09-29: "Leave it"** (option text: *"Just keep the note in 0297. 2 events is small, and the server count is the one that matters for money."*), relayed by `fkit-lead` — no task filed. Detail: `worklog.md`.
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, owner ruling 2026-09-23; see `## Notes`.
@@ -107,32 +110,35 @@ folder's `worklog.md`.
 build and the second game deploy has run). Before that, the buy button does not exist.
 
 ### §1 — HMAC-construction confirmation and the secret's value (ex-`0065` §1, plus the ex-`0195` condition)
-- [ ] With the first REAL signed payload, confirm `/v1/payments/yandex/complete` returns 200.
+- [x] With the first REAL signed payload, confirm `/v1/payments/yandex/complete` returns 200. *(✅ 2026-09-26 — two real 200s; `0195` value settled. `worklog.md`.)*
       **This also settles the `0195` condition:** a 200 on a real signed payload means the secret on the
       box is the right value. A signature rejection means the secret, the construction, or both are
       wrong — stop and file it as a defect immediately, because real players are on the same path.
-- [ ] Determine which of the two constructions matched, and record how that was determined.
-- [ ] Hand the result to the producer to file a small `fkit-coder` follow-up that drops the unused
-      construction. Filing it is part of this task's close condition.
+- [ ] Determine which of the two constructions matched, and record how that was determined. *(Open — not observable from outside; `0309` adds the log line. Pointer only, not proof: `0325` S0 on 2026-09-29 found signed PLAYER data verifies via decoded JSON.)*
+- [x] Hand the result to the producer to file a small `fkit-coder` follow-up that drops the unused
+      construction. Filing it is part of this task's close condition. *(✅ 2026-09-26 — filed as `0309` + `0310`.)*
 
 ### §2 — Live catalog fetch (ex-`0065` §2)
 - [ ] Open the game as an authenticated Yandex player. `getPaymentsCatalogStatus()` → `'ready'`;
-      `hasCatalogProduct('citizenship')` → `true`.
-- [ ] The price shown on the Buy button comes from the real catalog response — not the mock's fake
-      price, not hardcoded.
-- [ ] **Expect the Buy button to show 249 Yan**: the catalog price as of 2026-09-25, which the owner changed in the
+      `hasCatalogProduct('citizenship')` → `true`. *(Inferred only — the buy button showed, which implies both; never read directly. 2026-09-26.)*
+- [x] The price shown on the Buy button comes from the real catalog response — not the mock's fake
+      price, not hardcoded. *(✅ 2026-09-26.)*
+- [x] **Expect the Buy button to show 249 Yan**: the catalog price as of 2026-09-25, which the owner changed in the
       Yandex console (owner ruling 2026-09-25, live in the `fkit lead` session via `AskUserQuestion`, relayed by
-      `fkit-lead`). **If it shows anything else, record exactly what it shows.**
+      `fkit-lead`). **If it shows anything else, record exactly what it shows.** *(✅ 2026-09-26 — 249 shown; currency
+      "YAN" on one account, "RUB" on the test account, chosen by Yandex per account. Recorded exactly in `worklog.md`.)*
 
 ### §3 — Real test purchase through the `0018` UI (ex-`0065` §3)
-- [ ] Signed in as the test-purchase account, complete the flow end to end with the real button.
-- [ ] The production profile shows `is_paid_citizen = true` and `citizenship_purchased_at` set (checked
-      on the box; the public `GET /v1/profile` strips paid fields by design).
-- [ ] The purchase is consumed: a second `getPurchases()` no longer lists it.
-- [ ] The card moves to State 3. *(Inbox message: `0065` said "N/A until `0012` exists". `0012` was closed
+- [x] Signed in as the test-purchase account, complete the flow end to end with the real button. *(✅ 2026-09-26.)*
+- [x] The production profile shows `is_paid_citizen = true` and `citizenship_purchased_at` set (checked
+      on the box; the public `GET /v1/profile` strips paid fields by design). *(✅ 2026-09-26.)*
+- [x] The purchase is consumed: a second `getPurchases()` no longer lists it. *(✅ 2026-09-26 — observed indirectly: no `/reconcile` after reload.)*
+- [x] The card moves to State 3. *(✅ 2026-09-26 — immediately, no reload.)* *(Inbox message: `0065` said "N/A until `0012` exists". `0012` was closed
       2026-09-23 as built; the live inbox check is `0296` B2, not this task.)*
-- [ ] Funnel analytics observed live: `UI:Tap:PurchaseCitizenship`, `Purchase:Started:Citizenship`,
-      `Purchase:Completed:Citizenship`.
+- [x] Funnel analytics observed live: `UI:Tap:PurchaseCitizenship`, `Purchase:Started:Citizenship`,
+      `Purchase:Completed:Citizenship`. *(✅ 2026-09-29 — GameAnalytics, 22–28 Sep: Tap 631 · Started 631 · Abandoned 603 ·
+      Completed 12. ⚠️ Open finding: GA's 12 Completed vs the server's 10 grants in that range — 2 extra, not lost
+      purchases, cause unknown, no task filed — owner ruled "Leave it" 2026-09-29. GA page showed a "Demo mode" banner. `worklog.md` § 2026-09-29.)*
 
 ### §4 — Live reconciliation (ex-`0065` §4)
 - [ ] Interrupt a purchase after Yandex processes it but before the client posts the signature (block
@@ -145,7 +151,8 @@ build and the second game deploy has run). Before that, the buy button does not 
 > (Recommended)"** — prove reconciliation from a real player's successful `/reconcile` call instead of a
 > hand test first. **§4 stays open.** Evidence: a `POST /v1/payments/yandex/reconcile` → 200 in the profile
 > box's host nginx access log, cross-checked with a matching `processed_purchases` row and a player who
-> became `is_paid_citizen` at that time. Zero seen as of ~14:50 UTC that day. If none appear in ~2 weeks
+> became `is_paid_citizen` at that time. Zero seen as of ~14:50 UTC that day; **still zero as of 2026-09-29 ~08:15
+> UTC** (owner-run, all rotated logs, 11 `/complete` lines found by the same search). If none appear in ~2 weeks
 > (suggested, not ruled), fall back to the owner-run hand test above. ⚠️ Nobody is scheduled to run the
 > log check. Detail: `worklog.md`.
 

@@ -150,7 +150,7 @@ order after `0327`:**
 | B1 | [`0328`](../0328-analytics-event-session-platform-degraded-by-cause/brief.md) `Session:PlatformDegraded:{Cause}` event | nothing |
 | B2 | [`0329`](../../done/0329-citizenship-card-re-checks-its-gate-when-the-platform-recovers-late/brief.md) card re-checks on late recovery | `0326` |
 | B3 | [`0330`](../../done/0330-retry-a-failed-yandex-sdk-loader-download/brief.md) retry a failed loader download (D-1) | `0329`; `0328` recommended first |
-| B4 | [`0331`](../../backlog/0331-keep-the-query-string-on-match-exit/brief.md) keep the query on match exit | gated on owner probe P1; coordinate with `0199` |
+| B4 | [`0331`](../0331-keep-the-query-string-on-match-exit/brief.md) keep the query on match exit | gated on owner probe P1; coordinate with `0199` |
 
 **Not filed (report "Not proposed"):** option (ii) return-to-menu without reload (blocked by `0252`), option (iii)
 a card-shaped retry state (conflicts with `0291`).

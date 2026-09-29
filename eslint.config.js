@@ -14,7 +14,15 @@ const gitignorePath = path.resolve(__dirname, ".gitignore");
 export default [
   includeIgnoreFile(gitignorePath),
   {
-    ignores: ["src/server/gatekeeper/**", "src/client/yandexGamesSdk_test.js"],
+    ignores: [
+      "src/server/gatekeeper/**",
+      "src/client/yandexGamesSdk_test.js",
+      // Task 0325's S0 evidence helper — kept for a possible S0 re-run, not product
+      // code, and outside every tsconfig (owner ruling 2026-09-29). The status
+      // folder is a wildcard so the ignore survives the task's backlog/ ->
+      // done/ or cancelled/ move; it still matches only this one file.
+      "ai-agents/tasks/*/0325-*/s0-hmac-check.mjs",
+    ],
   },
   { files: ["**/*.{js,mjs,cjs,ts}"] },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },

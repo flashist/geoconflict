@@ -28,7 +28,11 @@ ADR-035 forbids even under an owner ruling, and a new row may never be inserted 
   other open row on the board, whatever its rank number says.**
 
 ## Status
-🚧 Blocked — waiting on the OWNER-run S0 test (plan approved 2026-09-28; helper `s0-hmac-check.mjs` written and self-tested; runbook in `worklog.md`). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
+🔲 Backlog
+
+📌 **2026-09-29 — S0 PASSED; unblocked, ready to build.** The owner ran S0 live on 2026-09-29: **the key verifies Yandex's signed player data, via the decoded-JSON construction only**; the signed id equals `getUniqueID()`; `issuedAt` exists, in seconds. Full results: `worklog.md` § *2026-09-29 — S0 result* (written by `fkit-coder`). **Next step: the build (S2 shadow mode → S3a enforce)**, under the plan approved 2026-09-28 (owner ruling Q2, *"Test first, then build"*). Nobody is building it yet, so it is `🔲 Backlog`, not `🔄 In progress`. **Open for the build:** pin `algorithm`; `requestPayload` as a possible nonce (check Yandex docs); ~6.9 s signed-call latency (1 sample, a socket error was logged, retry likely). Recorded by a spawned `fkit-producer` from `fkit-lead`'s relay.
+
+~~🚧 Blocked — waiting on the OWNER-run S0 test (plan approved 2026-09-28; helper `s0-hmac-check.mjs` written and self-tested; runbook in `worklog.md`). Driven by `/fkit-sprint-ship-loop` (fkit-lead).~~ *(Earlier value, superseded 2026-09-29.)*
 
 ## Owner
 fkit-coder
