@@ -3,6 +3,22 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-09-30 (`b434732`) — DEPLOYED 2026-09-29, and the first verified-identity code is on the box.**
+>
+> - **The Sprint 6 store changes above are now deployed** (telemetry → game → profile, 2026-09-29; see
+>   [[systems/weekend-deploy-window]]): migration `007` applied; the dismiss route answers 401 without a session;
+>   `0312`'s decide command approved one name in production; `0250` S1 and `0322`'s resolve field shipped.
+>   ⚠️ The new code served ~11–16 s **before** `007` applied (4 `column … does not exist` errors, none after) —
+>   filed as `0346` (apply migrations before the new code serves).
+> - **Verified login, shadow mode (task `0325` S2 — [[tasks/verified-login-shadow-mode]], [[decisions/adr-116-verified-login]]):**
+>   the login body accepts an optional Yandex `signature`; the session claim `vfy` is widened to a boolean but the
+>   server **still mints only `vfy:false`**; each login's signature is classified into the metric
+>   `geoconflict.profile.login.verification` (7 outcomes). The purchase key now also serves identity. First
+>   minutes: `ok` and `stale` roughly half each — `0339` owns the watch. **S3a (minting `vfy:true`) is `0340`**,
+>   gated on `0339` plus an owner approval.
+> - ⛔ **Rollback rule from ADR-116:** once `0340` ships, never roll the profile server straight back to a
+>   pre-S2 build — keep an S2-or-later image as the rollback target.
+>
 > 🆕 **2026-09-28 (`68303d5`) — Sprint 6 changes to the store, all built and committed, NONE recorded as deployed
 > or verified live:**
 >
@@ -31,7 +47,7 @@
 >   known cost: a paid citizen under 100 XP sees **100 / 100** on an unverified read, and
 >   `Citizenship:Earned:XP` is **dormant** ([[systems/analytics]]). S1's deploy is owner-run, **client first,
 >   then profile server** (reversed, old clients drop the neutral inbox message). **S3b waits on `0325`**, itself
->   blocked on an owner-run S0 test. The report also states that verified login alone does **not** reach the
+>   blocked on an owner-run S0 test *(superseded 2026-09-29: S0 passed; `0325` closed as the S2 build; S3b now waits on `0340`)*. The report also states that verified login alone does **not** reach the
 >   game server — that needs `0332` (Sprint 7). ⚠️ `0250` is not paged (not done); recorded here from its report
 >   and board row only.
 >
@@ -484,3 +500,5 @@ than picking silently.
 - [[tasks/profile-identity-epic]] — epic `0266`, the identity reshape of this store, closed 2026-09-26
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`: persist-or-reuse for four secrets in this box's env file
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`: the game server's egress address in this box's `/internal/` allowlist
+- [[tasks/verified-login-shadow-mode]] — task `0325`: the login signature check in shadow mode, deployed 2026-09-29
+- [[decisions/adr-116-verified-login]] — the first verified identity: signed player data at login, carried as `vfy`

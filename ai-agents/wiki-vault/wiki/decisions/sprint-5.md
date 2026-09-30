@@ -3,6 +3,11 @@
 **Date**: 2026-04-16
 **Status**: accepted *(✅ **closed 2026-09-26** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-09-26~~; was `proposed` while pre-scoped)*
 
+> 📌 **2026-09-30 (`b434732`) — closed board, link repoints only; counts unchanged (28 rows, 0 open).** Links to
+> the Sprint 6 board now use its closed path (`done/plan-sprint-6.md`, same folder as this board). The moved rows
+> for `0213`, `0289` and `0297` now point to [[decisions/sprint-7]] (owner rulings 2026-09-29). The plan's task prose for
+> Tasks 8a, 10–15 gained pointers: each is now a **discussion item in `0343` on [[decisions/sprint-8]]**.
+
 > 📌 **2026-09-28 (`68303d5`) — closed board, link repoints only; counts unchanged (28 rows, 0 open).** The
 > moved rows for `0030`, `0032`, `0219` and `0221` now point to [[decisions/sprint-7]] (owner ruling 2026-09-27;
 > they had been carried on to Sprint 6 first). A new addendum records the owner ruling behind Sprint 5's close.
@@ -459,3 +464,4 @@ Source: `ai-agents/sprints/done/plan-sprint-5.md` *(moved from ~~`ai-agents/spri
 - [[tasks/citizenship-paid]] — task `0018`, the buy flow, closed here 2026-09-26 on `0065`
 - [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the kill switch flipped in production, closed here 2026-09-26
 - [[tasks/after-deploy-production-checks]] — task `0296`, the production checks of `0062`/`0017`/`0012`, closed here 2026-09-26
+- [[tasks/deploy-apt-noninteractive]] — task `0286`, which passed through this board (Sprint 4 → 5 → 6); closed 2026-09-29

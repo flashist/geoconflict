@@ -41,3 +41,4 @@ The pseudonymization implementation task is cancelled and PR #127 was reverted. 
 - [[tasks/feedback-remove-contact-field]] — shipped data minimization: the feedback contact field removed under this track's logic; the email-subscribe surface flagged into this scope
 - [[tasks/email-subscribe-modal]] — the email-collecting surface folded into task `0048`'s scope by the 2026-08-21 ruling
 - [[tasks/yandex-payments-implementation]] — the purchase-receipt FK made erasure-cascade-safe (`ON DELETE SET NULL`) with this track in mind
+- [[decisions/adr-116-verified-login]] — Yandex's signed player data carries personal fields (public name, avatar and more); they transit the profile server and are dropped unread, never stored

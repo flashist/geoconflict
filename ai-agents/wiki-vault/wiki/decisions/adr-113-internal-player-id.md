@@ -10,6 +10,13 @@
 > client login and the game-server resolve/credit path live — **41 players / 41 identities** and the first
 > real `(game_id, player_id)` credits at the window. See [[tasks/profile-identity-epic]].
 > Source: `ai-agents/knowledge-base/decisions/adr-113-profile-internal-player-id-and-platform-identities.md`
+>
+> 📌 **2026-09-30 — a pending amendment, NOT yet applied.** [[decisions/adr-116-verified-login]] (accepted 2026-09-29)
+> lists a dated note for this ADR — point 5 (*a token counts as "proven owner" only once a verified login issues
+> `vfy:true`*), point 9, the re-raise list, and the key-rotation note — to be written **only once S3a (task `0340`)
+> mints `vfy:true` in production**. Until then this ADR's text stands unchanged. The session claim `vfy` is already
+> widened to a boolean by `0325` S2 (deployed 2026-09-29), but the server still mints only `false`. See
+> [[tasks/verified-login-shadow-mode]].
 > Design: `ai-agents/knowledge-base/reports/2026-09-15-profile-identity-design.md` (task `0266`)
 >
 > **Provenance:** owner-signed 2026-09-15 via `AskUserQuestion`. **The architect did not hear the rulings
@@ -154,3 +161,5 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`: resolve at join, credit by `playerId`
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`: the client login session and Bearer calls
 - [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks
+- [[decisions/adr-116-verified-login]] — the verified login that will update point 5, point 9 and the re-raise list once `0340` ships
+- [[tasks/verified-login-shadow-mode]] — task `0325`, S2 shadow mode: `vfy` widened, still minted `false`

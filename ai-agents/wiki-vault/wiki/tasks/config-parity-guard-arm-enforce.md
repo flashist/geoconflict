@@ -4,7 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 33 (split out of `0064` on 2026-09-23) / task `0298`
 
-> ✅ Done (agent-closed — not owner-verified). Part B committed in `68303d5`. 🚨 **No ARMED deploy is recorded yet**
+> 🆕 **2026-09-29 — the FIRST ARMED DEPLOYS RAN** (telemetry → game → profile; [[systems/weekend-deploy-window]]).
+> The armed guards **stopped none** of the three (owner reported no failure); the pre-flight `--enforce` run was
+> exit 0, `REQUIRED 0`. ⚠️ **The guards' own output was NOT captured** — the record owner step 3 asks for does not
+> exist for these runs. Owner step 1 was done through the owner's browser: game-server **logs** arriving in Uptrace
+> with the OTEL header blank — **logs only, not metrics; the environment label was not seen.** The deploy order
+> (game before profile) overrode this task's cost-only *"profile first"* preference; a dated note is in its worklog.
+>
+> ✅ Done (agent-closed — not owner-verified). Part B committed in `68303d5`. 🚨 ~~**No ARMED deploy is recorded yet**~~ *(superseded 2026-09-29, above)*
 > (a profile deploy leaves no git artifact) — the first armed deploys are owner steps. ⛔ Names and verdicts only on this page;
 > no values.
 

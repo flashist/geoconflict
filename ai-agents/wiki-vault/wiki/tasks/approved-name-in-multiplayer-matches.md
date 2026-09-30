@@ -10,6 +10,11 @@
 > 🚨 **Accepted risk, owner-ruled (D3) — recorded, not solved:** the game server's only identity is the
 > Yandex id the client *claims*. **Someone who sends another citizen's Yandex id gets that citizen's approved
 > name.** See [[decisions/adr-115-approved-name-in-matches]].
+>
+> 📌 **2026-09-30:** `0325` (verified login) closed 2026-09-29 as its **shadow-mode** build only — it proves identity
+> at the **profile** login, not on the game server ([[tasks/verified-login-shadow-mode]],
+> [[decisions/adr-116-verified-login]]). This forged-id case still closes only with `0332` (the join token), which
+> builds on `0340` (S3a). Both sit on [[decisions/sprint-7]].
 
 ## Goal
 

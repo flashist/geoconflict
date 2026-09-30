@@ -122,3 +122,4 @@ fixed**.
 - [[systems/alert-delivery]] — the relay `setup-profile.sh` also configures on this box
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board this task's review finding R4 was split onto as `0287`
+- [[tasks/deploy-apt-noninteractive]] — task `0286`, another `setup-profile.sh` defect under the same harness

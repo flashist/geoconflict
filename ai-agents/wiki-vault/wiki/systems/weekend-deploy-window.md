@@ -5,6 +5,60 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-09-29 — THE NEXT WINDOW RAN (a Tuesday): telemetry → game → profile
+>
+> **Provenance.** The runbook gained two appended sections on 2026-09-29: *Next window — plan* (the
+> architect's verified step list **N0–N6**, written by a spawned `fkit-producer` on three owner rulings) and
+> *What happened 2026-09-29* (recorded from `fkit-lead`'s own checks that night and the owner's live reports;
+> the producer verified none of it). The plan's check boxes are left unticked on purpose; the results table is
+> the record. ⛔ Relayed evidence.
+>
+> - **Owner rulings (2026-09-29):** *"Yes, check and write it (Recommended)"*; **the order — "Game first, record
+>   it (Recommended)"** — telemetry → game → profile, keeping `0250` S1's client-first rule (this **overrides the
+>   order written in four task files** — `0339`, `0341`, `0298`'s worklog, and ADR-116's deploy-order bullet,
+>   each given a dated note; see [[decisions/adr-116-verified-login]]); and *"List them + 3 quick checks
+>   (Recommended)"*.
+> - **When:** the owner deployed on **2026-09-29, a Tuesday** — the owner's own choice, outside the same day's
+>   *"weekend slots"* ruling. **Game version: not recorded in the runbook.** ⚠️ A repo commit that evening
+>   bumps prod to `0.0.155`, and `0349`'s brief speaks of *"the 0.0.155 deploy"* — consistent, but the runbook
+>   itself does not say it.
+> - **What shipped:** everything committed since the 2026-09-26 deploys. Game image: `0302`, `0303`, `0307`,
+>   `0311`, `0314` client, `0316`, `0321`, `0322`, `0326`–`0330`, `0250` S1 client, `0325` S2 client, `0331`.
+>   Profile image: `0312`–`0315` (+ migration `007`), the `0322` resolve field, `0250` S1 server, `0325` S2
+>   server, `0285` relay + check 13. Telemetry: `0285`'s probe. 🚨 **`0298` Part B — the first ARMED runs of
+>   the config guards.**
+> - **Results (lead-checked unless marked):**
+>   - ✅ pre-flight: config parity `--enforce` exit 0; `npm run lint` exit 0; `npm test` 3221/3221 (179 suites);
+>     `npm run test:integration` 155/155 (12 suites); rollback targets present; no open daily-checks incident.
+>   - ✅ `0298` owner step 1 done through the owner's browser: game-server **logs** arriving in Uptrace —
+>     **logs only, not metrics**.
+>   - ✅ telemetry: the probe log reads `channel state: delivering`.
+>   - ⚠️ **game: deployed, but the three checks (one login with a `signature` key, one
+>     `Profile:Login:Signature:*` event per load, game log) were NOT reported.**
+>   - ✅ profile: new image healthy; postgres **not** recreated (contradicting the runbook's own *"each profile
+>     deploy recreates BOTH containers"* — recorded, not investigated); migrations 001–004, 006, **007** applied;
+>     `/health` + `/ready` 200; the dismiss route 401 without a session; the digest heartbeat arrived (owner);
+>     one name approved via `0312`'s command → `approved`.
+>   - ❌ **profile error lines since boot were NOT zero: 4 lines** — `column "dismissed_at" does not exist` — all
+>     in the ~11–16 s **before migration `007` finished**, none after. Filed as `0346` on the Backlog board.
+>   - ✅/⚠️ the login-verification metric exists; first minutes: **`ok` and `stale` only, roughly half each**,
+>     `no_secret` none; clock skew on the box ruled out. Minutes of data — `0339`'s multi-day watch owns it.
+>   - **`0298` Part B:** the armed guards stopped none of the three deploys, but **their output was not
+>     captured** — the record `0298` owner step 3 asks for does not exist for these runs.
+> - **Still owed:** the game-deploy checks; quick check #3 (an approved name in a match); the citizen bell
+>   message; `0341` step 1.3 by hand (or confirming the hourly probe) and step 2; the watch; the `0341` drill
+>   and `0289` (the owner deferred both to a quiet day); `0339`'s watch.
+> - ⚠️ **Rollback cautions that now stand:** never roll back to game `0.0.153` (never served); migration `007`
+>   stays applied (no down migration); keep an S2-or-later profile image as `0340`'s future rollback target;
+>   a `0250` S1 rollback reopens the leak and can fire false `Citizenship:Earned:XP` from old bundles.
+>
+> Related tasks: [[tasks/verified-login-shadow-mode]] (`0325` S2), [[tasks/match-exit-keeps-query-string]]
+> (`0331`), [[tasks/uptrace-channel-state-check]] (`0285` → `0341`), [[tasks/config-parity-guard-arm-enforce]]
+> (`0298`), [[tasks/deploy-apt-noninteractive]] (`0286` — its worklog note, owed from W2, was written
+> 2026-09-29).
+>
+> ---
+>
 > 📌 **2026-09-28 — the W12 checkboxes describe the window AS IT RAN (report-only).** The runbook now says so
 > in a dated pointer: for **later** deploys, `0298` Part B arms both config guards — the name guard `--enforce` in
 > `build-deploy.sh` (before the version bump), `deploy.sh` and `build-deploy-profile.sh`; the value guard
@@ -603,3 +657,9 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/after-deploy-production-checks]] — task `0296`, whose A1–A4 rode W11/W13/W14 and which closed the same day
 - [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the kill switch flipped in the `0.0.154` build
 - [[decisions/sprint-6]] — where `0286`, `0298` and the other deploy-coupled leftovers now wait, by owner ruling
+- [[tasks/verified-login-shadow-mode]] — task `0325`: S2 shipped in the 2026-09-29 window
+- [[tasks/match-exit-keeps-query-string]] — task `0331`: shipped in the 2026-09-29 game deploy
+- [[tasks/deploy-apt-noninteractive]] — task `0286`: step 8 ran in the 2026-09-26 window; closed 2026-09-29
+- [[decisions/adr-116-verified-login]] — its deploy-order clarification set the 2026-09-29 order
+- [[decisions/sprint-7]] — the verify tasks `0337`, `0339`, `0341` for this window
+- [[systems/analytics]] — the `Profile:Login:Signature:*` events whose arrival the 2026-09-29 game checks were meant to confirm

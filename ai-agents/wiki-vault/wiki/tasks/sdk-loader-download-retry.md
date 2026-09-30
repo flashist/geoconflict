@@ -58,3 +58,4 @@ Retry it, without ever running the loader twice.
 - [[systems/flashist-init]] — the 5 s deadline and the late-recovery branch
 - [[systems/analytics]] — `Session:SdkLoaderRetry:*`
 - [[decisions/sprint-6]] — the board carrying this task
+- [[tasks/match-exit-keeps-query-string]] — task `0331`, B4 of the same report: the match exit keeps Yandex's `sdk` query parameter

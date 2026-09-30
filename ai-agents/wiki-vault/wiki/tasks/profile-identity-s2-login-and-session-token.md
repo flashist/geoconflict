@@ -93,3 +93,4 @@ game box**. `0279` and `0217` should **re-run that set rather than rediscover it
 - [[tasks/profile-identity-epic]] — epic `0266`, the parent; closed 2026-09-26 once all five slices were done
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26
+- [[tasks/verified-login-shadow-mode]] — task `0325`: widens this login's `vfy` claim to a boolean and checks Yandex's signature in shadow mode (still mints `false`)

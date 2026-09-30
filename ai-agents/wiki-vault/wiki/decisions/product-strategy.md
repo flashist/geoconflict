@@ -12,6 +12,16 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 🆕 **2026-09-30 — `plan-index.md` (synced from `b434732`): SPRINT 6 CLOSED 2026-09-29; SPRINT 7 IS THE ACTIVE
+> SPRINT; a Sprint 8 board exists.** Sprint 6's row reads `✅ Done 2026-09-29` (closed by `/fkit-sprint-done`,
+> agent-closed — not owner-verified; owner ruling R1) and links to `done/plan-sprint-6.md`. Sprint 7 reads
+> `🔄 In progress since 2026-09-29` (ruling R2) — **still no theme name, no goal**. **Sprint 8 — *Paid Citizenship
+> Perks and More Content*** (named 2026-09-29, ruling D) was created 2026-09-29, **not started, no goal**. In the
+> priority table, tasks 5b and 5c now point to the Backlog board's discussion brief `0342`, and tasks 8a, 10–15 to
+> Sprint 8's `0343`. See [[decisions/sprint-6]], [[decisions/sprint-7]] and [[decisions/sprint-8]].
+>
+> ~~🆕 **2026-09-28 — SPRINT 6 IS THE ACTIVE SPRINT**~~ *(superseded 2026-09-29 — Sprint 6 closed; the note below is history)*
+>
 > 🆕 **2026-09-28 — `plan-index.md` (synced from `68303d5`): SPRINT 6 IS THE ACTIVE SPRINT, and a Sprint 7 board
 > exists.** Sprint 6's line-3 banner reads `🔄 In progress — 2026-09-26` — owner ruling via `AskUserQuestion`,
 > **"Start Sprint 6, then drive (Recommended)"**, driving from `0307` with the owner approving each plan. The
@@ -91,7 +101,8 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 
 ## Related
 
-- [[decisions/sprint-7]] — created 2026-09-27, listed in `plan-index.md`; no theme or goal yet
+- [[decisions/sprint-7]] — created 2026-09-27, listed in `plan-index.md`; **active since 2026-09-29**; no theme or goal yet
+- [[decisions/sprint-8]] — *Paid Citizenship Perks and More Content*, created 2026-09-29, not started, no goal
 
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding
@@ -101,7 +112,7 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - [[decisions/sprint-4c]] — production stabilization during the same pause
 - [[decisions/sprint-backlog]] — no-sprint backlog for defined work that needs a sprint home
 - [[decisions/sprint-5]] — ~~full F2P loop~~ the citizenship launch (~~**active since 2026-09-26**~~ started and closed 2026-09-26, agent-closed — not owner-verified)
-- [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists; since 2026-09-26 also the full F2P loop and social features
+- [[decisions/sprint-6]] — content expansion after payments/cosmetics infrastructure exists; since 2026-09-26 also the full F2P loop and social features (closed 2026-09-29, agent-closed — not owner-verified)
 - [[decisions/cancelled-tasks]] — work cancelled with reasons
 - [[systems/analytics]] — analytics infrastructure built in Sprint 1
 - [[systems/producer-workflow]] — producer prioritization and decision-boundary rules derived from this strategy

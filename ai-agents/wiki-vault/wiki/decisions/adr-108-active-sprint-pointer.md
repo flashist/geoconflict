@@ -3,6 +3,13 @@
 **Date**: 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
 **Status**: superseded in part by **fkit ADR-047** (upstream; owner-accepted as the superseding ADR 2026-09-24) — **the 2026-09-08 amendment still stands**. *(Was: accepted — re-confirmed in practice 2026-09-07, still unshipped upstream; scope widened by an in-place amendment 2026-09-08. The earlier wording below is kept in full.)*
 
+> 📌 **2026-09-30 — path note (synced from `b434732`).** Sprint 6 was closed on 2026-09-29 by
+> `/fkit-sprint-done` *(agent-closed — not owner-verified)* and its board moved to
+> **`ai-agents/sprints/done/plan-sprint-6.md`**; the source ADR's link was repointed there (link path only — the
+> ADR's text is unchanged). The bare `plan-sprint-6.md` mentions below are **history and quoted tool output**
+> (e.g. `select-active` returning `file="plan-sprint-6.md"` on 2026-09-07) and are left as written. Sprint 7 is
+> the active sprint since 2026-09-29. See [[decisions/sprint-6]] and [[decisions/sprint-7]].
+>
 > 📌 **2026-09-26 — path note (synced from `899df29`).** Sprint 5 was closed on 2026-09-26 by
 > `/fkit-sprint-done` *(agent-closed — not owner-verified)* and its board moved to
 > **`ai-agents/sprints/done/plan-sprint-5.md`**; the source ADR's link was repointed there (link path only —

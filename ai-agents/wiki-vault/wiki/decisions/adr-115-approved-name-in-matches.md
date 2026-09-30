@@ -98,3 +98,5 @@ is **closeout of this ADR, not a new defect.**
 - [[decisions/sprint-7]] — `0323` (the mark) and `0332` (the join token)
 - [[decisions/sprint-6]] — Sprint 6, the active sprint since 2026-09-26, whose board carries this task
 - [[tasks/citizenship-name-change]] — task `0067`, the name-change feature this follow-up extends
+- [[decisions/adr-116-verified-login]] — verified login at the profile server (accepted 2026-09-29); this ADR's residual 1 closes with `0332`, not with ADR-116
+- [[tasks/verified-login-shadow-mode]] — task `0325`, closed as the S2 build; S3a is `0340`

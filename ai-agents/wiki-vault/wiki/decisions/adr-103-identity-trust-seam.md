@@ -8,6 +8,16 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md`
 
+> 🆕 **2026-09-29 — THIS ADR'S KEY-ISSUED TRIGGER FIRED; the ADR is AMENDED, NOT SUPERSEDED.** The canonical ADR
+> gained a dated, append-only note (by `fkit-architect`, on the owner's acceptance of
+> [[decisions/adr-116-verified-login]], relayed by `fkit-lead`) under its *"re-raise only if"* key-issued bullet, plus
+> a Related line. The Yandex secret key was issued **2026-09-12**. Verification is being built at the **profile
+> login** (ADR-116, task `0325` — [[tasks/verified-login-shadow-mode]]), **not** inside `getCreditableYandexId()`.
+> The game-server seam is **still client-asserted**, so **this ADR still governs the game server**. **Its exit is
+> now `0332`** (the join token: the game server has the profile server vouch for a verified session). Nothing
+> already written in the ADR changed. ⚠️ Read the *"implement verification inside that function and supersede this
+> ADR — the expected exit"* wording below in that light.
+>
 > 🆕 **2026-09-28 — the canonical ADR gained one Related line: [[decisions/adr-115-approved-name-in-matches]] widens
 > this seam's scope to a THIRD user.** After crediting/resolve and the `0302` private-lobby gate, the funnel now
 > also decides which approved name **other players** see in a match. The forged-id case there is an
@@ -91,3 +101,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/profile-identity-epic]] — epic `0266`, which kept trusting the client-asserted id while moving everything else onto the internal id
 - [[tasks/approved-name-in-matches-investigation]] — task `0317`, the investigation that chose to swap the approved name in through the ADR-103 funnel
 - [[tasks/player-name-path-security-review]] — task `0307` (2026-09-26/27): security review of every player-name path — no injection through the name; five fixes
+- [[decisions/adr-116-verified-login]] — the first verified identity (profile login); **amends, does not supersede** this ADR — the key-issued trigger fired, the exit moved to `0332`
+- [[tasks/verified-login-shadow-mode]] — task `0325`, which built verification at the profile login, not in this seam

@@ -62,3 +62,4 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[systems/project-brief]] — where the two-series rule is stated as a working rule for agents
 - [[decisions/adr-112-free-xp-grants]] · [[decisions/adr-113-internal-player-id]] · [[decisions/adr-114-admin-server-alert-relay]] — the three project ADRs recorded 2026-09-14 → 2026-09-17
 - [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks
+- [[decisions/adr-116-verified-login]] — project ADR-116 (2026-09-29)

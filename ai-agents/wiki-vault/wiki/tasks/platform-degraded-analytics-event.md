@@ -52,3 +52,4 @@ match exit ([[tasks/citizenship-card-vanishes-investigation]]).
 - [[tasks/sdk-loader-download-retry]] — task `0330`, which reuses the `onerror` flag and adds `Session:SdkLoaderRetry:*`
 - [[tasks/degraded-mode-ux-treatment]] — task `0049`, the original degraded-mode events
 - [[decisions/sprint-6]] — the board carrying this task
+- [[tasks/match-exit-keeps-query-string]] — task `0331`, whose effect this task's after-match `InitTimeout` share measures

@@ -3,6 +3,11 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> 📌 **2026-09-30 (`b434732`) — closed board, link repoints only; still 106 rows, 0 open.** Links to the Sprint 6
+> board now use its closed path (`done/plan-sprint-6.md`); the `0286` links point to `tasks/done/`
+> ([[tasks/deploy-apt-noninteractive]]); the moved rows for `0213` and `0289` now point to [[decisions/sprint-7]]
+> (owner rulings 2026-09-29).
+
 > 📌 **2026-09-28 (`68303d5`) — closed board, link repoints only; still 106 rows, 0 open.** The moved rows for
 > `0030`, `0032`, `0219` and `0221` now point to [[decisions/sprint-7]] (owner ruling 2026-09-27); `0285` and
 > `0298` links now point to `tasks/done/`.

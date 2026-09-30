@@ -8,6 +8,12 @@
 > box** — the owner's drill has not run. A guard nobody has watched fire proves nothing. Runbook:
 > `ai-agents/knowledge-base/alert-delivery-runbook.md` § *The channel's own state — check 13*.
 >
+> 📌 **2026-09-29 — its production check is tracked by `0341`** (*Verify 0285 in production: deploy it and run its
+> disabled-channel drill*), filed on Sprint 6 by owner ruling and moved to [[decisions/sprint-7]] (🔄 In progress
+> since 2026-09-30). **Deployed 2026-09-29** ([[systems/weekend-deploy-window]]): the telemetry probe log reads
+> `channel state: delivering`. ⚠️ **Still not done:** the hand-run probe after the profile deploy, the "no write"
+> check, and **the drill** (the owner deferred it to a quiet day) — so check 13 has **still never been seen to trip**.
+>
 > ⛔ No hosts, IPs, URLs, chat or topic ids, or secrets on this page.
 
 ## Goal

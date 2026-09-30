@@ -1,0 +1,133 @@
+# ADR-116 — The First Verified Identity: Yandex Signed Player Data, Checked Once at Login, Carried as `vfy:true`
+
+**Date**: 2026-09-29
+**Status**: accepted
+
+> Project ADR-116 — see [[decisions/adr-numbering-two-series]].
+> **Accepted 2026-09-29** by the owner, live via `AskUserQuestion` in the `fkit lead` session, relayed by
+> `fkit-lead`: **"Accept as written (Recommended)"**. Drafted by `fkit-architect` from the approved `0325` plan;
+> the architect heard every ruling by relay only.
+>
+> Source: `ai-agents/knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md`
+>
+> 📝 **Dated note on the canonical ADR, 2026-09-29 — S2 shipped in `0325`; S3a moved to task `0340`.** No
+> decision changed; only the task that carries S3a. Wherever the ADR says "`0325` S3a", read **`0340`**. S3a
+> starts only when **both** hold: `0339`'s S2 exit is met, **and** the owner explicitly approves enforcing
+> after `0339`'s numbers are in. See [[tasks/verified-login-shadow-mode]].
+
+## Context
+
+**Today nobody proves who they are to the profile server.** `POST /v1/login` takes a Yandex id the client
+says is its own, and every session is `vfy:false` — a strict literal, so a `vfy:true` token is *invalid* to
+the pre-S2 server. Anyone who knows a player's Yandex id gets a working session as that player.
+
+Yandex's `getPlayer({ signed: true })` returns player data signed with the game's per-game secret. That secret
+is the **same key that verifies purchases** — issued 2026-09-12, present on the profile box, proven by real
+purchases on 2026-09-26. The purchase check already exists (`src/profile-server/YandexSignature.ts`,
+`verifySignedPayload`), and `resolveCaller` (`src/profile-server/Routes.ts`) reserves the seam for exactly this.
+But Yandex does not document the player payload's fields, so a spike (S0) came first.
+
+**S0, owner-run live in the Yandex iframe on 2026-09-29** (field names and yes/no only):
+
+| Question | Answer |
+|---|---|
+| Does the box's key verify signed player data? | **Yes** |
+| Which HMAC construction matched? | **Decoded JSON only** — the base64-payload one did not |
+| Top-level payload fields | `algorithm`, `issuedAt` (seconds), `requestPayload`, `data` |
+| Which field equals `getUniqueID()`? | Both `data.id` and `data.uniqueID` |
+| Signature length | 733 characters (sets the request bound) |
+| Signed-call latency | **6852 ms — one sample**, with a socket error logged (a retry is likely — inferred, not proven) |
+
+⚠️ One account, one sample, one day.
+
+## Decision
+
+1. **Mechanism.** The client asks Yandex for signed player data, holds the signature **in memory only**, and
+   sends it as an optional `signature` field in the login body. The server checks the HMAC, reads the signed id
+   (`data.uniqueID`) and `issuedAt`, and discards everything else.
+2. **One seam, one check, once per login.** Verification happens only at `POST /v1/login`; the result rides in
+   the session as `vfy`, and `resolveCaller` returns `{ playerId, verified }`. No route re-checks a signature,
+   and no route reads `verified` within this ADR's scope — that is `0250` S3b and `0319`.
+3. **`vfy:true` only if all three hold:** the HMAC verifies; the signed id **equals** the id asserted in the same
+   body; and the signature is **fresh** — `issuedAt` present and at most **900 s** old and **300 s** ahead
+   (boundaries count as fresh).
+4. **Failure ⇒ an unverified session, never a refused login, never a read error.** Every failure (absent,
+   forged, tampered, mismatched, stale, no secret, a Yandex outage, the client's signed call failing) yields
+   today's `vfy:false` login, status 200. The paid benefit is withheld; the card still loads.
+   - *Clarification (review R1(b)):* a `signature` field that **breaks the login contract** (empty, longer than
+     `SIGNATURE_MAX` = 2932, or not a string) gets **400**, like any bad login body. The client drops such a
+     value and old bundles send none, so no honest client reaches the 400.
+5. **The signature is a credential** — never logged, persisted or put in analytics. Every other `data` field
+   (public name, avatar, and more) transits the server and is **dropped unread** (152-ФЗ context).
+6. **Rollout: shadow first, and the wider claim ships before the first mint.** S2 widens `vfy` to a boolean but
+   still mints only `false`, and records the metric `geoconflict.profile.login.verification` with 7 outcomes.
+   S3a then mints `vfy:true`. **Rollback rule:** S3a → S2 is safe; ⛔ **never roll S3a straight back to a
+   pre-S2 build** — every live verified token would turn invalid.
+   - *Clarification, owner ruling 2026-09-29 (**"Game first, record it (Recommended)"**):* for the next slot the
+     order was **telemetry → game → profile**, because one game build and one profile build each carry both
+     `0250` S1 and `0325` S2 halves. Safe because the old server drops the unknown field and never logs the
+     body. Cost: minutes where the metric does not count logins, and the name "Hide" button returning an error
+     until the profile deploy.
+7. **One key serves payments and identity.** No new env var; config parity unchanged.
+8. **Both HMAC constructions stay accepted**, in parity with purchases. Dropping the unused one belongs to
+   `0309` / `0310`.
+
+**Points settled at build (owner rulings, 2026-09-29):** read `data.uniqueID` only — no fallback to `data.id`,
+no equality check between them; `issuedAt` **required**; the client drops an over-long signature; a held
+signature older than 300 s is re-fetched; `requestPayload` is not used as a nonce (Yandex documents none);
+**D1 — no normal time limit on the signed call, only a 60 s hang safety net**, and a real failure falls back
+at once; **D2 — four client events** (`Profile:Login:Signature:{Ready|Waited|Timeout|Failed}`; `Waited` and
+`Timeout` carry the wait in ms — no ids, never the signature); **D3 — `algorithm` is ignored**, never pinned.
+
+**Options rejected:** a signature on every paid read (a long-lived secret on every request, and the trust rule
+in N places); client-side SDK purchase state (dead — the purchase is consumed right after the server grant);
+refusing unverified logins or reads (a Yandex outage would empty every card); a hash of the id (the code ships
+to the client — ADR-103 already says do not re-propose it).
+
+## Consequences
+
+- **Positive:** the first identity a forger cannot mint; unblocks `0250` S3b, `0319` and `0323`, and is the
+  foundation of `0332` (the join token); no response change, no new env var, reversible by ceasing to mint.
+- **Costs:** one more SDK call per load, a new metric, four new client events, a wider session claim, a login
+  that can wait on a slow signed call (up to the 60 s net), and a deploy order that must be followed.
+- **Accepted residuals (ten, summarized):** a verified session is a 24 h bearer credential with no revocation;
+  a Yandex payload or key change silently makes everyone unverified (the metric makes it visible; an alert is a
+  later task only if wanted); the signed data carries personal fields that must never be stored; L5, the
+  polling inference (`0250` D4); `0250` S1's rollback caveat (a false `Citizenship:Earned:XP` from old
+  bundles); an earned citizen's own card reads 100 / 100 until verified reads ship; **ADR-103's forged id on
+  the game server stays open until `0332`**; replay within the freshness window; a wider blast radius for the
+  shared key; both HMAC constructions accepted.
+- **Known risk — the signed call can be slow.** Login waits for it, and while login is pending the citizenship
+  card renders a logged-in player as a **guest** (a pre-existing gap, now longer). A hang is capped at 60 s.
+  It is measured by the four client events and the server's `absent` count, before S3a enforces anything.
+- **Re-raise only if:** the `ok` ratio collapses in production; anyone proposes refusing a login or read over
+  the signature; the signature appears in a log, row, event or file (a defect); `vfy:true` is used to authorize
+  more than a player acting on their own account; replay or token theft is observed; a second login method is
+  scheduled; or the session secret must be rotated. Absent those, *"login does not refuse a bad signature"*,
+  *"the game server still trusts the client-sent id"*, *"a captured signature can be replayed within the
+  window"*, *"no revocation"*, *"both constructions accepted"* or *"one key serves payments and identity"* is
+  **closeout of this ADR, not a new defect.**
+
+### Amendments to older ADRs
+
+| Older ADR | Applied? |
+|---|---|
+| ADR-103 | ✅ **Applied 2026-09-29** — a dated, append-only note: its key-issued trigger fired; verification is being built at the **profile login**, not in `getCreditableYandexId()`; the game-server seam stays client-asserted, so ADR-103 is **amended, not superseded**; its exit is now `0332`. |
+| ADR-113 | ⛔ **NOT applied — do not edit it yet.** Only once S3a (`0340`) mints `vfy:true` **in production**. The reminder lives in `0340`'s brief. |
+
+## Related
+
+- [[tasks/verified-login-shadow-mode]] — task `0325`, the S0 spike and the S2 build
+- [[decisions/adr-103-identity-trust-seam]] — amended by this ADR (note applied 2026-09-29)
+- [[decisions/adr-113-internal-player-id]] — the session and `resolveCaller`; its note waits for S3a in production
+- [[decisions/adr-115-approved-name-in-matches]] — its residual 1 closes with `0332`, not with this ADR
+- [[decisions/adr-112-free-xp-grants]] — the tenure claim a verified caller could later gate
+- [[systems/player-profile-store]] — the profile server, login route and session token
+- [[systems/analytics]] — the four `Profile:Login:Signature:*` events
+- [[tasks/yandex-payments-implementation]] — the purchase signature check the envelope check is shared with
+- [[decisions/personal-data-152fz-compliance]] — why the signed personal fields are dropped unread
+- [[decisions/sprint-7]] — `0339` (verify S2 live) and `0340` (S3a enforce)
+- [[decisions/adr-numbering-two-series]] — the ADR number bands
+- [[decisions/sprint-6]] — the board that carried `0325`
+- [[systems/weekend-deploy-window]] — the 2026-09-29 deploy, in the order this ADR's clarification set
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case stays open until `0332`

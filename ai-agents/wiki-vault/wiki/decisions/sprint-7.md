@@ -1,13 +1,46 @@
 # Sprint 7 *(no theme name yet)*
 
 **Date**: 2026-09-27
-**Status**: proposed
+**Status**: proposed *(page-type field; the board is **🔄 In progress since 2026-09-29** — see below)*
 
-> Source: `ai-agents/sprints/plan-sprint-7.md`. Line-3 banner: **`🔲 Backlog — 2026-09-27` — created, NOT
-> started.** [[decisions/sprint-6]] is the active sprint.
+> Source: `ai-agents/sprints/plan-sprint-7.md`.
+>
+> # 🆕 2026-09-30 (latest, `b434732`) — SPRINT 7 IS THE ACTIVE SPRINT: 28 ROWS, 26 OPEN
+>
+> **Re-counted at `HEAD` = `b434732`, by each row's leading status glyph: 28 rows — 18 `🔲 Backlog` · 6
+> `🚧 Blocked` · 2 `🔄 In progress` · 2 `➡️ Moved`; 26 OPEN** (was 11, all open). ⚠️ Counted by me this run. The
+> two `➡️ Moved` rows are older rows for `0339` and `0340` that now point at their newer rows on this same board
+> (ADR-035 forbids reviving a closed row).
+>
+> - **Started 2026-09-29** — line-3 banner `🔄 In progress — 2026-09-29` (was `🔲 Backlog — 2026-09-27`), owner
+>   ruling **R2** *"Yes, start Sprint 7 now (Recommended)"*, the same day [[decisions/sprint-6]] closed.
+> - **Still no theme name and no goal** (both the owner's to set).
+> - **The owner-ruled top of the board — three groups, run IN PARALLEL** (ruling **G1**, 2026-09-30, *"All in
+>   parallel (Recommended)"*; each group keeps its own internal order):
+>   1. `0337` — verify [[tasks/match-exit-keeps-query-string]] (`0331`) in production (rank 1; *"The verify task
+>      should be put on top of the next sprint"*).
+>   2. The reconnect run `0347` (a refresh after a failed match start can rejoin the match) → `0348` (worker
+>      start failures report the real error, wait longer, stop the leftover worker) → `0035` (give the worker the
+>      map the page already loaded; moved in from `sprint-backlog.md`). Owner ruling R1: *"to the top of the
+>      Sprint 7"* — appended at 22–24 because ADR-035 forbids renumbering closed rows.
+>   3. `0339` (verify `0325` S2 live) → `0341` (verify `0285` in production: deploy + disabled-channel drill) →
+>      `0289` (idle-period Telegram alert proof, 🚧 blocked on `0341`). Moved from Sprint 6 by R1, ranks 25–27.
+>      **`0339` and `0341` set `🔄 In progress` on 2026-09-30** (ruling **G2**): the deploy ran 2026-09-29 and
+>      the watch has started; `0341` steps 1.3–1.5, 2 and 3 are still pending.
+> - **Moved in on 2026-09-29:** `0340` (S3a enforce, from [[tasks/verified-login-shadow-mode]]) with the tasks
+>   that depend on it — `0250` (🚧 slice S3b waits on `0340`), `0248`, `0301`; `0297` (🚧 blocked on `0309`) with
+>   `0309` from the Backlog board; `0308` (plan approved, moved at its plan gate); epic `0213`.
+> - ⚠️ **All ranks from 14 up are append positions, not merit ranks** — the board says so row by row.
+>
+> ---
+>
+> # 2026-09-28 (`68303d5`) — board created, not started *(history — superseded above)*
+>
+> ~~Line-3 banner: **`🔲 Backlog — 2026-09-27` — created, NOT started.** [[decisions/sprint-6]] is the active
+> sprint.~~
 >
 > **Counted at `HEAD` = `68303d5`, by each row's leading status glyph: 11 rows — 8 `🔲 Backlog` · 3
-> `🚧 Blocked`; all 11 OPEN.** ⚠️ Counted by me this run.
+> `🚧 Blocked`; all 11 OPEN.**
 
 ## Context
 
@@ -20,6 +53,34 @@ moved rows here; they did not start this sprint.**
 - ⚠️ **No goal set.** The producer did not invent one. The source describes the contents, not a goal.
 
 ## Decision
+
+**The board at `b434732` (2026-09-30), open rows by rank** — ranks are positions, not merit (see above):
+
+| Rank | Task | Status |
+|---|---|---|
+| 1 | `0337` verify `0331` in production | Backlog |
+| — | `0027` New Maps — Community Demand (tracker; unranked ≠ low) | Backlog |
+| 4 | `0030` S3-backed match archival | Backlog |
+| 5 | `0032` client null-id errors | Blocked |
+| 6 | `0219` profile P4 operability | Blocked |
+| 7 | `0221` profile P6 OS hardening | Blocked |
+| 8 | `0323` mark a server-confirmed approved name | Backlog |
+| 9 | `0332` join token | Backlog |
+| 10–13 | `0333`, `0334`, `0335`, `0336` (lobby-close and tenure-popup follow-ups) | Backlog |
+| 14 | `0213` epic — profile backend + S3 | Backlog |
+| 15 | `0308` player name loses its space | Backlog |
+| 16 | `0340` `0325` S3a — mint verified sessions | Backlog |
+| 17 | `0250` authenticated profile read (S1 built; S3b waits on `0340`) | Blocked |
+| 18 | `0248` suppress interstitial ads for paid citizens | Backlog |
+| 19 | `0301` citizenship explainer popup | Backlog |
+| 20 | `0309` record which Yandex HMAC construction a real purchase matches | Backlog |
+| 21 | `0297` paid citizenship owner-run test-buy (blocks closing only on `0309`) | Blocked |
+| 22–24 | `0347` → `0348` → `0035` the reconnect run (owner-ruled top) | Backlog |
+| 25 | `0339` verify `0325` S2 live | In progress |
+| 26 | `0341` verify `0285` in production | In progress |
+| 27 | `0289` idle-period alert proof | Blocked (on `0341`) |
+
+*The table below is the board as created (2026-09-27/28), kept as history; its ranks have since shifted.*
 
 | Rank | Task | Status | Where it came from |
 |---|---|---|---|
@@ -46,7 +107,7 @@ moved rows here; they did not start this sprint.**
 
 ## Related
 
-- [[decisions/sprint-6]] — the active sprint these rows came from
+- [[decisions/sprint-6]] — the board these rows came from (closed 2026-09-29)
 - [[decisions/adr-115-approved-name-in-matches]] — `0323` and `0332`'s place in the trust story
 - [[tasks/approved-name-in-matches-investigation]] — task `0317`, ruling D5 (`0323`)
 - [[tasks/private-lobby-close-leaves-lobby]] — task `0327`, source of `0333`–`0335`
@@ -54,3 +115,12 @@ moved rows here; they did not start this sprint.**
 - [[decisions/sprint-5]] — its `0030`, `0032`, `0219`, `0221` rows now point here
 - [[decisions/sprint-4]] — its moved rows for the same four tasks now point here
 - [[decisions/product-strategy]] — `plan-index.md` lists this board
+- [[decisions/sprint-8]] — the next board, created 2026-09-29, not started
+- [[tasks/verified-login-shadow-mode]] — task `0325`; its S3a (`0340`) and live check (`0339`) sit here
+- [[decisions/adr-116-verified-login]] — the verified-login decision `0339` / `0340` carry out
+- [[tasks/match-exit-keeps-query-string]] — task `0331`; its live check `0337` is rank 1 here
+- [[systems/weekend-deploy-window]] — the 2026-09-29 deploy that `0337`, `0339` and `0341` verify
+- [[decisions/sprint-backlog]] — `0309` and `0035` moved here from the Backlog boards 2026-09-29
+- [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; this board's line-3 banner makes it the active sprint
+- [[tasks/uptrace-channel-state-check]] — task `0285`, whose production check `0341` sits here
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case waits on `0332` here

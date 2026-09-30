@@ -51,3 +51,4 @@ and because a hidden card publishes no citizenship status, a paying citizen also
 - [[decisions/sprint-7]] — `0336`, the residual review R3 filed
 - [[decisions/sprint-6]] — the board carrying this task
 - [[systems/analytics]] — the analytics system page; this task's events are listed there
+- [[tasks/match-exit-keeps-query-string]] — task `0331`, B4 of the same report

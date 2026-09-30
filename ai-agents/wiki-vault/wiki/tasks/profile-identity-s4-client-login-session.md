@@ -83,3 +83,4 @@ accepted; S2's own box proof showed that). The **client** stayed undeployed unti
 - [[systems/weekend-deploy-window]] — W12–W13, where the client shipped and was checked
 - [[tasks/profile-identity-s1-database-rekeying]] — S1, task `0270`, the schema under the login
 - [[decisions/sprint-5]] — the board that tracked its close
+- [[tasks/verified-login-shadow-mode]] — task `0325`: the client login now also sends Yandex's player signature when it has one

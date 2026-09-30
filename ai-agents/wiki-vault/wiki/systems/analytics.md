@@ -308,6 +308,32 @@ five restart events** (review round 1 finding). Added because S5's monitoring bu
 the two storage-less paths otherwise fired a `Requested` with **no outcome event at all** — unexplainable
 on a dashboard, **and hiding exactly the population most likely to be affected**.
 
+## Profile Login Signature Events (task `0325` S2 — built and deployed 2026-09-29)
+
+Yandex signed player data for the profile login (owner rulings D1 + D2, 2026-09-29; see
+[[decisions/adr-116-verified-login]]). Each login asks the facade once for the signature of
+`getPlayer({ signed: true })` and sends it with `POST /v1/login`. The server only **counts** what it proves
+for now, in its own metric `geoconflict.profile.login.verification` (Uptrace, not GameAnalytics).
+
+- **At most one of these four per take** — once per page load, plus once per `Profile:Session:Relogin`.
+- **Guests fire none**, and neither does a load with no SDK. **Not gated** by `CITIZENSHIP_CARD_ENABLED`.
+- ⛔ They carry nothing but their name, plus a wait in ms on `Waited` / `Timeout`. **Never the signature.**
+- **No wait limit on a slow answer (D1)** — only a call still silent 60 s after login asked counts as failed.
+  In every non-`Ready`/`Waited` case the login is still sent, unsigned, so it is unverified — never refused.
+
+| Event | When |
+|---|---|
+| `Profile:Login:Signature:Ready` | The boot pre-fetch had already finished when login asked, and was at most 300 s old. No wait |
+| `Profile:Login:Signature:Waited` | Login waited and got a usable signature. **Value:** ms waited. Relogins, a held signature over 300 s old, and a degraded boot that recovered late land here |
+| `Profile:Login:Signature:Timeout` | The 60 s hang net fired. **Value:** ms waited (≈ 60 000 by construction; the count is what matters) |
+| `Profile:Login:Signature:Failed` | The signed call threw, returned no string, or an empty or over-long one (over `SIGNATURE_MAX` = 2932) |
+
+**Reading them:** `Timeout` ÷ (all four) is the share of logged-in logins lost to a hung signed call;
+`Waited`'s values show how long the call really takes. Before the S3a gate (`0340`), compare `Timeout` +
+`Failed` with the server's `absent` count — the difference is roughly the old bundles still in circulation.
+⚠️ **Whether these events arrive in GameAnalytics was not reported** after the 2026-09-29 game deploy
+([[systems/weekend-deploy-window]]); `0339` owns that check.
+
 ## Monetization Measurement Baseline
 
 The Sprint 4 monetization analytics spec in [[tasks/monetization-analytics-spec]] defines the measurement gate before citizenship and payments decisions should be treated as validated:
@@ -488,3 +514,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/citizenship-restart-prompt]] — task `0303`, the three `Citizenship:RestartPrompt:*` events
 - [[tasks/private-lobby-citizen-perk]] — task `0302`, `LockedFeature:Tap:PrivateLobby` and the `private_lobbies` flag
 - [[tasks/citizenship-card-late-recovery-recheck]] — task `0329`, whose effect `Session:PlatformRecovered` sizes
+- [[tasks/verified-login-shadow-mode]] — task `0325`, the four `Profile:Login:Signature:*` events
+- [[decisions/adr-116-verified-login]] — rulings D1 (no wait limit) and D2 (the four events)

@@ -47,6 +47,10 @@ how an approved name could reach other players, and at what trust level.
 (B2, server swap + ADR — [[tasks/approved-name-in-multiplayer-matches]]) at the end of Sprint 6; `0323`
 (B3, the mark) at the end of [[decisions/sprint-7]], depending on `0322`. D6 recorded in `0308`'s notes.
 
+📌 **2026-09-29 (pointer appended to the brief, ADR-035):** **D6 was answered in `0308` as option A, *"Warn the
+moderator (Recommended)"*, by owner ruling R2 on 2026-09-29** — see `0308`'s *plan APPROVED, moved to Sprint 7*
+addendum. `0308` now sits on [[decisions/sprint-7]]; ADR-115's look-alike item waits with it.
+
 ## Related
 
 - [[decisions/adr-115-approved-name-in-matches]] — the ADR D3 asked for

@@ -99,3 +99,4 @@ login reply, **never from local storage**, and shows a notice only after the ser
 - [[tasks/tenure-xp-grant]] — task `0253`, the research and the build of this rule — closed 2026-09-24, not run in production
 - [[tasks/profile-identity-epic]] — epic `0266`, the identity work this ADR was amended for ("account" = internal id)
 - [[systems/weekend-deploy-window]] — W3, 2026-09-26: the tenure-grant route went live and the claim-on-behalf risk opened
+- [[decisions/adr-116-verified-login]] — verified login; the tenure claim a verified caller could later gate

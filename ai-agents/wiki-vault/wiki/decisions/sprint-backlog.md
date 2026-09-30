@@ -3,7 +3,41 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-09-28 (latest) at `HEAD` = `68303d5` — TWO ROWS ADDED (`0319`, `0320`), TWO MOVED TO SPRINT 6 (`0326`, `0327`)
+> # 📊 RE-COUNTED 2026-09-30 (latest) at `HEAD` = `b434732` — SIX ROWS ADDED, `0309` MOVED TO SPRINT 7; `0035` LEFT `sprint-backlog.md` FOR SPRINT 7
+>
+> **`backlog.md`: 105 rows — 76 `🔲 Backlog` · 21 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
+> 79 OPEN** *(was 99 / 74 — ⚠️ this run's glyph count of the `68303d5` file gives 98 rows plus the one
+> `⛔ Cancelled` row = 99, so the two counts agree)*. Counted by me this run, by each row's leading status glyph.
+>
+> - **Six new `🔲 Backlog` rows, all filed 2026-09-29** by spawned `fkit-producer`s on owner rulings or requests
+>   relayed by `fkit-lead` (ADR-021/037; ⛔ not producer precedent):
+>   - `0342` — **discussion brief: three parked features NOT tied to paid citizenship** (server restart UX, mobile
+>     warning screen, free historical maps), made from [[decisions/sprint-6]]'s brief-less rows. It first held six;
+>     owner ruling C moved leaderboard rewards, coin economy and clans to `0343` on [[decisions/sprint-8]].
+>   - `0344` — investigate why single-player mission progress resets (e.g. level 123 back to 1); findings only,
+>     cause unknown; informs `0345`.
+>   - `0345` — keep single-player mission progress on the server for logged-in players (epic `0304`'s
+>     mission-progress slice; depends on `0305` + `0306`). Owner ruling 2026-09-29: **the higher level wins**
+>     (supersedes the earlier *"server always wins"* suggestion).
+>   - `0346` — **profile deploy: apply migrations before the new code serves requests.** Evidence from the
+>     2026-09-29 profile deploy: the new code served ~11–16 s before migration `007` applied, logging 4
+>     `column … does not exist` errors, none after. See [[systems/weekend-deploy-window]].
+>   - `0349` — investigate the new client error *"n.data.split is not a function"* — ~0.3/min in Uptrace since
+>     the `0.0.155` deploy; **not in our bundles** per `fkit-coder` (owner: *"File a task now anyway"*).
+>   - `0350` — name-change moderation without copy-and-paste (approve or reject in one step). Three shapes named by
+>     the owner, **none chosen**.
+> - **`0309` moved to [[decisions/sprint-7]] (rank 20)** — owner, verbatim: *"Move 0297 and the task that it
+>   depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."*
+>   **`0310` stays here** — `0297` does not wait on it.
+> - The moved rows for `0248` and `0301` now point to Sprint 7 (they followed `0340` there); the `0326` / `0327`
+>   rows and the `0290` row's `0286` link use the closed paths.
+> - **`sprint-backlog.md`: 25 rows — 20 `⬜ No sprint` · 2 `⏸ Parked` · 3 `➡️ Moved`** (was 21 / 2 / 2). **`0035`
+>   (worker init timeout — give the worker the map the page already loaded) moved to Sprint 7, rank 24**, on the
+>   owner's reconnect ruling *"Rejoin + fix the timeout (Recommended)"*.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-09-28 at `HEAD` = `68303d5` — TWO ROWS ADDED (`0319`, `0320`), TWO MOVED TO SPRINT 6 (`0326`, `0327`)
 >
 > **`backlog.md`: 99 rows — 71 `🔲 Backlog` · 20 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
 > 74 OPEN** *(was 95 / 72)*. ⚠️ Counted by me this run, by each row's leading status glyph.
@@ -538,6 +572,8 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/citizenship-card-guest-cta-no-sdk]] — completed Sprint 4 follow-up that exposed the remaining degraded-mode citizenship-card gap
 - [[systems/project-brief]] — the project brief that points at both unsprinted boards
 - [[decisions/fkit-transfer-blueprint]] — the toolkit migration tasks `0001`–`0004` belong to
+- [[decisions/sprint-8]] — `0343`, the paid-citizenship discussion brief; `0342` (here) is its not-paid sibling
+- [[decisions/sprint-7]] — `0309` and `0035` moved there 2026-09-29
 - [[decisions/adr-102-privilege-refresher-fails-open]] — the ruling that produced tasks `0008`, and named `0010` / `0011` as trigger-firing entitlements
 - [[decisions/adr-107-turn-interval-1-5x]] — the 66.7 ms interval behind task `0006`'s threshold blind band
 - [[decisions/adr-106-flags-suppressed]] — the suppression task `0010` reverses into a paid non-country cosmetic

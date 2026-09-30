@@ -1,9 +1,41 @@
 # Sprint 6 — Full F2P Loop & Social Features *(renamed 2026-09-26; was ~~More Content~~)*
 
 **Date**: 2026-04-17
-**Status**: proposed *(page-type field; the board itself is **🔄 In progress since 2026-09-26** — see below)*
+**Status**: accepted *(✅ **closed 2026-09-29** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-09-26~~; was `proposed` while pre-scoped)*
 
-> # 🆕 2026-09-28 (latest, `68303d5`) — SPRINT 6 IS IN PROGRESS: 46 ROWS, 20 CLOSED, 5 MOVED TO SPRINT 7
+> # 🆕 2026-09-30 (latest, `b434732`) — ✅ SPRINT 6 CLOSED 2026-09-29: 49 ROWS, 23 DONE, 26 MOVED, 0 OPEN
+>
+> **Re-counted at `HEAD` = `b434732`, by each row's leading status glyph: 49 rows — 23 `✅ Done` · 26
+> `➡️ Moved` (15 → [[decisions/sprint-7]], 8 → [[decisions/sprint-8]], 3 → the Backlog board); 0 OPEN**
+> (was 46 / 21 open). ⚠️ Counted by me this run. **Every close is `(agent-closed — not owner-verified)`.**
+> Board now at `ai-agents/sprints/done/plan-sprint-6.md`.
+>
+> - **Closed by `/fkit-sprint-done` on 2026-09-29**, line-3 banner `✅ Done — 2026-09-29`. Owner rulings, live
+>   via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` (ADR-021/037; ⛔ not producer
+>   precedent): **R1** *"Close now, move 3 to Sprint 7"* — the three open rows `0339`, `0341`, `0289` moved to
+>   Sprint 7 at 25–27 in that owner-ruled order; **R2** *"Yes, start Sprint 7 now (Recommended)"*. ⚠️ The owner
+>   ruled the close but did not check the board.
+> - **Three more closed in this window (23 total):** [[tasks/deploy-apt-noninteractive]] (`0286`, step 8
+>   owner-run 2026-09-26), [[tasks/verified-login-shadow-mode]] (`0325`, closed as the **S2 build** only — S3a
+>   moved to `0340`, the live check to `0339`; see [[decisions/adr-116-verified-login]]),
+>   [[tasks/match-exit-keeps-query-string]] (`0331`, probe P1 confirmed trigger B; its live check split into
+>   `0337`).
+> - **Build-and-verify split (owner ruling 2026-09-29):** a task whose proof needs a deploy closes as the build;
+>   a verify task goes to the top of the next sprint and must not block this sprint's deploy. Hence `0337`
+>   (verify `0331`), `0339` (verify `0325` S2), `0341` (verify `0285`, deploy + disabled-channel drill).
+> - **Moved to Sprint 7 on 2026-09-29:** `0339`, `0341`, `0289` (R1); `0340` and the tasks that depend on it —
+>   `0250`, `0248`, `0301` (owner, *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint
+>   7."*); `0297` with `0309`, the task it waits on (from the Backlog board); `0308` (its plan was approved and
+>   moved at the plan gate); `0213`. Earlier (2026-09-27): `0027`, `0030`, `0032`, `0219`, `0221`.
+> - **The 11 brief-less rows became two discussion briefs** (owner ruling): paid-citizenship items → `0343` on
+>   [[decisions/sprint-8]]; the rest → `0342` on the Backlog board ([[decisions/sprint-backlog]]); ruling C then
+>   moved leaderboard rewards, coin economy and clans from `0342` to `0343`.
+> - **Deploy:** the combined telemetry → game → profile deploy ran **2026-09-29** and shipped most of this
+>   board's code — see [[systems/weekend-deploy-window]]. Several of its checks are still owed there.
+>
+> ---
+>
+> # 🆕 2026-09-28 (`68303d5`) — SPRINT 6 IS IN PROGRESS: 46 ROWS, 20 CLOSED, 5 MOVED TO SPRINT 7
 >
 > **Re-counted at `HEAD` = `68303d5`, by each row's leading status glyph: 46 rows — 20 `✅ Done` · 16
 > `🔲 Backlog` · 5 `🚧 Blocked` · 5 `➡️ Moved`; 21 OPEN** (was 37, all open). ⚠️ Counted by me this run.
@@ -141,7 +173,7 @@ Goal: expand the game with historical and thematic map content. The commercial t
 > the selector now returns Sprint 4, not this board. Board unchanged otherwise: **5 rows, all
 > `🔲 Backlog`** (counted at `6eeceeb`). See [[decisions/adr-108-active-sprint-pointer]].
 
-Source: `ai-agents/sprints/plan-sprint-6.md`
+Source: `ai-agents/sprints/done/plan-sprint-6.md` *(moved from ~~`ai-agents/sprints/plan-sprint-6.md`~~ when the sprint closed, 2026-09-29; older notes on this page cite the old path)*
 
 ## Decision
 
@@ -191,3 +223,8 @@ Source: `ai-agents/sprints/plan-sprint-6.md`
 - [[decisions/sprint-backlog]] — `0326` and `0327` were moved in from the Backlog board
 - [[systems/alert-delivery]] — how a monitoring alert reaches a human; `0285` and `0289`, its remaining checks, sit on this board
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items for the config guard
+- [[decisions/sprint-8]] — created 2026-09-29 to receive `0343`, the paid-citizenship discussion brief made from this board's brief-less rows
+- [[tasks/deploy-apt-noninteractive]] — task `0286`, closed on this board 2026-09-29
+- [[tasks/verified-login-shadow-mode]] — task `0325`, closed on this board as the S2 build 2026-09-29
+- [[tasks/match-exit-keeps-query-string]] — task `0331`, closed on this board 2026-09-29
+- [[decisions/adr-116-verified-login]] — the ADR carried by this board's `0325`
