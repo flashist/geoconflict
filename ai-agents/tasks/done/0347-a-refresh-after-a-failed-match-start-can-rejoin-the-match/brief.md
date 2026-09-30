@@ -15,7 +15,7 @@ Sprint 7
 Context). The number is only where ADR-035 lets a new row land.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -66,7 +66,7 @@ is three tasks on Sprint 7, worked in this order:
 
 ### Related, not a dependency
 
-- [`0256`](../0256-clear-reconnect-session-on-server-kick-error-path/brief.md) (Backlog board) — a server kick
+- [`0256`](../../backlog/0256-clear-reconnect-session-on-server-kick-error-path/brief.md) (Backlog board) — a server kick
   leaves `reconnect-session` behind, so the next load offers Rejoin to a game the server refuses. **Saving the
   session earlier widens the window where that stale entry can exist.** This task must not make `0256` worse on
   the paths it touches; it does not have to fix `0256`.

@@ -2,7 +2,10 @@
 // This is the test that would have caught the original drop: an ErrorUpdate
 // handed to the runner callback must leave the worker as a game_error message.
 
-const mockCaptured: { callback?: (gu: unknown) => void } = {};
+const mockCaptured: {
+  callback?: (gu: unknown) => void;
+  mapSource?: unknown;
+} = {};
 
 jest.mock("../../../src/core/GameRunner", () => ({
   createGameRunner: jest.fn(
@@ -11,12 +14,17 @@ jest.mock("../../../src/core/GameRunner", () => ({
       _clientID: unknown,
       _mapLoader: unknown,
       callback: (gu: unknown) => void,
+      mapSource?: unknown,
     ) => {
       mockCaptured.callback = callback;
+      mockCaptured.mapSource = mapSource;
       return Promise.resolve({});
     },
   ),
 }));
+
+// Task 0035: the page's map rides in the init message.
+const mockMapSource = { marker: "page-map" };
 
 type Listener = (event: unknown) => unknown;
 
@@ -35,7 +43,13 @@ describe("Worker.worker gameUpdate bridge (task 0232)", () => {
     await import("../../../src/core/worker/Worker.worker");
 
     await listeners.message({
-      data: { type: "init", id: "init-1", gameStartInfo: {}, clientID: "c" },
+      data: {
+        type: "init",
+        id: "init-1",
+        gameStartInfo: {},
+        clientID: "c",
+        mapSource: mockMapSource,
+      },
     });
     // createGameRunner's .then posts "initialized" one microtask later.
     await new Promise((resolve) => setImmediate(resolve));
@@ -51,6 +65,10 @@ describe("Worker.worker gameUpdate bridge (task 0232)", () => {
 
   test("init handshake completed through the stubbed self", () => {
     expect(mockCaptured.callback).toBeDefined();
+  });
+
+  test("the init message's mapSource reaches createGameRunner as its 5th argument (task 0035)", () => {
+    expect(mockCaptured.mapSource).toBe(mockMapSource);
   });
 
   test("an ErrorUpdate leaves the worker as a game_error message", () => {

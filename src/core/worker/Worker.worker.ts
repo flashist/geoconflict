@@ -4,6 +4,7 @@ import { FetchGameMapLoader } from "../game/FetchGameMapLoader";
 import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
 import {
   AttackAveragePositionResultMessage,
+  InitFailedMessage,
   InitializedMessage,
   MainThreadMessage,
   PlayerActionsResultMessage,
@@ -39,18 +40,32 @@ ctx.addEventListener("message", async (e: MessageEvent<MainThreadMessage>) => {
       (await gameRunner)?.executeNextTick();
       break;
     case "init":
+      // Task 0348 — the try only sees errors thrown straight away; an async
+      // start failure used to vanish and read as a timeout. The .catch below
+      // reports it. gameRunner stays the rejected promise on purpose, so a
+      // later `await gameRunner` fails loudly instead of using a half-built game.
       try {
         gameRunner = createGameRunner(
           message.gameStartInfo,
           message.clientID,
           mapLoader,
           gameUpdate,
+          // Task 0035: the page's map; mapLoader is only the fallback.
+          message.mapSource,
         ).then((gr) => {
           sendMessage({
             type: "initialized",
             id: message.id,
           } as InitializedMessage);
           return gr;
+        });
+        gameRunner.catch((error) => {
+          console.error("Failed to initialize game runner:", error);
+          sendMessage({
+            type: "init_failed",
+            id: message.id,
+            error: error instanceof Error ? error.message : String(error),
+          } as InitFailedMessage);
         });
       } catch (error) {
         console.error("Failed to initialize game runner:", error);

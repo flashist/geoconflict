@@ -87,6 +87,17 @@ export async function loadTerrainMap(
   return buildTerrainMapData(source);
 }
 
+// Task 0035: build maps straight from a source the page already loaded (sent
+// to the worker in its init message), so the worker does not download the map
+// a second time. Fresh GameMaps on every call, as above (task 0032). Must not
+// go back through loadTerrainMapSource: that halves Compact nation coordinates,
+// and a source from the cache is already halved.
+export function terrainMapFromSource(
+  source: TerrainMapSource,
+): Promise<TerrainMapData> {
+  return buildTerrainMapData(source);
+}
+
 async function buildTerrainMapData(
   source: TerrainMapSource,
 ): Promise<TerrainMapData> {

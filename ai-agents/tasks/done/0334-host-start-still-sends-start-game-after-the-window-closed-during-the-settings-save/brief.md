@@ -25,7 +25,7 @@ owner-ruled (end of the next sprint, 2026-09-28 — see *Context*); the number i
 kind — a small client-only fix startable once `0327` ships — and the owner ruled the two in this order.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -86,7 +86,7 @@ the POST. The plan decides the exact shape.
   [`0335`](../0335-investigate-four-known-lobby-close-leftovers-left-by-0327/brief.md). Do not change it here
   unless the plan shows this fix cannot avoid touching it; if so, say so and return it to the owner.
 - Any server-side change (ending the lobby for everyone, a server-side cancel).
-- The public-lobby early-close bug — that is [`0333`](../0333-closing-the-host-window-before-the-private-lobby-exists-leaves-the-player-in-a-public-lobby/brief.md).
+- The public-lobby early-close bug — that is [`0333`](../../done/0333-closing-the-host-window-before-the-private-lobby-exists-leaves-the-player-in-a-public-lobby/brief.md).
 
 ## Verification steps
 

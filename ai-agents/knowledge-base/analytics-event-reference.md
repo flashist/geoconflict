@@ -249,9 +249,10 @@ a value that never reaches the platform. Its own defect is task `0209`.
 > (`hasReportedParticipation`, `hasProcessedWin`) and already skip replays.
 
 ⚠️ **One unverified residual.** A mid-match reload builds a fresh `ClientGameRunner` and resets both
-latches. Singleplayer appears unable to resume — the only writer of the reconnect session
-(`saveReconnectSession`, one call site) is skipped when the transport is local, and resuming would in
-any case need a server-side game that never existed — but that is static analysis, not a play-test. If
+latches. Singleplayer appears unable to resume — the reconnect session has two writers
+(`saveReconnectSession`, called from `joinLobby` on the server's `start` and again from the runner on
+`start`, task `0347`), and both are skipped when the transport is local; resuming would in any case
+need a server-side game that never existed — but that is static analysis, not a play-test. If
 a reload is ever shown to double-count participation, it belongs here.
 
 ⚠️ **Accepted residual — a broken analytics SDK can mask the platform error.** The event is emitted in
@@ -282,6 +283,28 @@ would trade a rare mislabelled error for a permanently silent one.
 | `RECONNECT_DECLINED`     | `Reconnect:Declined`    | Player taps "Leave"                                   |
 | `RECONNECT_SUCCEEDED`    | `Reconnect:Succeeded`   | Reconnection completes successfully                   |
 | `RECONNECT_FAILED`       | `Reconnect:Failed`      | Reconnection attempt fails                            |
+
+**Since task `0347` (no event added or changed):**
+
+- **The prompt can also follow a failed match start.** The reconnect session is now saved as soon as
+  the server's `start` reaches the lobby, before the worker is built. So a refresh after a worker start
+  failure (or a failed map load before the worker) now offers Rejoin, where before it offered nothing.
+- **`Reconnect:Succeeded` does not prove the player got back in.** It fires when `/api/game/<id>/active`
+  said the game is active and the rejoin was sent. The rejoin runs the same worker start, which can fail
+  again; that shows up as `Worker:InitFailed` after `Reconnect:Succeeded`. This was already true before
+  `0347` — clarified here, not changed.
+- ⚠️ **A rejoin-after-failed-start match never emits `Game:Start`.** `Game:Start` is suppressed on a
+  reconnect (see *Game Events*), and the first attempt never reached the runner, so for such a match
+  neither attempt counts it. `Game:End` still fires for it — **more than once**, against zero
+  `Game:Start`: once with `Game:Abandon` when the page is refreshed after the failed start (the lobby's
+  `onJoin` already marked the match started, so `beforeunload` logs the abandon; this part predates
+  `0347`), and again when the rejoined match ends. `Match:Duration` and `Match:Spawned` do not fire at
+  all (both need the `Game:Start` time, which was never set). **Accepted by the owner, 2026-09-30: left
+  as is, documented here.**
+- ⚠️ **Known limitation — a late rejoin can land as a spectator.** Rejoin puts the player back into the
+  same match, but if they rejoin after the spawn phase (~20 s: 300 turns × 66.7 ms) they never placed a
+  spawn, so they can only watch. **Accepted by the owner for `0347`, 2026-09-30: documented, not
+  widened.**
 
 ### Feedback Events
 
@@ -543,7 +566,8 @@ Fired once per game session attempt, before gameplay starts.
 | Enum Key              | Event String         | When Fired                                                              |
 | --------------------- | -------------------- | ----------------------------------------------------------------------- |
 | `WORKER_INIT_SUCCESS` | `Worker:InitSuccess` | Web Worker initialized successfully; game will start                    |
-| `WORKER_INIT_FAILED`  | `Worker:InitFailed`  | Worker construction or initialization failed; error modal shown to user |
+| `WORKER_INIT_FAILED`  | `Worker:InitFailed`  | Worker construction or initialization failed; error modal shown to user. Not logged when the player had already left the join (task 0035). |
+| `WORKER_INIT_FAILED_CAUSE_FIRST_PART` | `Worker:InitFailedCause:{Cause}` | Fires right after `Worker:InitFailed`, once per failure (task 0348). Not logged when the player had already left the join (task 0035). `{Cause}` is appended at the call site from a closed list: `Timeout` — the worker gave no answer within the 15 s start limit (`WORKER_INIT_TIMEOUT_MS`); `Crash` — anything else: the worker script failed to load, an error thrown straight away (worker `error` event), an async start failure reported by the worker (`init_failed` — e.g. the config fetch or the runner build; a map download only on the no-page-map fallback), or `new WorkerClient` itself throwing. **Value:** whole seconds from the worker start to the failure, so "crashed at once" reads apart from "crashed after a slow step" (e.g. a slow config fetch; a slow map download only on the no-page-map fallback). `Worker:InitFailed` count = failures, and the cause totals add up to it. ⚠️ **History:** before task 0348 an async start crash was only reported after the (then 5 s) limit, as a timeout, so older `Worker:InitFailed` data cannot be split into crash and timeout. |
 
 ### Tutorial Events
 

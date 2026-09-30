@@ -25,7 +25,7 @@ owner-ruled (end of the next sprint, 2026-09-28 — see *Context*); the number i
 confirmed gaps and this one only measures leftovers judged low or harmless at `0327`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-architect
@@ -75,18 +75,18 @@ by name.
 
 ### How this relates to existing tasks — link, don't absorb
 
-- **Case 1 is [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)'s race** (Backlog board). This
+- **Case 1 is [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)'s race** (Backlog board). This
   investigation measures it **as reached through `0327`'s close routes** and says how bad that is. If a fix is
   warranted, the recommendation is to fix it **in `0228`** (the producer updates `0228`'s brief and, with the
   owner, its rank) — not to file a second task for the same race.
-- **Case 2 is [`0252`](../0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md)'s leak**
+- **Case 2 is [`0252`](../../backlog/0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md)'s leak**
   (Backlog board). Same rule: measure the new route's contribution, and route any fix to `0252`. **Do not edit
   `src/client/Transport.ts`**; it is `0252`'s.
 - **Cases 3 and 4 have no task today.** For each, recommend: file a fix brief, fold it into another task, or
   accept it as a known leftover.
-- **Siblings from the same review:** [`0333`](../0333-closing-the-host-window-before-the-private-lobby-exists-leaves-the-player-in-a-public-lobby/brief.md)
+- **Siblings from the same review:** [`0333`](../../done/0333-closing-the-host-window-before-the-private-lobby-exists-leaves-the-player-in-a-public-lobby/brief.md)
   (the public-lobby early-close bug — same early-close window as case 3, different consequence) and
-  [`0334`](../0334-host-start-still-sends-start-game-after-the-window-closed-during-the-settings-save/brief.md)
+  [`0334`](../../done/0334-host-start-still-sends-start-game-after-the-window-closed-during-the-settings-save/brief.md)
   (Start during the settings save — same Start function as case 4). If a finding shows a case is best fixed
   together with one of them, say so; do not change their scope yourself.
 
@@ -132,3 +132,35 @@ are fine but must not be left in the tree.
 - **Related:** `0327` (source — plan §6, worklog *Residuals*), `0228` (case 1 — link, don't absorb), `0252`
   (case 2 — link, don't absorb), `0333` and `0334` (sibling briefs from the same review), `0302` (citizen-only
   create limits production reach), `0322` (sequencing, if case 3 leads to a server change).
+
+## Close record — owner rulings on the findings (2026-09-30)
+
+**Closed 2026-09-30 by a spawned `fkit-producer` with no owner channel** (ADR-021/033 §5 — hence the
+agent-closed marker). The rulings below were given **live by the owner via `AskUserQuestion` in the
+`fkit lead` session and relayed by `fkit-lead`** (ADR-021/037); ⛔ not producer precedent.
+
+- **Deliverable exists:** [findings report](../../../knowledge-base/reports/2026-09-30-0335-lobby-close-leftovers-findings.md)
+  and this folder's [`worklog.md`](./worklog.md). All four cases real, none serious, none resolved by
+  `0333`/`0334`/`0347`/`0348`/`0035`.
+- **Evidence limits, stated plainly:** the live two-window reproduction was **NOT RUN**. Case 1 is
+  **reasoned from code only**; cases 2–4 were shown by throwaway jest probes, since removed from the tree.
+- **No code review step ran.** This was an investigation; it produced a report, not a diff, so there was
+  nothing to review. Nothing here is owner-verified beyond the rulings themselves.
+
+| Case | Owner ruling (verbatim option) | Where it is recorded |
+|---|---|---|
+| 1 — close within a split second of joining; the join completes with the window closed | **"Add to task 0228"** | Dated note on [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) (§3). No new task; `0228`'s rank and status unchanged. |
+| 2 — Transport listener leak, +24 inert bus listeners per private join | **"Note it on task 0252"** | Dated note on [`0252`](../../backlog/0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md). Rank kept (Medium, owner's). |
+| 3 — orphan private lobby when the host closes before `create_game` answers; the empty lobby lingers 3 h | **"Accept, revisit later"** | **Here.** Accepted as a known leftover. **Revisit before private lobbies open to all players.** Nothing filed. If fixed later: server-side only, ~10–20 lines in `GameServer.phase()` (idle unstarted-private-lobby cleanup, covers every abandoned private lobby). The old "wait for `0322`" ordering no longer applies — `0322` is done. |
+| 4 — `isStarting` stays true after the host's Start until the next `open()` | **"Accept as known"** | **Here.** Accepted as a known leftover; zero player effect. Nothing filed. |
+
+⚠️ **UNCONFIRMED FACT — the likelihood answers for cases 1 and 3 rest on it.** The report assumes the
+Yandex remote switch `private_lobbies` is on **for testers only**. **The owner did not confirm the
+current console state** (report open question 5, not answered). Until someone checks the console, read
+"testers only today" as an assumption, not a fact.
+
+**Follow-up filed on a separate owner request the same day:** the testers-by-default + everyone-flag
+brief — see the Backlog board row for [`0354`](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+Cases 1 and 3 must be revisited before that everyone-flag is set.
+
+**Wiki:** the report is not yet in the wiki — `fkit-wiki` should run `/fkit-wiki-ingest` on it.

@@ -24,7 +24,7 @@ owner-ruled (end of the next sprint, 2026-09-28 — see *Context*); the number i
 that can start as soon as `0327` ships, while `0323` and `0332` both wait on Sprint 6 work (`0322`, `0325`).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

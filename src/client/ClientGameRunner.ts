@@ -36,7 +36,10 @@ import {
   TerrainMapData,
 } from "../core/game/TerrainMapLoader";
 import { UserSettings } from "../core/game/UserSettings";
-import { WorkerClient } from "../core/worker/WorkerClient";
+import {
+  WorkerClient,
+  WorkerInitTimeoutError,
+} from "../core/worker/WorkerClient";
 import {
   AutoUpgradeEvent,
   DoBoatAttackEvent,
@@ -53,7 +56,11 @@ import {
   shouldLogMatchSpawnedConfirmedAnalytics,
 } from "./MatchStartAnalytics";
 import { isEliminated } from "./PlayerElimination";
-import { saveReconnectSession } from "./ReconnectSession";
+import {
+  clearReconnectSession,
+  loadReconnectSession,
+  saveReconnectSession,
+} from "./ReconnectSession";
 import {
   logWinConditionCheckAnalytics,
   shouldLogWinConditionCheck,
@@ -129,6 +136,14 @@ export function joinLobby(
   // game. `left` covers a leave that lands while the game is still being built.
   let runner: ClientGameRunner | null = null;
   let left = false;
+  // Task 0035. Aborted wherever `left` is set: stops a worker that is still
+  // starting at once, and makes its start failure silent (no popup, no
+  // telemetry) — the player already left.
+  const leaveController = new AbortController();
+  // Task 0347. True once this join wrote reconnect-session. The lobby-error
+  // branch clears only then, and only while the stored IDs are still this
+  // join's (localStorage is shared across tabs).
+  let savedReconnectSession = false;
 
   const onconnect = () => {
     console.log(`Joined game lobby ${lobbyConfig.gameID}`);
@@ -215,6 +230,13 @@ export function joinLobby(
       onJoin();
       // For multiplayer games, GameStartInfo is not known until game starts.
       lobbyConfig.gameStartInfo = message.gameStartInfo;
+      // Task 0347. Save before the worker is built: a worker start failure
+      // returns before the runner exists, and the runner's own save (in start())
+      // never runs — so a refresh had nothing to rejoin. Multiplayer only.
+      if (!transport.isLocal && !left) {
+        saveReconnectSession(lobbyConfig.gameID, lobbyConfig.clientID);
+        savedReconnectSession = true;
+      }
       createClientGame(
         lobbyConfig,
         eventBus,
@@ -224,11 +246,14 @@ export function joinLobby(
         preloadStartTime,
         terrainMapFileLoader,
         onGameEnd,
+        leaveController.signal,
       )
         .then((r) => {
           if (r === undefined) {
             // Worker init failed: createClientGame already showed the modal and
-            // returned without constructing a runner, so stop() never runs.
+            // returned without constructing a runner, so stop() never runs —
+            // or the join was already left, and it returned silently (task
+            // 0035).
             onGameEnd();
             return;
           }
@@ -269,14 +294,31 @@ export function joinLobby(
       // branch above), leaveGame() ends the ping loop, and onGameEnd() stops
       // the monitor when onJoin already started one — a no-op otherwise.
       left = true;
+      leaveController.abort();
       transport.leaveGame();
       onGameEnd();
+      // Task 0347. A `start` may already have saved the session (the worker
+      // can still be starting, or have failed). The server refuses this
+      // clientID now, so a Rejoin offer would be a dead end (task 0256's bug).
+      // Another tab may have written its own session since, so only a session
+      // that still holds this join's IDs is cleared. Last, so a throwing
+      // storage call cannot skip the teardown above.
+      if (savedReconnectSession) {
+        const stored = loadReconnectSession();
+        if (
+          stored?.gameID === lobbyConfig.gameID &&
+          stored.clientID === lobbyConfig.clientID
+        ) {
+          clearReconnectSession();
+        }
+      }
     }
   };
   transport.connect(onconnect, onmessage);
   return () => {
     console.log("leaving game");
     left = true;
+    leaveController.abort();
     if (runner !== null) {
       // stop() calls transport.leaveGame() itself.
       runner.stop();
@@ -295,6 +337,8 @@ async function createClientGame(
   preloadStartTime: number | null,
   mapLoader: GameMapLoader,
   onGameEnd: () => void,
+  // Task 0035: aborted when the player leaves the join (see joinLobby).
+  signal: AbortSignal,
 ): Promise<ClientGameRunner | undefined> {
   if (lobbyConfig.gameStartInfo === undefined) {
     throw new Error("missing gameStartInfo");
@@ -339,16 +383,64 @@ async function createClientGame(
       mapLoader,
     );
   }
-  let worker: WorkerClient;
+  // Task 0035: hand the worker the map bytes this page just loaded, so it does
+  // not download the map a second time. Same key, so the same object the load
+  // above cached before it resolved.
+  const mapSource = getCachedMap(
+    lobbyConfig.gameStartInfo.config.gameMap,
+    lobbyConfig.gameStartInfo.config.gameMapSize,
+  );
+  if (mapSource === undefined) {
+    console.warn(
+      "createClientGame: no cached map source after the map load; the worker will download the map itself",
+    );
+  }
+  // Task 0035: left while the config or the map was loading — never start a
+  // worker.
+  if (signal.aborted) {
+    console.log("createClientGame: join left before the worker start");
+    return;
+  }
+  let worker: WorkerClient | undefined;
+  const workerStartTime = Date.now();
+  // Task 0035: leaving while the worker is starting stops it at once. Removed
+  // once the start settles, so after a successful start joinLobby's
+  // `left → r.stop()` alone owns teardown (task 0231).
+  const stopStartingWorker = () => worker?.cleanup();
+  signal.addEventListener("abort", stopStartingWorker, { once: true });
   try {
-    worker = new WorkerClient(lobbyConfig.gameStartInfo, lobbyConfig.clientID);
+    worker = new WorkerClient(
+      lobbyConfig.gameStartInfo,
+      lobbyConfig.clientID,
+      mapSource,
+    );
     await worker.initialize();
   } catch (err) {
+    // Task 0348 — stop the left-over worker. Deliberately NO
+    // clearReconnectSession here: a worker start failure must keep the Rejoin
+    // session (task 0347).
+    worker?.cleanup();
+    // Task 0035: the player already left, so this failure is theirs to never
+    // see — no popup, no Worker:InitFailed*, no Uptrace line.
+    if (signal.aborted) {
+      console.log(
+        "createClientGame: worker start ended after the join was left",
+      );
+      return;
+    }
+    const reason = err instanceof Error ? err.message : String(err);
+    const cause = err instanceof WorkerInitTimeoutError ? "Timeout" : "Crash";
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.WORKER_INIT_FAILED,
     );
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.WORKER_INIT_FAILED_CAUSE_FIRST_PART +
+        cause,
+      Math.floor((Date.now() - workerStartTime) / 1000),
+    );
+    logOtelWarn(`Worker init failed (${cause}): ${reason}`);
     showErrorModal(
-      err instanceof Error ? err.message : String(err),
+      reason,
       undefined,
       lobbyConfig.gameStartInfo.gameID,
       lobbyConfig.clientID,
@@ -357,6 +449,8 @@ async function createClientGame(
       "error_modal.worker_init_failed",
     );
     return;
+  } finally {
+    signal.removeEventListener("abort", stopStartingWorker);
   }
   flashist_logEventAnalytics(
     flashistConstants.analyticEvents.WORKER_INIT_SUCCESS,
@@ -738,6 +832,7 @@ export class ClientGameRunner {
         }
 
         this.hasJoined = true;
+        // Re-save on (re)connect; the first save is in joinLobby (task 0347).
         if (!this.transport.isLocal) {
           saveReconnectSession(this.lobby.gameID, this.lobby.clientID);
         }

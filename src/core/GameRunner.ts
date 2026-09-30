@@ -26,7 +26,11 @@ import {
   GameUpdateType,
   GameUpdateViewData,
 } from "./game/GameUpdates";
-import { loadTerrainMap as loadGameMap } from "./game/TerrainMapLoader";
+import {
+  loadTerrainMap as loadGameMap,
+  terrainMapFromSource,
+  TerrainMapSource,
+} from "./game/TerrainMapLoader";
 import { PseudoRandom } from "./PseudoRandom";
 import { ClientID, GameStartInfo, Turn } from "./Schemas";
 import { sanitize, simpleHash } from "./Util";
@@ -37,13 +41,18 @@ export async function createGameRunner(
   clientID: ClientID,
   mapLoader: GameMapLoader,
   callBack: (gu: GameUpdateViewData | ErrorUpdate) => void,
+  mapSource?: TerrainMapSource,
 ): Promise<GameRunner> {
   const config = await getConfig(gameStart.config, null);
-  const gameMap = await loadGameMap(
-    gameStart.config.gameMap,
-    gameStart.config.gameMapSize,
-    mapLoader,
-  );
+  // Task 0035: use the map the page already loaded when it sent one; download
+  // it through mapLoader only when it did not.
+  const gameMap = mapSource
+    ? await terrainMapFromSource(mapSource)
+    : await loadGameMap(
+        gameStart.config.gameMap,
+        gameStart.config.gameMapSize,
+        mapLoader,
+      );
   const random = new PseudoRandom(simpleHash(gameStart.gameID));
 
   const humans = gameStart.players.map(

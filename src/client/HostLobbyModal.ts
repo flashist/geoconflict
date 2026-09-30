@@ -633,7 +633,7 @@ export class HostLobbyModal extends LitElement {
       true,
     );
 
-    createLobby(this.lobbyCreatorClientID).then((lobby) => {
+    const joined = createLobby(this.lobbyCreatorClientID).then((lobby) => {
       // Task 0327: the window closed (or reopened) while the lobby was being
       // created — do not join a lobby nobody is looking at.
       if (generation !== this.openGeneration) {
@@ -653,6 +653,9 @@ export class HostLobbyModal extends LitElement {
         }),
       );
     });
+    // Task 0333: a failed create is already logged in createLobby(); nothing
+    // else waits on this chain, so stop the rejection going unhandled.
+    joined.catch(() => {});
     this.modalEl?.open();
     this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
   }
@@ -912,6 +915,11 @@ export class HostLobbyModal extends LitElement {
       // settings save shows the same line and does NOT start — before, it was
       // silent and the match started with the old settings.
       const configResponse = await this.putGameConfig();
+      // Task 0334 (0327 review R1): the window closed (or reopened) during the
+      // settings save (its PUT or its own config read) — send no `start_game`.
+      if (generation !== this.openGeneration) {
+        return null;
+      }
       if (!configResponse.ok) {
         this.showStartFailed();
         return configResponse;
@@ -920,6 +928,10 @@ export class HostLobbyModal extends LitElement {
         `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} ${this.useRandomMap ? " (Randomly selected)" : ""}`,
       );
       const config = await getServerConfigFromClient();
+      // Task 0334: same, for a close during this Start's own config read.
+      if (generation !== this.openGeneration) {
+        return null;
+      }
       response = await fetch(
         // Flashist Adaptation: root-absolute, NOT `FlashistFacade.instance.windowOrigin`.
         // windowOrigin is origin + document pathname, but the worker API is mounted at
@@ -936,8 +948,17 @@ export class HostLobbyModal extends LitElement {
       );
     } catch (error) {
       console.error(`Failed to start private game: ${error}`);
+      // Task 0334: a throw from the save, the config read or an in-flight
+      // `start_game` (a sent one cannot be recalled) must not touch a window
+      // closed or reopened meanwhile.
+      if (generation !== this.openGeneration) {
+        return null;
+      }
       this.showStartFailed();
       return null;
+    }
+    if (generation !== this.openGeneration) {
+      return response;
     }
     if (!response.ok) {
       // Task 0302: a 403 `citizens_only` (creator not a citizen, or the profile
@@ -1008,8 +1029,10 @@ export class HostLobbyModal extends LitElement {
 }
 
 async function createLobby(creatorClientID: string): Promise<GameInfo> {
-  const config = await getServerConfigFromClient();
   try {
+    // Task 0333 review R1: inside the try, so a config failure is logged too
+    // — open() swallows this function's rejection.
+    const config = await getServerConfigFromClient();
     const id = generateID();
     const response = await fetch(
       `/${config.workerPath(id)}/api/create_game/${id}?creatorClientID=${encodeURIComponent(creatorClientID)}`,

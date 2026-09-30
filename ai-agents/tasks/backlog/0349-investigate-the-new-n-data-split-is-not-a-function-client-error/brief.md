@@ -29,8 +29,8 @@ investigation task now, whatever the source turns out to be."* No sprint named â
 - The coder downloaded the prod `main`, `vendors`, `app`, `880` and `983` bundles: **no `.data.split` in our code**.
   Yandex's `sdk.js` is a 3.7 KB loader, so the code with the handler is probably something it pulls in (SDK or ads
   code).
-- **Unrelated to the worker start issue** ([`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md),
-  [`0348`](../0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md)):
+- **Unrelated to the worker start issue** ([`0347`](../../done/0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md),
+  [`0348`](../../done/0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md)):
   worker messages never reach page listeners.
 - **Guesses only, not findings:** `0325`'s new signed `getPlayer` call (`FlashistFacade.ts` ~`1660-1745`) or `0330`'s
   SDK loader retry could have changed what the SDK does. Nothing links them yet.

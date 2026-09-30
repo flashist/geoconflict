@@ -7,9 +7,23 @@ import {
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
 import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
+import { TerrainMapSource } from "../game/TerrainMapLoader";
 import { ClientID, GameStartInfo, Turn } from "../Schemas";
 import { generateID } from "../Util";
 import { WorkerMessage } from "./WorkerMessages";
+
+// Task 0348. Was 5 s. A crash now fails fast (init_failed / error event), so
+// this only bounds a start that is slow but alive. Kept at 15 s, not more: the
+// multiplayer spawn phase is ~20 s (300 turns × 66.7 ms), and a start that
+// ends after it joins too late to place.
+export const WORKER_INIT_TIMEOUT_MS = 15000;
+
+export class WorkerInitTimeoutError extends Error {
+  constructor() {
+    super("Worker initialization timeout");
+    this.name = "WorkerInitTimeoutError";
+  }
+}
 
 export class WorkerClient {
   private worker: Worker;
@@ -23,6 +37,10 @@ export class WorkerClient {
   constructor(
     private gameStartInfo: GameStartInfo,
     private clientID: ClientID,
+    // Task 0035: the page's already-loaded map, sent in `init` so the worker
+    // does not download it again. Copied (structured clone), not transferred:
+    // the page's live map and its map cache keep using these bytes.
+    private mapSource?: TerrainMapSource,
   ) {
     this.worker = new Worker(new URL("./Worker.worker.ts", import.meta.url));
     this.messageHandlers = new Map();
@@ -73,15 +91,35 @@ export class WorkerClient {
 
   initialize(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.initReject = reject;
-
       const messageId = generateID();
+
+      const timeoutHandle = setTimeout(() => {
+        if (!this.isInitialized) {
+          this.initReject = undefined;
+          this.messageHandlers.delete(messageId);
+          reject(new WorkerInitTimeoutError());
+        }
+      }, WORKER_INIT_TIMEOUT_MS);
+
+      // Task 0348 — every way the start can end (initialized, init_failed,
+      // the error event, the timeout) clears the timer.
+      const settleReject = (err: Error) => {
+        clearTimeout(timeoutHandle);
+        reject(err);
+      };
+      this.initReject = settleReject;
 
       this.messageHandlers.set(messageId, (message) => {
         if (message.type === "initialized") {
+          clearTimeout(timeoutHandle);
           this.isInitialized = true;
           this.initReject = undefined;
           resolve();
+        } else if (message.type === "init_failed") {
+          this.initReject = undefined;
+          settleReject(
+            new Error(`Worker initialization failed: ${message.error}`),
+          );
         }
       });
 
@@ -90,16 +128,8 @@ export class WorkerClient {
         id: messageId,
         gameStartInfo: this.gameStartInfo,
         clientID: this.clientID,
+        mapSource: this.mapSource,
       });
-
-      // Add timeout for initialization
-      setTimeout(() => {
-        if (!this.isInitialized) {
-          this.initReject = undefined;
-          this.messageHandlers.delete(messageId);
-          reject(new Error("Worker initialization timeout"));
-        }
-      }, 5000); // 5 second timeout
     });
   }
 
@@ -277,8 +307,16 @@ export class WorkerClient {
   }
 
   cleanup() {
+    // Task 0035: a start still pending fails now instead of waiting out the
+    // 15 s timer (settleReject clears it). Taken first, so the reject runs
+    // after the worker is stopped and cannot run twice.
+    const pendingInitReject = this.initReject;
+    this.initReject = undefined;
     this.worker.terminate();
     this.messageHandlers.clear();
     this.gameUpdateCallback = undefined;
+    pendingInitReject?.(
+      new Error("Worker stopped before it finished starting"),
+    );
   }
 }

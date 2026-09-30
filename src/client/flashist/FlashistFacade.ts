@@ -127,6 +127,9 @@ export const flashistConstants = {
 
     WORKER_INIT_SUCCESS: "Worker:InitSuccess",
     WORKER_INIT_FAILED: "Worker:InitFailed",
+    // Task 0348: fired right after WORKER_INIT_FAILED with the cause appended
+    // (Timeout | Crash); value = whole seconds from worker start to failure.
+    WORKER_INIT_FAILED_CAUSE_FIRST_PART: "Worker:InitFailedCause:",
 
     TUTORIAL_STARTED: "Tutorial:Started",
     TUTORIAL_TOOLTIP_SHOWN_FIRST_PART: "Tutorial:TooltipShown:",

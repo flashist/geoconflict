@@ -26,7 +26,7 @@ one. No row was moved or renumbered (ADR-035).
 one-time gift plus a join within ~1–2 s), it predates `0329`, and the owner's ruling called it low priority.
 
 ## Status
-🔲 Backlog
+🔄 In progress *(set 2026-09-30 by `fkit-lead` — driven by `/fkit-sprint-ship-loop`; was ~~🔲 Backlog~~)*
 
 ## Owner
 fkit-coder

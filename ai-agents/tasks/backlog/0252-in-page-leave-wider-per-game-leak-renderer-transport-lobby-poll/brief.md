@@ -102,6 +102,25 @@ relying on any of them.**
 > today** (leaving a public-lobby card). The text is kept as written, not edited. Once `0327` ships, the
 > private-lobby close becomes a second shipped pre-start route and step 2's measurement applies to it again.
 
+> 📌 **2026-09-30 — OWNER RULING: note `0335`'s case 2 here ("Note it on task 0252"). Rank kept (Medium,
+> owner's).** Given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a
+> spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. No new task.
+>
+> - **The private-lobby close route is now shipped** — `0327` is in the `0.0.155` deploy commit (whether
+>   that build is live was not checked). So it is now the second shipped pre-start route.
+> - **Measured at unit level by [`0335`](../../done/0335-investigate-four-known-lobby-close-leftovers-left-by-0327/brief.md)
+>   probe P2** ([findings report, case 2](../../../knowledge-base/reports/2026-09-30-0335-lobby-close-leftovers-findings.md)):
+>   a Transport built and then `leaveGame()`'d three times on a fresh bus gave listener counts
+>   **0 → 24 → 48 → 72** — **+24 inert bus listeners per private join, never removed**; no socket opened;
+>   a later intent only logs "attempting reconnect". This partly answers step 2 ("has NOT been
+>   measured") for this route. ⚠️ **The browser measurement step 2 asks for is still owed** — P2 was a
+>   jest probe, not the 0231 instrument.
+> - **Correction:** the listeners are added **per join, not per leave**. `0327` adds no extra leaked
+>   listeners — before it, the same Transport simply lived on (with a live socket) until the next join.
+>   `0327` only makes this a second shipped route on which the per-join leak is visible.
+> - **Effect before a match:** nothing a player sees; no renderer/canvas exists yet, so only the
+>   Transport half applies. Bounded by the page's lifetime.
+
 ⚠️ **The two shipped pre-start routes were NOT measured by 0231** (its 1b/1c/1d all left an
 already-started game). On those routes no `GameRenderer` exists yet, so the canvas / rAF / renderer
 half cannot apply — but `joinLobby()` has already run, and **Transport registers its bus listeners in

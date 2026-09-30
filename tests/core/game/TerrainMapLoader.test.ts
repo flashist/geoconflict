@@ -7,6 +7,8 @@ import {
   genTerrainFromBin,
   getCachedMap,
   loadTerrainMap,
+  terrainMapFromSource,
+  TerrainMapSource,
 } from "../../../src/core/game/TerrainMapLoader";
 
 const W = 8;
@@ -181,5 +183,72 @@ describe("loadTerrainMap", () => {
     expect(compactMapData.mapBin).not.toHaveBeenCalled();
     expect(compactMapData.map4xBin).toHaveBeenCalled();
     expect(compactMapData.map16xBin).toHaveBeenCalled();
+  });
+});
+
+// Task 0035: the worker builds its map from the source the page already
+// loaded, instead of downloading the map again.
+describe("terrainMapFromSource", () => {
+  beforeEach(() => {
+    clearTerrainMapCache();
+  });
+
+  function makeSource(w: number, h: number): TerrainMapSource {
+    return {
+      nations: [],
+      map: {
+        metadata: { width: w, height: h, num_land_tiles: 0 },
+        bin: new Uint8Array(w * h),
+      },
+      miniMap: {
+        metadata: { width: w / 2, height: h / 2, num_land_tiles: 0 },
+        bin: new Uint8Array((w / 2) * (h / 2)),
+      },
+    };
+  }
+
+  test("builds both maps from the source with no loader, at the source's sizes", async () => {
+    const { loader } = makeMockLoader(W, H);
+    const result = await terrainMapFromSource(makeSource(W, H));
+    expect(loader.getMapData).not.toHaveBeenCalled();
+    expect(result.gameMap.width()).toBe(W);
+    expect(result.gameMap.height()).toBe(H);
+    expect(result.miniGameMap.width()).toBe(W / 2);
+    expect(result.miniGameMap.height()).toBe(H / 2);
+  });
+
+  test("each call builds its own GameMap — tile state does not leak between them (task 0032)", async () => {
+    const source = makeSource(W, H);
+    const first = await terrainMapFromSource(source);
+    const second = await terrainMapFromSource(source);
+    expect(second.gameMap).not.toBe(first.gameMap);
+    expect(second.miniGameMap).not.toBe(first.miniGameMap);
+
+    const tile = first.gameMap.ref(1, 1);
+    first.gameMap.setOwnerID(tile, 7);
+    expect(first.gameMap.hasOwner(tile)).toBe(true);
+    expect(second.gameMap.hasOwner(tile)).toBe(false);
+  });
+
+  test("a bin of the wrong length rejects", async () => {
+    const source = makeSource(W, H);
+    source.map.bin = new Uint8Array(W * H - 1);
+    await expect(terrainMapFromSource(source)).rejects.toThrow("Invalid data");
+  });
+
+  test("Compact: a cached source keeps its nation coordinates — not halved a second time", async () => {
+    const nations: Nation[] = [
+      { coordinates: [4, 6], flag: "🏳️", name: "Testland", strength: 1 },
+    ];
+    const { loader } = makeMockLoader(W, H, nations);
+    const loaded = await loadTerrainMap(MAP, GameMapSize.Compact, loader);
+    expect(loaded.nations[0].coordinates).toEqual([2, 3]);
+
+    const source = getCachedMap(MAP, GameMapSize.Compact);
+    expect(source).toBeDefined();
+    const rebuilt = await terrainMapFromSource(source!);
+    expect(rebuilt.nations[0].coordinates).toEqual([2, 3]);
+    expect(rebuilt.gameMap.width()).toBe(loaded.gameMap.width());
+    expect(rebuilt.gameMap.height()).toBe(loaded.gameMap.height());
   });
 });

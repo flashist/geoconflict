@@ -7,7 +7,11 @@
 Sprint 8
 
 ## Priority
-1
+2
+
+> 📌 **2026-09-30 — was 1, now 2.** Moved down one by the OWNER-RULED placement of verify task `0351` at the top of
+> Sprint 8 (relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent). Not a merit
+> judgement; nothing else about this task changed. The note below is kept as written (ADR-035).
 
 > Rank 1 because it is the **first and only row** on the new [Sprint 8 board](../../../sprints/plan-sprint-8.md),
 > created 2026-09-29 to receive it. Not a merit judgement against anything else; the owner ranks Sprint 8.

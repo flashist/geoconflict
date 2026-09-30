@@ -8,10 +8,10 @@ Sprint 7
 
 ## Priority
 23 — append rank. ⚠️ **Part of the owner-ruled top-of-Sprint-7 reconnect work (R2), worked directly after
-[`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md)**, whatever this number says.
+[`0347`](../../done/0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md)**, whatever this number says.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -23,7 +23,7 @@ live in the `fkit lead` session on 2026-09-29, relayed by `fkit-lead`.** ⛔ Not
 (`AskUserQuestion`, "What should the Sprint 7 reconnect task cover?") → **"Rejoin + fix the timeout
 (Recommended)"** — *"…Also fix 0035 (give the worker the map the page already loaded, and/or a longer limit), so
 start failures happen less. Removes the main cause."* Full authority record:
-[`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md) § Context.
+[`0347`](../../done/0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md) § Context.
 
 **Why this is its own task (producer's split, flagged for the owner).** [`0035`](../0035-worker-init-timeout-map-refetch/brief.md)
 says its two fixes are *"independent and complementary"*: Option A (give the worker the map) and Option B (raise
@@ -74,7 +74,7 @@ it was a slow download or a crash. After this task, they can.
 - **Blocks:** nothing hard. **Sequencing:** do this before `0035` — both edit the worker start path
   (`WorkerClient.ts`, `ClientGameRunner.ts` catch block), and this task's crash-vs-timeout signal tells how much
   `0035`'s map hand-over actually buys.
-- Works alone and alongside [`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md);
+- Works alone and alongside [`0347`](../../done/0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md);
   once this lands, `0347`'s repro B may need a forced worker error instead of a slow network (the limit is longer).
 - Carved out of `0035` (Option B + leak fix) by the producer. `0035` is **not** cancelled or closed; it keeps
   Option A.

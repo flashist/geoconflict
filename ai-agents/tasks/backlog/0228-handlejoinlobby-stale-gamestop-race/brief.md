@@ -90,6 +90,40 @@ to have shipped something.
 ⚠️ Equally: **"I could not determine reachability" is also an acceptable honest outcome** — report it
 as undetermined rather than guessing in either direction.
 
+> 📌 **2026-09-30 — OWNER RULING: `0335`'s case 1 is added to this task ("Add to task 0228").** Given live
+> via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`
+> with no owner channel (ADR-021/037); ⛔ not producer precedent. **No new task. This task's rank, board
+> and status are unchanged.** The text above is kept as written (true when written).
+>
+> - **This is the first user-reachable path this task has had** — but it is a **join plus a leave** in
+>   the window, not the two joins §3 asks about. Found by
+>   [`0335`](../../done/0335-investigate-four-known-lobby-close-leftovers-left-by-0327/brief.md)
+>   (see the [findings report, case 1](../../../knowledge-base/reports/2026-09-30-0335-lobby-close-leftovers-findings.md)).
+> - **Mechanism.** A private-lobby window marks the player joined and dispatches `join-lobby`.
+>   `handleJoinLobby` then awaits server config (`Main.ts:759`, cached), `fetchCosmetics()` (`Main.ts:762`
+>   — a real `fetch("/cosmetics.json")` on every call, no in-memory cache, `Cosmetics.ts:77-80`) and the
+>   Yandex id (`Main.ts:783`), and only then sets `gameStop` (`Main.ts:766`). If the player closes the
+>   window in that gap (since `0327` the close sends `leave-lobby`), `handleLeaveLobby` returns early
+>   because `gameStop` is null (`Main.ts:1023-1026`), the leave is dropped, and the join then completes
+>   **with the window closed**. Line numbers are the 2026-09-30 working tree (uncommitted
+>   `0333`/`0334`/`0347`/`0348`/`0035` included) — find the code by name.
+> - **Evidence: reasoned from code only.** No live two-window repro was run, and no unit probe (`Client`
+>   in `Main.ts` is not exported). Window size is estimated at about one round trip for
+>   `/cosmetics.json` — not measured.
+> - **Effect:** low. A Join-window player can later be pulled into the host's match while idle; a host is
+>   left in a lobby nobody can start. Heals on the player's next join/Create. Nothing lost.
+> - **Fix shape the report suggests (client-only, `Main.ts`, ~20–30 lines + tests):** this task's
+>   original null-after-call, **plus** a "join still setting up" marker that a leave can cancel, so
+>   `handleJoinLobby` stops before `joinLobby()` after its awaits. Keep `0227`'s `joinGeneration` order.
+>   Test it by pulling the join/leave order into a small module (as `0333` did with `HostLobbyOpen.ts`),
+>   not with a test that only proves a null was added (§4).
+> - **When it matters:** the private-lobby row is shown only when the `private_lobbies` switch is on,
+>   **assumed testers-only today — UNCONFIRMED: the owner did not confirm the current Yandex console
+>   state** (2026-09-30). The report recommends raising this task before private lobbies open to all
+>   players — see [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
+>   which must not have its everyone-flag set before this case is revisited. *(Rank change is the
+>   owner's; none was ruled.)*
+
 ### 4. Verification stance — the same as `0225` and `0227`
 
 - **There is no relevant test today**, and none is trivially addable: `handleJoinLobby` reaches for

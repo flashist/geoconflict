@@ -47,6 +47,7 @@ import "./GoogleAdElement";
 import { GutterAds } from "./GutterAds";
 import { HelpModal } from "./HelpModal";
 import { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
+import { openHostLobbyFromStartScreen } from "./HostLobbyOpen";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
@@ -533,8 +534,12 @@ class Client {
       this.fireFirstAction();
       privateLobbyAccess.onCreateTap(() => {
         if (this.usernameInput?.isValid()) {
-          hostModal.open();
-          this.publicLobby.leaveLobby();
+          openHostLobbyFromStartScreen({
+            isInLobby: () => this.gameStop !== null,
+            leaveLobby: () => void this.handleLeaveLobby(),
+            clearPublicLobbyHighlight: () => this.publicLobby.leaveLobby(),
+            openHostModal: () => hostModal.open(),
+          });
         }
       });
     });

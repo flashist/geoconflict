@@ -76,6 +76,8 @@ jest.mock("../../src/client/PlayerElimination", () => ({
 }));
 jest.mock("../../src/client/ReconnectSession", () => ({
   saveReconnectSession: jest.fn(),
+  clearReconnectSession: jest.fn(),
+  loadReconnectSession: jest.fn(() => null),
 }));
 jest.mock("../../src/client/WinConditionAnalytics", () => ({
   logWinConditionCheckAnalytics: jest.fn(),

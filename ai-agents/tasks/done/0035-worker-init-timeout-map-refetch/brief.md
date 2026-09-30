@@ -13,12 +13,12 @@ Sprint 7
 > *"Save 'remember this match' earlier, so a refresh can rejoin even if the start failed. Also fix 0035 (give the
 > worker the map the page already loaded, and/or a longer limit), so start failures happen less. Removes the main
 > cause."* The owner also ruled the reconnect work goes **to the top of Sprint 7** (full record:
-> [`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md) § Context).
+> [`0347`](../../done/0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md) § Context).
 > - **Was:** `Sprint backlog — no sprint home yet. Client join-path fragility fix.` (row on
 >   [`sprint-backlog.md`](../../../sprints/sprint-backlog.md), now a `➡️ Moved` pointer).
 > - **Scope split (producer's call, flagged for owner confirmation):** this task now covers **Option A only** — give
 >   the worker the map the page already loaded. **Option B (raise the limit) and the worker-leak fix moved to
->   [`0348`](../0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md)**,
+>   [`0348`](../../done/0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md)**,
 >   together with a new finding: a crash inside the worker's async start is never posted back, so it shows up as
 >   "timeout" — ⚠️ **so § *Regression analysis* point 1 below (*"real crashes still fail fast"*) holds only for errors
 >   thrown straight away, not async ones** (`fkit-coder`'s reading, 2026-09-29). The text below is **left unedited**
@@ -46,7 +46,7 @@ Sprint 7
 after `0347` and `0348`**, whatever this number says.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -305,3 +305,6 @@ Confirmed by tracing the code — **no functional regressions**, one narrow UX c
   (The `## Notes for the release decision` section's advice — before shipping, test the join flow
   against a valid-TLS host rather than the bare-IP dev box — is a verification recommendation about a
   past prod-release decision, not a prerequisite task.)
+- 📌 **2026-09-30 — known leftover from [`0348`](../../done/0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md), deferred here. Read the authority before the outcome.** An **OWNER RULING given live 2026-09-30 in the `fkit lead` session via `AskUserQuestion`**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Ruling on `0348`'s review finding R1 → **"Note it on 0035"**. Appended note only — this task's status, sprint, priority and the text above are unchanged.
+
+  > Known leftover from 0348 (review R1, owner ruling 2026-09-30 — fix it here, not in 0348): if the player leaves while the game worker is still starting and that start then fails, `createClientGame`'s failure path (ClientGameRunner.ts, the catch marked 'Task 0348 — stop the left-over worker') still shows the 'Failed to start the game' popup — possibly over the next match — and logs `Worker:InitFailed`, `Worker:InitFailedCause:*` and the Uptrace warning for a join the player already abandoned. The cause is that the catch cannot see `joinLobby`'s `left` flag, and leaving does not stop a still-starting worker. There is no teardown leak, because `onGameEnd` is generation-guarded in Main.ts. 0348 raised the start time limit from 5 s to 15 s, so the timeout case can now pop up to 15 s late. Since 0035 reworks this same start path, it should skip the popup and telemetry when the join was already left, and ideally stop the worker the moment the player leaves. See the 0348 [review.md](../../done/0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/review.md) Accepted residuals entry.

@@ -6,12 +6,14 @@ import {
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
 import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
+import { TerrainMapSource } from "../game/TerrainMapLoader";
 import { ClientID, GameStartInfo, Turn } from "../Schemas";
 
 export type WorkerMessageType =
   | "heartbeat"
   | "init"
   | "initialized"
+  | "init_failed"
   | "turn"
   | "game_update"
   | "game_error"
@@ -41,6 +43,8 @@ export interface InitMessage extends BaseWorkerMessage {
   type: "init";
   gameStartInfo: GameStartInfo;
   clientID: ClientID;
+  // Task 0035: the page's already-loaded map; absent → the worker downloads it.
+  mapSource?: TerrainMapSource;
 }
 
 export interface TurnMessage extends BaseWorkerMessage {
@@ -51,6 +55,13 @@ export interface TurnMessage extends BaseWorkerMessage {
 // Messages from worker to main thread
 export interface InitializedMessage extends BaseWorkerMessage {
   type: "initialized";
+}
+
+// Worker → main thread: the async game-runner start failed (task 0348), so
+// initialize() rejects with the real reason instead of timing out.
+export interface InitFailedMessage extends BaseWorkerMessage {
+  type: "init_failed";
+  error: string;
 }
 
 export interface GameUpdateMessage extends BaseWorkerMessage {
@@ -134,6 +145,7 @@ export type MainThreadMessage =
 // Message send from worker
 export type WorkerMessage =
   | InitializedMessage
+  | InitFailedMessage
   | GameUpdateMessage
   | GameErrorMessage
   | PlayerActionsResultMessage

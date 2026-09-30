@@ -6,7 +6,13 @@ export interface ReconnectSession {
 }
 
 export function saveReconnectSession(gameID: string, clientID: string): void {
-  localStorage.setItem(KEY, JSON.stringify({ gameID, clientID }));
+  // Task 0347. The save sits directly in front of the match start, so a
+  // throwing setItem (quota full, storage blocked) must not skip the start.
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ gameID, clientID }));
+  } catch {
+    /* storage unavailable: rejoin just isn't offered */
+  }
 }
 
 export function clearReconnectSession(): void {

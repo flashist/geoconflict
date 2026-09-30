@@ -40,6 +40,7 @@ jest.mock("../../src/core/configuration/ConfigLoader", () => ({
 import "../../src/client/components/baseComponents/Modal";
 import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
 import { HostLobbyModal } from "../../src/client/HostLobbyModal";
+import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import { exposeLitAccessors } from "./support/litAccessors";
 
 const LOBBY_ID = "HOSTLOBBY";
@@ -271,5 +272,179 @@ describe("HostLobbyModal close leaves the lobby (task 0327)", () => {
     await flush();
 
     expect(calls().some((u) => u.includes("start_game"))).toBe(false);
+  });
+
+  // Task 0334 (0327 review R1): a close after the ad but before `start_game` is
+  // sent must stop the Start too.
+  describe("closing during the rest of a Start (task 0334)", () => {
+    type Held = { isHeld: () => boolean; release: (value: unknown) => void };
+
+    const startGame = () =>
+      (modal as unknown as { startGame: () => Promise<unknown> }).startGame();
+    const startCalls = () => calls().filter((u) => u.includes("start_game"));
+    const putCalls = () =>
+      fetchMock.mock.calls.filter(
+        (c) => (c[1] as { method?: string } | undefined)?.method === "PUT",
+      );
+    const startFailedLine = () =>
+      modal.querySelector("#host-lobby-start-failed");
+    const isSave = (url: string, method?: string) =>
+      url === `/w1/api/game/${LOBBY_ID}` && method === "PUT";
+
+    // Holds the first request `match` accepts until release(); every other
+    // request gets the normal answer.
+    function holdRequest(
+      match: (url: string, method?: string) => boolean,
+    ): Held {
+      const base = fetchMock.getMockImplementation()!;
+      const held: { resolve?: (value: unknown) => void; reject?: unknown } = {};
+      fetchMock.mockImplementation(
+        (url: string, init?: { method?: string }) => {
+          if (held.resolve === undefined && match(url, init?.method)) {
+            return new Promise((resolve, reject) => {
+              held.resolve = resolve;
+              held.reject = reject;
+            });
+          }
+          return base(url, init);
+        },
+      );
+      return {
+        isHeld: () => held.resolve !== undefined,
+        release: (value: unknown) => {
+          if (value instanceof Error) {
+            (held.reject as (e: unknown) => void)(value);
+          } else {
+            held.resolve!(value);
+          }
+        },
+      };
+    }
+
+    async function joinWithFriend(): Promise<void> {
+      await openAndJoin();
+      (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
+    }
+
+    it.each([
+      ["succeeds", { ok: true, status: 200, statusText: "OK" }],
+      ["fails", { ok: false, status: 500, statusText: "Server Error" }],
+      ["throws", new Error("network down")],
+    ])(
+      "closing while the settings save is pending sends no start_game (the save %s late)",
+      async (_label, saveAnswer) => {
+        await joinWithFriend();
+        const save = holdRequest(isSave);
+
+        const start = startGame();
+        await flush();
+        expect(save.isHeld()).toBe(true);
+        await clickClose();
+        expect(leaves).toHaveLength(1);
+
+        save.release(saveAnswer);
+        await expect(start).resolves.toBeNull();
+        await flush();
+        await render();
+
+        expect(startCalls()).toHaveLength(0);
+        expect(startFailedLine()).toBeNull();
+      },
+    );
+
+    it("closing while the Start's config read is pending sends no start_game", async () => {
+      const readConfig = getServerConfigFromClient as jest.Mock;
+      await joinWithFriend();
+      const save = holdRequest(isSave);
+
+      const start = startGame();
+      await flush();
+      expect(save.isHeld()).toBe(true);
+      // Queued only now, so the save's own config read cannot take it.
+      let finishRead: (value: unknown) => void = () => {};
+      readConfig.mockReturnValueOnce(
+        new Promise((resolve) => (finishRead = resolve)),
+      );
+      const readsBefore = readConfig.mock.calls.length;
+      save.release({ ok: true, status: 200, statusText: "OK" });
+      await flush();
+      expect(readConfig.mock.calls.length).toBe(readsBefore + 1);
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      finishRead({ workerPath: () => "w1" });
+      await expect(start).resolves.toBeNull();
+      await flush();
+
+      expect(startCalls()).toHaveLength(0);
+    });
+
+    // Guards the normal path: passes on the pre-0334 code by nature.
+    it("with the window kept open, a Start sends exactly one start_game", async () => {
+      await joinWithFriend();
+      const putsBefore = putCalls().length;
+
+      await startGame();
+      await flush();
+      await render();
+
+      expect(startCalls()).toHaveLength(1);
+      expect(putCalls().length - putsBefore).toBe(1);
+      expect(oModal().isModalOpen).toBe(false);
+      expect(leaves).toHaveLength(0);
+    });
+
+    // After-send guard (owner ruling 2026-09-30, Q1 "include"): a start_game
+    // already sent cannot be recalled, but its late answer must not act on a
+    // window reopened meanwhile.
+    async function closeAndReopenDuringStartGame(): Promise<{
+      start: Promise<unknown>;
+      startRequest: Held;
+    }> {
+      await joinWithFriend();
+      const startRequest = holdRequest((url) => url.includes("start_game"));
+      const start = startGame();
+      await flush();
+      expect(startRequest.isHeld()).toBe(true);
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+
+      modal.open();
+      await flush();
+      await render();
+      expect(joins).toHaveLength(2);
+      expect(oModal().isModalOpen).toBe(true);
+      return { start, startRequest };
+    }
+
+    it("a late OK for the old start_game leaves the reopened window open", async () => {
+      const { start, startRequest } = await closeAndReopenDuringStartGame();
+
+      startRequest.release({ ok: true, status: 200, statusText: "OK" });
+      await start;
+      await flush();
+      await render();
+
+      expect(oModal().isModalOpen).toBe(true);
+      expect(leaves).toHaveLength(1);
+    });
+
+    it.each([
+      ["a 403", { ok: false, status: 403, statusText: "Forbidden" }],
+      ["a network error", new Error("network down")],
+    ])(
+      "%s for the old start_game shows no failure line in the reopened window",
+      async (_label, answer) => {
+        const { start, startRequest } = await closeAndReopenDuringStartGame();
+
+        startRequest.release(answer);
+        await start;
+        await flush();
+        await render();
+
+        expect(startFailedLine()).toBeNull();
+        expect(oModal().isModalOpen).toBe(true);
+      },
+    );
   });
 });
