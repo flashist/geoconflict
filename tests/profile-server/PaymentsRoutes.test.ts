@@ -1,3 +1,32 @@
+// Every log line the routes write (task 0309), so the suite can pin the
+// signature-construction line exactly and prove no secret-bearing value reaches
+// the container log. Copied from TenureGrantRoutes.test.ts; the existing cases in
+// this file assert nothing about logs, so capturing lines changes none of them.
+const logLines: string[] = [];
+// The raw arguments of every call. logLines alone cannot see a winston meta
+// object — String() records it as "[object Object]" — while the real logger
+// (winston.format.json()) prints its fields, so the leak guard also checks
+// every call is exactly one string.
+const logCalls: unknown[][] = [];
+jest.mock("../../src/profile-server/Logger", () => {
+  const record =
+    () =>
+    (...args: unknown[]): void => {
+      logCalls.push(args);
+      logLines.push(args.map((arg) => String(arg)).join(" "));
+    };
+  const child = () => ({
+    info: record(),
+    warn: record(),
+    error: record(),
+    child,
+  });
+  return {
+    logger: { child },
+    formatError: (error: unknown) => String(error),
+  };
+});
+
 import { createHmac, randomUUID } from "crypto";
 import request from "supertest";
 import type {
@@ -66,6 +95,14 @@ function sign(payload: unknown): string {
   const signature = createHmac("sha256", SECRET)
     .update(encoded)
     .digest("base64");
+  return `${signature}.${encoded}`;
+}
+
+/** Alternate construction (task 0309): HMAC over the DECODED json text. */
+function signOverDecodedJson(payload: unknown): string {
+  const json = JSON.stringify(payload);
+  const encoded = Buffer.from(json).toString("base64");
+  const signature = createHmac("sha256", SECRET).update(json).digest("base64");
   return `${signature}.${encoded}`;
 }
 
@@ -388,6 +425,155 @@ describe("payments routes", () => {
         .send({ signature: "bad.payload" });
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "invalid_signature" });
+    });
+  });
+
+  // Task 0309: both payment routes log WHICH HMAC construction a real purchase
+  // matched — the label only, nothing request-derived — so the unused one can be
+  // dropped later (0310).
+  describe("signature-construction log line", () => {
+    // Synthetic and deliberately longer than 8 characters: the reconcile skip
+    // line logs token.slice(0, 8), so a short token would appear in full and
+    // blind the leak guard below.
+    const LONG_TOKEN = "synthetic-purchase-token-0309-not-a-real-token-aaaa";
+    const WRONG_KEY = "some-other-synthetic-key";
+
+    const signers: Array<[string, (payload: unknown) => string]> = [
+      ["base64_payload", sign],
+      ["decoded_json", signOverDecodedJson],
+    ];
+
+    const signatureLines = () =>
+      logLines.filter((line) => line.includes("signature verified"));
+
+    function signWithKey(payload: unknown, key: string): string {
+      const encoded = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const signature = createHmac("sha256", key)
+        .update(encoded)
+        .digest("base64");
+      return `${signature}.${encoded}`;
+    }
+
+    beforeEach(() => {
+      logLines.length = 0;
+      logCalls.length = 0;
+    });
+
+    it.each(signers)(
+      "/complete logs construction=%s exactly once on success",
+      async (label, signer) => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/complete")
+          .send({
+            signature: signer(purchasePayload({ purchaseToken: LONG_TOKEN })),
+          });
+        expect(res.status).toBe(200);
+        expect(signatureLines()).toEqual([
+          `yandex purchase signature verified (complete): construction=${label}`,
+        ]);
+      },
+    );
+
+    it.each(signers)(
+      "/reconcile logs construction=%s exactly once on success",
+      async (label, signer) => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/reconcile")
+          .send({
+            signature: signer({
+              data: [purchasePayload({ purchaseToken: LONG_TOKEN })],
+            }),
+          });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ processedTokens: [LONG_TOKEN] });
+        expect(signatureLines()).toEqual([
+          `yandex purchase signature verified (reconcile): construction=${label}`,
+        ]);
+      },
+    );
+
+    // Plan design choice 3: the question is about the signature, not the grant,
+    // so a verified payload /complete then refuses still records its label.
+    it("/complete logs the label even when it then refuses a multi-purchase payload", async () => {
+      const res = await request(appWith(mockPaymentsRepo()))
+        .post("/v1/payments/yandex/complete")
+        .send({
+          signature: sign({ data: [purchasePayload(), purchasePayload()] }),
+        });
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({ error: "invalid_signature" });
+      expect(signatureLines()).toEqual([
+        "yandex purchase signature verified (complete): construction=base64_payload",
+      ]);
+    });
+
+    it.each([
+      ["/v1/payments/yandex/complete"],
+      ["/v1/payments/yandex/reconcile"],
+    ])("%s logs no signature line for a bad signature", async (path) => {
+      const app = appWith(mockPaymentsRepo());
+      const wrongKey = await request(app)
+        .post(path)
+        .send({
+          signature: signWithKey(
+            { data: [purchasePayload({ purchaseToken: LONG_TOKEN })] },
+            WRONG_KEY,
+          ),
+        });
+      expect(wrongKey.status).toBe(400);
+      expect(wrongKey.body).toEqual({ error: "invalid_signature" });
+      const garbage = await request(app)
+        .post(path)
+        .send({ signature: "garbage.notbase64json" });
+      expect(garbage.status).toBe(400);
+      expect(signatureLines()).toEqual([]);
+    });
+
+    it("leak guard: no log line carries the secret, signed string, parts, JSON, token or intent id", async () => {
+      const forbidden: string[] = [SECRET, LONG_TOKEN, INTENT_ID];
+      for (const [, signer] of signers) {
+        const single = purchasePayload({ purchaseToken: LONG_TOKEN });
+        const list = { data: [single] };
+        for (const [path, payload] of [
+          ["/v1/payments/yandex/complete", single],
+          ["/v1/payments/yandex/reconcile", list],
+        ] as const) {
+          const signed = signer(payload);
+          const dotIndex = signed.indexOf(".");
+          forbidden.push(
+            signed,
+            signed.slice(0, dotIndex),
+            signed.slice(dotIndex + 1),
+            JSON.stringify(payload),
+          );
+          const repo = mockPaymentsRepo({
+            findIntent: jest.fn().mockResolvedValue(openIntent()),
+          });
+          const res = await request(appWith(repo))
+            .post(path)
+            .send({ signature: signed });
+          expect(res.status).toBe(200);
+        }
+      }
+      // Four successful requests ⇒ four label lines; the guard is not vacuous.
+      expect(signatureLines()).toHaveLength(4);
+      // No meta objects: a secret passed as `log.info("…", { signature })`
+      // would reach the real JSON log but not logLines.
+      for (const args of logCalls) {
+        expect(args).toHaveLength(1);
+        expect(typeof args[0]).toBe("string");
+      }
+      for (const line of logLines) {
+        for (const value of forbidden) {
+          expect(line).not.toContain(value);
+        }
+      }
     });
   });
 });

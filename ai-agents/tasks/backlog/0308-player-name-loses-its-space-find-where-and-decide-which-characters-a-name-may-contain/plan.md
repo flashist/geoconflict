@@ -217,3 +217,12 @@ Sprint 7. *Rulings Q0–Q4 above stay as written except where a ruling below say
 ⚠️ R2 and R4 are recorded, not yet written into Step 3's build steps or the test list above; the builder folds them
 in at resume. Whether a resumed run re-presents this plan at the gate is the driver's call then; the approval date
 is 2026-09-29. **Step 0 (the owner's snippet on the MAIN account) still comes first.**
+
+---
+
+## Owner re-approval at the plan gate — appended by `fkit-lead` (driver), 2026-09-30
+
+*Not part of the coder's plan text above; recorded here by the driver. Given live via `AskUserQuestion` in the `fkit lead` session during `/fkit-sprint-ship-loop`. The plan text above was unchanged since the 2026-09-29 approval (blob `ea46eca97cfafb380fb4cffd439e42f6c6fcba73` before this append); the owner was shown a condensed plain-language rendering, not the byte-full text.*
+
+- **Plan:** RE-APPROVED 2026-09-30, including the 2026-09-29 refresh and rulings R1–R4.
+- **Step 0 (owner-run snippet, R3):** the owner will run it **"later today or tomorrow"**. Owner instruction, verbatim: *"don't move it to backlog, but if possible start working on something else that is not blocked by me"*. So the task stays `🔄 In progress` on Sprint 7, waiting on Step 0; **no build starts before Step 0's result is in.**

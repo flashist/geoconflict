@@ -93,6 +93,7 @@ import {
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 import {
+  beginJoiningLobby,
   reportBackOnStartScreen,
   resetStartScreenPresenceForTests,
   setStartScreenPresenceSource,
@@ -1026,6 +1027,265 @@ describe("CitizenshipCard", () => {
     });
   });
 
+  // Task 0336 (0329 review R3): the tenure thank-you popup never opens over a
+  // lobby or match. The claim and the profile re-read are network round trips,
+  // so the player can join while they run — and a join counts as away from its
+  // first line (beginJoiningLobby), not only once Main has set gameStop.
+  describe("tenure popup never over a lobby or match (task 0336)", () => {
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    /** A stand-in for the real <tenure-grant-modal> in the page. */
+    function appendModal(): jest.Mock {
+      const modal = document.createElement("tenure-grant-modal");
+      const show = jest.fn();
+      Object.assign(modal, { show });
+      document.body.appendChild(modal);
+      return show;
+    }
+
+    /** The tenure claim, answered by hand. */
+    function deferredClaim(): { answer: (result: unknown) => void } {
+      let answer: (result: unknown) => void = () => {};
+      claimTenureGrant.mockReturnValue(
+        new Promise((resolve) => {
+          answer = resolve;
+        }),
+      );
+      return { answer: (result) => answer(result) };
+    }
+
+    const GRANTED = { status: "granted", xpAwarded: 30, xp: 55 };
+
+    let away = false;
+    const goAway = () => {
+      away = true;
+    };
+    const comeBack = () => {
+      away = false;
+      reportBackOnStartScreen();
+    };
+
+    beforeEach(() => {
+      away = false;
+      setStartScreenPresenceSource(() => away);
+      loadProfile
+        .mockResolvedValueOnce(NON_CITIZEN_PROFILE)
+        .mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 55 });
+    });
+
+    it("C1. gate reveal, the player joins while the claim is pending: no popup until back on the start screen", async () => {
+      const show = appendModal();
+      const claim = deferredClaim();
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+
+      goAway();
+      claim.answer(GRANTED);
+      await settle(card);
+
+      expect(show).not.toHaveBeenCalled();
+      // The re-read is not held back with the popup: status and XP publish now.
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(card.textContent).toContain("55");
+
+      comeBack();
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+      expect(show).toHaveBeenCalledWith(
+        { xpAwarded: 30, xp: 55 },
+        expect.any(Function),
+      );
+    });
+
+    it("C2. gate reveal, the player joins during the first profile read: no popup until back", async () => {
+      const show = appendModal();
+      let answerFirstRead: (value: unknown) => void = () => {};
+      loadProfile.mockReset();
+      loadProfile
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            answerFirstRead = resolve;
+          }),
+        )
+        .mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 55 });
+      claimTenureGrant.mockResolvedValue(GRANTED);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(claimTenureGrant).not.toHaveBeenCalled();
+
+      goAway();
+      answerFirstRead(NON_CITIZEN_PROFILE);
+      await settle(card);
+
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+      expect(show).not.toHaveBeenCalled();
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+
+      comeBack();
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it("C3. late reveal (0329): recovers on the start screen, the player leaves during the claim: no popup until back", async () => {
+      const show = appendModal();
+      let recover: () => void = () => {};
+      whenPlatformRecoveredLate.mockReturnValue(
+        new Promise<void>((resolve) => {
+          recover = () => resolve();
+        }),
+      );
+      isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+      const claim = deferredClaim();
+
+      const card = await appendCard({ visible: true });
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+      recover();
+      await settle(card);
+      expect(card.classList.contains("hidden")).toBe(false);
+      expect(claimTenureGrant).toHaveBeenCalledTimes(1);
+
+      goAway();
+      claim.answer(GRANTED);
+      await settle(card);
+
+      expect(show).not.toHaveBeenCalled();
+
+      comeBack();
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it("C4. a join still in its setup awaits (gameStop not set yet) holds the popup back", async () => {
+      const show = appendModal();
+      const claim = deferredClaim();
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      // The source still reads "on the start screen": Main has not set gameStop.
+      const endJoining = beginJoiningLobby();
+      claim.answer(GRANTED);
+      await settle(card);
+      expect(show).not.toHaveBeenCalled();
+
+      goAway(); // gameStop set: the join's setup is over
+      endJoining();
+      await settle(card);
+      expect(show).not.toHaveBeenCalled();
+
+      comeBack();
+      await settle(card);
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it("C5. a join whose setup fails shows the held popup (no hang)", async () => {
+      const show = appendModal();
+      const claim = deferredClaim();
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      const endJoining = beginJoiningLobby();
+      claim.answer(GRANTED);
+      await settle(card);
+      expect(show).not.toHaveBeenCalled();
+
+      endJoining(); // failed: gameStop was never set
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it("C6. the player stays on the start screen: the popup shows once, and a later return shows nothing more", async () => {
+      const show = appendModal();
+      claimTenureGrant.mockResolvedValue(GRANTED);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(show).toHaveBeenCalledTimes(1);
+
+      reportBackOnStartScreen();
+      await settle(card);
+
+      expect(show).toHaveBeenCalledTimes(1);
+    });
+
+    it("C7. a gift that made a citizen, popup held back: the restart signal waits for the popup to be closed", async () => {
+      const signals: CitizenshipGrantedMidSessionDetail[] = [];
+      const onSignal = (event: Event) => {
+        signals.push(
+          (event as CustomEvent<CitizenshipGrantedMidSessionDetail>).detail,
+        );
+      };
+      window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, onSignal);
+      try {
+        const show = appendModal();
+        loadProfile.mockReset();
+        loadProfile
+          .mockResolvedValueOnce({ ...NON_CITIZEN_PROFILE, xp: 60 })
+          .mockResolvedValue({
+            ...NON_CITIZEN_PROFILE,
+            xp: 100,
+            isCitizen: true,
+          });
+        const claim = deferredClaim();
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+
+        goAway();
+        claim.answer({ status: "granted", xpAwarded: 40, xp: 100 });
+        await settle(card);
+        expect(show).not.toHaveBeenCalled();
+        expect(signals).toEqual([]);
+
+        comeBack();
+        await settle(card);
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(signals).toEqual([]);
+
+        (show.mock.calls[0][1] as () => void)();
+        await settle(card);
+
+        expect(signals).toEqual([{ source: "tenure" }]);
+      } finally {
+        window.removeEventListener(
+          CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+          onSignal,
+        );
+      }
+    });
+
+    it("C8. a card removed while its popup waits opens nothing on the return", async () => {
+      const show = appendModal();
+      const claim = deferredClaim();
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      goAway();
+      claim.answer(GRANTED);
+      await settle(card);
+      card.remove();
+
+      comeBack();
+      await settle(card);
+
+      expect(show).not.toHaveBeenCalled();
+    });
+  });
+
   // ── Name change (task 0067, citizens only) ───────────────────────────────
   // Task 0302: the card is the page's only citizenship reader; perk locks (the
   // private-lobby row) follow the status it publishes.
@@ -1745,14 +2005,23 @@ describe("CitizenshipCard", () => {
         expect(logEventAnalytics).not.toHaveBeenCalled();
       });
 
-      it("does not change a card already shown at the gate", async () => {
+      // Task 0336 deliberately reverses this test's old assertion (the popup
+      // opened at once): the gate reveal is unchanged, but its gift popup now
+      // waits for the start screen like every other path.
+      it("a card shown at the gate while away still reveals, but its gift popup waits (task 0336)", async () => {
         const show = appendModal();
-        away = true; // the gate reveal is not the late path: unchanged
+        away = true; // the gate reveal itself is not the late path: no wait
 
         const card = await appendCard({ visible: true });
         await settle(card);
 
         expect(card.classList.contains("hidden")).toBe(false);
+        expect(show).not.toHaveBeenCalled();
+
+        away = false;
+        reportBackOnStartScreen();
+        await settle(card);
+
         expect(show).toHaveBeenCalledTimes(1);
       });
     });

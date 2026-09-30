@@ -936,7 +936,18 @@ export function createApp(
         parsed.data.signature,
         paymentsSecret,
       );
-      if (verified === null || verified.purchases.length !== 1) {
+      if (verified === null) {
+        res.status(400).json({ error: "invalid_signature" });
+        return;
+      }
+      // Task 0309: which HMAC construction real purchases match. The label only
+      // (a fixed two-value union) — never the signature, the signed string, the
+      // payload, the token or the secret. Logged before the count check: the
+      // question is about the signature, not the grant.
+      log.info(
+        `yandex purchase signature verified (complete): construction=${verified.construction}`,
+      );
+      if (verified.purchases.length !== 1) {
         res.status(400).json({ error: "invalid_signature" });
         return;
       }
@@ -1012,6 +1023,11 @@ export function createApp(
         res.status(400).json({ error: "invalid_signature" });
         return;
       }
+      // Task 0309: the label only — never the signature, the signed string, the
+      // payload, a token or the secret (see /complete above).
+      log.info(
+        `yandex purchase signature verified (reconcile): construction=${verified.construction}`,
+      );
       const processedTokens: string[] = [];
       const skip = (purchase: VerifiedPurchase, reason: string) => {
         log.warn(

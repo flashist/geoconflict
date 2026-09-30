@@ -58,6 +58,7 @@ import { NewsModal } from "./NewsModal";
 import { PrivateLobbyAccess } from "./PrivateLobbyAccess";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { startProfileSession } from "./ProfileSession";
+import { closePreStartModals } from "./PreStartModals";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
 import { ReconnectModal } from "./ReconnectModal";
@@ -72,6 +73,7 @@ import {
 } from "./SinglePlayMissionStorage";
 import { setStartScreenControlsHidden } from "./StartScreenControls";
 import {
+  beginJoiningLobby,
   reportBackOnStartScreen,
   setStartScreenPresenceSource,
 } from "./StartScreenPresence";
@@ -742,6 +744,18 @@ class Client {
   }
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
+    // Task 0336: away from the first line, not only once gameStop is set. Keep
+    // it before any await: the host and join windows end their own markers
+    // right after they send `join-lobby` (0336 review R3).
+    const endJoining = beginJoiningLobby();
+    try {
+      await this.joinLobbyFromEvent(event);
+    } finally {
+      endJoining();
+    }
+  }
+
+  private async joinLobbyFromEvent(event: CustomEvent<JoinLobbyEvent>) {
     this.fireFirstAction();
     const lobby = event.detail;
     console.log(`joining lobby ${lobby.gameID}`);
@@ -794,33 +808,7 @@ class Client {
         document
           .getElementById("username-validation-error")
           ?.classList.add("hidden");
-        [
-          "single-player-modal",
-          "host-lobby-modal",
-          "join-private-lobby-modal",
-          "game-starting-modal",
-          "game-top-bar",
-          "help-modal",
-          "user-setting",
-          "territory-patterns-modal",
-          "language-modal",
-          "news-modal",
-          "flag-input-modal",
-          "account-button",
-          "token-login",
-          "matchmaking-modal",
-          "citizenship-restart-modal",
-        ].forEach((tag) => {
-          const modal = document.querySelector(tag) as HTMLElement & {
-            close?: () => void;
-            isModalOpen?: boolean;
-          };
-          if (modal?.close) {
-            modal.close();
-          } else if (modal && "isModalOpen" in modal) {
-            modal.isModalOpen = false;
-          }
-        });
+        closePreStartModals();
         this.publicLobby.stop();
         document.querySelectorAll(".ad").forEach((ad) => {
           (ad as HTMLElement).style.display = "none";

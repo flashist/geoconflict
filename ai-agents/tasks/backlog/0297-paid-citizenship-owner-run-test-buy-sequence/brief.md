@@ -25,7 +25,7 @@ Sprint 7
 
 ~~Sprint 5~~
 
-📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0297 and the task that it depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."* The task it depends on is [`0309`](../0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) (see `## Notes` → *Depends on*), moved to Sprint 7 by the same ruling and ranked directly above this task. Now **rank 21** of [Sprint 7](../../../sprints/plan-sprint-7.md). Its Sprint 6 row (rank 34) stays as `➡️ Moved` (ADR-035). *(Earlier value of this field: `Sprint 6`. The 2026-09-26 move note below is history.)*
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0297 and the task that it depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."* The task it depends on is [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) (see `## Notes` → *Depends on*), moved to Sprint 7 by the same ruling and ranked directly above this task. Now **rank 21** of [Sprint 7](../../../sprints/plan-sprint-7.md). Its Sprint 6 row (rank 34) stays as `➡️ Moved` (ADR-035). *(Earlier value of this field: `Sprint 6`. The 2026-09-26 move note below is history.)*
 
 📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given 2026-09-26, the owner's own typed message live in the `fkit lead` session (not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move it to the bottom of Sprint 6"*. Now the **last row, rank 34** of [Sprint 6](../../../sprints/done/plan-sprint-6.md), as a watch item. ⛔ **Supersedes the 2026-09-23 ruling that pinned this task to the top of Sprint 5** (see `## Priority`). The owner did not rule on closing Sprint 5. `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
 
@@ -34,7 +34,7 @@ Sprint 7
 - 📌 **2026-09-29 (owner-run, ~08:15 UTC):** **11 `/complete` 200s, 0 `/reconcile` calls** (all rotated logs searched). §4 still open. See `worklog.md` § *2026-09-29*.
 
 ## Priority
-**21** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), directly after [`0309`](../0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) (20), which it waits on. ⚠️ **The owner gave no rank on Sprint 7** (OWNER RULING 2026-09-29, relayed by `fkit-lead` — see `## Sprint`) — a position, not a merit rank and not owner-ruled. *Earlier values, kept below:*
+**21** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), directly after [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) (20), ~~which it waits on~~ *(no longer — `0309` closed 2026-09-30; see `## Status`; rank unchanged)*. ⚠️ **The owner gave no rank on Sprint 7** (OWNER RULING 2026-09-29, relayed by `fkit-lead` — see `## Sprint`) — a position, not a merit rank and not owner-ruled. *Earlier values, kept below:*
 
 ⛔ **SUPERSEDED 2026-09-29 — history only (the Sprint 6 position):** ~~**34**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md): the **last row**, by OWNER RULING given 2026-09-26, the owner's own typed message live in the `fkit lead` session (not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent (*"Move it to the bottom of Sprint 6"*). ⛔ An append position, not a merit re-rank. **Supersedes the Sprint 5 row-1 position below.** *Earlier values, kept below:*
 
@@ -55,7 +55,9 @@ verified and granted.~~ *(The producer's merit statement, struck because the own
 wrongly implied `0296` sits at the top of the board.)*
 
 ## Status
-🚧 Blocked — on [`0309`](../0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md): §1's open box *"Determine which of the two constructions matched"* cannot be observed until `0309`'s log line is built, deployed to the profile box, and read after a real signed payload. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need `0309` — the owner may do them any time. *(Set 2026-09-29 — OWNER RULING, relayed by `fkit-lead`: *"…make sure the 0297 has the correct status (blocked) by the corresponding task."* See `## Sprint`.)*
+🚧 Blocked — on the profile deploy + a real purchase: §1's open box *"Determine which of the two constructions matched"* can be closed only after `0309`'s log line (built and closed 2026-09-30 on local proof) is deployed to the profile box and read from the container log after a real signed payload — the three §1 steps added 2026-09-30. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need it — the owner may do them any time. *(Blocker changed 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"* — `0309` closes on local proof and its deploy → real purchase → log read-back steps move into this task's §1. Was blocked on `0309`, struck below.)*
+
+~~🚧 Blocked — on [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md): §1's open box *"Determine which of the two constructions matched"* cannot be observed until `0309`'s log line is built, deployed to the profile box, and read after a real signed payload. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need `0309` — the owner may do them any time. *(Set 2026-09-29 — OWNER RULING, relayed by `fkit-lead`: *"…make sure the 0297 has the correct status (blocked) by the corresponding task."* See `## Sprint`.)*~~
 
 ~~🔲 Backlog~~
 
@@ -125,6 +127,21 @@ build and the second game deploy has run). Before that, the buy button does not 
 - [ ] Determine which of the two constructions matched, and record how that was determined. *(Open — not observable from outside; `0309` adds the log line. Pointer only, not proof: `0325` S0 on 2026-09-29 found signed PLAYER data verifies via decoded JSON.)*
 - [x] Hand the result to the producer to file a small `fkit-coder` follow-up that drops the unused
       construction. Filing it is part of this task's close condition. *(✅ 2026-09-26 — filed as `0309` + `0310`.)*
+
+> 📌 **Added 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"*.** [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) is closed (`✅ Done (agent-closed — not owner-verified)`) on **local proof
+> only**: the profile server now logs one line on each verified purchase naming which construction matched
+> (`yandex purchase signature verified (complete)` / `(reconcile)`, label `construction=base64_payload` or
+> `construction=decoded_json`). ⚠️ **The answer — which construction Yandex actually uses for purchases — is
+> still NOT known.** It is not deployed. `0309`'s plan §6 steps live here now; they close box 2 above:
+- [ ] **Deploy.** The owner runs or approves `build-deploy-profile.sh` in a weekend slot (next: 2026-10-03/04).
+      Then `/health` and `/ready` must both return 200. *(The script builds from the working tree and tags
+      the image `-dirty` if uncommitted — the owner was advised to commit first.)*
+- [ ] **Read back.** After the next real purchase or `/reconcile`: a **read-only** grep of the profile
+      container's logs for `signature verified` (`fkit-lead` may run it if it has SSH; otherwise the owner).
+      Record in this folder's `worklog.md`: **date, label, route, "observed via container log"** — the
+      label only, nothing else from the line. Then check box 2 above.
+- ⚠️ **`docker logs` is lost when the container is recreated.** Read the line **before the next profile
+  deploy — especially before any `0310` deploy.**
 
 ### §2 — Live catalog fetch (ex-`0065` §2)
 - [ ] Open the game as an authenticated Yandex player. `getPaymentsCatalogStatus()` → `'ready'`;
@@ -196,7 +213,7 @@ The checklist above **is** the verification. This task closes only when:
 
 ## Notes
 
-- **Depends on:** `0065` (§6 only — the flip plus the second game deploy must be live in production; the buy button does not exist before it) · 📌 **Added 2026-09-29 (append-only; OWNER RULING relayed by `fkit-lead`, see `## Sprint`):** [`0309`](../0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — **the live blocker**, hard for closing: §1's *"which construction matched"* box needs its log line deployed and read. ✅ `0065` §6 is **already satisfied** — per this brief's own 2026-09-26 records (§1 two real `/complete` 200s; §2 the buy button showed 249), the flip and deploy are live; `0065` is done. Not on `0310` (it depends on `0309`, not the other way round).
+- **Depends on:** `0065` (§6 only — the flip plus the second game deploy must be live in production; the buy button does not exist before it) · 📌 **Added 2026-09-29 (append-only; OWNER RULING relayed by `fkit-lead`, see `## Sprint`):** [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — **the live blocker**, hard for closing: §1's *"which construction matched"* box needs its log line deployed and read. ✅ `0065` §6 is **already satisfied** — per this brief's own 2026-09-26 records (§1 two real `/complete` 200s; §2 the buy button showed 249), the flip and deploy are live; `0065` is done. Not on `0310` (it depends on `0309`, not the other way round). 📌 **Updated 2026-09-30 (append-only; OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"*):** `0309` is closed on local proof, so it no longer blocks this task; ~~**the live blocker**~~ for closing §1 is now **the profile deploy + a real purchase** (§1's two new steps).
 - **Blocks:** nothing. ⛔ In particular it does **not** block `0065` — owner ruling 2026-09-23 (`0065`
   Correction 7) — and it does **not** block `0018`: owner ruling 2026-09-23, *`0018` closes on `0065`
   (the launch) alone*. **The real-purchase proof lives only here.**

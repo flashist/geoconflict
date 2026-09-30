@@ -434,6 +434,7 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
   lost."* `0227`'s Notes now point here.
 - **[`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)** — listed **only** to
   record that this task has **nothing to do with it**. See §2 above.
+- 📌 **2026-09-30 — added by a spawned `fkit-producer`, relaying `fkit-lead` at the `0336` close:** [`0336`](../../done/0336-tenure-gift-popup-can-open-over-a-lobby-or-match-on-a-quick-join/brief.md) added a `beginJoiningLobby()` join-setup marker in `src/client/StartScreenPresence.ts` that feeds start-screen presence (also used by `HostLobbyModal.open()` and `JoinPrivateLobbyModal.joinLobby()`). Reconcile with this brief's proposed join-setup marker rather than adding a second one; whichever lands second reconciles. See [`0336`'s `plan.md`](../../done/0336-tenure-gift-popup-can-open-over-a-lobby-or-match-on-a-quick-join/plan.md) §5.
 
 ### Standing cautions
 

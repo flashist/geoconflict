@@ -47,6 +47,13 @@ import "../../src/client/components/baseComponents/Modal";
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import { HostLobbyModal } from "../../src/client/HostLobbyModal";
 import { openHostLobbyFromStartScreen } from "../../src/client/HostLobbyOpen";
+import {
+  beginJoiningLobby,
+  reportBackOnStartScreen,
+  resetStartScreenPresenceForTests,
+  setStartScreenPresenceSource,
+  whenOnStartScreen,
+} from "../../src/client/StartScreenPresence";
 import { exposeLitAccessors } from "./support/litAccessors";
 
 const LOBBY_ID = "HOSTLOBBY";
@@ -75,15 +82,31 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
   let privateStop: jest.Mock;
   let leaveLobbyDependency: jest.Mock;
   let clearPublicLobbyHighlight: jest.Mock;
+  // Task 0336: also Main's presence wiring — the leave reports back on the
+  // start screen, and a join counts as away from its first line.
   const mainLeaveLobby = () => {
     if (gameStop === null) return;
     gameStop();
     gameStop = null;
+    reportBackOnStartScreen();
   };
+  // Task 0336 R3: Main's join awaits server config, cosmetics and the Yandex
+  // id before it sets `gameStop`. A test holds that window open by setting
+  // `mainSetup`; left null, the stand-in finishes at once (0333's tests).
+  let mainSetup: Promise<void> | null;
   const onJoin = (e: Event) => {
+    const endJoining = beginJoiningLobby();
     joins.push(e as CustomEvent);
     if (gameStop !== null) gameStop();
-    gameStop = privateStop;
+    const finishSetup = () => {
+      gameStop = privateStop;
+    };
+    if (mainSetup === null) {
+      finishSetup();
+      endJoining();
+      return;
+    }
+    void mainSetup.then(finishSetup).finally(endJoining);
   };
   const onLeave = (e: Event) => {
     leaves.push(e as CustomEvent);
@@ -158,9 +181,12 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
+    resetStartScreenPresenceForTests();
+    setStartScreenPresenceSource(() => gameStop !== null);
     publicStop = jest.fn();
     privateStop = jest.fn();
     gameStop = null;
+    mainSetup = null;
     leaveLobbyDependency = jest.fn(mainLeaveLobby);
     clearPublicLobbyHighlight = jest.fn();
 
@@ -284,6 +310,89 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     expect(leaves).toHaveLength(1);
     expect(leaves[0].detail).toEqual({ lobby: LOBBY_ID });
     expect(gameStop).toBeNull();
+  });
+
+  // Task 0336: 0333's leave at the Create tap wakes whatever waits for the
+  // start screen (the tenure gift popup). Creating the private lobby counts as
+  // joining one, so the waiter keeps waiting while the host window is open.
+  describe("a start-screen waiter during Create (task 0336)", () => {
+    async function isSettled(promise: Promise<void>): Promise<boolean> {
+      let settled = false;
+      void promise.then(() => {
+        settled = true;
+      });
+      await flush();
+      return settled;
+    }
+
+    it("H1. in a public lobby: Create, create answers, join — still waiting; ✕ leaves and resolves it", async () => {
+      joinPublicLobby();
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      await tapCreate();
+      expect(publicStop).toHaveBeenCalledTimes(1);
+      expect(await isSettled(waiting)).toBe(false);
+
+      await answer({ ok: true });
+      expect(joins).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(false);
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    // The host window's marker ends as soon as `join-lobby` is sent; Main's
+    // must already be held by then and stay held across its own setup awaits.
+    it("H4. create answers, Main still setting up: still waiting; then joined; ✕ resolves it", async () => {
+      let finishMainSetup: () => void = () => {};
+      mainSetup = new Promise<void>((resolve) => {
+        finishMainSetup = resolve;
+      });
+      joinPublicLobby();
+      const waiting = whenOnStartScreen();
+
+      await tapCreate();
+      await answer({ ok: true });
+      expect(joins).toHaveLength(1);
+      expect(gameStop).toBeNull();
+      expect(await isSettled(waiting)).toBe(false);
+
+      finishMainSetup();
+      await flush();
+      expect(gameStop).toBe(privateStop);
+      expect(await isSettled(waiting)).toBe(false);
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("H2. create fails: the waiter resolves (no hang)", async () => {
+      joinPublicLobby();
+      const waiting = whenOnStartScreen();
+
+      await tapCreate();
+      expect(await isSettled(waiting)).toBe(false);
+
+      await answer({ ok: false });
+      expect(joins).toHaveLength(0);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("H3. ✕ before create answers: the waiter resolves once create settles", async () => {
+      joinPublicLobby();
+      const waiting = whenOnStartScreen();
+
+      await tapCreate();
+      await clickClose();
+      expect(await isSettled(waiting)).toBe(false);
+
+      await answer({ ok: true });
+      expect(joins).toHaveLength(0);
+      expect(await isSettled(waiting)).toBe(true);
+    });
   });
 });
 

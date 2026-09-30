@@ -28,6 +28,7 @@ import "./components/baseComponents/Modal";
 import "./components/Difficulties";
 import "./components/Maps";
 import { JoinLobbyEvent } from "./Main";
+import { beginJoiningLobby } from "./StartScreenPresence";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 
@@ -633,6 +634,10 @@ export class HostLobbyModal extends LitElement {
       true,
     );
 
+    // Task 0336: creating the private lobby counts as joining one, so a waiting
+    // tenure popup does not open over this window (0333's Create-tap leave wakes
+    // it). Main's join-lobby handler begins its own mark before this one ends.
+    const endJoining = beginJoiningLobby();
     const joined = createLobby(this.lobbyCreatorClientID).then((lobby) => {
       // Task 0327: the window closed (or reopened) while the lobby was being
       // created — do not join a lobby nobody is looking at.
@@ -655,7 +660,8 @@ export class HostLobbyModal extends LitElement {
     });
     // Task 0333: a failed create is already logged in createLobby(); nothing
     // else waits on this chain, so stop the rejection going unhandled.
-    joined.catch(() => {});
+    // Task 0336: however create settles, this window's join mark ends.
+    joined.catch(() => {}).finally(endJoining);
     this.modalEl?.open();
     this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
   }

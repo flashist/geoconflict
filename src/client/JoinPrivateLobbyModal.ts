@@ -6,6 +6,7 @@ import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { renderCitizenBadge } from "./CitizenBadge";
 import { JoinLobbyEvent } from "./Main";
+import { beginJoiningLobby } from "./StartScreenPresence";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 import { getApiBase } from "./jwt";
@@ -217,6 +218,10 @@ export class JoinPrivateLobbyModal extends LitElement {
     const generation = this.closeGeneration;
     console.log(`Joining lobby with ID: ${lobbyId}`);
     this.message = `${translateText("private_lobby.checking")}`;
+    // Task 0336: the lookup counts as joining, so a waiting tenure popup does
+    // not open over this window. On success Main's join handler begins its own
+    // marker as `join-lobby` is sent, before this one ends.
+    const endJoining = beginJoiningLobby();
 
     try {
       // First, check if the game exists in active lobbies
@@ -243,6 +248,8 @@ export class JoinPrivateLobbyModal extends LitElement {
       console.error("Error checking lobby existence:", error);
       if (this.isClosedSince(generation)) return;
       this.message = `${translateText("private_lobby.error")}`;
+    } finally {
+      endJoining();
     }
   }
 

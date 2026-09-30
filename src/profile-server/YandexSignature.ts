@@ -6,8 +6,9 @@
 // secret. The docs do NOT pin down whether the HMAC message is the base64
 // payload string as transmitted or the decoded JSON text, so BOTH deterministic
 // constructions are accepted (same key either way — no security loss, and the
-// live integration works under either; the live-verification checklist in the
-// task folder confirms which one Yandex actually uses once the secret exists).
+// live integration works under either). The result names which one matched, and
+// the payment routes log that label (task 0309) so real purchases show which one
+// Yandex uses; task 0310 then drops the unused one.
 //
 // Payload shapes normalized (the docs' example wraps the purchase in an
 // envelope; the SDK interface list documents a flat IPurchase — accept both):
@@ -28,11 +29,19 @@ export interface VerifiedPurchase {
   developerPayload: string | null;
 }
 
+/**
+ * Which HMAC message matched (see the header comment). A fixed label taken only
+ * from the constants below — never derived from input — so it is safe to log.
+ */
+export type HmacConstruction = "base64_payload" | "decoded_json";
+
 export interface VerifiedPayload {
   /** All purchases the signed payload carried (1 for purchase(), 0..n for getPurchases()). */
   purchases: VerifiedPurchase[];
   /** The decoded JSON text, for the processed_purchases receipt ledger. */
   rawPayload: string;
+  /** Which construction the signature matched (task 0309). */
+  construction: HmacConstruction;
 }
 
 function asNonEmptyString(value: unknown): string | null {
@@ -100,15 +109,16 @@ function normalizePurchases(parsed: unknown): VerifiedPurchase[] | null {
 /**
  * The HMAC half of a Yandex `<signature>.<payload>` signed string, shared by the
  * purchase check below and the login's signed-player-data check
- * (PlayerSignature.ts, task 0325). Returns the decoded payload text when the
- * envelope is well-formed and the HMAC matches under EITHER construction (see the
- * header comment); null on ANY failure — bad structure, bad base64, HMAC mismatch,
- * empty secret. Looks at nothing inside the payload. Never throws.
+ * (PlayerSignature.ts, task 0325). Returns the decoded payload text, and which
+ * construction matched, when the envelope is well-formed and the HMAC matches
+ * under EITHER construction (see the header comment); null on ANY failure — bad
+ * structure, bad base64, HMAC mismatch, empty secret. Looks at nothing inside the
+ * payload. Never throws.
  */
 export function verifyHmacEnvelope(
   signed: string,
   secret: string,
-): { decodedJson: string } | null {
+): { decodedJson: string; construction: HmacConstruction } | null {
   if (secret.length === 0) {
     return null; // Fail closed — never verify against an empty key.
   }
@@ -129,19 +139,27 @@ export function verifyHmacEnvelope(
   }
 
   // Accept HMAC over either the transmitted base64 payload or the decoded JSON
-  // (see header comment). timingSafeEqual on equal-length buffers only.
-  const messageCandidates = [payloadPart, decodedPayload];
-  const signatureMatches = messageCandidates.some((message) => {
+  // (see header comment). timingSafeEqual on equal-length buffers only. Base64
+  // is tried first, so if both ever matched the label would be base64_payload —
+  // the accept/reject result is the same either way.
+  const messageCandidates: ReadonlyArray<{
+    construction: HmacConstruction;
+    message: string;
+  }> = [
+    { construction: "base64_payload", message: payloadPart },
+    { construction: "decoded_json", message: decodedPayload },
+  ];
+  const matched = messageCandidates.find(({ message }) => {
     const expected = createHmac("sha256", secret).update(message).digest();
     return (
       expected.length === providedSignature.length &&
       timingSafeEqual(expected, providedSignature)
     );
   });
-  if (!signatureMatches) {
+  if (matched === undefined) {
     return null;
   }
-  return { decodedJson: decodedPayload };
+  return { decodedJson: decodedPayload, construction: matched.construction };
 }
 
 /**
@@ -169,5 +187,9 @@ export function verifySignedPayload(
   if (purchases === null) {
     return null;
   }
-  return { purchases, rawPayload: decodedPayload };
+  return {
+    purchases,
+    rawPayload: decodedPayload,
+    construction: envelope.construction,
+  };
 }

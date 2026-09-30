@@ -39,6 +39,13 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 import { createCitizenshipRestartOffer } from "../../src/client/CitizenshipRestartOffer";
 import "../../src/client/components/baseComponents/Modal";
 import { JoinPrivateLobbyModal } from "../../src/client/JoinPrivateLobbyModal";
+import {
+  beginJoiningLobby,
+  reportBackOnStartScreen,
+  resetStartScreenPresenceForTests,
+  setStartScreenPresenceSource,
+  whenOnStartScreen,
+} from "../../src/client/StartScreenPresence";
 import { exposeLitAccessors } from "./support/litAccessors";
 
 const LOBBY_ID = "LOBBY123";
@@ -301,5 +308,145 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
       document.removeEventListener("join-lobby", handleJoin);
       document.removeEventListener("leave-lobby", handleLeave);
     }
+  });
+
+  // Task 0336 (review R1): the lobby lookup (server config + `/exists`) runs
+  // before `join-lobby` is sent, so it counts as joining — a tenure gift popup
+  // that becomes ready during it must wait, not open over this window. Main is
+  // stood in for as in (h): its join handler begins its own marker first, sets
+  // `gameStop` and ends it; its leave clears `gameStop` and reports back.
+  describe("a start-screen waiter during the lobby lookup (task 0336)", () => {
+    let gameStop: (() => void) | null;
+    const mainJoin = () => {
+      const endJoining = beginJoiningLobby();
+      gameStop = jest.fn();
+      endJoining();
+    };
+    const mainLeave = () => {
+      if (gameStop === null) return;
+      gameStop();
+      gameStop = null;
+      reportBackOnStartScreen();
+    };
+
+    async function isSettled(promise: Promise<void>): Promise<boolean> {
+      let settled = false;
+      void promise.then(() => {
+        settled = true;
+      });
+      await flush();
+      return settled;
+    }
+
+    // Holds each `/exists` call until the test answers it.
+    let answerExists: Array<(value: unknown) => void>;
+    const existsAnswer = (exists: boolean) => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ exists, clients: [] }),
+    });
+
+    beforeEach(() => {
+      gameStop = null;
+      answerExists = [];
+      resetStartScreenPresenceForTests();
+      setStartScreenPresenceSource(() => gameStop !== null);
+      document.addEventListener("join-lobby", mainJoin);
+      document.addEventListener("leave-lobby", mainLeave);
+      fetchMock.mockImplementation((url: string) => {
+        if (url.endsWith("/exists")) {
+          return new Promise((resolve) => answerExists.push(resolve));
+        }
+        return Promise.resolve({ ok: false, status: 404 });
+      });
+    });
+
+    afterEach(() => {
+      document.removeEventListener("join-lobby", mainJoin);
+      document.removeEventListener("leave-lobby", mainLeave);
+      resetStartScreenPresenceForTests();
+    });
+
+    it("J1. lobby found: waits through the lookup and the join; ✕ leaves and resolves it", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      expect(answerExists).toHaveLength(1);
+
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      answerExists[0](existsAnswer(true));
+      await flush();
+      await render();
+      expect(joins).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(false);
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("J2. lobby not found: the waiter resolves once the lookup gives up (no hang)", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      answerExists[0](existsAnswer(false));
+      await flush();
+      await render();
+      expect(joins).toHaveLength(0);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("J3. the lookup throws: the waiter resolves (no hang)", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      answerExists[0]({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error("bad json");
+        },
+      });
+      await flush();
+      expect(joins).toHaveLength(0);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("J4. ✕ during the lookup: the waiter resolves once the lookup settles", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+
+      await clickClose();
+      expect(await isSettled(waiting)).toBe(false);
+
+      answerExists[0](existsAnswer(true));
+      await flush();
+      expect(joins).toHaveLength(0);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    it("J5. two Join taps: waits until both lookups have ended", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      await render();
+      (joinButton() as HTMLElement).click();
+      await flush();
+      expect(answerExists).toHaveLength(2);
+
+      const waiting = whenOnStartScreen();
+      answerExists[0](existsAnswer(false));
+      await flush();
+      expect(await isSettled(waiting)).toBe(false);
+
+      answerExists[1](existsAnswer(false));
+      await flush();
+      expect(await isSettled(waiting)).toBe(true);
+    });
   });
 });

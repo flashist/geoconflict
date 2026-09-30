@@ -74,6 +74,28 @@ describe("verifySignedPayload", () => {
     expect(result?.purchases).toHaveLength(1);
   });
 
+  // Task 0309: the result names which HMAC construction matched, so the payment
+  // routes can log it and 0310 can drop the one Yandex does not use.
+  it("reports construction=base64_payload for an HMAC over the base64 payload", () => {
+    expect(verifySignedPayload(sign(FLAT_PURCHASE), SECRET)?.construction).toBe(
+      "base64_payload",
+    );
+    expect(
+      verifySignedPayload(sign(ENVELOPE_PURCHASE), SECRET)?.construction,
+    ).toBe("base64_payload");
+  });
+
+  it("reports construction=decoded_json for an HMAC over the decoded JSON", () => {
+    expect(
+      verifySignedPayload(signOverDecodedJson(FLAT_PURCHASE), SECRET)
+        ?.construction,
+    ).toBe("decoded_json");
+    expect(
+      verifySignedPayload(signOverDecodedJson(ENVELOPE_PURCHASE), SECRET)
+        ?.construction,
+    ).toBe("decoded_json");
+  });
+
   it("normalizes an array payload (signed getPurchases), skipping malformed entries", () => {
     const payload = {
       data: [
@@ -164,12 +186,14 @@ describe("verifyHmacEnvelope", () => {
   it("returns the decoded JSON under the base64-payload construction", () => {
     expect(verifyHmacEnvelope(sign(ANY_JSON), SECRET)).toEqual({
       decodedJson: JSON.stringify(ANY_JSON),
+      construction: "base64_payload",
     });
   });
 
   it("returns the decoded JSON under the decoded-JSON construction", () => {
     expect(verifyHmacEnvelope(signOverDecodedJson(ANY_JSON), SECRET)).toEqual({
       decodedJson: JSON.stringify(ANY_JSON),
+      construction: "decoded_json",
     });
   });
 
@@ -181,6 +205,7 @@ describe("verifyHmacEnvelope", () => {
       .digest("base64");
     expect(verifyHmacEnvelope(`${signature}.${encoded}`, SECRET)).toEqual({
       decodedJson: text,
+      construction: "base64_payload",
     });
   });
 

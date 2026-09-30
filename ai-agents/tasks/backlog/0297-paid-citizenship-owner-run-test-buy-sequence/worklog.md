@@ -26,7 +26,7 @@ recorded here.
       `processed_purchases.raw_payload` — that column holds only the decoded JSON; the signature is never
       stored (checked in `YandexSignature.ts` / `PaymentsRepository.ts`, 2026-09-26).
 - [x] **Follow-up filed** (close condition 2), 2026-09-26, on the Backlog board, as two briefs:
-  - [`0309`](../0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — log which
+  - [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — log which
     construction matched, deploy, read it after the next real purchase; writes its result back here.
   - [`0310`](../0310-drop-the-unused-yandex-hmac-construction/brief.md) — drop the unused one
     (depends on `0309`).

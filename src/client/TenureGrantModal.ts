@@ -130,6 +130,17 @@ export class TenureGrantModal extends LitElement {
     this.requestUpdate();
   }
 
+  /**
+   * Main.ts's pre-start close list (task 0336): hides; the close follow-up is
+   * dropped. Usually moot, as the page reloads after a match; an in-page
+   * Back/hash leave mid-match does not reload, and then a "tenure" restart
+   * offer is lost (accepted residual, 0336 review R2).
+   */
+  close() {
+    this.onClosed = null;
+    this.hide();
+  }
+
   private readonly onCtaTap = (): void => {
     this.hide();
     const onClosed = this.onClosed;

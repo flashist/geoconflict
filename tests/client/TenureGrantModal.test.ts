@@ -98,4 +98,24 @@ describe("TenureGrantModal", () => {
 
     expect(modal.isVisible).toBe(false);
   });
+
+  // Task 0336: Main.ts's pre-start close list. The page reloads after a match,
+  // so the card's follow-up (the restart offer) is dropped, never run.
+  it("M1. close() hides it and never calls onClosed, even after a later CTA tap", async () => {
+    const modal = await mount();
+    const onClosed = jest.fn();
+    modal.show({ xpAwarded: 5, xp: 5 }, onClosed);
+    await modal.updateComplete;
+
+    modal.close();
+    await modal.updateComplete;
+
+    expect(modal.isVisible).toBe(false);
+    expect(overlay(modal).classList.contains("visible")).toBe(false);
+
+    (
+      modal.shadowRoot!.querySelector("#tenure-grant-modal-cta") as HTMLElement
+    ).click();
+    expect(onClosed).not.toHaveBeenCalled();
+  });
 });

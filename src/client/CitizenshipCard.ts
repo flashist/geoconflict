@@ -28,7 +28,10 @@ import {
 import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
 import { whenOnStartScreen } from "./StartScreenPresence";
 import { maybeClaimTenureGrant } from "./TenureGrantClaim";
-import type { TenureGrantModal } from "./TenureGrantModal";
+import type {
+  TenureGrantModal,
+  TenureGrantModalParams,
+} from "./TenureGrantModal";
 import {
   CITIZENSHIP_XP_THRESHOLD,
   PlayerProfileView,
@@ -185,8 +188,9 @@ export class CitizenshipCard extends LitElement {
    * The recovery can land after the player joined a lobby or match, so the
    * reveal waits for the start screen (review R1): its tenure gift popup must
    * never cover a live match, and Citizenship:Seen fires only once the card can
-   * be seen. The gate reveal needs no wait — the player is still on the start
-   * screen then.
+   * be seen. The gate reveal needs no wait for the card itself; its gift popup
+   * waits for the start screen in startTenureClaim (task 0336), as this one's
+   * does.
    */
   private recheckWhenPlatformRecovers(): void {
     const generation = this.connectionGeneration;
@@ -311,21 +315,13 @@ export class CitizenshipCard extends LitElement {
       ) {
         return;
       }
-      let markThankYouClosed: () => void = () => {};
-      const thankYouClosed = new Promise<void>((resolve) => {
-        markThankYouClosed = resolve;
+      // Task 0336: never over a lobby or match — held until the start screen.
+      const thankYouClosed = this.showTenureThankYouOnStartScreen({
+        xpAwarded: result.xpAwarded,
+        xp: result.xp,
       });
-      const modal =
-        document.querySelector<TenureGrantModal>("tenure-grant-modal");
-      if (modal === null) {
-        markThankYouClosed();
-      } else {
-        modal.show(
-          { xpAwarded: result.xpAwarded, xp: result.xp },
-          markThankYouClosed,
-        );
-      }
-      // So the XP bar shows the granted total.
+      // So the XP bar shows the granted total. Not held back with the popup:
+      // the status and XP publish at once.
       await this.refreshProfile();
       if (wasCitizen || !this.isCitizenNow()) {
         return;
@@ -335,6 +331,29 @@ export class CitizenshipCard extends LitElement {
     })().catch((error) => {
       console.warn("Tenure grant claim failed:", error);
     });
+  }
+
+  /**
+   * Task 0336: the thank-you popup waits for the start screen, so it never
+   * opens over a lobby or match (a join counts as away from its first line).
+   * Resolves when the player closes the thank-you, or at once if it cannot be
+   * shown (no modal in the page / card gone). Never resolves if the popup is
+   * open when a match starts: the pre-start close drops the follow-up. Usually
+   * the page reloads after the match, which makes that moot; an in-page
+   * Back/hash leave does not reload, and the restart follow-up is lost
+   * (accepted residual, 0336 review R2 — as 0303's onMatchStarting drop). A
+   * popup still held back when a match starts shows on that leave instead.
+   */
+  private async showTenureThankYouOnStartScreen(
+    params: TenureGrantModalParams,
+  ): Promise<void> {
+    await whenOnStartScreen();
+    const modal =
+      document.querySelector<TenureGrantModal>("tenure-grant-modal");
+    if (modal === null || !this.isConnected) {
+      return;
+    }
+    await new Promise<void>((resolve) => modal.show(params, resolve));
   }
 
   public maybeReportSeen(): void {
