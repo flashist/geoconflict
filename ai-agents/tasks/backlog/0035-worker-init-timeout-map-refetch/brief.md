@@ -4,7 +4,29 @@
 0035
 
 ## Sprint
-Sprint backlog — no sprint home yet. Client join-path fragility fix.
+Sprint 7
+
+> 📌 **2026-09-29 — PULLED INTO [SPRINT 7](../../../sprints/plan-sprint-7.md) and SCOPE NARROWED TO OPTION A. Read the
+> authority before the outcome.** An **OWNER RULING given live 2026-09-29 in the `fkit lead` session**, relayed by
+> `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+> `AskUserQuestion` "What should the Sprint 7 reconnect task cover?" → **"Rejoin + fix the timeout (Recommended)"** —
+> *"Save 'remember this match' earlier, so a refresh can rejoin even if the start failed. Also fix 0035 (give the
+> worker the map the page already loaded, and/or a longer limit), so start failures happen less. Removes the main
+> cause."* The owner also ruled the reconnect work goes **to the top of Sprint 7** (full record:
+> [`0347`](../0347-a-refresh-after-a-failed-match-start-can-rejoin-the-match/brief.md) § Context).
+> - **Was:** `Sprint backlog — no sprint home yet. Client join-path fragility fix.` (row on
+>   [`sprint-backlog.md`](../../../sprints/sprint-backlog.md), now a `➡️ Moved` pointer).
+> - **Scope split (producer's call, flagged for owner confirmation):** this task now covers **Option A only** — give
+>   the worker the map the page already loaded. **Option B (raise the limit) and the worker-leak fix moved to
+>   [`0348`](../0348-worker-start-failures-report-the-real-error-wait-longer-and-stop-the-leftover-worker/brief.md)**,
+>   together with a new finding: a crash inside the worker's async start is never posted back, so it shows up as
+>   "timeout" — ⚠️ **so § *Regression analysis* point 1 below (*"real crashes still fail fast"*) holds only for errors
+>   thrown straight away, not async ones** (`fkit-coder`'s reading, 2026-09-29). The text below is **left unedited**
+>   as the original investigation; where it says "do both" / Option B / the leak fix, read `0348`.
+> - **Order in Sprint 7:** `0347` → `0348` → **`0035`**. After `0348` because both touch the worker start path, and
+>   `0348`'s crash-vs-timeout signal shows how much this map hand-over actually buys. Not a hard gate.
+> - Nothing was cancelled or closed; no mover skill was run.
+> - ✅ **2026-09-29, later — scope split CONFIRMED; the *"flagged for owner confirmation"* above is cleared (kept as written, ADR-035).** OWNER RULING given live 2026-09-29 in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. **Q2** (keep the producer's three-way split of the reconnect work?) → **"Keep 3 tasks (Recommended)"** — `0347` rejoin, `0348` worker-failure handling, `0035` reuse the map; **`0347` first**. This task stays third and keeps **Option A only**.
 
 > ℹ️ **Field added 2026-09-08 (visibility-only).** The brief carried no `## Sprint` field at all since
 > filing. The value is **derived, not assigned**: this task already has a live row on
@@ -18,6 +40,10 @@ Sprint backlog — no sprint home yet. Client join-path fragility fix.
 > The implementer will **not** have the original chat context, so everything needed is below.
 > **Priority (suggested, producer to confirm):** Medium. Not a prod-blocker by itself, but it is a real
 > latent fragility on the client join path and the proper fix removes a redundant 4 MB download per match.
+
+## Priority
+24 — append rank on Sprint 7 (2026-09-29). ⚠️ **Part of the owner-ruled top-of-Sprint-7 reconnect work, worked
+after `0347` and `0348`**, whatever this number says.
 
 ## Status
 🔲 Backlog

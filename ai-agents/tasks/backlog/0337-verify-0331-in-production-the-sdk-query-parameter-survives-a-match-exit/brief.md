@@ -109,3 +109,4 @@ comparison and say how many days each side covers.
 - **Privacy:** yes/no and numbers only. Never paste query values, full URLs, ids, tokens or hosts into any
   artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+- 📌 **2026-09-29 — order against `0347` RULED.** OWNER RULING given live 2026-09-29 in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. **Q1** (which goes first, `0347` or `0337` — both ruled *"top of Sprint 7"*) → **"Either, run in parallel (Recommended)"** — *"They don't compete. 0337 is your own check and 0347 is coder work, so both can go first at the same time."* So this task and `0347` both go first, in parallel. Nothing else about this task changed.

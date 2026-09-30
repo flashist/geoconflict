@@ -9,7 +9,7 @@ Sprint 6
 ## Priority
 44
 
-> **44 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/plan-sprint-6.md), appended
+> **44 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md), appended
 > after `0330`, never inserted (ADR-035). **Placement OWNER-RULED 2026-09-28:** *"End of Sprint 6
 > (Recommended)"*. ⚠️ Not a merit rank. **On merit this could sit directly below `0328`**, because it is tiny and
 > independent of `0329`/`0330`; but it is gated on an owner probe, so last is the right place until P1 is in.

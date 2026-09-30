@@ -22,7 +22,7 @@ fkit-producer
 
 **Filed 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021/037), on an OWNER RULING given
 live in the `fkit lead` session on 2026-09-29, relayed by `fkit-lead`.** ⛔ Not producer precedent. The owner's
-words, as relayed: the 11 [Sprint 6](../../../sprints/plan-sprint-6.md) rows that have no brief are to be split
+words, as relayed: the 11 [Sprint 6](../../../sprints/done/plan-sprint-6.md) rows that have no brief are to be split
 into separate briefs, and *"each brief should have a list of the things that should be discussed (not
 implemented, but discussed)"*. The split test, delegated to the producer by the owner: *"is the task related to
 the paid citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog."* End state: exactly
@@ -97,7 +97,7 @@ These are campaign maps (can be unfair / scripted on purpose), single-player or 
 multiplayer.
 
 **Full prose:** [Appendix A](#appendix-a--paid-campaign-map-packs-verbatim) below (verbatim). Source:
-[`plan-sprint-6.md`](../../../sprints/plan-sprint-6.md) § *Task 2 — Paid Campaign Map Packs*, plus § *Notes*.
+[`plan-sprint-6.md`](../../../sprints/done/plan-sprint-6.md) § *Task 2 — Paid Campaign Map Packs*, plus § *Notes*.
 
 **Known dependencies / related work.** Meant to ship **after** free historical maps —
 [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (Backlog board). Needs

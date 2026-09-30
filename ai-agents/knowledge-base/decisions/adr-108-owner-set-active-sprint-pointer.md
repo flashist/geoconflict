@@ -41,7 +41,7 @@
 > no field the resolver reads can carry it:
 > [`plan-sprint-4.md`](../../sprints/done/plan-sprint-4.md) (marked active),
 > [`plan-sprint-5.md`](../../sprints/done/plan-sprint-5.md) and
-> [`plan-sprint-6.md`](../../sprints/plan-sprint-6.md) (each marked *not* active, with sprint 6
+> [`plan-sprint-6.md`](../../sprints/done/plan-sprint-6.md) (each marked *not* active, with sprint 6
 > naming itself as the board the tooling wrongly returns), and
 > [`plan-index.md`](../../sprints/plan-index.md).
 >

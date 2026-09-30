@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 7
 
-📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
 
 *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 6~~
 
@@ -21,7 +21,7 @@ Sprint 7
 [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 directly above
 `0248`. Order relative to `0302`, `0248` and `0303` unchanged. *Earlier value, kept:* ~~5~~ —
 
-**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — see *Owner
+**Board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), OWNER-RULED 2026-09-26** — see *Owner
 rulings* below. ~~19~~ was the append rank until then.
 
 ## Status
@@ -43,7 +43,7 @@ Those are open questions below. ⛔ Not producer precedent.
 
 Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned
 `fkit-producer` with no owner channel (ADR-021; the relay named each ruling, ADR-037 §3); ⛔ not producer
-precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board](../../../sprints/plan-sprint-6.md).
+precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md).
 - **This task is rank 5**, after [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md),
   [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
   and [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).

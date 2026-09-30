@@ -13,7 +13,7 @@ Sprint 6
 
 📌 **7** — shifted down one more later on 2026-09-26 by a second OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021): the owner moved `0250` into Sprint 6 at rank 4 — see the second *RE-RANK 2026-09-26* addendum on that board. ⛔ Not a merit re-rank of this task. Still directly below `0301`. *Earlier value, kept:* ~~6~~ —
 
-**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. Owner, Q2: *"Right after 0307/0308 (Recommended)"* — directly below `0301`. ~~21~~ was the append rank until then.
+**Board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. Owner, Q2: *"Right after 0307/0308 (Recommended)"* — directly below `0301`. ~~21~~ was the append rank until then.
 
 ## Status
 ✅ Done (agent-closed — not owner-verified)

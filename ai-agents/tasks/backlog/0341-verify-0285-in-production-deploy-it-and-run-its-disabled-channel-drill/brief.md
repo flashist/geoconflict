@@ -9,10 +9,14 @@
 > hit; the repo-wide search finds only two SVG files (coordinate false positives).
 
 ## Sprint
-Sprint 6
+Sprint 7
+
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING **R1** given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: *"Close now, move 3 to Sprint 7"* — *"The producer moves 0339, 0341 and 0289 to Sprint 7 and closes Sprint 6 today. Same work, it just lives in Sprint 7."* [Sprint 6](../../../sprints/done/plan-sprint-6.md) was closed by `/fkit-sprint-done` *(agent-closed — not owner-verified)*; [Sprint 7](../../../sprints/plan-sprint-7.md) was started the same day (R2) and is now the active sprint. `## Status` unchanged; no folder moved; no mover run on this task. *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 6~~
 
 ## Priority
-**46** — append rank on [Sprint 6](../../../sprints/plan-sprint-6.md). **By owner ruling (2026-09-29), this task
+**26** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-29 by ruling R1 (see `## Sprint`). ⚠️ A position, **not** a merit rank: writing it higher would renumber Sprint 7's closed `➡️ Moved` rows at ranks 2 and 3, which ADR-035 forbids. **By owner ruling carried from Sprint 6, this task is worked directly after `0339`.** Its order against `0337` and the reconnect run is **not ruled**. *Earlier value, kept below as history — true on Sprint 6 until 2026-09-29:*
+
+~~**46**~~ — append rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md). **By owner ruling (2026-09-29), this task
 is worked directly after [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md),
 ahead of every other open row except `0339`, whatever this number says.**
 
@@ -25,7 +29,9 @@ ahead of every other open row except `0339`, whatever this number says.**
   which waits on this task. *(ADR-035's relative merit statement, because the board rank cannot carry it.)*
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+📌 **Set 2026-09-30** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-30, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. **G2** → **"Yes, mark both in progress (Recommended)"** — *"The board then shows the truth: both are underway. Only the status is changed, nothing is closed."* Why: Steps 1.1–1.2 (both deploys) done 2026-09-29; Steps 1.3–1.5, 2 and 3 still pending. Only the status changed; nothing closed. *(Earlier value, kept as history — true until 2026-09-30:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** The deploys, the box commands, the drill and watching the

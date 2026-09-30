@@ -17,7 +17,7 @@ Sprint 7
 
 ✅ **6 — OWNER-RULED later on 2026-09-26** by a third OWNER RULING (R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner chose order *A* — `0307`, `0302`, `0312`, `0313`, `0315`, **`0308`**, `0314`, `0317`, … — which **closes the "open to owner correction" note below**. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~3~~ —
 
-**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. ⚠️ **Slot 3 is `fkit-lead`'s reconciliation, open to owner correction:** the owner put this task *"right below"* `0307` (Q1) and separately made `0302` *"the 2nd priority"* (Q3); the owner never ranked `0308` against `0302` directly. ~~23~~ was the append rank until then.
+**Board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), OWNER-RULED 2026-09-26** — an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021; ADR-037 §3); ⛔ not producer precedent. Full record: the *RE-RANK 2026-09-26* addendum on the Sprint 6 board. ⚠️ **Slot 3 is `fkit-lead`'s reconciliation, open to owner correction:** the owner put this task *"right below"* `0307` (Q1) and separately made `0302` *"the 2nd priority"* (Q3); the owner never ranked `0308` against `0302` directly. ~~23~~ was the append rank until then.
 
 ## Status
 🔲 Backlog *(moved to Sprint 7 by owner ruling R1, 2026-09-29: plan **approved** that day, build **not started**, **no source changed**; resume from Step 0 (the owner runs the snippet, R3) — see the *plan APPROVED, moved to Sprint 7* addendum at the end)*
@@ -198,7 +198,7 @@ relayed by `fkit-lead` (ADR-021/037).** ⛔ Not producer precedent. Append-only 
 > *"Let's come back to this task later, decrease the priority and put it to the end of the current sprint"*
 
 **Effect.** `## Status` reset from `🔄 In progress` to `🔲 Backlog`; `## Priority` 6 → **35**, the bottom of
-[Sprint 6](../../../sprints/plan-sprint-6.md) (below `0297`, 34). Sprint unchanged (Sprint 6). At the time of
+[Sprint 6](../../../sprints/done/plan-sprint-6.md) (below `0297`, 34). Sprint unchanged (Sprint 6). At the time of
 parking the build had **not** started and **no source file had changed**.
 
 ### The approved `plan.md` is kept
@@ -245,7 +245,7 @@ can use this week while everything else waits on the weekend deploy.
 **Effect.**
 - `## Status`: `🔲 Backlog` (parked) → **`🔄 In progress` — driven by `fkit-lead`, 2026-09-29**. Old values kept, struck.
 - `## Priority` **unchanged at 35**; Sprint unchanged (Sprint 6). The ruling was to unpark and start, not to re-rank.
-- [Sprint 6](../../../sprints/plan-sprint-6.md) row Status cell updated to match.
+- [Sprint 6](../../../sprints/done/plan-sprint-6.md) row Status cell updated to match.
 
 **Plan gate — still required.** Per the 2026-09-27 park addendum: the owner-approved [`plan.md`](plan.md)
 (blob `f7a579d`, rulings Q0–Q4) **must be re-presented to the owner at the plan gate before any build.** The
@@ -279,7 +279,7 @@ precedent. Append-only (ADR-035). Recorded verbatim; the same four rulings are c
   ⚠️ **The owner gave no rank on Sprint 7** — a position, not a merit rank. Sprint 6's 35 struck, kept.
 - `## Status`: `🔄 In progress — driven by fkit-lead, 2026-09-29` (held a few minutes) → **`🔲 Backlog`** (old value
   struck, kept). The plan was **approved**; the build **had not started**; **no source file changed**.
-- [Sprint 6](../../../sprints/plan-sprint-6.md) row → `➡️ Moved to Sprint 7 — priority 15`; a row appended on
+- [Sprint 6](../../../sprints/done/plan-sprint-6.md) row → `➡️ Moved to Sprint 7 — priority 15`; a row appended on
   [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 15. No other row renumbered (ADR-035). No task folder moved.
 - The Notes' look-alike item (*"raise the conflict at the plan gate"*) is **answered** by R2.
 - `0317`'s brief (in `done/`) gained a dated one-line pointer under D6.

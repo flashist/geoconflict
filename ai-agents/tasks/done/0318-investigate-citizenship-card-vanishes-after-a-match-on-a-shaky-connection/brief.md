@@ -141,7 +141,7 @@ filed). `## Status` is deliberately unchanged here — the close is routed by `f
 - **Pull `0326` into Sprint 6?** → **"Yes, into Sprint 6 (Recommended)"**. Option text: *"Placed just before the
   new B1–B4 rows so B2 can follow it."*
 
-**Filed as a result (2026-09-28), appended to the [Sprint 6 board](../../../sprints/plan-sprint-6.md) in this
+**Filed as a result (2026-09-28), appended to the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md) in this
 order after `0327`:**
 
 | Report | Task | Depends on |

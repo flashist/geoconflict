@@ -22,7 +22,7 @@ the Backlog board. Pulling it into a sprint is a separate producer act (three ed
 ## Priority
 39
 
-> **39 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/plan-sprint-6.md), appended,
+> **39 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md), appended,
 > never inserted (ADR-035). **Medium by owner ruling 2026-09-28** (see `## Sprint`). Was ~~Unscheduled~~.
 > The producer reasoning below is kept (only its first sentence is struck); its *Medium* is now owner-ruled, and its *Low if step 1 does
 > not reproduce* fallback is **not** — changing the rank after step 1 would need the owner.

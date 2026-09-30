@@ -12,7 +12,7 @@ Sprint 6
 ## Priority
 41
 
-> **41 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/plan-sprint-6.md), appended
+> **41 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md), appended
 > after `0326`, never inserted (ADR-035). **Placement OWNER-RULED 2026-09-28:** *"End of Sprint 6
 > (Recommended)"* (see *Context*). ⚠️ The owner ruled the placement, not a merit rank. **On merit this could sit
 > directly above `0326`**, because it depends on nothing and the report wants it shipped first or with the fixes

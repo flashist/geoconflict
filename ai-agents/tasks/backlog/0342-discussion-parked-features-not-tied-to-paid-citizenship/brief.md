@@ -19,7 +19,7 @@ fkit-producer
 
 **Filed 2026-09-29 by a spawned `fkit-producer` with no owner channel (ADR-021/037), on an OWNER RULING given
 live in the `fkit lead` session on 2026-09-29, relayed by `fkit-lead`.** ⛔ Not producer precedent. The owner's
-words, as relayed: the 11 [Sprint 6](../../../sprints/plan-sprint-6.md) rows that have no brief are to be split
+words, as relayed: the 11 [Sprint 6](../../../sprints/done/plan-sprint-6.md) rows that have no brief are to be split
 into separate briefs, and *"each brief should have a list of the things that should be discussed (not
 implemented, but discussed)"*. The split test, delegated to the producer by the owner: *"is the task related to
 the paid citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog."* End state: exactly
@@ -80,7 +80,7 @@ until the server is back, then reload the page; and (Part A, later) warn everyon
 **Full prose:** [Appendix A](#appendix-a--5b-server-restart-ux-verbatim) below (copied verbatim — the brief file
 `s3-5b-task-server-restart-ux.md` is **lost**, so this and the two sources are the only copies). Sources:
 [`done/plan-sprint-3.md`](../../../sprints/done/plan-sprint-3.md) § *5b. Server Restart UX*, and
-[`plan-sprint-6.md`](../../../sprints/plan-sprint-6.md) § *Task 0b — Server Restart UX*.
+[`plan-sprint-6.md`](../../../sprints/done/plan-sprint-6.md) § *Task 0b — Server Restart UX*.
 
 **Known dependencies / related work.** `/api/version` (`0111`) and the stale-build blocking modal (`0113`) already
 exist and already force a reload when the build changes. The tab-crash reconnection flow (`0076`) must stay
@@ -109,7 +109,7 @@ on Yandex if players who would bounce anyway leave before a match.
 **Full prose:** [Appendix B](#appendix-b--5c-mobile-warning-screen-verbatim) below (verbatim — the brief file
 `s3-5c-task-mobile-warning.md` is **lost**). Sources:
 [`done/plan-sprint-3.md`](../../../sprints/done/plan-sprint-3.md) § *5c. Mobile Warning Screen*, and
-[`plan-sprint-6.md`](../../../sprints/plan-sprint-6.md) § *Task 0c — Mobile Warning Screen*.
+[`plan-sprint-6.md`](../../../sprints/done/plan-sprint-6.md) § *Task 0c — Mobile Warning Screen*.
 
 **Known dependencies / related work.** Uses the existing `Device:mobile` detection (Task 2f). Mobile quick wins
 (`0085`) shipped; deep mobile rendering (`0031`) is parked.
@@ -135,7 +135,7 @@ the normal free multiplayer rotation. It tests whether players want historical c
 map packs.
 
 **Full prose:** [Appendix C](#appendix-c--historical-multiplayer-maps-verbatim) below (verbatim). Source:
-[`plan-sprint-6.md`](../../../sprints/plan-sprint-6.md) § *Task 1 — Historical Multiplayer Maps (Free)*, plus
+[`plan-sprint-6.md`](../../../sprints/done/plan-sprint-6.md) § *Task 1 — Historical Multiplayer Maps (Free)*, plus
 § *Player Demand Signal* and § *Notes*.
 
 **Known dependencies / related work.** The demand tracker

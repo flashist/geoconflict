@@ -9,7 +9,7 @@ Sprint 6
 ## Priority
 43
 
-> **43 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/plan-sprint-6.md), appended
+> **43 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md), appended
 > after `0329`, never inserted (ADR-035). **Placement OWNER-RULED 2026-09-28:** *"End of Sprint 6
 > (Recommended)"*. ⚠️ Not a merit rank. **On merit this belongs directly below `0329`**, because without `0329`
 > a download that succeeds after the deadline still leaves the card hidden — which is where it sits.

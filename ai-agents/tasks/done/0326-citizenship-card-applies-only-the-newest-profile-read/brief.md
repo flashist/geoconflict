@@ -23,7 +23,7 @@ Pulling it into a sprint is a separate producer act (three edits; see `/fkit-tas
 ## Priority
 40
 
-> **40 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/plan-sprint-6.md) after
+> **40 is the append rank** — the bottom of the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md) after
 > `0327`, appended, never inserted (ADR-035). Placement owner-ruled 2026-09-28 (see `## Sprint`): directly
 > before `0328`–`0331` (`0318`'s B1–B4). Was ~~Unscheduled~~.
 

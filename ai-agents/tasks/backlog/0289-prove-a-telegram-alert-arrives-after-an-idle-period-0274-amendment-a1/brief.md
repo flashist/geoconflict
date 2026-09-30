@@ -7,9 +7,11 @@
 > `ai-agents/tasks/{backlog,done,cancelled}/` and no `## ID` hit. Highest existing ID was `0288`.
 
 ## Sprint
-Sprint 6
+Sprint 7
 
-📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/done/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 11 on [Sprint 6](../../../sprints/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING **R1** given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-29, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: *"Close now, move 3 to Sprint 7"* — *"The producer moves 0339, 0341 and 0289 to Sprint 7 and closes Sprint 6 today. Same work, it just lives in Sprint 7."* [Sprint 6](../../../sprints/done/plan-sprint-6.md) was closed by `/fkit-sprint-done` *(agent-closed — not owner-verified)*; [Sprint 7](../../../sprints/plan-sprint-7.md) was started the same day (R2) and is now the active sprint. `## Status` unchanged; no folder moved; no mover run on this task. *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 6~~
+
+📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/done/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 11 on [Sprint 6](../../../sprints/done/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
 
 ### ➡️ MOVED FROM SPRINT 4 TO SPRINT 5 ON 2026-09-22 — OWNER RULING
 
@@ -41,15 +43,17 @@ invoked** — this is neither a close nor a cancellation. ⛔ **The `## Status` 
 (`🔲 Backlog`)**, and so is `## Priority`: a change of board is not a change of state or of rank.
 
 ## Priority
-**26** — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+**27** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-29 by ruling R1 (see `## Sprint`). ⚠️ A position, **not** a merit rank: writing it higher would renumber Sprint 7's closed `➡️ Moved` rows at ranks 2 and 3, which ADR-035 forbids. Carried after `0341`, which this task waits on. Its merit rank is still the owner-ruled `Low` of 2026-09-22 (below). *Earlier value, kept below as history — true on Sprint 6 until 2026-09-29:*
 
-~~**24**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six more later on 2026-09-26 by a third OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved six appended name-change / purchase-state rows (`0312`–`0315`, `0317`, `0318`) up the board — see the *RE-RANK 2026-09-26, THIRD* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+~~**26**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
 
-~~**18**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down one more later on 2026-09-26 by a second OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021): the owner moved `0250` into Sprint 6 at rank 4 — see the second *RE-RANK 2026-09-26* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
+~~**24**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), shifted down six more later on 2026-09-26 by a third OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved six appended name-change / purchase-state rows (`0312`–`0315`, `0317`, `0318`) up the board — see the *RE-RANK 2026-09-26, THIRD* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
 
-~~**17**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), shifted down six on 2026-09-26 because an OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021) put six rows above it — see the *RE-RANK 2026-09-26* addendum on that board. Order among the other rows unchanged; ⛔ not a merit re-rank of this task. *Earlier value, kept below:*
+~~**18**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), shifted down one more later on 2026-09-26 by a second OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021): the owner moved `0250` into Sprint 6 at rank 4 — see the second *RE-RANK 2026-09-26* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
 
-~~**11**~~ — board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
+~~**17**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), shifted down six on 2026-09-26 because an OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021) put six rows above it — see the *RE-RANK 2026-09-26* addendum on that board. Order among the other rows unchanged; ⛔ not a merit re-rank of this task. *Earlier value, kept below:*
+
+~~**11**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), set 2026-09-26 by the same owner ruling (append in Sprint 5's order, ranks continuing after Sprint 6's highest). ⚠️ An append position, **not** a merit re-rank. *Earlier value, kept below as history — it was true on the Sprint 5 / Sprint 4 boards, and any owner-ruled label in it still stands as a merit label:*
 
 🔴 **Low — OWNER-RULED 2026-09-22** *(ratified; was `High`, the producer's unratified append rank)*
 

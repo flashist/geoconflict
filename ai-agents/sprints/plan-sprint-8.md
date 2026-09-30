@@ -4,12 +4,12 @@
 
 > 📌 **2026-09-29 — BOARD CREATED. NOT STARTED.** An **OWNER RULING given live in the `fkit lead` session on
 > 2026-09-29**, relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner channel** (ADR-021/037).
-> ⛔ **Not producer precedent.** The ruling: split the 11 brief-less [Sprint 6](plan-sprint-6.md) rows into
+> ⛔ **Not producer precedent.** The ruling: split the 11 brief-less [Sprint 6](done/plan-sprint-6.md) rows into
 > discussion briefs, and *"is the task related to the paid citizenship? If yes, put this brief into Sprint 8. If
 > no — put it into Backlog."*
 > - No Sprint 8 board existed, so this one was created to receive the "yes" brief,
 >   [`0343`](../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md). **The owner did
->   not start this sprint.** The line-3 banner is `🔲 Backlog`; [Sprint 6](plan-sprint-6.md) is still the active
+>   not start this sprint.** The line-3 banner is `🔲 Backlog`; [Sprint 6](done/plan-sprint-6.md) is still the active
 >   sprint and [Sprint 7](plan-sprint-7.md) is still `🔲 Backlog`.
 > - ~~⚠️ **NO THEME NAME — OPEN OWNER QUESTION.** The title is just *"Sprint 8"*. Naming it later changes only the H1
 >   (keep `Sprint 8` as its own segment, e.g. `# Geoconflict — Sprint 8 — <name>`, so the identity still resolves)
@@ -53,7 +53,7 @@ coin economy, clans). The name (ruling D) is not a goal.
 >   Players *(borderline: "verified" = citizens; earned vs paid not stated)*, Replay Access as Premium Feature
 >   *(borderline: read "premium tier" as citizenship)*, Custom Uploaded Flags & Patterns — Paid Citizens Only.
 > - The other six rows went to [`0342`](../tasks/backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md)
->   on the [Backlog board](backlog.md). Full record: the 2026-09-29 addendum under [Sprint 6](plan-sprint-6.md)'s
+>   on the [Backlog board](backlog.md). Full record: the 2026-09-29 addendum under [Sprint 6](done/plan-sprint-6.md)'s
 >   status table.
 >
 > ⛔ **WHAT DID NOT HAPPEN.** No other sprint's line-3 banner was touched; no task folder moved; no mover skill was
@@ -71,7 +71,7 @@ coin economy, clans). The name (ruling D) is not a goal.
 >   [`0342`](../tasks/backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) into `0343`
 >   (items F, G, H), with all their prose. This overrules the producer's borderline "no" calls on them (see the
 >   addendum above). `0343` was retitled; its folder was **not** renamed (ADR-029). Still one row, still rank 1.
->   Full record: the ruling C addendum under [Sprint 6](plan-sprint-6.md)'s status table.
+>   Full record: the ruling C addendum under [Sprint 6](done/plan-sprint-6.md)'s status table.
 > - **D:** the H1 now reads *Sprint 8 — Paid Citizenship Perks and More Content*; `plan-index.md` updated. **Goal still
 >   unset. Status unchanged: `🔲 Backlog`.**
 >

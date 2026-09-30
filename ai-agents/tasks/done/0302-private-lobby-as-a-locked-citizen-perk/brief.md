@@ -9,7 +9,7 @@ Sprint 6
 ## Priority
 2
 
-**Board rank on [Sprint 6](../../../sprints/plan-sprint-6.md), OWNER-RULED 2026-09-26** — see *Owner
+**Board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), OWNER-RULED 2026-09-26** — see *Owner
 ruling* below. ~~20~~ was the append rank until then.
 
 ## Status
