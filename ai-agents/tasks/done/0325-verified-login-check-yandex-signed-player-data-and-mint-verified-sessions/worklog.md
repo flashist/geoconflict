@@ -443,7 +443,7 @@ coder rows).
     `0339`'s S2 exit plus an explicit owner approval to enforce. Carries the rollback rule and the ⛔ ADR-113
     reminder above.
   - **The live verification (deploy order check, the metric's outcomes, the four client events, the owner's S2
-    exit call) → [`0339`](../../backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)**
+    exit call) → [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)**
     (Sprint 7, rank 2). Owner-run. Does not block Sprint 6's deploy.
   - Brief verification steps 4–6 (S3a) and 8 (the deploy order) now live in those two tasks.
 - **Dependencies repointed to `0340`:** `0250` (slice S3b), `0319`, `0332`, `0323`; pointer note in `0248`.

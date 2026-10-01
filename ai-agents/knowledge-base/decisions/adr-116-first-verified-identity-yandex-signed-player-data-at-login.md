@@ -50,7 +50,7 @@
   - **S3a — the first `vfy:true` mint — is now task `0340`**
     (`ai-agents/tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/`). It starts only when **both**
     hold: `0339`'s S2 exit is met
-    (`ai-agents/tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/` — the
+    (`ai-agents/tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/` — the
     deploys named and dated, the owner's watch window and threshold, `ok` the large majority), **and** an
     explicit owner approval to enforce, given after `0339`'s numbers are in. `0339` closing does not by
     itself approve `0340`. This is the gate Decision 6 already states (*"observe for an owner-picked window →
@@ -454,6 +454,6 @@ and mark this subsection applied.
   `src/profile-server/YandexSignature.ts` (`verifySignedPayload`), `src/core/profile/LoginContract.ts`
   (`LoginRequestSchema`), `src/profile-server/Server.ts` (`YANDEX_PAYMENTS_SECRET`)
 - Tasks: `0250` (S1, S3b), `0319`, `0323`, `0332`, `0267` (Yandex half answered), `0309` / `0310`, `0048`
-- 📝 Added 2026-09-29: `ai-agents/tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/`
+- 📝 Added 2026-09-29: `ai-agents/tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/`
   (verify S2 live) and `ai-agents/tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/` (S3a enforce)
   — see the dated note at the top of this file.

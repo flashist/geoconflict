@@ -308,7 +308,7 @@ store-copy condition.
   the `fkit lead` session (ADR-021/037, *"Split it (Recommended)"*). `0325` closed as the S2 build (shadow
   mode, still mints only `vfy:false`); the verified sessions that `0250` S3b waits on now come from
   [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a), after
-  [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
+  [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
   explicit owner approval. This task still waits on **`0250` S3b**; read *"S3b waits on … `0325`"* above as
   *"… on `0340`"*.
 - **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**

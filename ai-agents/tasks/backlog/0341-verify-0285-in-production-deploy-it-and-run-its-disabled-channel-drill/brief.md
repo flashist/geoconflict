@@ -17,7 +17,7 @@ Sprint 7
 **26** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-29 by ruling R1 (see `## Sprint`). ⚠️ A position, **not** a merit rank: writing it higher would renumber Sprint 7's closed `➡️ Moved` rows at ranks 2 and 3, which ADR-035 forbids. **By owner ruling carried from Sprint 6, this task is worked directly after `0339`.** Its order against `0337` and the reconnect run is **not ruled**. *Earlier value, kept below as history — true on Sprint 6 until 2026-09-29:*
 
 ~~**46**~~ — append rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md). **By owner ruling (2026-09-29), this task
-is worked directly after [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md),
+is worked directly after [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md),
 ahead of every other open row except `0339`, whatever this number says.**
 
 - **Why the number does not say that:** the owner ruled *"right below 0339"*. `0339` is itself appended at the
@@ -41,7 +41,7 @@ record a page or an arrival it did not see.
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
 [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23),
 [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
-[`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md).)*
+[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md).)*
 
 ## Context
 

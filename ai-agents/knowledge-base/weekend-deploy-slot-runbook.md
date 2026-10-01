@@ -1490,7 +1490,7 @@ letters collide*). Task-internal steps are always written with their task: `0341
 
 | Where | What it says | What this window does |
 |---|---|---|
-| [`0339`](../tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) *Precondition* (from `0325` plan § *Deploy order*) | profile S2, then game S2 | **telemetry → game → profile** (owner ruling above). Dated note in `0339`. |
+| [`0339`](../tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) *Precondition* (from `0325` plan § *Deploy order*) | profile S2, then game S2 | **telemetry → game → profile** (owner ruling above). Dated note in `0339`. |
 | [`0341`](../tasks/backlog/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) Step 1 | profile deploy, then monitoring deploy | **telemetry first** (an older relay ignores the new field, so it is safe). Dated note in `0341`. |
 | [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) worklog owner step 3 / plan § *Deploy order* | profile first — **for cost only** (its guard runs before build and lock) | **game before profile**, because `0250` S1's rule is client first. Dated note in `0298`'s worklog. |
 | ADR-116 | — | The architect writes its dated note (not this producer). |
@@ -1676,7 +1676,7 @@ servers"*). **Game tag / version: not recorded** (not reported to the lead).
 | **N3** game log `failed after retries` = 0 across the recreate | Not reported. | — not reported |
 | **N3** `0312` decide command | Owner approved one name → `HTTP 200: approved`. | ✅ |
 | **N3** quick check #3 — approved name shows in a match | **PENDING, owner.** | 🔲 pending |
-| **N3.1** Uptrace login-verification metric | `geoconflict_profile_login_verification` exists. First minutes: outcomes `ok` and `stale` only, roughly half each (peaks 6/min each); `no_secret` **none**; `absent` **none seen**. Profile box clock: NTP synchronized, matches real time — **clock skew ruled out** as the `stale` cause. Minutes of data, not a conclusion — see [`0339`](../tasks/backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). | ✅ exists · ⚠️ `stale` ≈ half |
+| **N3.1** Uptrace login-verification metric | `geoconflict_profile_login_verification` exists. First minutes: outcomes `ok` and `stale` only, roughly half each (peaks 6/min each); `no_secret` **none**; `absent` **none seen**. Profile box clock: NTP synchronized, matches real time — **clock skew ruled out** as the `stale` cause. Minutes of data, not a conclusion — see [`0339`](../tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). | ✅ exists · ⚠️ `stale` ≈ half |
 | **N3.2** citizen bell message | Not reported. | — not reported |
 | **N3.3** `0341` Step 1.3–1.5 hand-run probe after the profile deploy | **NOT done by hand.** The hourly probe cron covers it before 08:00 UTC — **unverified**. | ⚠️ not done |
 | **N3.4** `0341` Step 2 ("no write") | Not done. | 🔲 not done |

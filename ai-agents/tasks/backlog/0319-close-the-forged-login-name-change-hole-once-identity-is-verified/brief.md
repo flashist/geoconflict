@@ -129,5 +129,5 @@ producer before building — the route list above still stands, the mechanism ma
   enforce' build task after it."* `0325` closed as the S2 build: it checks the signature at login but still
   mints only `vfy:false`, and `resolveCaller` does not yet report `verified`. Both now come from
   [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a, enforce), which waits on
-  [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
+  [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
   explicit owner approval. **This task now depends on `0340`.**

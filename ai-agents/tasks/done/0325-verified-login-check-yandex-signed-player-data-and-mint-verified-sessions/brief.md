@@ -283,6 +283,6 @@ live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`: *
 this brief calls **S3a** (and verification steps 4–6) is now
 [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md); the live proof of S2 and the deploy
 order (verification step 8) is now
-[`0339`](../../backlog/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). **At close, S2
+[`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). **At close, S2
 was not committed and not deployed.** The tasks this brief says it *Blocks* (`0250` S3b, `0319`, and `0323`) now
 depend on `0340`. Evidence: `worklog.md` § *2026-09-29 — Closed as the S2 build*.

@@ -25,7 +25,7 @@ Sprint 7
 
 ~~**45**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), set 2026-09-29 by the owner ruling in `## Sprint`. ⚠️ **NOT the owner-ruled placement.** The owner ruled *"to the top of priorities"* (2026-09-29). Rank 1 on this board is held by the closed `0307`, and every rank above the first open row (`0250`, rank 9) is a closed row; writing `0339` at the top would renumber closed rows, which ADR-035 forbids **even under an owner ruling** (the `0325` row above hit the same wall). So it was **appended** after the highest rank (44). **By owner ruling this task is Sprint 6's TOP priority — ahead of every other open row, whatever this number says.** Its gate is unchanged: it cannot start until `0250` S1, then profile server S2, then game client S2 are deployed. 📌 2026-09-29: the next slot's order is owner-ruled **telemetry → game → profile** — see the dated note under *Precondition* in *Context*.
 
-- **On merit:** immediately above [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — the owner ruled this task to the top of Sprint 6's priorities, and `0250` is that board's first open row. *(ADR-035's relative merit statement, because the board rank cannot carry it.)*
+- **On merit:** immediately above [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — the owner ruled this task to the top of Sprint 6's priorities, and `0250` is that board's first open row. *(ADR-035's relative merit statement, because the board rank cannot carry it.)*
 - 📌 **2026-09-29, latest — append-only note; the bullet above is now partly stale.** `0250` is no longer on Sprint 6: it moved to [Sprint 7](../../../sprints/plan-sprint-7.md) (rank 17) by OWNER RULING 2026-09-29, relayed by `fkit-lead` (ADR-021/037), verbatim *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* — together with `0340`, `0248` and `0301`. **`0339` did NOT move** (it depends only on `0250` S1's *deploy*, not on `0250` closing). Read the bullet above as: this task is Sprint 6's top priority, above every remaining open row. **This task's gate is UNCHANGED:** `0250` S1 deployed (client, then profile server), then profile server S2, then game client S2. That gate now points at a task tracked on Sprint 7, but **`0250` S1 still ships in this weekend's deploy slot** — only where `0250` is tracked changed.
 
 *Earlier value, kept below as history — true on Sprint 7 until 2026-09-29:*
@@ -39,13 +39,13 @@ Sprint 7
 > of open rows by that ruling. The board has no closed row, so none was renumbered. See the board's 2026-09-29
 > `0339`/`0340` addendum. ⛔ Not producer precedent for re-ranking.
 >
-> **Why rank 2 and not 1:** [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md)
+> **Why rank 2 and not 1:** [`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md)
 > already holds rank 1 by an earlier owner ruling the same day (also a post-deploy verify), and moving it would
 > rewrite that ruling. It also finishes first in practice: `0337` is one probe right after the deploy, while this
 > task needs an extra deploy step first (`0250` S1) and then a watch window of days.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
 
 📌 **Set 2026-09-30** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-30, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. **G2** → **"Yes, mark both in progress (Recommended)"** — *"The board then shows the truth: both are underway. Only the status is changed, nothing is closed."* Why: deploy ran 2026-09-29 (profile server with S2 up 20:04:48 UTC); the watch has started. Only the status changed; nothing closed. *(Earlier value, kept as history — true until 2026-09-30:)* ~~🔲 Backlog~~
 
@@ -55,8 +55,8 @@ fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** Every reading comes 
 can read them.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23) and
-[`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).)*
+[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23) and
+[`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).)*
 
 ## Context
 
@@ -76,7 +76,7 @@ data once per page load and sends it with the login. It was proven in tests only
 SDK, the metric reaching Uptrace and the events reaching GameAnalytics were **not** checked — `0325` worklog,
 *Not verified*). This task is the live half: does it work on real players, and how often?
 
-**Why it matters.** The next step, [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a),
+**Why it matters.** The next step, [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a),
 turns the check on for real: a passing check gives the player a verified session. Before that, we need to know
 that real logins actually pass (`ok`), and how often they fail and why. The plan's S2 exit
 (`0325` `plan.md` § *S2*): *"the owner picks a window, and `ok` is the large majority of real logins. `stale` /
@@ -176,12 +176,12 @@ answer: S2 exit met, or not met.
 
 - **Depends on:** `0325` (the S2 build, closed 2026-09-29) plus the three deploys in *Context* (`0250` S1 client,
   then `0250` S1 profile server, then profile server S2, then game client S2). 📌 2026-09-29: the next slot's actual order is owner-ruled **telemetry → game → profile** — see *Context* and the [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan (written 2026-09-29)*.
-- **Blocks:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — S3a needs this task's S2
+- **Blocks:** [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — S3a needs this task's S2
   exit plus a separate owner approval to enforce). ⚠️ It does **not** block Sprint 6's deploy.
 - 📌 **2026-09-29, latest:** `0340` moved back to [Sprint 7](../../../sprints/plan-sprint-7.md) by the owner ruling quoted under *Priority*. This task still blocks it (the block now runs from Sprint 6 to Sprint 7, the normal direction). The `0250` S1 deploy precondition under *Depends on* is unchanged; `0250` is now tracked on Sprint 7.
 - **Related:** [ADR-116](../../../knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)
   (the design; residual: a Yandex data change silently makes everyone unverified — this metric is how that shows)
-  · [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (S1 is the deploy precondition) ·
+  · [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (S1 is the deploy precondition) ·
   `0288` / `0289` (profile alerting; an alert on the `ok` share is a possible later task, not this one — ADR-116
   residual 2).
 - **Possible later task, not filed:** an alert on the `ok` share, if the owner wants one after seeing the numbers.
@@ -219,3 +219,25 @@ count is recorded, so `0340`'s plan can keep or retune the 900 s / 300 s window 
 quoting `0325`'s plan: the counts *"justify or tune the 900 s / 300 s window **before** anything is enforced"*).
 That retune is the decision these readings may feed — **not decided here.** If the share holds, verification step
 6 (file a new task with the readings) may also apply; that is the owner's call at Step 4.
+
+## 📌 2026-10-01 — RESULT: verification FAILED — S2 exit NOT MET (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given **2026-10-01**, typed in prose by the owner in the live `fkit lead` session,
+relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer
+precedent. Owner's words, verbatim: **"Agree"** — answering the lead's recommendation: *"`0339` Step 4: **not met
+for now**, plus a small task to **measure how old the `stale` tickets are**, aiming for Saturday's profile deploy
+if it's ready in time."* Readings taken by `fkit-lead` 2026-10-01, read-only, through the owner's Chrome; the
+producer verified none of them.
+
+- **Full Step 1–4 record:** [`worklog.md`](worklog.md) in this folder.
+- **Headline numbers** (window 2026-09-29 20:06 → 2026-10-01 12:09 UTC, ≈ 40 h; totals approximate):
+  `ok` ≈ 68 % · `stale` ≈ 32 % (≈ 35 % in the last hour — not falling) · `absent` ≈ 26 · `id_mismatch` ≈ 8 ·
+  `bad_signature`, `bad_payload`, `no_secret` **zero**. Client: `Ready` ≈ 99.5 %, `Waited` 46 (mean 575 / 811 ms,
+  no percentile available), `Timeout` 0, `Failed` 0.
+- **Owner's call:** S2 exit **not met**. No numeric threshold was stated; the owner accepted that ≈ 68 % `ok` is
+  not a "large majority".
+- **Cause of `stale`: unknown** (our clock, client reuse and old builds are ruled out — see the worklog).
+- **Per verification step 6:** follow-up filed as
+  [`0366`](../../backlog/0366-measure-how-old-stale-login-signatures-are/brief.md) — measure how old `stale` signatures
+  are. `0325` is **not** reopened. `0340` is **not** started; its gate now waits on `0366` (dated note in
+  `0340`'s brief). **This task closes with this failed result.**

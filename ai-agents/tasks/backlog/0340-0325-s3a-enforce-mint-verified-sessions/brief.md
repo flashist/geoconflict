@@ -4,7 +4,7 @@
 0340
 
 > ℹ️ **ID allocation, checked 2026-09-29.** Allocated in sequence right after
-> [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (same filing; `0338` is
+> [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (same filing; `0338` is
 > held by toolkit prose in `.claude/` — see `0339`'s note). No task folder, no `## ID` hit, no `.claude/` hit.
 
 ## Sprint
@@ -75,7 +75,7 @@ only makes "is this the proven owner?" answerable for the tasks that need it.
 
 ### Gate — both must hold before this task starts
 
-1. **[`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)'s S2 exit is met** —
+1. **[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)'s S2 exit is met** —
    the owner picked a watch window and a threshold, and real logins showed `ok` as the large majority.
 2. **An explicit owner approval to enforce**, given after `0339`'s numbers are in (`0325` plan § *S2 exit*: *"The
    owner approves moving to S3a (a later gate, not decided now)."*). `0339` closing does **not** by itself
@@ -161,8 +161,11 @@ deploy. This task does not close until that note is applied or the owner rules o
 
 ## Notes
 
-- **Depends on:** [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (hard — its S2
-  exit) plus an explicit owner approval to enforce. `0325` (the S2 build, closed 2026-09-29) is built into the
+- **Depends on:** [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
+  **not met** in `0339` on 2026-10-01; the next step toward it is this measurement, then a fix and an S2-exit
+  re-check that are not filed yet) plus an explicit owner approval to enforce. *Repointed 2026-10-01, kept as
+  written:* ~~[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (hard — its S2
+  exit) plus an explicit owner approval to enforce.~~ `0325` (the S2 build, closed 2026-09-29) is built into the
   tree.
 - **Blocks:** [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slice S3b only — hard),
   [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard),
@@ -173,3 +176,20 @@ deploy. This task does not close until that note is applied or the owner rules o
   `0332`), ADR-113 (the note above), `0267` (this is the Yandex half of its scope).
 - **Effort (`0325` plan):** ~0.5 day. An estimate, not a measurement.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+## 📌 2026-10-01 — gate update: `0339` closed as a FAILED verification (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-01, typed in prose by the owner in the live `fkit lead` session,
+relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer
+precedent. Owner, verbatim: **"Agree"** — to *"`0339` Step 4: **not met for now**, plus a small task to **measure
+how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's ready in time."*
+
+- **Gate item 1 above (*"`0339`'s S2 exit is met"*) is NOT met.** `0339` closed on 2026-10-01 *(agent-closed — not
+  owner-verified)* with its result recorded as a failed verification: ≈ 68 % `ok`, ≈ 32 % `stale`, not falling
+  (readings in `0339`'s `worklog.md`). `0339` closing does **not** open this task.
+- **What the gate now waits on:** [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) (measure how
+  old `stale` signatures are) → a fix chosen from its readings → an S2-exit re-check with the owner. Only the first
+  is filed. Gate item 2 (a separate owner approval to enforce) is unchanged.
+- The *Freshness window* bullet under *What to build* still holds: any retune of 900 s / 300 s is a plan decision
+  put to the owner before enforcing — `0366`'s brackets are the evidence for it.
+- **`## Status` unchanged (`🔲 Backlog`). No folder moved, no board row edited, no mover run on this task.**
