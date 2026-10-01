@@ -21,6 +21,7 @@ import {
   metricPlatform,
   metricsExportUrl,
   noopProfileMetrics,
+  profileResourceAttributes,
   startProfileTelemetry,
   type LoginVerificationOutcome,
   type ProfileMetricsHandle,
@@ -428,5 +429,21 @@ describe("startProfileTelemetry", () => {
       noopProfileMetrics.tenureClaim("granted");
       noopProfileMetrics.alertRelay("failed", "unkeyed");
     }).not.toThrow();
+  });
+});
+
+// Task 0355: service.version used to be a hardcoded "1.0.0" on every deploy.
+describe("profileResourceAttributes", () => {
+  test("carries the deploy's version name as service.version", () => {
+    const attributes = profileResourceAttributes("0.0.155-profile.3");
+    expect(attributes["service.version"]).toBe("0.0.155-profile.3");
+    expect(attributes["service.name"]).toBe("geoconflict-profile");
+    expect(typeof attributes["service.instance.id"]).toBe("string");
+  });
+
+  test("never falls back to the old fake 1.0.0", () => {
+    expect(profileResourceAttributes("unknown")["service.version"]).toBe(
+      "unknown",
+    );
   });
 });

@@ -71,10 +71,46 @@ describe("profile API routes", () => {
     process.env.PROFILE_INTERNAL_TOKEN = ORIGINAL;
   });
 
-  test("GET /health is 200", async () => {
+  test("GET /health is 200 and, with no build info given, reports unknown", async () => {
     const res = await request(createApp(mockRepo())).get("/health");
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: "ok" });
+    expect(res.body).toEqual({
+      status: "ok",
+      version: "unknown",
+      commit: "unknown",
+    });
+  });
+
+  // Task 0355: the deploy's version name + commit, baked into the image.
+  test("GET /health reports the build version and commit it was given", async () => {
+    const buildInfo = {
+      version: "0.0.155-profile.3",
+      commit: "abc1234000000000000000000000000000000000",
+    };
+    const app = createApp(
+      mockRepo(),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { buildInfo },
+    );
+    const res = await request(app).get("/health");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ status: "ok", ...buildInfo });
+  });
+
+  test("GET /health stays 200 and dependency-free when the DB is down", async () => {
+    const repo = mockRepo({
+      ping: jest.fn().mockRejectedValue(new Error("down")),
+    });
+    const app = createApp(repo, undefined, undefined, undefined, undefined, {
+      buildInfo: { version: "0.0.155-profile.3", commit: "abc1234" },
+    });
+    const res = await request(app).get("/health");
+    expect(res.status).toBe(200);
+    expect(res.body.version).toBe("0.0.155-profile.3");
+    expect(repo.ping).not.toHaveBeenCalled();
   });
 
   test("GET /ready is 200 when the DB answers", async () => {

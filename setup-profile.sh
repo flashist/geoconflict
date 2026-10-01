@@ -1845,7 +1845,7 @@ echo "is deployed + healthy from ${PROFILE_IMAGE}."
 echo ""
 if [ -n "$PROFILE_DOMAIN" ]; then
     echo "Health check (public, over TLS):"
-    echo "  curl https://${PROFILE_DOMAIN}/health   # expect 200 {\"status\":\"ok\"}"
+    echo "  curl https://${PROFILE_DOMAIN}/health   # expect 200 {\"status\":\"ok\",\"version\":…,\"commit\":…}"
 else
     echo "Health check (no domain configured — loopback only):"
     echo "  curl http://127.0.0.1:${PROFILE_PORT}/health"

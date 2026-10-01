@@ -34,30 +34,126 @@ make_stubs() {
     cat > "$BIN/docker" <<EOF
 #!/bin/bash
 echo "docker \$*" >> "$WORK/docker.argv"
+echo "docker \$*" >> "$WORK/calls.log"
 case "\$1 \$2" in
   "buildx build")
     iid=""; for a in "\$@"; do [ "\$prev" = "--iidfile" ] && iid="\$a"; prev="\$a"; done
     [ -n "\$iid" ] && printf 'sha256:%064d' 1 > "\$iid"; exit 0 ;;
-  "buildx imagetools") exit 0 ;;
+  "buildx imagetools")
+    # "imagetools inspect <ref>" — a fake REGISTRY (task 0355). A by-DIGEST ref (has '@')
+    # always resolves. A by-TAG ref answers like the real tool (output shapes measured
+    # 2026-09-30 against Docker Hub, read-only):
+    #   pushed by this fixture (\$WORK/registry_pushed) → Digest 1, or 2 if imagetools_mismatch;
+    #   listed in \$WORK/registry_tags (another image's name)        → Digest 3;
+    #   named in \$WORK/registry_taken_on_recheck → free on its FIRST look-up, taken after;
+    #   named in \$WORK/registry_unknown_on_recheck → free on its FIRST look-up, then
+    #     "pull access denied …" (cannot tell) — 0355 review R6;
+    #   \$WORK/registry_all_taken exists → every by-tag name not pushed here is taken (R7);
+    #   \$WORK/registry_unknown exists → "pull access denied …", exit 1 (cannot tell);
+    #   otherwise → "ERROR: <ref>: not found", exit 1 (the name is free).
+    ref="\$4"
+    case "\$ref" in
+      *@*) d=1 ;;
+      *)
+        if grep -qxF "\$ref" "$WORK/registry_pushed" 2>/dev/null; then
+          d=1; [ -f "$WORK/imagetools_mismatch" ] && d=2
+        elif grep -qxF "\$ref" "$WORK/registry_tags" 2>/dev/null; then
+          d=3
+        elif [ -f "$WORK/registry_all_taken" ]; then
+          d=3
+        elif grep -qxF "\$ref" "$WORK/registry_taken_on_recheck" 2>/dev/null && [ -f "$WORK/recheck_seen" ]; then
+          d=3
+        else
+          grep -qxF "\$ref" "$WORK/registry_taken_on_recheck" 2>/dev/null && : > "$WORK/recheck_seen"
+          unknown_now=0
+          if grep -qxF "\$ref" "$WORK/registry_unknown_on_recheck" 2>/dev/null; then
+            [ -f "$WORK/unknown_recheck_seen" ] && unknown_now=1
+            : > "$WORK/unknown_recheck_seen"
+          fi
+          if [ -f "$WORK/registry_unknown" ] || [ "\$unknown_now" = "1" ]; then
+            echo "ERROR: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed" >&2
+          else
+            echo "ERROR: docker.io/\$ref: not found" >&2
+          fi
+          exit 1
+        fi ;;
+    esac
+    echo "Name:      \$ref"
+    echo "MediaType: application/vnd.docker.distribution.manifest.v2+json"
+    printf 'Digest:    sha256:%064d\n' "\$d"
+    exit 0 ;;
 esac
 case "\$1" in
   info) exit 0 ;;
-  login) cat >/dev/null; exit 0 ;;            # token on stdin — consumed, never echoed
-  tag|push) exit 0 ;;
+  login) cat > "$WORK/login.stdin"; exit 0 ;;  # token on stdin — kept (synthetic) so T39 can prove it came that way
+  tag) exit 0 ;;
+  push) echo "\$2" >> "$WORK/registry_pushed"; exit 0 ;;   # the fake registry now holds it
   inspect) printf '%s/%s@sha256:%064d\n' "\$DOCKER_USERNAME" "\$DOCKER_REPO" 1; exit 0 ;;
 esac
 exit 0
 EOF
 
-    cat > "$BIN/git" <<'EOF'
+    # git stub (task 0355 widened it). Every argv is logged %q-quoted, one call per line, to
+    # git.argv and to the shared calls.log (ordering). Anything it does not answer prints
+    # UNSTUBBED, lands in unstubbed.log and EXITS 97 — and run_deploy fails on that log after
+    # EVERY run (0355 review R4), not just the happy path: a silent success for an unknown git
+    # call would let a new, untested git operation slip into any deploy path unseen.
+    # Fixture knobs, all under $WORK: dirty (porcelain lines; the pathspec after "--" is
+    # honoured), status_fail (git status errors), local_tags, remote_tags (raw ls-remote
+    # lines), ls_remote_fail, tag_fail, push_fail, commit_unpushed, no_git_head.
+    cat > "$BIN/git" <<EOF
 #!/bin/bash
-case "$*" in
-  "rev-parse --short HEAD") echo "abc1234" ;;
-  "rev-parse HEAD") echo "abc1234000000000000000000000000000000000" ;;
-  "status --porcelain --untracked-files=normal") : ;;   # clean tree (no -dirty)
-  *) : ;;
+line="git \$(printf '%q ' "\$@")"
+echo "\$line" >> "$WORK/git.argv"
+echo "\$line" >> "$WORK/calls.log"
+case "\$*" in
+  "rev-parse --short HEAD"|"rev-parse HEAD")
+    [ -f "$WORK/no_git_head" ] && { echo "fatal: not a git repository" >&2; exit 128; }
+    [ "\$2" = "--short" ] && echo "abc1234" || echo "abc1234000000000000000000000000000000000"
+    exit 0 ;;
 esac
-exit 0
+case "\$1" in
+  status)
+    if [ "\$2 \$3" = "--porcelain --untracked-files=normal" ]; then
+      [ -f "$WORK/status_fail" ] && { echo "fatal: not a git repository" >&2; exit 128; }
+      shift 3; [ "\${1:-}" = "--" ] && shift
+      [ -f "$WORK/dirty" ] || exit 0
+      while IFS= read -r entry; do
+        path="\${entry:3}"
+        if [ \$# -eq 0 ]; then echo "\$entry"; continue; fi
+        for spec in "\$@"; do
+          case "\$path" in "\$spec"|"\$spec"/*) echo "\$entry"; break ;; esac
+        done
+      done < "$WORK/dirty"
+      exit 0
+    fi ;;
+  tag)
+    if [ "\$2" = "-l" ]; then
+      [ -f "$WORK/local_tags" ] || exit 0
+      while IFS= read -r t; do case "\$t" in \$3) echo "\$t" ;; esac; done < "$WORK/local_tags"
+      exit 0
+    fi
+    if [ "\$2" = "-a" ]; then
+      [ -f "$WORK/tag_fail" ] && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
+      grep -qxF "\$3" "$WORK/local_tags" 2>/dev/null && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
+      echo "\$3" >> "$WORK/local_tags"; exit 0
+    fi ;;
+  ls-remote)
+    [ -f "$WORK/ls_remote_fail" ] && { echo "fatal: could not read from remote repository" >&2; exit 128; }
+    [ -f "$WORK/remote_tags" ] && cat "$WORK/remote_tags"
+    exit 0 ;;
+  push)
+    [ -f "$WORK/push_fail" ] && { echo "error: failed to push some refs" >&2; exit 1; }
+    exit 0 ;;
+  branch)
+    if [ "\$2 \$3" = "-r --contains" ]; then
+      [ -f "$WORK/commit_unpushed" ] || echo "  origin/dev"
+      exit 0
+    fi ;;
+esac
+echo "UNSTUBBED \$line"
+echo "UNSTUBBED \$line" >> "$WORK/unstubbed.log"
+exit 97
 EOF
 
     # sshpass stub: record argv + the mode of the -f file, then dispatch to scp/ssh stub.
@@ -75,6 +171,7 @@ EOF
     cat > "$BIN/ssh" <<EOF
 #!/bin/bash
 echo "ssh \$*" >> "$WORK/ssh.argv"
+echo "ssh \$*" >> "$WORK/calls.log"
 last="\${!#}"
 if printf '%s' "\$last" | grep -q 'geoconflict-deploy-role'; then
     [ -f "$WORK/ssh_unreachable" ] && exit 255          # simulate unreachable/auth-fail
@@ -123,7 +220,16 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
     # …and ./profile-checks.sh since task 0219 (same precondition, same reason).
     : > "$RUN/profile-checks.sh"; chmod +x "$RUN/profile-checks.sh"
     : > "$RUN/Dockerfile.profile"
-    printf '#!/bin/bash\nexit 0\n' > "$RUN/scripts/check-docker-secret-boundary.sh"
+    # Task 0355: the version-name helper the script sources, and a package.json carrying the
+    # game version it reads (read-only). HELPER_STUB=absent (a caller shell variable, like
+    # PARITY_STUB) leaves the helper out; $WORK/pkg_version overrides the version.
+    if [ "${HELPER_STUB:-}" != "absent" ] && [ -f "$REPO_ROOT/scripts/deploy-version-tag.sh" ]; then
+        cp "$REPO_ROOT/scripts/deploy-version-tag.sh" "$RUN/scripts/deploy-version-tag.sh"
+    fi
+    printf '{\n  "name": "fixture",\n  "version": "%s"\n}\n' "$(cat "$WORK/pkg_version" 2>/dev/null || echo 0.0.155)" \
+        > "$RUN/package.json"
+    # Logs to calls.log so T20 can assert the byte scan runs BEFORE any push (task 0355).
+    printf '#!/bin/bash\necho "secret-scan $*" >> "%s"\nexit 0\n' "$WORK/calls.log" > "$RUN/scripts/check-docker-secret-boundary.sh"
     chmod +x "$RUN/scripts/check-docker-secret-boundary.sh"
     # Task 0298: the config parity guard is ARMED — a missing checker stops the deploy — so
     # the fixture carries a stub checker, like the secret-boundary stub above. It records its
@@ -137,7 +243,8 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
             > "$RUN/scripts/check-config-parity.mjs"
     fi
     rm -f "$WORK/docker.argv" "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" \
-          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env" "$WORK/parity.argv"
+          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env" "$WORK/parity.argv" \
+          "$WORK/git.argv" "$WORK/calls.log" "$WORK/unstubbed.log"
     # `env -i` + an explicit allow-list — deliberately NOT a list of secrets to clear.
     # The real deploy script forwards every variable in its export block from its environment into the staged
     # secrets file, and the scp stub captures that file to $WORK/staged.env for T10. If
@@ -163,7 +270,16 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
         "$@" \
         bash build-deploy-profile.sh > "$WORK/out.log" 2>&1 )
     RC=$?
+    # Every run, every path (0355 review R4): a git call the stub does not know is a failure
+    # wherever it happens — the push-failed or tag-failed branch as much as the happy path.
+    RUN_DEPLOY_COUNT=$((RUN_DEPLOY_COUNT + 1))
+    if [ -s "$WORK/unstubbed.log" ]; then
+        UNSTUBBED_RUNS=$((UNSTUBBED_RUNS + 1))
+        fail "run_deploy made a git call the stub does not know: $(head -1 "$WORK/unstubbed.log") (see $WORK/out.log)"
+    fi
 }
+RUN_DEPLOY_COUNT=0
+UNSTUBBED_RUNS=0
 
 NEW() { WORK=$(mktemp -d); make_stubs; mkdir -p "$WORK/home"; : > "$WORK/resolve_map"; \
         RECORD="$WORK/home/.geoconflict/profile-deploy.log"; }
@@ -343,6 +459,316 @@ n=$(grep -c '^export PROFILE_SESSION_SECRET=' "$WORK/staged.env" 2>/dev/null || 
 got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SESSION_SECRET-unset}" )
 [ "$n" = "1" ] && [ -z "$got" ] && pass "blank deploy stages exactly one EMPTY PROFILE_SESSION_SECRET (the box reuses or generates)" \
   || fail "blank deploy: expected one empty export line, got n=$n value-empty=$([ -z "$got" ] && echo yes || echo no)"
+
+# ══ Task 0355: version-tagged profile deploys ════════════════════════════════
+# Name = <package.json X.Y.Z, any -dev.N/-staging.N removed>-profile.<N>, e.g. 0.0.155-profile.3
+# (owner ruling at the plan gate, 2026-09-30). N = 1 + the highest N across local tags,
+# remote tags and the deploy record's version= lines. A deploy with uncommitted SHIPPED files
+# is refused before anything is built (owner ruling, same gate). The tag is annotated, made
+# only AFTER the deploy succeeds, on the captured full commit, and every tag/push failure is
+# warn-only. All of it is driven through the REAL script with the stubs above.
+T_SHA=abc1234000000000000000000000000000000000
+last_result_line() { grep '^validation_result=' "$RECORD" 2>/dev/null | tail -1; }
+no_unstubbed() { [ ! -s "$WORK/unstubbed.log" ] && pass "$1: no unstubbed git call" \
+  || fail "$1: the script made a git call the stub does not know: $(head -1 "$WORK/unstubbed.log")"; }
+
+echo "== T20: tagged deploy — name, build args, annotated tag AFTER the deploy, image tag, record (0355) =="
+NEW; echo profile > "$WORK/marker"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.1' "$WORK/docker.argv" 2>/dev/null \
+  && pass "build arg PROFILE_BUILD_VERSION=0.0.155-profile.1" || fail "no --build-arg PROFILE_BUILD_VERSION=0.0.155-profile.1 on the build"
+grep -q -- "--build-arg PROFILE_BUILD_COMMIT=$T_SHA" "$WORK/docker.argv" 2>/dev/null \
+  && pass "build arg PROFILE_BUILD_COMMIT=<full sha>" || fail "no --build-arg PROFILE_BUILD_COMMIT=<full 40-char sha> on the build"
+TAGLINE=$(grep '^git tag -a ' "$WORK/git.argv" 2>/dev/null | head -1)
+printf '%s' "$TAGLINE" | grep -qE "^git tag -a 0\.0\.155-profile\.1 -m .* $T_SHA \$" \
+  && pass "annotated tag 0.0.155-profile.1 on the captured full commit" || fail "no 'git tag -a 0.0.155-profile.1 -m … $T_SHA' (got: ${TAGLINE:-none})"
+printf '%s' "$TAGLINE" | grep -q 'sha256:0000' && printf '%s' "$TAGLINE" | grep -q 'package_version' \
+  && pass "tag message carries the digest and package_version" || fail "tag message lacks the sha256 digest or package_version"
+printf '%s' "$TAGLINE" | grep -qE '203\.0\.113\.10|acme/profile' \
+  && fail "tag message carries the host or the registry repo" || pass "tag message carries no host and no registry repo"
+grep -qx 'git push origin refs/tags/0.0.155-profile.1 ' "$WORK/git.argv" 2>/dev/null \
+  && pass "pushed exactly refs/tags/0.0.155-profile.1" || fail "no 'git push origin refs/tags/0.0.155-profile.1'"
+L_DEPLOY=$(grep -n '^ssh .*setup-profile\.sh' "$WORK/calls.log" 2>/dev/null | tail -1 | cut -d: -f1)
+L_TAG=$(grep -n '^git tag -a ' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+[ -n "$L_DEPLOY" ] && [ -n "$L_TAG" ] && [ "$L_TAG" -gt "$L_DEPLOY" ] \
+  && pass "the git tag comes AFTER the deploy ssh" || fail "git tag not after the deploy ssh (deploy line ${L_DEPLOY:-none}, tag line ${L_TAG:-none})"
+grep -qx 'docker tag sha256:0000000000000000000000000000000000000000000000000000000000000001 acme/profile:0.0.155-profile.1' "$WORK/docker.argv" 2>/dev/null \
+  && grep -qx 'docker push acme/profile:0.0.155-profile.1' "$WORK/docker.argv" \
+  && pass "image tagged + pushed as acme/profile:0.0.155-profile.1 (from the built image id)" || fail "no docker tag/push of acme/profile:0.0.155-profile.1"
+grep -q 'acme/profile:profile-' "$WORK/docker.argv" 2>/dev/null \
+  && fail "a profile-<commit> image tag is still used (dropped by owner ruling, 0355 review R2)" \
+  || pass "no profile-<commit> image tag anywhere (owner ruling, 0355 review R2)"
+# Order (0355 review R1/R2): login → registry says the name is free → build → scan → free AGAIN →
+# push → deploy (ssh) → git tag. Line numbers in the shared calls.log.
+L_LOGIN=$(grep -n '^docker login' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+L_CHECK1=$(grep -n '^docker buildx imagetools inspect acme/profile:0.0.155-profile.1$' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+L_BUILD=$(grep -n '^docker buildx build' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+L_PUSH=$(grep -n '^docker push acme/profile:0.0.155-profile.1$' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+L_CHECK2=$(awk -v b="${L_BUILD:-0}" -v p="${L_PUSH:-0}" 'NR>b && NR<p && $0=="docker buildx imagetools inspect acme/profile:0.0.155-profile.1"{n=NR} END{print n+0}' "$WORK/calls.log" 2>/dev/null)
+[ -n "$L_LOGIN" ] && [ -n "$L_CHECK1" ] && [ -n "$L_BUILD" ] && [ "$L_LOGIN" -lt "$L_CHECK1" ] && [ "$L_CHECK1" -lt "$L_BUILD" ] \
+  && pass "registry login, then the version name is checked free, BEFORE the build" \
+  || fail "expected login < registry check < build (login ${L_LOGIN:-none}, check ${L_CHECK1:-none}, build ${L_BUILD:-none})"
+[ -n "$L_PUSH" ] && [ "${L_CHECK2:-0}" -gt 0 ] \
+  && pass "the name is checked free AGAIN between the build and the push" \
+  || fail "no registry re-check between the build and the push (push ${L_PUSH:-none})"
+L_SCAN=$(grep -n '^secret-scan --inspect-image ' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+L_FIRST_PUSH=$(grep -n '^docker push ' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+[ -n "$L_SCAN" ] && [ -n "$L_FIRST_PUSH" ] && [ "$L_BUILD" -lt "$L_SCAN" ] && [ "$L_SCAN" -lt "$L_FIRST_PUSH" ] \
+  && pass "the secret byte scan runs on the built image AFTER the build and BEFORE any push" \
+  || fail "expected build < secret scan < first push (build ${L_BUILD:-none}, scan ${L_SCAN:-none}, push ${L_FIRST_PUSH:-none})"
+[ -n "$L_PUSH" ] && [ -n "$L_DEPLOY" ] && [ "$L_PUSH" -lt "$L_DEPLOY" ] \
+  && pass "the version-named image is pushed BEFORE the deploy (the box pulls it by digest)" \
+  || fail "the version image push is not before the deploy ssh (push ${L_PUSH:-none}, deploy ${L_DEPLOY:-none})"
+[ "$(grep -c '^docker push ' "$WORK/docker.argv" 2>/dev/null)" = "1" ] \
+  && pass "exactly one docker push per deploy (the version name) — nothing pushed after the deploy" \
+  || fail "expected exactly one docker push, got: $(grep '^docker push ' "$WORK/docker.argv" 2>/dev/null | tr '\n' ';')"
+grep -qx 'version=0.0.155-profile.1' "$RECORD" && grep -qx 'package_version=0.0.155' "$RECORD" \
+  && pass "record has version= and package_version=" || fail "record lacks version=0.0.155-profile.1 / package_version=0.0.155"
+last_result_line | grep -qE '^validation_result=ok digest=\S+ git_tag=pushed$' \
+  && pass "record's last line: validation_result=ok … git_tag=pushed" || fail "record's last line is '$(last_result_line)'"
+[ "$(tail -1 "$RECORD")" = "$(last_result_line)" ] && pass "the validation_result= line is still the block's LAST line" \
+  || fail "something was written after validation_result= (T4's layout)"
+no_unstubbed T20
+grep -q 'not on any remote branch' "$WORK/out.log" && fail "warned 'not on any remote branch' for a pushed commit" \
+  || pass "no unpushed-commit warning when a remote branch contains the commit"
+
+echo "== T21: counter = 1 + max over local tags, remote tags and the record; numeric, anchored (0355) =="
+NEW; echo profile > "$WORK/marker"
+printf '%s\n' 0.0.155-profile.1 0.0.155-profile.2 0.0.154-profile.40 0.0.155-profile.x pre-t4-profile-backend-infra > "$WORK/local_tags"
+printf '%s\trefs/tags/%s\n' \
+  1111111111111111111111111111111111111111 0.0.155-profile.9 \
+  2222222222222222222222222222222222222222 0.0.155-profile.10 \
+  3333333333333333333333333333333333333333 '0.0.155-profile.10^{}' \
+  4444444444444444444444444444444444444444 0.0.154-profile.40 \
+  5555555555555555555555555555555555555555 x0.0.155-profile.50 \
+  6666666666666666666666666666666666666666 0.0.1550-profile.60 > "$WORK/remote_tags"
+mkdir -p "$(dirname "$RECORD")"
+printf '%s\n' ---- version=0.0.155-profile.11 version=0.0.154-profile.30 'version=0.0.155-profile.70x' \
+  'validation_result=failed digest=unknown git_tag=skipped:deploy-not-completed' > "$RECORD"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.12 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "next name is 0.0.155-profile.12 (.10 beats .9; other bases, junk and ^{} ignored)" \
+  || fail "expected 0.0.155-profile.12, build args were: $(grep -o 'PROFILE_BUILD_VERSION=[^ ]*' "$WORK/docker.argv" 2>/dev/null)"
+grep -q "^git ls-remote --tags origin refs/tags/0.0.155-profile.\\\\\\*" "$WORK/git.argv" 2>/dev/null \
+  && pass "remote tags read with git ls-remote --tags origin" || fail "no 'git ls-remote --tags origin refs/tags/0.0.155-profile.*'"
+
+echo "== T22: a -dev.N package version names the base; package.json is never written (0355) =="
+NEW; echo profile > "$WORK/marker"; echo 0.0.155-dev.2 > "$WORK/pkg_version"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.1 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "0.0.155-dev.2 → 0.0.155-profile.1" || fail "0.0.155-dev.2 did not name 0.0.155-profile.1"
+grep -qx 'package_version=0.0.155-dev.2' "$RECORD" && pass "record keeps the raw package_version" || fail "record lacks package_version=0.0.155-dev.2"
+[ "$(cat "$RUN/package.json")" = "$(printf '{\n  "name": "fixture",\n  "version": "0.0.155-dev.2"\n}')" ] \
+  && pass "package.json byte-identical afterwards" || fail "package.json was modified by the deploy"
+
+echo "== T23: an unreadable/odd package version, or a missing helper, stops before the build (0355) =="
+NEW; echo profile > "$WORK/marker"; echo 1.2 > "$WORK/pkg_version"
+run_deploy
+[ "$RC" -ne 0 ] && pass "version '1.2' → deploy refused (rc=$RC)" || fail "version '1.2' did not stop the deploy"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$RECORD" ] && pass "…with no SCP and no record" || fail "a refused deploy transported or recorded"
+grep -q 'Nothing was built' "$WORK/out.log" && pass "…and said nothing was built" || fail "no 'Nothing was built' message"
+NEW; echo profile > "$WORK/marker"
+HELPER_STUB=absent run_deploy
+[ "$RC" -ne 0 ] && pass "missing scripts/deploy-version-tag.sh → deploy refused (rc=$RC)" || fail "a missing helper did not stop the deploy"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+
+echo "== T24: uncommitted SHIPPED files, or no git, refuse the deploy before the build (owner ruling, 0355) =="
+NEW; echo profile > "$WORK/marker"; printf ' M src/profile-server/Server.ts\n?? migrations/099_new.sql\n' > "$WORK/dirty"
+run_deploy
+[ "$RC" -ne 0 ] && pass "dirty src/ → deploy refused (rc=$RC)" || fail "a dirty shipped file did not stop the deploy"
+grep -q 'src/profile-server/Server.ts' "$WORK/out.log" && grep -q 'migrations/099_new.sql' "$WORK/out.log" \
+  && pass "…listing the dirty paths" || fail "the refusal does not list the dirty paths"
+grep -qi 'commit.*redeploy\|commit, then' "$WORK/out.log" && pass "…and saying commit, then redeploy" || fail "no 'commit, then redeploy' hint"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$WORK/ssh.argv" ] && pass "…no SCP and no SSH" || fail "a refused deploy reached the box"
+grep -qE '^git (tag -a|push)' "$WORK/git.argv" 2>/dev/null && fail "…but it tagged or pushed" || pass "…no git tag and no git push"
+[ ! -f "$RECORD" ] && pass "…and no record block" || fail "a refused deploy wrote a record block"
+NEW; echo profile > "$WORK/marker"; : > "$WORK/no_git_head"
+run_deploy
+[ "$RC" -ne 0 ] && pass "no git (rev-parse fails) → deploy refused (rc=$RC)" || fail "a deploy with no git commit was not refused"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+
+echo "== T25: an uncommitted change OUTSIDE the shipped files (a doc) still deploys and tags (0355) =="
+NEW; echo profile > "$WORK/marker"; printf ' M ai-agents/tasks/backlog/notes.md\n?? scratch.txt\n' > "$WORK/dirty"
+run_deploy
+[ "$RC" -eq 0 ] && pass "doc-only change → deploy proceeds (rc=0)" || fail "a doc-only change stopped the deploy (rc=$RC); see $WORK/out.log"
+last_result_line | grep -q 'git_tag=pushed$' && pass "…and it is tagged" || fail "doc-only deploy not tagged: '$(last_result_line)'"
+grep -qE '^git status --porcelain --untracked-files=normal -- .*src .*migrations' "$WORK/git.argv" 2>/dev/null \
+  && pass "the dirty check passes the shipped-files pathspec" || fail "git status was not scoped with a pathspec"
+
+echo "== T26: a failed deploy does not tag, records its name, and uses up its number (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/fail_deploy"
+run_deploy
+[ "$RC" -ne 0 ] && pass "deploy failed (rc=$RC)" || fail "fail_deploy did not fail the deploy"
+grep -qE '^git (tag -a|push)' "$WORK/git.argv" 2>/dev/null && fail "a FAILED deploy was tagged or pushed" || pass "no git tag/push on a failed deploy"
+grep -qx 'docker push acme/profile:0.0.155-profile.1' "$WORK/docker.argv" 2>/dev/null \
+  && pass "the attempt's image is in the registry as 0.0.155-profile.1 (a registry name = built and pushed, not deployed)" \
+  || fail "the attempt was not pushed as acme/profile:0.0.155-profile.1"
+grep -qx 'version=0.0.155-profile.1' "$RECORD" && pass "record names the attempt 0.0.155-profile.1" || fail "record lacks version=0.0.155-profile.1"
+last_result_line | grep -qE '^validation_result=failed .*git_tag=skipped:deploy-not-completed$' \
+  && pass "record: validation_result=failed … git_tag=skipped:deploy-not-completed" || fail "record's last line is '$(last_result_line)'"
+rm -f "$WORK/fail_deploy"
+run_deploy
+[ "$RC" -eq 0 ] && pass "the retry deploy exited 0" || fail "retry exited $RC; see $WORK/out.log"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.2 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "the retry is 0.0.155-profile.2 (the failed attempt used up .1)" || fail "the retry did not get 0.0.155-profile.2"
+grep -qx 'docker push acme/profile:0.0.155-profile.1' "$WORK/docker.argv" 2>/dev/null \
+  && fail "the retry pushed over the failed attempt's registry name .1" || pass "the retry never pushed to .1 again"
+
+echo "== T27: the tag cannot be created (already exists / git error) → warned, nothing pushed, never forced (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/tag_fail"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy still exits 0" || fail "a tag failure changed the exit code ($RC)"
+grep -q 'WARNING' "$WORK/out.log" && pass "…with a WARNING" || fail "no WARNING for a failed tag"
+grep -q '^git push' "$WORK/git.argv" 2>/dev/null && fail "…but it pushed anyway" || pass "…and no git push"
+L_D=$(grep -n '^ssh .*setup-profile\.sh' "$WORK/calls.log" 2>/dev/null | tail -1 | cut -d: -f1)
+awk -v d="${L_D:-999999}" 'NR>d && /^docker (push|tag) /{f=1} END{exit !f}' "$WORK/calls.log" 2>/dev/null \
+  && fail "…but a docker tag/push ran after the deploy" || pass "…and no docker tag/push after the deploy"
+grep -q 'docker push' "$WORK/out.log" && fail "…but it printed a docker push retry (could overwrite another image's name — 0355 review R1)" \
+  || pass "…and no docker push retry printed (0355 review R1)"
+last_result_line | grep -q 'git_tag=tag-failed$' && pass "record: git_tag=tag-failed" || fail "record's last line is '$(last_result_line)'"
+
+echo "== T28: the tag push fails → warned with the exact retry, deploy stays ok (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/push_fail"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy still exits 0" || fail "a push failure changed the exit code ($RC)"
+grep -q 'WARNING' "$WORK/out.log" && pass "…with a WARNING" || fail "no WARNING for a failed push"
+grep -qF 'git push origin refs/tags/0.0.155-profile.1' "$WORK/out.log" && pass "…carrying the retry command" || fail "no retry command in the output"
+last_result_line | grep -q 'validation_result=ok .*git_tag=push-failed$' && pass "record: ok … git_tag=push-failed" || fail "record's last line is '$(last_result_line)'"
+grep -q 'docker push' "$WORK/out.log" && fail "…but it printed a docker push retry (the image is already in the registry — 0355 review R1)" \
+  || pass "…and no docker push retry printed (0355 review R1)"
+
+echo "== T29: git ls-remote fails → warned; the counter uses local tags + the record (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/ls_remote_fail"; echo 0.0.155-profile.3 > "$WORK/local_tags"
+mkdir -p "$(dirname "$RECORD")"; printf '%s\n' ---- version=0.0.155-profile.5 'validation_result=failed digest=unknown' > "$RECORD"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -qi 'remote tags' "$WORK/out.log" && pass "warned that remote tags could not be read" || fail "no warning about the unreadable remote tags"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.6 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "counter from local .3 + record .5 → .6" || fail "expected 0.0.155-profile.6"
+
+echo "== T30: never a forced/bulk tag push; the box still deploys by digest (0355) =="
+NEW; echo profile > "$WORK/marker"
+run_deploy
+: > "$WORK/push_fail"; cp "$WORK/git.argv" "$WORK/git.argv.1" 2>/dev/null
+run_deploy
+cat "$WORK/git.argv.1" "$WORK/git.argv" 2>/dev/null > "$WORK/git.argv.all"
+grep -E '^git push ' "$WORK/git.argv.all" | grep -qE ' (-f|--force|--force-with-lease|--tags|--follow-tags|--mirror|--all|--delete|-d) ' \
+  && fail "a git push carried a force/bulk/delete flag" || pass "no git push used -f/--force/--tags/--follow-tags/--mirror/--all/--delete"
+grep -E '^git tag ' "$WORK/git.argv.all" | grep -qE ' (-f|--force|-d|--delete) ' \
+  && fail "a git tag call forced or deleted" || pass "no git tag -f / -d"
+grep -qE '^export PROFILE_IMAGE=acme/profile@sha256:[0-9a-f]{64}$' "$WORK/staged.env" 2>/dev/null \
+  && pass "staged PROFILE_IMAGE is still the @sha256 digest" || fail "staged PROFILE_IMAGE is not the @sha256 digest"
+
+echo "== T31: the commit is on no remote branch → warned, still tagged (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/commit_unpushed"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -q 'not on any remote branch' "$WORK/out.log" && pass "warned the commit is on no remote branch" || fail "no unpushed-commit warning"
+last_result_line | grep -q 'git_tag=pushed$' && pass "…and still tagged" || fail "record's last line is '$(last_result_line)'"
+
+echo "== T32: the version image tag resolves to another digest → WARNING, deploy stays ok (0355) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/imagetools_mismatch"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -q 'WARNING.*0.0.155-profile.1' "$WORK/out.log" && pass "warned the version tag does not resolve to the deployed digest" \
+  || fail "no WARNING when the version tag resolved to a different digest"
+
+echo "== T33: git status itself fails → treated as dirty: the deploy is refused before the build (0355 review R5) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/status_fail"
+run_deploy
+[ "$RC" -ne 0 ] && pass "git status error → deploy refused (rc=$RC) — fails closed" || fail "a failing git status did not stop the deploy (fail-OPEN)"
+grep -q 'git status failed' "$WORK/out.log" && pass "…saying git status failed" || fail "the refusal does not say git status failed"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$WORK/ssh.argv" ] && [ ! -f "$RECORD" ] && pass "…no SCP, no SSH, no record" || fail "a refused deploy reached the box or recorded"
+
+echo "== T34: the version name is already in the registry → skip to the next free number, never overwrite (0355 review R1/R2) =="
+NEW; echo profile > "$WORK/marker"; printf '%s\n' acme/profile:0.0.155-profile.1 acme/profile:0.0.155-profile.2 > "$WORK/registry_tags"
+run_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.3 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "registry holds .1 and .2 → this deploy is 0.0.155-profile.3" \
+  || fail "expected 0.0.155-profile.3, build args were: $(grep -o 'PROFILE_BUILD_VERSION=[^ ]*' "$WORK/docker.argv" 2>/dev/null)"
+grep -qE '^docker (tag|push) .*acme/profile:0\.0\.155-profile\.[12]$' "$WORK/docker.argv" 2>/dev/null \
+  && fail "a docker tag/push targeted a name the registry already held" || pass "never tagged or pushed .1 or .2 (another image's names)"
+grep -qx 'docker push acme/profile:0.0.155-profile.3' "$WORK/docker.argv" 2>/dev/null && pass "pushed as .3" || fail "not pushed as acme/profile:0.0.155-profile.3"
+grep -qx 'git push origin refs/tags/0.0.155-profile.3 ' "$WORK/git.argv" 2>/dev/null && pass "git tag .3 after the deploy" || fail "no git push of refs/tags/0.0.155-profile.3"
+grep -q 'already in the registry' "$WORK/out.log" && pass "said why it skipped" || fail "no note about skipping a registry-held name"
+
+echo "== T35: the name is taken while the image builds → stop before the push, push nothing (0355 review R1/R2) =="
+NEW; echo profile > "$WORK/marker"; echo acme/profile:0.0.155-profile.1 > "$WORK/registry_taken_on_recheck"
+run_deploy
+[ "$RC" -ne 0 ] && pass "name taken at push time → deploy stopped (rc=$RC)" || fail "a name taken at push time did not stop the deploy"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && pass "…after the build (the first check said free)" || fail "the build never ran — the test did not reach the push-time check"
+grep -q '^docker push' "$WORK/docker.argv" 2>/dev/null && fail "…but it pushed (overwrote another image's name)" || pass "…and pushed nothing"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$WORK/ssh.argv" ] && [ ! -f "$RECORD" ] && pass "…no SCP, no SSH, no record" || fail "a stopped deploy reached the box or recorded"
+grep -q 'overwrite' "$WORK/out.log" && pass "…saying it refuses to overwrite" || fail "no refuse-to-overwrite message"
+rm -f "$WORK/registry_taken_on_recheck"; echo acme/profile:0.0.155-profile.1 > "$WORK/registry_tags"
+run_deploy
+grep -q -- '--build-arg PROFILE_BUILD_VERSION=0.0.155-profile.2 ' "$WORK/docker.argv" 2>/dev/null \
+  && pass "a re-run skips the taken name and deploys as .2" || fail "the re-run did not move on to 0.0.155-profile.2"
+
+echo "== T36: the registry cannot be read → stop before the build (never guess a name is free) (0355 review R1/R2) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/registry_unknown"
+run_deploy
+[ "$RC" -ne 0 ] && pass "unreadable registry → deploy refused (rc=$RC)" || fail "an unreadable registry did not stop the deploy"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+grep -q '^docker push' "$WORK/docker.argv" 2>/dev/null && fail "…but it pushed" || pass "…and pushed nothing"
+grep -q 'Nothing was built' "$WORK/out.log" && pass "…and said nothing was built" || fail "no 'Nothing was built' message"
+grep -q 'insufficient_scope' "$WORK/out.log" && pass "…showing the registry's own error" || fail "the registry's error was not shown"
+
+echo "== T37: the registry cannot be read at the push-time re-check → stop, push nothing (0355 review R6) =="
+NEW; echo profile > "$WORK/marker"; echo acme/profile:0.0.155-profile.1 > "$WORK/registry_unknown_on_recheck"
+run_deploy
+[ "$RC" -ne 0 ] && pass "unreadable registry at the re-check → deploy stopped (rc=$RC)" || fail "an unreadable registry at the re-check did not stop the deploy (fail-OPEN)"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && pass "…after the build (the first look-up said free)" || fail "the build never ran — the test did not reach the push-time re-check"
+grep -qE '^docker (tag|push) ' "$WORK/docker.argv" 2>/dev/null && fail "…but it tagged/pushed a name the registry could not confirm free" || pass "…no docker tag and no docker push"
+[ ! -f "$WORK/scp.called" ] && [ ! -f "$WORK/ssh.argv" ] && [ ! -f "$RECORD" ] && pass "…no SCP, no SSH, no record" || fail "a stopped deploy reached the box or recorded"
+grep -q 'cannot read the registry to confirm .* is still free' "$WORK/out.log" && pass "…saying it cannot confirm the name is still free" || fail "no 'cannot read the registry … still free' message"
+grep -q 'insufficient_scope' "$WORK/out.log" && pass "…showing the registry's own error" || fail "the registry's error was not shown"
+
+echo "== T38: 20 names in a row are held → stop before the build; never hand back an unchecked 21st name (0355 review R7) =="
+NEW; echo profile > "$WORK/marker"; : > "$WORK/registry_all_taken"
+run_deploy
+[ "$RC" -ne 0 ] && pass "every name held → deploy refused (rc=$RC)" || fail "an all-taken registry did not stop the deploy (the cap handed back a name)"
+n=$(grep -c '^docker buildx imagetools inspect acme/profile:0\.0\.155-profile\.[0-9]*$' "$WORK/docker.argv" 2>/dev/null); n=${n:-0}
+[ "$n" = "20" ] && pass "exactly 20 names checked (.1 … .20), then it stopped" || fail "expected 20 registry look-ups, got $n"
+grep -q '20 version names in a row' "$WORK/out.log" && pass "…saying 20 names in a row are held" || fail "no '20 version names in a row' message"
+grep -q 'buildx build' "$WORK/docker.argv" 2>/dev/null && fail "…but docker buildx ran" || pass "…before any docker buildx"
+grep -qE '^docker (tag|push) ' "$WORK/docker.argv" 2>/dev/null && fail "…but it tagged or pushed" || pass "…no docker tag and no docker push"
+
+echo "== T39: the registry token goes on stdin only — never in any argv (0355 review R8, owner ruling 2026-09-30) =="
+# Synthetic value only — never a real token. Spaces and quotes, like T1's SSH password.
+SYNTH_REG_TOKEN='synthetic-0355 registry "token" not-real'
+NEW; echo profile > "$WORK/marker"
+run_deploy DOCKER_TOKEN="$SYNTH_REG_TOKEN"
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+LOGIN_LINE=$(grep '^docker login' "$WORK/docker.argv" 2>/dev/null | head -1)
+[ -n "$LOGIN_LINE" ] && pass "a registry login happened (the check below is not vacuous)" || fail "no docker login call at all (the checks below would be vacuous)"
+printf '%s' "$LOGIN_LINE" | grep -q -- '--password-stdin' && pass "the login uses --password-stdin" || fail "the login does not use --password-stdin: $LOGIN_LINE"
+if grep -rqF "$SYNTH_REG_TOKEN" "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null \
+   || grep -rqF 'synthetic-0355' "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null; then
+  fail "the registry token LEAKED into an argv (visible in ps)"
+else
+  pass "the registry token never appears in any docker/git/ssh/scp/sshpass argv"
+fi
+[ "$(cat "$WORK/login.stdin" 2>/dev/null)" = "$SYNTH_REG_TOKEN" ] && pass "…and it reached docker login on stdin, intact" \
+  || fail "docker login did not receive the token on stdin"
+rm -f "$WORK/login.stdin"
+# Structural, for the other login on the path (the box pulls a private image with it).
+for f in "$REPO_ROOT/build-deploy-profile.sh" "$REPO_ROOT/setup-profile.sh"; do
+  n=$(basename "$f")
+  LOGINS=$(grep -nE '^[^#]*docker +login' "$f")
+  [ -n "$LOGINS" ] || { fail "$n: no docker login line found (the check would be vacuous)"; continue; }
+  printf '%s\n' "$LOGINS" | grep -v -- '--password-stdin' | grep -q . \
+    && fail "$n: a docker login without --password-stdin" || pass "$n: every docker login uses --password-stdin"
+  printf '%s\n' "$LOGINS" | grep -qE -- '(^|[[:space:]])(-p|--password)([[:space:]=]|$)' \
+    && fail "$n: docker login passes the password on the command line" || pass "$n: no docker login -p/--password"
+done
 
 # ── Structural parity checks (setup-* on-box halves + telemetry mirror) ────────
 echo "== Structural: on-box flock/marker + telemetry mirror =="
@@ -2121,5 +2547,74 @@ awk '/^check_name_change_digest\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$C" | 
   && pass "profile-checks.sh: check 12 has the negative-age guard (a future-dated marker must never read GREEN)" \
   || fail "profile-checks.sh: check 12 has NO negative-age guard — clock skew would hold it green while no digest arrived (0283 owner ruling)"
 
+# ── Structural: version-tagged profile deploys (task 0355) ────────────────────
+# LINTS over the text; the behaviour is T20–T32 above. What these catch: the shipped-files
+# pathspec drifting away from what Dockerfile.profile actually copies (a changed file that
+# ships but is not checked would deploy "clean" and be tagged on the wrong content), the
+# build metadata moving above the npm ci layer, a compose env_file able to override the
+# baked version, and the deploy growing a package.json write or a forced/bulk tag push.
+echo "== Structural: version-tagged profile deploys (0355) =="
+B="$REPO_ROOT/build-deploy-profile.sh"
+D="$REPO_ROOT/Dockerfile.profile"
+P="$REPO_ROOT/setup-profile.sh"
+H="$REPO_ROOT/scripts/deploy-version-tag.sh"
+SHIPPED_LINE=$(grep -E '^PROFILE_SHIPPED_PATHS=\(.*\)$' "$B" | head -1)
+[ -n "$SHIPPED_LINE" ] && pass "build-deploy-profile.sh: PROFILE_SHIPPED_PATHS is one single-line array" \
+  || fail "build-deploy-profile.sh: no single-line PROFILE_SHIPPED_PATHS=( … ) (the checks below would be vacuous)"
+SHIPPED=" $(printf '%s' "$SHIPPED_LINE" | sed -E 's/^PROFILE_SHIPPED_PATHS=\((.*)\)$/\1/') "
+n_copy=0; missing=""
+while read -r src; do
+  [ -n "$src" ] || continue
+  n_copy=$((n_copy+1))
+  if printf '%s' "$src" | grep -q '[*?[]'; then
+    # A glob source (package*.json): every file it matches in the repo must be listed.
+    for f in $(cd "$REPO_ROOT" && compgen -G "$src"); do
+      case "$SHIPPED" in *" $f "*) : ;; *) missing="$missing $f" ;; esac
+    done
+  else
+    case "$SHIPPED" in *" ${src%/} "*) : ;; *) missing="$missing $src" ;; esac
+  fi
+done < <(awk '/^COPY /{ for (i = 2; i < NF; i++) if ($i !~ /^--/) print $i }' "$D")
+[ "$n_copy" -ge 4 ] && [ -z "$missing" ] \
+  && pass "every Dockerfile.profile COPY source ($n_copy) is in PROFILE_SHIPPED_PATHS" \
+  || fail "Dockerfile.profile COPY source(s) missing from PROFILE_SHIPPED_PATHS:${missing:- (found only $n_copy COPY sources)}"
+for f in Dockerfile.profile setup-profile.sh profile-backup.sh profile-checks.sh build-deploy-profile.sh scripts/deploy-version-tag.sh; do
+  case "$SHIPPED" in *" $f "*) : ;; *) missing="$missing $f" ;; esac
+done
+[ -z "$missing" ] && pass "PROFILE_SHIPPED_PATHS also covers the Dockerfile, the three SCP'd scripts, this script and the helper" \
+  || fail "PROFILE_SHIPPED_PATHS lacks:$missing"
+grep -qE '^if DIRTY_SHIPPED=\$\(deploy_shipped_tree_dirty "\$\{PROFILE_SHIPPED_PATHS\[@\]\}"\); then$' "$B" \
+  && pass "build-deploy-profile.sh: the dirty check uses PROFILE_SHIPPED_PATHS" \
+  || fail "build-deploy-profile.sh: the dirty check does not call deploy_shipped_tree_dirty with PROFILE_SHIPPED_PATHS"
+grep -nE '^[^#]*git status --porcelain' "$B" >/dev/null \
+  && fail "build-deploy-profile.sh: a raw 'git status --porcelain' is back (the whole-tree check would refuse on any doc edit)" \
+  || pass "build-deploy-profile.sh: no whole-tree git status left"
+for l in 'ARG PROFILE_BUILD_VERSION=unknown' 'ARG PROFILE_BUILD_COMMIT=unknown' \
+         'ENV PROFILE_BUILD_VERSION="$PROFILE_BUILD_VERSION"' 'ENV PROFILE_BUILD_COMMIT="$PROFILE_BUILD_COMMIT"'; do
+  grep -qxF "$l" "$D" && pass "Dockerfile.profile: '$l'" || fail "Dockerfile.profile: missing '$l'"
+done
+grep -qE '^LABEL org\.opencontainers\.image\.version="\$PROFILE_BUILD_VERSION" org\.opencontainers\.image\.revision="\$PROFILE_BUILD_COMMIT"$' "$D" \
+  && pass "Dockerfile.profile: OCI version + revision labels" || fail "Dockerfile.profile: no OCI version/revision LABEL line"
+awk '/^RUN /{r=NR} /^COPY /{c=NR} /^ARG PROFILE_BUILD_/{if(!a)a=NR} /^CMD /{m=NR} END{exit !(a>0 && a>r && a>c && a<m)}' "$D" \
+  && pass "Dockerfile.profile: the build metadata sits after the last RUN/COPY and before CMD (npm ci stays cached)" \
+  || fail "Dockerfile.profile: the ARG PROFILE_BUILD_* lines are not after the last RUN/COPY and before CMD — every deploy would re-run npm ci"
+grep -q 'PROFILE_BUILD_' "$P" \
+  && fail "setup-profile.sh names PROFILE_BUILD_* — a profile.env key would override the version baked into the image" \
+  || pass "setup-profile.sh never names PROFILE_BUILD_* (no env_file can override the baked version)"
+for f in "$B" "$H"; do
+  n=$(basename "$f")
+  [ -f "$f" ] || { fail "$n: missing"; continue; }
+  grep -nE '^[^#]*bump-version' "$f" >/dev/null && fail "$n: calls bump-version.js" || pass "$n: never calls bump-version.js"
+  grep -nE '^[^#]*>>? *"?(\./)?package(-lock)?\.json' "$f" >/dev/null && fail "$n: writes package.json" || pass "$n: never writes package.json"
+  grep -nE '^[^#]*git +push[^#]*(--tags|--follow-tags|--force|--mirror|--all| -f( |$))' "$f" >/dev/null \
+    && fail "$n: has a forced/bulk git push" || pass "$n: no git push --tags/--follow-tags/--force/-f"
+  grep -nE '^[^#]*git +tag[^#]*( -f( |$)|--force)' "$f" >/dev/null && fail "$n: has git tag -f" || pass "$n: no git tag -f"
+  # No quote before `git`: a message that merely says "no git commit" is not a call.
+  grep -nE '^[^#"]*git +commit' "$f" >/dev/null && fail "$n: runs git commit" || pass "$n: no git commit"
+done
+echo "== Every run_deploy: no git call the stub does not know (0355 review R4) =="
+[ "$RUN_DEPLOY_COUNT" -gt 0 ] && [ "$UNSTUBBED_RUNS" -eq 0 ] \
+  && pass "none of the $RUN_DEPLOY_COUNT run_deploy calls made an unstubbed git call" \
+  || fail "$UNSTUBBED_RUNS of $RUN_DEPLOY_COUNT run_deploy calls made an unstubbed git call (or none ran)"
 echo
 [ "$FAILED" -eq 0 ] && { echo "ALL PASS"; exit 0; } || { echo "SOME FAILED"; exit 1; }

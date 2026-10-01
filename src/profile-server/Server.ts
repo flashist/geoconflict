@@ -12,6 +12,7 @@
 
 import * as dotenv from "dotenv";
 import http from "http";
+import { buildInfo } from "./BuildInfo";
 import { createPool } from "./Db";
 import { InboxRepository } from "./InboxRepository";
 import { logger } from "./Logger";
@@ -34,6 +35,12 @@ import {
 dotenv.config();
 
 const log = logger.child({ comp: "profile" });
+
+// Which build this is (task 0355): the deploy's version name + commit, baked into the
+// image by build-deploy-profile.sh. Also on GET /health and as telemetry service.version.
+log.info(
+  `profile server version ${buildInfo.version} (commit ${buildInfo.commit})`,
+);
 
 const pool = createPool();
 
@@ -66,6 +73,7 @@ try {
     pool,
     countPlayersEstimate,
     loginCreateEnabled,
+    serviceVersion: buildInfo.version,
   });
 } catch (error) {
   // Monitoring must never be the reason the service will not boot. Names the error
@@ -179,6 +187,7 @@ const app = createApp(
   {
     loginCreateEnabled,
     metrics,
+    buildInfo,
     // Task 0325: the SAME Yandex per-game key signs player data as signs purchases,
     // so one value serves both — no new env var. A leak of it now forges identity as
     // well as purchases. S2 only counts the check's outcome; nothing is enforced.

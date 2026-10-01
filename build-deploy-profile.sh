@@ -11,12 +11,27 @@
 # secrets in a 0600 env_file SCP'd to a 0600 remote file (never on box argv), then
 # SSH-sources + rm's it and runs setup-profile.sh — passing the @sha256 DIGEST (not a
 # mutable tag) and the domain through. Safe to re-run; setup-profile.sh is idempotent.
+#
+# Version name (task 0355): every deploy is named <base>-profile.<N>, e.g. 0.0.155-profile.3
+# — base = package.json's X.Y.Z without any -dev.N/-staging.N (read, never written), N = a
+# counter per base. The name is baked into the image (GET /health, telemetry service.version,
+# OCI labels), is the image's ONLY registry tag (pushed before the deploy, never over a name the
+# registry already holds — so a registry name means "built and pushed as attempt N"), is
+# written to the deploy record, and — only once the deploy succeeds — becomes an annotated git
+# tag on the deployed commit (so a git tag means "deployed OK"). A deploy whose shipped files
+# have uncommitted changes is refused before anything is built.
 
 set -e
 # pipefail: surface a failure from any stage of a pipeline, not just the last. Audited
 # (T4e1): the only pipelines are `echo $DOCKER_TOKEN | docker login` (already aborts on
 # login failure — desired) and `printf | grep -q` inside an if-condition (set -e never
 # aborts on a test). No `|| true` remains after the digest-resolve rewrite below.
+# Task 0355 added these, each non-fatal by construction: the dirty-path listing
+# (`printf | sed`, reached only on the way to `exit 1`), the version-tag digest read
+# (`imagetools inspect | awk`, guarded by `|| version_digest=""`), and two inside
+# scripts/deploy-version-tag.sh (the counter's, guarded by `|| true`; the registry error
+# echo, `printf | sed` to stderr, whose status nothing tests). It also moved the login pipe
+# above the build (see "Registry login + a free version name").
 set -o pipefail
 
 DOCKERFILE="./Dockerfile.profile"
@@ -89,6 +104,17 @@ if ! node "$PARITY_CHECKER" --pipeline=all --enforce --block-on=profile; then
     exit 1
 fi
 
+# ── Version-name helper (task 0355) ───────────────────────────────────────────
+# Shared with the telemetry deploy (0356). Missing ⇒ stop here, before anything is built:
+# a deploy that cannot name itself would ship an image nobody can match to a tag.
+DEPLOY_VERSION_HELPER="$(dirname "$0")/scripts/deploy-version-tag.sh"
+if [ ! -f "$DEPLOY_VERSION_HELPER" ]; then
+    echo "Error: version-name helper not found ($DEPLOY_VERSION_HELPER) — refusing to deploy. Nothing was built."
+    exit 1
+fi
+# shellcheck source=scripts/deploy-version-tag.sh
+source "$DEPLOY_VERSION_HELPER"
+
 # ── Load config ───────────────────────────────────────────────────────────────
 
 load_env_file ".env"
@@ -160,24 +186,82 @@ fi
 # execute. --iidfile captures the exact built image ID, immune to a concurrent
 # retag between build and digest-resolve (K2). See postmortem §14.
 
-VERSION_TAG=$(git rev-parse --short HEAD 2>/dev/null || node -p "require('./package.json').version")
+# ── Source commit + version name (task 0355) ──────────────────────────────────
+# Provenance: the build copies the LIVE worktree, but the tag names a commit. So the deploy
+# is REFUSED, before anything is built, when there is no git commit at all or when any file
+# it ships has uncommitted or untracked changes (owner ruling at 0355's plan gate). The check is
+# SCOPED to what ships — Dockerfile.profile's COPY sources, the three SCP'd scripts, this script
+# and its helper — so a note under ai-agents/ never blocks a deploy. The harness asserts every
+# COPY source is in PROFILE_SHIPPED_PATHS (no drift).
+# What it proves, exactly: at the moment of this check, `git status` reports no modified,
+# staged or untracked (non-ignored) file under those paths. It does NOT prove the image bytes
+# equal GIT_COMMIT (0355 review R3, accepted by owner ruling 2026-09-30): gitignored files under
+# src/ (e.g. .DS_Store — .dockerignore excludes only the root one) are invisible to it yet
+# still copied; `COPY package*.json` is a glob while the pathspec names two files; and the build
+# reads the live tree AFTER this check, so an edit in between ships unseen. Secrets are guarded
+# separately, by the byte scan of the built image below.
+# Before 0355 a dirty tree deployed with a -dirty image tag; a refused deploy can no longer
+# produce one, so that suffix is gone.
 GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
-
-# Provenance: the build copies the LIVE worktree, but VERSION_TAG names HEAD. If the
-# tree is dirty (modified-tracked or untracked files under copied paths like src/),
-# the image content does NOT match ${GIT_COMMIT}. Deploy is by @sha256 digest, which
-# is always content-accurate, so nothing wrong ever ships — but mark the tag -dirty
-# and warn so the human-facing tag/commit association stays honest. Non-fatal by
-# design (commit for a reproducible build); the SHA is recorded in the output below.
-WORKTREE_DIRTY=""
-if [ "$GIT_COMMIT" != "unknown" ] && [ -n "$(git status --porcelain --untracked-files=normal 2>/dev/null)" ]; then
-    WORKTREE_DIRTY=1
-    VERSION_TAG="${VERSION_TAG}-dirty"
-    echo "Warning: building a DIRTY worktree — image content is NOT commit ${GIT_COMMIT}."
-    echo "         Tag suffixed -dirty; commit your changes for a reproducible build."
+if [ "$GIT_COMMIT" = "unknown" ]; then
+    echo "Error: no git commit (git rev-parse HEAD failed) — refusing to deploy an image no"
+    echo "       commit can name. Nothing was built. Run this from the repo checkout."
+    exit 1
 fi
 
-PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:profile-${VERSION_TAG}"
+PROFILE_SHIPPED_PATHS=(package.json package-lock.json tsconfig.json src migrations Dockerfile.profile setup-profile.sh profile-backup.sh profile-checks.sh build-deploy-profile.sh scripts/deploy-version-tag.sh)
+if DIRTY_SHIPPED=$(deploy_shipped_tree_dirty "${PROFILE_SHIPPED_PATHS[@]}"); then
+    echo "Error: files this deploy ships have uncommitted changes — refusing to deploy."
+    echo "       The image would not match commit ${GIT_COMMIT}. Nothing was built."
+    printf '%s\n' "$DIRTY_SHIPPED" | sed 's/^/         /'
+    echo "       Commit, then redeploy."
+    exit 1
+fi
+
+# The name: <base>-profile.<N>. package.json is READ only — no bump, no commit (unlike the
+# game's build-deploy.sh). An unreadable or odd version stops here, before the build.
+PACKAGE_VERSION_RAW=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
+if ! VERSION_BASE=$(deploy_version_base "$PACKAGE_VERSION_RAW"); then
+    echo "Error: package.json version '${PACKAGE_VERSION_RAW}' is not X.Y.Z or X.Y.Z-(dev|staging).N —"
+    echo "       cannot name this deploy. Nothing was built."
+    exit 1
+fi
+# The deploy record is one of the counter's three sources (a failed attempt is recorded, so
+# it uses up its number) — hence defined here rather than with the lock below.
+DEPLOY_RECORD="${PROFILE_DEPLOY_RECORD:-$HOME/.geoconflict/profile-deploy.log}"
+if ! DEPLOY_VERSION=$(deploy_version_next profile "$VERSION_BASE" "$DEPLOY_RECORD"); then
+    echo "Error: could not compute this deploy's version name. Nothing was built."
+    exit 1
+fi
+
+# ── Registry login + a free version name (task 0355 review R1/R2) ─────────────
+# The version name is the image's only registry tag (owner ruling 2026-09-30: the old
+# profile-<commit> tag is dropped), and `docker push` needs a tag, so the name must be pushed
+# BEFORE the deploy. It must never land on a name the registry already holds: the registry is
+# asked NOW, before the build (the name is baked into the image), and a held name is skipped
+# to the next number; if the registry cannot be read, stop — never guess. It is asked again
+# right before the push (see PUSHING). Login moved up from the push step for this: the token
+# still goes on stdin — never in argv (ps aux / /proc/<pid>/cmdline).
+if [ -n "${DOCKER_TOKEN:-}" ]; then
+    echo "Logging in to the container registry as ${DOCKER_USERNAME}..."
+    echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
+fi
+if DEPLOY_VERSION_FREE=$(deploy_first_free_in_registry "${DOCKER_USERNAME}/${DOCKER_REPO}" "$DEPLOY_VERSION"); then
+    DEPLOY_VERSION="$DEPLOY_VERSION_FREE"
+else
+    free_rc=$?
+    if [ "$free_rc" -eq 2 ]; then
+        echo "Error: 20 version names in a row from ${DEPLOY_VERSION} are already in the registry —"
+        echo "       something is wrong with the numbering. Nothing was built."
+    else
+        echo "Error: cannot read the registry to confirm ${DEPLOY_VERSION} is free (error above) —"
+        echo "       refusing to guess and risk overwriting another image's name. Nothing was built."
+    fi
+    exit 1
+fi
+echo "Deploy version: ${DEPLOY_VERSION} (package.json ${PACKAGE_VERSION_RAW}, commit ${GIT_COMMIT})"
+
+PROFILE_IMAGE="${DOCKER_USERNAME}/${DOCKER_REPO}:${DEPLOY_VERSION}"
 
 IIDFILE=$(mktemp)
 # Clean up the iidfile on every exit path. EXIT fires on success, on `exit N`, and on a
@@ -187,7 +271,11 @@ IIDFILE=$(mktemp)
 trap 'rm -f "$IIDFILE"' EXIT
 
 print_header "BUILDING PROFILE IMAGE (linux/amd64): ${PROFILE_IMAGE}"
+# The version name + commit are baked in as late layers (Dockerfile.profile), so the running
+# server can say what it is on /health and in telemetry — task 0355.
 docker buildx build --platform linux/amd64 --load \
+    --build-arg PROFILE_BUILD_VERSION="$DEPLOY_VERSION" \
+    --build-arg PROFILE_BUILD_COMMIT="$GIT_COMMIT" \
     -f "$DOCKERFILE" -t "$PROFILE_IMAGE" --iidfile "$IIDFILE" .
 
 BUILT_IMAGE_ID=$(cat "$IIDFILE")
@@ -209,23 +297,35 @@ bash "$(dirname "$0")/scripts/check-docker-secret-boundary.sh" \
     --inspect-image "$BUILT_IMAGE_ID" --dockerfile "$DOCKERFILE"
 
 # ── Push to the registry ──────────────────────────────────────────────────────
-# Token on stdin via --password-stdin — never in argv (ps aux / /proc/<pid>/cmdline).
-
-if [ -n "${DOCKER_TOKEN:-}" ]; then
-    echo "Logging in to the container registry as ${DOCKER_USERNAME}..."
-    echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
-fi
+# (Registry login happens above, before the build — task 0355.)
 
 print_header "PUSHING PROFILE IMAGE"
+# Ask the registry AGAIN (task 0355 review R1/R2): the name was free before the build, but a
+# deploy from another machine may have claimed it since. Taken now → stop and push nothing (the
+# name is baked into this image, so it cannot move on; a re-run gets the next free number).
+# Cannot tell → stop too. Docker has no "push only if new", so a short window between this
+# check and the push remains (accepted residual "Limit 1").
+case "$(deploy_registry_tag_state "$PROFILE_IMAGE")" in
+    free) ;;
+    taken)
+        echo "Error: ${PROFILE_IMAGE} appeared in the registry while this image was building —"
+        echo "       another deploy took the name. Refusing to overwrite it. Nothing was pushed or"
+        echo "       sent to the box. Re-run: the next attempt skips to a free number."
+        exit 1 ;;
+    *)
+        echo "Error: cannot read the registry to confirm ${PROFILE_IMAGE} is still free (error above) —"
+        echo "       refusing to push and risk overwriting another image's name. Nothing was pushed"
+        echo "       or sent to the box."
+        exit 1 ;;
+esac
 # `docker push` can only target NAME[:TAG] — not an image ID or digest — so a
-# tag→push step is unavoidable. Re-bind profile-<sha> to the exact built image right
-# before pushing so we publish BUILT_IMAGE_ID. A residual tag→push window remains (a
-# concurrent run at the same commit could divert the shared tag), but it is never a
-# wrong-content deploy: the deployable digest is resolved from BUILT_IMAGE_ID below
-# (content-addressed) and re-verified against the registry, so a diverted push is
-# caught and fails closed instead of handing downstream a wrong or absent digest. We
-# push the durable profile-<sha> tag directly: no throwaway staging tag is left
-# lingering in the registry (registry-image-policy.md §Retention: remove temp tags).
+# tag→push step is unavoidable. Re-bind the version name to the exact built image right
+# before pushing so we publish BUILT_IMAGE_ID. It is never a wrong-content deploy: the
+# deployable digest is resolved from BUILT_IMAGE_ID below (content-addressed) and
+# re-verified against the registry, so a diverted push is caught and fails closed instead
+# of handing downstream a wrong or absent digest. The version name is the durable tag — no
+# throwaway staging tag is left lingering in the registry (registry-image-policy.md
+# §Retention: remove temp tags).
 docker tag "$BUILT_IMAGE_ID" "$PROFILE_IMAGE"
 docker push "$PROFILE_IMAGE"
 
@@ -272,6 +372,19 @@ if ! docker buildx imagetools inspect "$PROFILE_DIGEST" >/dev/null 2>&1; then
     exit 1
 fi
 
+# The version name should now resolve to exactly that digest. If it does not, another deploy
+# pushed the same name after our check — a label problem, not a content one: the box deploys
+# the digest above, so this only warns (task 0355; was a post-deploy check before review R2).
+version_digest=$(docker buildx imagetools inspect "$PROFILE_IMAGE" 2>/dev/null \
+    | awk '/^Digest:/ && !d { d = $2 } END { print d }') || version_digest=""
+if [ "$version_digest" = "${PROFILE_DIGEST#*@}" ]; then
+    echo "Image tag ${PROFILE_IMAGE} → ${version_digest}."
+else
+    echo ""
+    echo "WARNING: image tag ${PROFILE_IMAGE} resolves to '${version_digest:-nothing}', not this build's"
+    echo "         ${PROFILE_DIGEST#*@}. The deploy continues by digest; check the registry."
+fi
+
 # ── Concurrency lock + atomic deploy record (K6) ──────────────────────────────
 # One fail-closed lock spans the whole deploy BEFORE any secret is staged or the box is
 # mutated, and the deploy record is written as a single atomic block under it. On the
@@ -281,7 +394,7 @@ fi
 # cleanup_secrets, appends the result line, then appends the whole block — every step
 # `|| true`-guarded so a cleanup failure can never strand the lock.
 DEPLOY_LOCK="${PROFILE_DEPLOY_LOCK:-${TMPDIR:-/tmp}/profile-deploy.lock.d}"
-DEPLOY_RECORD="${PROFILE_DEPLOY_RECORD:-$HOME/.geoconflict/profile-deploy.log}"
+# DEPLOY_RECORD is set above, where the version counter reads it (task 0355).
 
 # Assigned later (auth + transport); declare them now so finalize_deploy — installed
 # below and able to fire on ANY exit from here on — never references an unset var.
@@ -293,6 +406,8 @@ DEPLOY_RECORD_TMP=""
 DEPLOY_OUTCOME=""
 DEPLOY_FINALIZED=0
 DEPLOY_LOCK_HELD=0
+# The version-tag outcome (task 0355). Empty ⇒ the deploy never reached the tag step.
+GIT_TAG_RESULT=""
 
 finalize_deploy() {
     [ "$DEPLOY_FINALIZED" = "1" ] && return 0
@@ -309,7 +424,9 @@ finalize_deploy() {
     # never land without its result. A failed append warns-and-continues so the lock
     # release below still runs (never strand the deploy lock).
     if [ -n "$DEPLOY_RECORD_TMP" ] && [ -f "$DEPLOY_RECORD_TMP" ] && [ -n "$DEPLOY_RECORD" ]; then
-        if echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown}" >> "$DEPLOY_RECORD_TMP" \
+        # The tag outcome rides ON this line, never after it: the result line stays the
+        # block's last line (the harness's T4 contiguity check depends on it).
+        if echo "validation_result=${DEPLOY_OUTCOME:-failed} digest=${PROFILE_DIGEST:-unknown} git_tag=${GIT_TAG_RESULT:-skipped:deploy-not-completed}" >> "$DEPLOY_RECORD_TMP" \
             && cat "$DEPLOY_RECORD_TMP" >> "$DEPLOY_RECORD"; then
             :
         else
@@ -346,7 +463,9 @@ chmod 600 "$DEPLOY_RECORD_TMP"
     echo "host=${PROFILE_SERVER_HOST}"
     echo "tag=${PROFILE_IMAGE}"
     echo "digest=${PROFILE_DIGEST}"
-    echo "commit=${GIT_COMMIT}${WORKTREE_DIRTY:+-dirty}"
+    echo "commit=${GIT_COMMIT}"
+    echo "version=${DEPLOY_VERSION}"
+    echo "package_version=${PACKAGE_VERSION_RAW}"
     echo "operator=$(whoami 2>/dev/null || echo unknown)"
 } > "$DEPLOY_RECORD_TMP"
 
@@ -438,7 +557,8 @@ echo "Remote user:   ${REMOTE_USER}"
 echo "Remote host:   ${PROFILE_SERVER_HOST}"
 echo "Image (tag):   ${PROFILE_IMAGE}"
 echo "Image digest:  ${PROFILE_DIGEST}"
-echo "Source commit: ${GIT_COMMIT}${WORKTREE_DIRTY:+ (DIRTY — image content differs from this commit)}"
+echo "Source commit: ${GIT_COMMIT}"
+echo "Version:       ${DEPLOY_VERSION}"
 echo ""
 
 # ── Deploy-target preflight (X1) ──────────────────────────────────────────────
@@ -547,7 +667,7 @@ chmod 600 "$LOCAL_TMPENV"
 # printf %q emits shell-safe, re-sourceable values — robust to passwords/tokens
 # containing quotes, spaces, or other special characters.
 #
-# PROFILE_IMAGE carries the immutable @sha256 DIGEST (not the mutable profile-<sha>
+# PROFILE_IMAGE carries the immutable @sha256 DIGEST (not the mutable version-name
 # tag): the box deploys by digest end-to-end, and setup-profile.sh declines anything
 # that is not @sha256-pinned. This closes the mutable-tag window.
 {
@@ -646,11 +766,54 @@ REMOTE_ENV_STAGED=0
 # Mark the deploy successful so finalize_deploy records validation_result=ok.
 DEPLOY_OUTCOME=ok
 
+# ── Version tag (task 0355) ───────────────────────────────────────────────────
+# Only now — the deploy succeeded — does the name become an annotated git tag on the
+# captured GIT_COMMIT (not whatever HEAD is by now). The registry already carries the name
+# (pushed before the deploy), so nothing is pushed to the registry here. All of it is
+# WARN-ONLY: the deploy already happened, the exit code stays 0, and any fault is fixed with
+# the printed git command — NEVER by redeploying. The outcome lands on the record's
+# validation_result= line (finalize_deploy).
+print_header "TAGGING ${DEPLOY_VERSION}"
+GIT_TAG_RESULT="interrupted"
+if ! deploy_commit_on_a_remote_branch "$GIT_COMMIT"; then
+    echo "Warning: commit ${GIT_COMMIT} is not on any remote branch — pushing the tag uploads"
+    echo "         that commit to origin as well. Push its branch when you can."
+fi
+# No repo name and no host in the message: commit + digest + "ran OK" is the policy's trust
+# anchor (registry-image-policy.md), and the tag gives it a durable copy off this laptop.
+TAG_MESSAGE=$(printf '%s\n' "Profile server deploy ${DEPLOY_VERSION}" "" \
+    "version=${DEPLOY_VERSION}" "commit=${GIT_COMMIT}" \
+    "package_version=${PACKAGE_VERSION_RAW}" "digest=${PROFILE_DIGEST#*@}" "validation_result=ok")
+GIT_TAG_RESULT=$(deploy_tag_and_push "$DEPLOY_VERSION" "$GIT_COMMIT" "$TAG_MESSAGE") || GIT_TAG_RESULT="tag-failed"
+case "$GIT_TAG_RESULT" in
+    pushed)
+        echo "Git tag ${DEPLOY_VERSION} → commit ${GIT_COMMIT}, pushed to origin."
+        ;;
+    push-failed)
+        echo ""
+        echo "WARNING: deploy ${DEPLOY_VERSION} is LIVE, but its git tag was NOT pushed (it is kept locally)."
+        echo "         Retry — no redeploy needed (the image is already in the registry):"
+        echo "           git push origin refs/tags/${DEPLOY_VERSION}"
+        echo "         If origin rejects it because the tag already exists there, leave it — never force it."
+        ;;
+    *)
+        GIT_TAG_RESULT="tag-failed"
+        echo ""
+        echo "WARNING: deploy ${DEPLOY_VERSION} is LIVE, but git tag ${DEPLOY_VERSION} could NOT be created"
+        echo "         (it already exists, or git failed — see above). Nothing was overwritten."
+        echo "         If the tag already exists, leave it — never force it; this deploy stays untagged"
+        echo "         and the deploy record names it. If git itself failed (e.g. no user.name/user.email),"
+        echo "         fix that and run — no redeploy needed:"
+        echo "           git tag -a ${DEPLOY_VERSION} -m \"Profile server deploy ${DEPLOY_VERSION}\" ${GIT_COMMIT} && git push origin refs/tags/${DEPLOY_VERSION}"
+        ;;
+esac
+
 print_header "DONE"
 echo "Profile backend setup completed on ${PROFILE_SERVER_HOST}."
+echo "Deployed version: ${DEPLOY_VERSION} (git tag: ${GIT_TAG_RESULT})"
 echo ""
 echo "Next steps:"
-echo "  1. Verify: curl https://${PROFILE_DOMAIN:-<domain>}/health   # expect {\"status\":\"ok\"}"
+echo "  1. Verify: curl https://${PROFILE_DOMAIN:-<domain>}/health   # expect {\"status\":\"ok\",\"version\":\"${DEPLOY_VERSION}\",\"commit\":\"${GIT_COMMIT}\"}"
 echo "  2. Set PROFILE_API_URL=https://${PROFILE_DOMAIN:-<domain>} in .env.<env> for the game server."
 echo "  3. (T6) Share PROFILE_INTERNAL_TOKEN with the game server's .env.prod."
 echo "======================================================"

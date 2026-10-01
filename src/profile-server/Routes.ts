@@ -57,6 +57,7 @@ import {
   createAlertRelay,
   type AlertRelayConfig,
 } from "./AlertRelay";
+import { UNKNOWN_BUILD_INFO, type BuildInfo } from "./BuildInfo";
 import { internalAuth } from "./InternalAuth";
 import { formatError, logger } from "./Logger";
 import { classifyLoginSignature } from "./LoginVerification";
@@ -210,6 +211,11 @@ export interface AppOptions {
    * ⛔ Never logged.
    */
   playerSignatureSecret?: string;
+  /**
+   * Task 0355. The deploy's version name + commit, echoed by GET /health. Absent ⇒
+   * both "unknown" (tests, and any caller that predates it).
+   */
+  buildInfo?: BuildInfo;
 }
 
 /**
@@ -566,9 +572,13 @@ export function createApp(
 
   app.use(express.json());
 
-  // Liveness — dependency-free, never rate-limited (probes hit it constantly).
+  // Liveness — dependency-free, never rate-limited (probes hit it constantly). Task 0355:
+  // it also says WHICH build is running. The compose healthcheck reads the status code only.
+  const build = options?.buildInfo ?? UNKNOWN_BUILD_INFO;
   app.get("/health", (_req, res) => {
-    res.status(200).json({ status: "ok" });
+    res
+      .status(200)
+      .json({ status: "ok", version: build.version, commit: build.commit });
   });
 
   // Readiness — DB-backed. 200 only when Postgres answers a trivial query; 503

@@ -193,6 +193,11 @@ export interface ProfileMetricsDeps {
   loginCreateEnabled: boolean;
   /** Test seam only; production uses the 5-minute default. */
   playersEstimateIntervalMs?: number;
+  /**
+   * Task 0355. The deploy's version name (e.g. 0.0.155-profile.3), exported as
+   * service.version. Absent ⇒ "unknown" — never the old hardcoded "1.0.0".
+   */
+  serviceVersion?: string;
 }
 
 export interface ProfileMetricsHandle {
@@ -432,6 +437,22 @@ export function createProfileMetrics(
 }
 
 /**
+ * The resource every exported metric carries. service.version is the deploy's version
+ * name (task 0355) — it was a hardcoded "1.0.0" on every deploy before.
+ */
+export function profileResourceAttributes(
+  serviceVersion: string,
+): Record<string, string> {
+  return {
+    [ATTR_SERVICE_NAME]: SERVICE_NAME,
+    [ATTR_SERVICE_VERSION]: serviceVersion,
+    // os.hostname(), NOT process.env.HOSTNAME: reading HOSTNAME here would add a
+    // new variable the config-parity checker has to account for, for nothing.
+    "service.instance.id": os.hostname(),
+  };
+}
+
+/**
  * Wire metrics to the telemetry box, or return the no-op set.
  *
  * The endpoint is the ONLY telemetry value this box holds (owner ruling D4): the
@@ -475,13 +496,9 @@ export function startProfileTelemetry(
   }) as typeof exporter.export;
 
   const provider = new MeterProvider({
-    resource: resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: SERVICE_NAME,
-      [ATTR_SERVICE_VERSION]: "1.0.0",
-      // os.hostname(), NOT process.env.HOSTNAME: reading HOSTNAME here would add a
-      // new variable the config-parity checker has to account for, for nothing.
-      "service.instance.id": os.hostname(),
-    }),
+    resource: resourceFromAttributes(
+      profileResourceAttributes(deps.serviceVersion ?? "unknown"),
+    ),
     readers: [
       new PeriodicExportingMetricReader({
         exporter,

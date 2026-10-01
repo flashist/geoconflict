@@ -34,6 +34,20 @@ COPY src ./src
 # .sql files must ship in the image.
 COPY migrations ./migrations
 
+# Build identity (task 0355): build-deploy-profile.sh passes the deploy's version name
+# (e.g. 0.0.155-profile.3) and the full commit. The server shows them on GET /health and as
+# telemetry service.version. Deliberately LAST before CMD: they change on every deploy, so
+# placed here they rebuild only these metadata layers, never `npm ci` (the game's Dockerfile
+# puts its build arg early — do not copy that). ENV (not only ARG) so the running process
+# can read them; the names are not profile.env keys, so no compose env_file can override
+# them (the deploy harness asserts that). A plain `docker build` without the args reports
+# "unknown", which is honest.
+ARG PROFILE_BUILD_VERSION=unknown
+ARG PROFILE_BUILD_COMMIT=unknown
+ENV PROFILE_BUILD_VERSION="$PROFILE_BUILD_VERSION"
+ENV PROFILE_BUILD_COMMIT="$PROFILE_BUILD_COMMIT"
+LABEL org.opencontainers.image.version="$PROFILE_BUILD_VERSION" org.opencontainers.image.revision="$PROFILE_BUILD_COMMIT"
+
 EXPOSE 8080
 # Exec-form `node`, NOT `npm run start:profile-server`: npm does not forward SIGTERM to its
 # child, so `docker stop` never reached the graceful-shutdown handler (task 0221 probe: with

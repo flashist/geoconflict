@@ -26,7 +26,8 @@ const BASH = "/bin/bash";
 const NODE_DIR = path.dirname(process.execPath);
 
 // Everything either checker reads (INPUT_DEFAULTS in scripts/check-config-parity.mjs),
-// the checkers themselves, and the three deploy scripts under test.
+// the checkers themselves, the three deploy scripts under test, and the version-name
+// helper build-deploy-profile.sh sources right after its guard (task 0355).
 const COPIED = [
   "deploy.sh",
   "build-deploy.sh",
@@ -41,6 +42,7 @@ const COPIED = [
   "scripts/config-parity-allowlist.json",
   "scripts/check-config-parity.mjs",
   "scripts/check-config-values.mjs",
+  "scripts/deploy-version-tag.sh",
 ];
 
 const STUBBED = ["ssh", "scp", "docker", "git", "sshpass"];
