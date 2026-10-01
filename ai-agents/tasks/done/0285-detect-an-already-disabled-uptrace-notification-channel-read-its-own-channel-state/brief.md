@@ -26,7 +26,7 @@ producer precedent.** The owner, verbatim:
 
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**:
 [`0238`](../../done/0238-validate-citizenship-ui-kill-switch-in-a-real-build-launch-gate/brief.md), `0285`,
-[`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
 [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually
@@ -137,7 +137,7 @@ ranked onto the sprint instead.
 
 > 📌 **Pointer, added 2026-09-29 (link note only — nothing above or below was changed):** this task's deploy, its real
 > run on the box (verification step 2), its drill (step 3) and its "no write" check (step 6) are tracked by
-> [`0341`](../../backlog/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md)
+> [`0341`](../0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md)
 > (*Verify 0285 in production: deploy it and run its disabled-channel drill*), filed on Sprint 6 by an OWNER RULING
 > given 2026-09-29 live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`. The close above is
 > unchanged.
@@ -162,7 +162,7 @@ features (not monitoring/messaging)"* — the owner **split
 [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
 (container log rotation) and G2 (image prune) are prepared before the weekend deploy slot, and its
 G3/G4 (external uptime check, `last-backup.json` freshness reader) are **deferred — together with THIS
-task and [`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)**,
+task and [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)**,
 as one monitoring bucket.
 
 ⛔ **WHAT THIS RULING DID NOT DO — do not widen it.** It did **not** close this task, **not** cancel it,

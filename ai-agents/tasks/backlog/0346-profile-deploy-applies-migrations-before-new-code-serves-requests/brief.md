@@ -112,7 +112,7 @@ Keep it minimal: this is ordering in the deploy, not a migration framework. Upda
   [`0314`](../../done/0314-name-change-rejected-state-sticks-on-the-card-and-no-way-to-clear-a-name-decide-and-fix/brief.md)
   (migration `007`, the column in the error) ·
   [`0270`](../../done/0270-profile-identity-s1-database-and-rekeying/brief.md) (the migration runner split into
-  `Migrations.ts`) · [`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) (PID 1 / SIGTERM rule in
+  `Migrations.ts`) · [`0221`](../../done/0221-profile-p6-os-baseline-hardening/brief.md) (PID 1 / SIGTERM rule in
   `Dockerfile.profile`) · [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
   / the hardening harness (structural assertions over `setup-profile.sh`).
 - **Effort:** small–medium — a few lines of ordering in `setup-profile.sh` plus the harness test; more if the

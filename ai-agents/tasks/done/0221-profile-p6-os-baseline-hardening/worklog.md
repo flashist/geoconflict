@@ -282,3 +282,32 @@ edited.
   deploy time on a box with pending updates. Not fixed — the evidence was ruled worth having.
 - Hand-run of `setup-profile.sh` on the box (no staged `PROFILE_DEPLOY_SSH_AUTH`) is not refused by
   guard 0; guard 1 still applies.
+
+## 2026-10-01 — B4 proven; B5 + B6 accepted as residuals; close (`fkit-producer`, spawned)
+
+**PROVENANCE.** Readings: the **OWNER** ran read-only commands on the profile box on 2026-10-01 and
+the output was read by `fkit-lead` in the live `fkit lead` session. Rulings: given by the **OWNER**
+live via `AskUserQuestion` in that session. Both relayed by `fkit-lead` to a spawned `fkit-producer`
+with no owner channel (ADR-021), which wrote this entry. ⛔ Not producer precedent. 🔒 Times, package
+names and yes/no only — no hosts, IPs or secrets.
+
+⚠️ **The board was stale.** Sprint 7 and this brief's `## Status` still read *"open pending the
+OWNER-side live tail B1–B6"*, but B1–B6 had already run in the 2026-09-26 deploy window (results
+table under the brief's `## Status`: B1–B3 ✅, B4/B5/B6 ⚠️ partial). This entry settles the three
+partials.
+
+| Step | 2026-09-26 | 2026-10-01 |
+|---|---|---|
+| **B4** — unattended-upgrades applies security updates (V1) | ⚠️ partial — dry-run evidence only | ✅ **PROVEN.** `unattended-upgrades.log`: real scheduled run **2026-10-01 06:46:58 UTC** — *"No packages found that can be upgraded unattended and no pending auto-removals"*. `unattended-upgrades.log.1.gz`: **2026-09-29 06:54:54 UTC** *"Packages that will be upgraded: libevent-core-2.1-7t64 python3-jwt python3-requests"* → **06:55:06 UTC** *"All upgrades installed"*. That run is **after** the security-only config went live (2026-09-26 window, W3 ≈ 08:39 UTC), so an unattended install **under the new config** is observed. (Earlier runs 2026-09-25 06:57 and 2026-09-26 06:45 predate the hardening deploy and are not counted.) |
+| **B5** — containers return after a Docker daemon restart (V5) | ⚠️ daemon-restart half partial; reboot half ✅ | **ACCEPTED RESIDUAL — OWNER RULING**, verbatim *"Accept it (Recommended)"*. The app **does** come back after `systemctl restart docker` (shown 2026-09-26) — proven by **outcome, not by the designed mechanism**: the containers were **recreated by the systemd `profile` unit**, not restarted by `restart: unless-stopped`. Whether `unless-stopped` alone would have brought them back is **not shown**. |
+| **B6** — SIGTERM drains cleanly (V6) | ⚠️ partial | **ACCEPTED RESIDUAL — OWNER RULING**, verbatim *"Accept now, close 0221"*. Clean graceful shutdown **was** observed 2026-09-26 (SIGTERM drain message, http server closed, pg pool closed, exit 0). **No in-flight request was seen completing** — the stop beat the first probe request. No follow-up task requested. |
+
+**Verification-step tally at close:** V1 ✅ (B4) · V2 ✅ (B3; expiry seen on a real attacker's ban,
+explicit unban for the drill) · V3 ✅ (B2) · V4 split out (owner ruling Q8 → `0254`) · V5 ⚠️ accepted
+residual (outcome only) · V6 ⚠️ accepted residual (no in-flight request observed) · V7/V8 ✅ at build
+(2026-09-13) · V9 ✅ (no values recorded).
+
+**Close:** `/fkit-task-done` run the same day by the spawned producer →
+`✅ Done (agent-closed — not owner-verified)`. The owner ran every live check and made both rulings
+live; the agent-closed marker covers the **close** (no owner sign-off on the close itself), not the
+evidence. B5/B6 recorded in `review.md` § *Accepted residuals*.

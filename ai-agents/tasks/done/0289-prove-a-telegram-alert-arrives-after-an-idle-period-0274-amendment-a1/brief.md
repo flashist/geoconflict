@@ -106,17 +106,55 @@ The reasoning is kept as the record of how it was ranked at filing time:
 
 **The tradeoff, stated honestly:** this adds a row to a board that is already long, and the honest
 alternative placement was the **Backlog board**, where the adjacent
-[`0288`](../0288-alert-rule-a4-p95-of-login-latency-over-750ms-for-10-min/brief.md) went **by owner
+[`0288`](../../backlog/0288-alert-rule-a4-p95-of-login-latency-over-750ms-for-10-min/brief.md) went **by owner
 ruling**. The reason this one is ranked differently: `0288` is a **new alert rule that cannot be built
 without traffic that does not exist**; this is a **verification of alerting that already exists and
 already runs in production**. Different blockers, different urgency.
 
 ## Status
-🚧 Blocked — plan approved 2026-09-28 (no code); waiting on 0341 (verify 0285 in production: its deploy and its disabled-channel drill), then the OWNER-run drill (owner ruling Q3). Driven by `/fkit-sprint-ship-loop` (fkit-lead).
+✅ Done (agent-closed — not owner-verified)
+
+> 📌 **Closed 2026-10-01 on observed evidence — the drill was NOT run.** OWNER RULING given live 2026-10-01 in the
+> `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+> (ADR-021/037); ⛔ not producer precedent. Choice, verbatim: **"Yes, close on this (Recommended)"** — to *"If the
+> Alerts topic was empty between 11:12 and 15:48 MSK today, should we close 0289 using this as the proof (no test)?
+> This replaces your earlier rule of '8+ hours, run as a drill' with '4 h 36 min of real silence, seen in the
+> wild'."* The owner then confirmed, verbatim: **"It was empty"**. **The owner supplied and confirmed the evidence
+> live** (Telegram screenshots, read by `fkit-lead`): a name-change notification from the long-running profile-api
+> process — the relay's own sender, pool and proxy — arrived after **4 h 36 min** of silence (08:12 → 12:48 UTC),
+> with the Alerts topic empty throughout. This **supersedes** plan ruling Q1 (≥ 8 h) and the drill method in
+> `plan.md` (dated note appended there). ⚠️ **Bounded to 4 h 36 min — an overnight gap is still unproven**; retry use
+> not determined; the monitoring → relay hop after quiet is not covered. Full evidence and bounds:
+> [`worklog.md`](./worklog.md). **The runbook update this task owed** (*"delivery after an IDLE period is unproven"*
+> → the observed result) **rides [`0368`](../../backlog/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md)**
+> as a dated scope addition (`fkit-lead`'s choice; the owner may object). Closed by `/fkit-task-done`
+> *(agent-closed — not owner-verified)*. *Earlier value of the line above, kept as history — true until this
+> close:* ~~🚧 Blocked — plan approved 2026-09-28 (no code); waiting on the OWNER-run drill (owner ruling Q3). `0341`
+> (its earlier blocker) done 2026-10-01. Driven by `/fkit-sprint-ship-loop` (fkit-lead).~~
+
+> 📌 **Narrowed 2026-10-01** — OWNER RULING given live 2026-10-01 in the `fkit lead` session via `AskUserQuestion`,
+> relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+> Choice, verbatim: **"Blocked, on drill day (Recommended)"** — keep `🚧 Blocked`, narrow the reason to the owner-run
+> drill. Why: [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md)
+> closed `✅ Done (agent-closed — not owner-verified)` on 2026-10-01, so the only thing left is the owner picking a
+> quiet day and running the drill. Status token unchanged. *Earlier value, kept as history — true 2026-09-29 to
+> 2026-10-01:* ~~🚧 Blocked — plan approved 2026-09-28 (no code); waiting on 0341 (verify 0285 in production: its
+> deploy and its disabled-channel drill), then the OWNER-run drill (owner ruling Q3). Driven by
+> `/fkit-sprint-ship-loop` (fkit-lead).~~
+
+> 📌 **2026-10-01 — the 14:31 Test-channel firing is NOT this task's Phase A warm-up.** OWNER RULING given live
+> 2026-10-01 in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`
+> with no owner channel (ADR-021/037); ⛔ not producer precedent. Choice, verbatim: **"No, fresh start
+> (Recommended)"**. `0341`'s worklog (verification 6) offered its 14:31 UTC *Test channel* press as a candidate
+> warm-up; the owner declined it. **This task runs its own Phase A warm-up on its drill day**, with its own step-0
+> pre-checks first, exactly as `plan.md` describes. The *"`0341`'s final firing can be this task's Phase A"* option
+> below and in `plan.md` (§ Q3 and the line on `0285`'s closing step) is therefore **not taken** — kept as written,
+> history only. Why it would not have fit anyway: a Test press gives one `firing` message and no ✅, while `plan.md`
+> starts the quiet window at Phase A's ✅.
 
 > 📌 **Repointed 2026-09-29** — an OWNER RULING given that day live in the `fkit lead` session via `AskUserQuestion`
 > (relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel, ADR-021/037; ⛔ not producer precedent)
-> filed [`0341`](../0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) as the tracked
+> filed [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) as the tracked
 > task for what this one waits on: `0285` closed 2026-09-28 with its deploy and drill never done, and no task tracked
 > them. The blocker itself is unchanged in substance. **Order constraint, unchanged:** this task's quiet window must not
 > overlap `0341`'s deploy or drill; `0341`'s final "alerting is live" firing can be this task's Phase A warm-up (plan Q3).
@@ -139,7 +177,7 @@ and relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner chann
 Shown a conflict between their own two instructions of that day — *"prepare all the related things to
 citizenship and profile"* versus *"focus on the tasks that related to the core functionality of the
 features (not monitoring/messaging)"* — the owner **split
-[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
+[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
 (container log rotation) and G2 (image prune) are prepared before the weekend deploy slot, and its
 G3/G4 (external uptime check, `last-backup.json` freshness reader) are **deferred — together with THIS
 task and [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)**,
@@ -359,7 +397,7 @@ worklog must not round it up into one.**
   channel — both landed, and it carries the `0061` retry this drill first exercises in production),
   [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)
   (the probe whose hourly warmth is a variable to account for — landed),
-  [`0341`](../0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (verify `0285` in
+  [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (verify `0285` in
   production: its deploy and its disabled-channel drill — hard; this task's quiet window starts only after `0341`'s drill
   has finished and alerting is confirmed live, plan Q3)
 - **Blocks:** nothing.
@@ -377,7 +415,7 @@ worklog must not round it up into one.**
     code.**
   - [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
     — the separate hole: a channel that is **already** disabled reads green everywhere.
-  - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
+  - [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
     precedent this brief leans on twice: *a guard nobody has watched trip proves nothing*, and *an
     asserted arrival does not count*.
 - **Effort:** small. **No code.** Owner elapsed time is dominated by the wait, not by attention — minutes

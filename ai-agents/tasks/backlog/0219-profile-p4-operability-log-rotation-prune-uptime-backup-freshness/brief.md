@@ -123,7 +123,7 @@ monitoring **and** operability, so it sits on both sides of that conflict. Three
 | **G4** — `last-backup.json` freshness reader | ⛔ **DEFERRED** past the slot. |
 
 **Deferred *together with* [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
-and [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)** —
+and [`0289`](../../done/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)** —
 the same monitoring bucket. ⛔ **Neither of those two was closed, cancelled or re-ranked by this
 ruling; both stay `🔲 Backlog` exactly where they are.** The ruling scopes **prep work**, not their
 existence.

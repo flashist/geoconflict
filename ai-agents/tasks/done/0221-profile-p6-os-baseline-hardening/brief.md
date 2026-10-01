@@ -4,7 +4,7 @@
 0221
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 
@@ -43,7 +43,7 @@ internet-facing.
 ⚠️ **The rank is the producer's**; the owner ruled scheduling, not rank.
 
 ## Status
-🚧 Blocked — built + reviewed 2026-09-13 (restart policy `unless-stopped` + `init: true`; graceful SIGTERM shutdown incl. `Dockerfile.profile` exec-form `node` CMD; unattended-upgrades security-only, auto-reboot off; fail2ban sshd jail; sshd hardening drop-in with `Match all` pin, password-deploy refusal, restore-not-delete rollback; harness 221/0; stateful review round 1 closed out, R1–R7 applied, Codex coverage full; `npm test` 121/1261 green); open pending the OWNER-side live tail B1–B6 (deploy with a first SSH session open; new-session key login + password refusal; fail2ban ban from a throwaway source; daemon restart + reboot → both containers up; `docker compose stop profile-api` exit 0). Non-root deploy user split out by owner ruling. Driven by `/fkit-sprint-ship-loop`
+✅ Done (agent-closed — not owner-verified)
 
 > ### 📌 2026-09-26 deploy window — results
 >

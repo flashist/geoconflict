@@ -27,7 +27,7 @@ producer precedent.** The owner, verbatim:
 
 The owner was then shown a proposed list of four checkup tasks and chose **"Move all four"**: `0238`,
 [`0285`](../0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md),
-[`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md) and
 [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md).
 
 **THE REASON, PLAINLY:** the final checkups happen **after the deploy**, when production can actually

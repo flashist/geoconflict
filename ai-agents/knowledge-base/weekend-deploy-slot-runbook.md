@@ -1491,7 +1491,7 @@ letters collide*). Task-internal steps are always written with their task: `0341
 | Where | What it says | What this window does |
 |---|---|---|
 | [`0339`](../tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) *Precondition* (from `0325` plan § *Deploy order*) | profile S2, then game S2 | **telemetry → game → profile** (owner ruling above). Dated note in `0339`. |
-| [`0341`](../tasks/backlog/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) Step 1 | profile deploy, then monitoring deploy | **telemetry first** (an older relay ignores the new field, so it is safe). Dated note in `0341`. |
+| [`0341`](../tasks/done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) Step 1 | profile deploy, then monitoring deploy | **telemetry first** (an older relay ignores the new field, so it is safe). Dated note in `0341`. |
 | [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md) worklog owner step 3 / plan § *Deploy order* | profile first — **for cost only** (its guard runs before build and lock) | **game before profile**, because `0250` S1's rule is client first. Dated note in `0298`'s worklog. |
 | ADR-116 | — | The architect writes its dated note (not this producer). |
 

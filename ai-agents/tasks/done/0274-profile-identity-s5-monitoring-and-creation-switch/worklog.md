@@ -708,7 +708,7 @@ task file was moved, `plan.md` was not touched, nothing was committed.**
 *"unblocked once A1 is filed."*
 
 Amendment A1 is now filed as
-[`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)
+[`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)
 (Sprint 4 — **the board and rank are the producer's call, not the owner's**; the owner ruled only *that
 it gets its own task*). ⇒ **The ruling is satisfied and the `🚧 Blocked` token is retired.**
 
@@ -720,7 +720,7 @@ it gets its own task*). ⇒ **The ruling is satisfied and the `🚧 Blocked` tok
 |---|---|---|
 | 1 | **Owner step 7.7** — live switch + cleanup drill | ✅ **DISCHARGED 2026-09-19**, owner-executed, passed both halves. See § *OWNER STEP 7.7 RAN AND PASSED* above. |
 | 2 | **A4** — p95 login latency | ➡️ **MOVED** to [`0288`](../../backlog/0288-alert-rule-a4-p95-of-login-latency-over-750ms-for-10-min/brief.md), owner-ruled 2026-09-19. |
-| 3 | **Amendment A1** — delivery after an idle period | ➡️ **MOVED** to [`0289`](../../backlog/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md), owner-ruled 2026-09-19. ⚠️ A **different** A1 from alert rule A1. |
+| 3 | **Amendment A1** — delivery after an idle period | ➡️ **MOVED** to [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md), owner-ruled 2026-09-19. ⚠️ A **different** A1 from alert rule A1. |
 
 ## 🚨 Why it is NOT `✅ Done` — two owner steps have never been performed
 

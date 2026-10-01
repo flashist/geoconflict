@@ -175,7 +175,7 @@ wrapper change is needed as long as the `ALL PASS` marker is unchanged.
 - **Sibling from the same ruling session:**
   [`0254`](../0254-profile-non-root-deploy-user/brief.md) (`0221` Q8) — unrelated work, filed
   together for the record.
-- **Source:** `ai-agents/tasks/backlog/0221-profile-p6-os-baseline-hardening/worklog.md` ("Note for
+- **Source:** `ai-agents/tasks/done/0221-profile-p6-os-baseline-hardening/worklog.md` ("Note for
   the producer — telemetry restart policy") and `plan.md` (summary bullet on restart policy; Q4).
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

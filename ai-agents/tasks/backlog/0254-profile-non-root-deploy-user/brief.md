@@ -21,7 +21,7 @@ Backlog
 Unscheduled
 
 **Producer's rank, if pulled into a sprint: Medium** — not owner-ruled. Medium and not High because
-[`0221`](../0221-profile-p6-os-baseline-hardening/brief.md) already lands `PermitRootLogin
+[`0221`](../../done/0221-profile-p6-os-baseline-hardening/brief.md) already lands `PermitRootLogin
 prohibit-password` plus password auth off, so root is reachable by key only; the remaining exposure is
 "the deploy path runs with full privilege by default", which is real on an internet-facing box that
 will hold personal data, but is not a live hole today (the profile DB holds 0 rows; the game server is
@@ -184,7 +184,7 @@ choose and record the privilege model before touching a script:
   them explicitly.
 - **The `docker`-group point is the one most likely to be glossed over.** If the plan picks model (b),
   the brief's "why" changes from *security boundary* to *hygiene*, and the status text must say so.
-- **Source of the split:** `ai-agents/tasks/backlog/0221-profile-p6-os-baseline-hardening/worklog.md`
+- **Source of the split:** `ai-agents/tasks/done/0221-profile-p6-os-baseline-hardening/worklog.md`
   (Part C) and `plan.md` (Part C, Q8). Read both before planning — they carry the touch list.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

@@ -112,7 +112,7 @@ Telegram are configured** (any one channel, or all of them).
 - **Related:** [`0061`](../../done/0061-investigate-prod-telegram-feedback-delivery-failure/brief.md),
   the source (residual 4). [`0277`](../../done/0277-uptrace-alert-delivery-to-telegram/brief.md),
   whose shared helper and retry-once this builds on.
-  [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md),
+  [`0289`](../../done/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md),
   which asks whether delivery survives an idle period — the stale-socket case the retry is meant to
   cover. If `0289` shows the retry does **not** cover it, failures are more frequent than assumed here,
   and that strengthens A/B/C over D.

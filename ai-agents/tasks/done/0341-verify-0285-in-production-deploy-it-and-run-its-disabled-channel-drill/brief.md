@@ -29,7 +29,7 @@ ahead of every other open row except `0339`, whatever this number says.**
   which waits on this task. *(ADR-035's relative merit statement, because the board rank cannot carry it.)*
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
 
 📌 **Set 2026-09-30** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` on 2026-09-30, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. **G2** → **"Yes, mark both in progress (Recommended)"** — *"The board then shows the truth: both are underway. Only the status is changed, nothing is closed."* Why: Steps 1.1–1.2 (both deploys) done 2026-09-29; Steps 1.3–1.5, 2 and 3 still pending. Only the status changed; nothing closed. *(Earlier value, kept as history — true until 2026-09-30:)* ~~🔲 Backlog~~
 
@@ -39,8 +39,8 @@ dead-man's switch page and the Telegram arrival are the owner's. No agent has bo
 record a page or an arrival it did not see.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23),
-[`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
+[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23),
+[`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
 [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md).)*
 
 ## Context
@@ -220,3 +220,21 @@ and the owner's live reports; the producer verified none. **`## Status` unchange
 - **Step 2 ("no write"):** not done. **Step 3 (the drill):** not done — the owner deferred it (and `0289`) to a
   quiet day. Step 2 must still run **before** the drill.
 - Full record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*.
+
+## 📌 2026-10-01 — Closed (appended; nothing above edited, ADR-035)
+
+**Closed `✅ Done (agent-closed — not owner-verified)` by a spawned `fkit-producer` via `/fkit-task-done`, with no owner
+channel (ADR-021/033 §5), on `fkit-lead`'s relay.** ⚠️ **The owner executed and observed every step himself, live, on
+2026-10-01** (Steps 1.3–1.5, 2 and 3; Steps 1.1–1.2 on 2026-09-29) — the marker records only that the *close* was made
+by an agent, not that the checks were. Two UI actions (reading the channel's state, pressing Test channel) were done by
+`fkit-lead` in the owner's browser at the owner's direction.
+
+- **Result: PASSED, with one owner-chosen deviation.** Step 3.5 re-enabled the channel by the reverse SQL update, **not
+  in the monitoring UI** (owner ruling Q3's method) — the owner could not find the UI control in time and chose the SQL
+  fallback, its cost named live: **the UI re-enable path is not proven by this drill.**
+- Alerting down ≈ 3 min (14:25:37 → 14:28:36 UTC). Telegram Test-channel arrival 14:31 UTC — recorded as a candidate
+  `0289` Phase A warm-up; whether it qualifies is an owner call for `0289` (see the worklog, verification 6).
+- Verification step 7: no pass/fail reading was "no" → no new task filed.
+- All readings: [`worklog.md`](worklog.md).
+
+📌 **2026-10-01, appended (nothing above edited, ADR-035):** the 14:31 UTC candidate `0289` warm-up was **declined** by OWNER RULING (*"No, fresh start (Recommended)"*, live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent) — `0289` runs its own Phase A. The UI re-enable gap is filed as [`0368`](../../backlog/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) + [`0369`](../../backlog/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md). See [`worklog.md`](worklog.md).
