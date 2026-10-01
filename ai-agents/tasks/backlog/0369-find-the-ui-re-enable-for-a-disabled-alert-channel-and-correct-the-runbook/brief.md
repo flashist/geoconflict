@@ -25,7 +25,14 @@ Sprint 7
 > bottom"**. Rank **33 is this task's real place** — not the top group. Appended; nothing above edited (ADR-035).
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+📌 **Set 2026-10-01** by a spawned `fkit-producer` with no owner channel (ADR-021/037), on facts relayed by
+`fkit-lead` from the live `fkit lead` session; ⛔ not producer precedent. Why: the **live look (steps 1–5) was done
+2026-10-01** — owner-run box commands, UI actions by `fkit-lead` in the owner's browser at the owner's explicit
+instruction, Telegram arrivals seen by the owner. Readings: [`worklog.md`](worklog.md). **Step 6 (runbook rewrite,
+`fkit-coder`) is still pending — nothing closed.** Step 0 skipped by owner ruling. *(Earlier value, kept as
+history — true until 2026-10-01:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-coder
@@ -111,6 +118,21 @@ instructions (as left by `0368`) with what step 3/4 found — the exact control 
 the SQL route the **official** method and drop the UI wording. Update step 3 (`PAUSED` / `DRAFT`) from step 5's
 finding. Keep old text struck.
 
+📌 **2026-10-01, appended (nothing above edited, ADR-035) — step 6's input, from the live look.** Recorded by a
+spawned `fkit-producer` on facts relayed by `fkit-lead`; ⛔ not producer precedent. Full readings:
+[`worklog.md`](worklog.md).
+- **The control exists.** Rewrite the runbook's three *"re-enable in the UI"* instructions to name **Alerting →
+  CHANNELS → the channel's row → `Unpause channel` (▶)**. It is offered for **both** `disabled` (🔴) and `paused`
+  (⚪); when the row is `delivering` that slot reads `Pause channel` (⏸). Row actions seen while `disabled`, from
+  their tooltips: **Test channel · Unpause channel · Edit channel · Delete channel**. Update step 3 (`PAUSED`)
+  the same way. ⚠️ The **Edit** page was **not** opened (it shows the channel secret) — do not describe it.
+- **Add a warning: the *Test channel* button is NOT a reliable liveness signal.** Silent non-delivery observed 3×
+  on 2026-10-01 (none reached the relay); cause unknown. To prove delivery, point to the runbook's existing
+  **throwaway-monitor drill** (the rejected-sessions monitor), which delivered 🚨 and ✅ the same day.
+- **`0368`'s SQL re-enable stays valid as the fallback** — keep it, as the fallback, not the official route.
+- ⚠️ **Dependency:** step 6 edits the wording *"as left by `0368`"*; `0368` is still `🔲 Backlog` as of this note.
+  Land `0368` first, or do both edits in one pass so neither overwrites the other.
+
 ## Verification steps
 
 1. Step 0's finding is recorded in this task's `worklog.md` with its source, or "nothing found" — yes.
@@ -157,6 +179,9 @@ finding. Keep old text struck.
       the 🚨 *Order with `0289`* note above (and Step 1's *"Not inside a `0289` quiet window"*), **no longer
       apply**: `0289` closed 2026-10-01 on observed evidence **without a drill**, so there is no quiet window to
       avoid. The remaining timing constraint is the `0285` one under *Related* — avoid straddling 08:00 UTC.
+  - 📌 *2026-10-01, appended (nothing above edited, ADR-035):* **Q2 ✅ ANSWERED by the owner's choice** — the
+    live look ran **2026-10-01, 15:32–17:33 UTC** (OWNER RULING *"Yes, now (Recommended)"*, live `fkit lead`
+    session, relayed by `fkit-lead`; ⛔ not producer precedent). Clear of 08:00 UTC.
 - 🔒 **Privacy:** numbers, times, control names and yes/no only. Never paste ids, URLs, hosts, IPs, tokens or
   secrets into any artifact; this file is tracked in git.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask. No wiki writes. Do not invoke
