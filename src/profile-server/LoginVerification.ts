@@ -8,12 +8,17 @@
 // login. ⛔ Never log the signature (see PlayerSignature.ts).
 
 import { verifySignedPlayer } from "./PlayerSignature";
-import type { LoginVerificationOutcome } from "./Telemetry";
+import type {
+  LoginVerificationOutcome,
+  StaleSignatureAgeBracket,
+} from "./Telemetry";
 
 export interface LoginVerification {
   outcome: LoginVerificationOutcome;
   /** True only for `ok`: a fresh, genuine signature for the SAME id the login asserts. */
   verified: boolean;
+  /** Present only when `outcome === "stale"`: how far `issuedAt` was from now (task 0366). */
+  staleAgeBracket?: StaleSignatureAgeBracket;
 }
 
 export function classifyLoginSignature(
@@ -26,6 +31,13 @@ export function classifyLoginSignature(
     return { outcome: "absent", verified: false };
   }
   const result = verifySignedPlayer(signature, secret, nowMs);
+  if (result.status === "stale") {
+    return {
+      outcome: "stale",
+      verified: false,
+      staleAgeBracket: result.ageBracket,
+    };
+  }
   if (result.status !== "ok") {
     return { outcome: result.status, verified: false };
   }

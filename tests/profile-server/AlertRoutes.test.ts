@@ -123,6 +123,7 @@ function build(
     httpRequest: () => {},
     sessionRejected: () => {},
     loginVerification: () => {},
+    loginStaleSignatureAge: () => {},
     tenureClaim: () => {},
     alertRelay: (result, keyed) => {
       metricCalls.push([result, keyed]);

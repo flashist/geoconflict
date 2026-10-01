@@ -49,6 +49,7 @@ function recorder() {
       http.push({ route, method, statusClass, durationMs }),
     sessionRejected: (reason) => sessions.push(reason),
     loginVerification: () => {},
+    loginStaleSignatureAge: () => {},
     tenureClaim: (outcome) => tenure.push(outcome),
     alertRelay: () => {},
   };

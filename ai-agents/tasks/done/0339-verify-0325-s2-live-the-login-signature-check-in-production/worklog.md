@@ -10,7 +10,7 @@ verified none of it.** Counts and durations only — no player id, signature, to
 ## Result
 
 **VERIFICATION FAILED — S2 exit NOT MET.** Follow-up filed as
-[`0366`](../../backlog/0366-measure-how-old-stale-login-signatures-are/brief.md) (measure how old the `stale` login
+[`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) (measure how old the `stale` login
 signatures are). Per this brief's verification step 6: `0325` is **not** reopened, `0340` is **not** started,
 and this task closes with this failed result recorded.
 
@@ -111,7 +111,7 @@ GameAnalytics when read).
 - **Why the 900 s / 300 s window is NOT simply retuned now:** the counter does not say *how* far off `issuedAt`
   is. Just past 900 s means retune the window; hours or days means Yandex hands back an old `issuedAt` and a
   wider window would accept old signatures (a different fix); ahead of now means a clock problem. That is what
-  [`0366`](../../backlog/0366-measure-how-old-stale-login-signatures-are/brief.md) measures.
+  [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) measures.
 
 ## Side finding — open, not a defect yet
 

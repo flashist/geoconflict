@@ -27,14 +27,27 @@
 // public name and avatar pass through here and are dropped: never returned, stored
 // or logged (152-ФЗ).
 //
+// A `stale` result carries how far `issuedAt` was from now as one of a FIXED set of
+// brackets (task 0366) — never the raw age, which does not leave this module.
+//
 // Never throws.
 
+import type { StaleSignatureAgeBracket } from "./Telemetry";
 import { verifyHmacEnvelope } from "./YandexSignature";
 
 /** A signature older than this (by its own `issuedAt`) is `stale`. 15 min. */
 export const LOGIN_SIGNATURE_MAX_AGE_SECONDS = 900;
 /** A signature dated further ahead than this (clock skew) is `stale`. 5 min. */
 export const LOGIN_SIGNATURE_MAX_FUTURE_SECONDS = 300;
+
+// Upper edges of the stale-age brackets (task 0366), inclusive. The lower edges
+// are the window's own limits above.
+const STALE_FUTURE_SMALL_MAX_SECONDS = 900;
+const STALE_PAST_20M_SECONDS = 1_200;
+const STALE_PAST_30M_SECONDS = 1_800;
+const STALE_PAST_1H_SECONDS = 3_600;
+const STALE_PAST_6H_SECONDS = 21_600;
+const STALE_PAST_24H_SECONDS = 86_400;
 
 export type PlayerSignatureResult =
   | { status: "ok"; platformUserId: string; issuedAtMs: number }
@@ -45,12 +58,44 @@ export type PlayerSignatureResult =
   /** The HMAC passed, but the payload is not JSON, or lacks `data.uniqueID` / `issuedAt`. */
   | { status: "bad_payload" }
   /** Outside the freshness window (too old, or too far in the future). */
-  | { status: "stale" };
+  | { status: "stale"; ageBracket: StaleSignatureAgeBracket };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
+}
+
+/**
+ * Which fixed bracket a signature's age falls in (task 0366). `ageMs` is
+ * `now - issuedAt`: positive is past, negative is future. Only meaningful for an
+ * age OUTSIDE the freshness window — that is the only place it is called. Pure
+ * number comparisons; never throws.
+ */
+export function staleSignatureAgeBracket(
+  ageMs: number,
+): StaleSignatureAgeBracket {
+  if (ageMs < 0) {
+    return -ageMs <= STALE_FUTURE_SMALL_MAX_SECONDS * 1000
+      ? "future_5m_15m"
+      : "future_over_15m";
+  }
+  if (ageMs <= STALE_PAST_20M_SECONDS * 1000) {
+    return "past_15m_20m";
+  }
+  if (ageMs <= STALE_PAST_30M_SECONDS * 1000) {
+    return "past_20m_30m";
+  }
+  if (ageMs <= STALE_PAST_1H_SECONDS * 1000) {
+    return "past_30m_1h";
+  }
+  if (ageMs <= STALE_PAST_6H_SECONDS * 1000) {
+    return "past_1h_6h";
+  }
+  if (ageMs <= STALE_PAST_24H_SECONDS * 1000) {
+    return "past_6h_24h";
+  }
+  return "past_over_24h";
 }
 
 export function verifySignedPlayer(
@@ -91,7 +136,7 @@ export function verifySignedPlayer(
       ageMs > LOGIN_SIGNATURE_MAX_AGE_SECONDS * 1000 ||
       -ageMs > LOGIN_SIGNATURE_MAX_FUTURE_SECONDS * 1000
     ) {
-      return { status: "stale" };
+      return { status: "stale", ageBracket: staleSignatureAgeBracket(ageMs) };
     }
     return { status: "ok", platformUserId: uniqueId, issuedAtMs };
   } catch {

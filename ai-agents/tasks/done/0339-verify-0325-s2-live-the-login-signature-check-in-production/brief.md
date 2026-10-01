@@ -238,6 +238,6 @@ producer verified none of them.
   not a "large majority".
 - **Cause of `stale`: unknown** (our clock, client reuse and old builds are ruled out — see the worklog).
 - **Per verification step 6:** follow-up filed as
-  [`0366`](../../backlog/0366-measure-how-old-stale-login-signatures-are/brief.md) — measure how old `stale` signatures
+  [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) — measure how old `stale` signatures
   are. `0325` is **not** reopened. `0340` is **not** started; its gate now waits on `0366` (dated note in
   `0340`'s brief). **This task closes with this failed result.**

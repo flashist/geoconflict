@@ -104,6 +104,7 @@ import {
   type MetricPlatform,
   type ProfileMetrics,
   type SessionRejectedReason,
+  type StaleSignatureAgeBracket,
 } from "./Telemetry";
 import { verifySignedPayload, type VerifiedPurchase } from "./YandexSignature";
 
@@ -685,6 +686,9 @@ export function createApp(
   // The fail rule is fixed: a missing, bad or stale signature, or a check that
   // throws, is an unverified session — NEVER a refused login. ⛔ Never log the
   // signature, never persist it, never pass it to the repository.
+  // Task 0366: a `stale` outcome also counts its age bracket
+  // (`geoconflict.profile.login.verification.stale_age`) — fixed values, never the
+  // raw age, and its own try/catch so it can never cost a login.
   app.use("/v1/login", publicCors("POST"));
   app.post("/v1/login", async (req, res) => {
     // The order below is load-bearing and asserted by tests: unavailable, then
@@ -717,17 +721,27 @@ export function createApp(
     // Task 0325, S2: count what the signature would prove, then carry on unchanged.
     // Its own try/catch — a throw here must never cost the player their login.
     let verificationOutcome: LoginVerificationOutcome;
+    let staleAgeBracket: StaleSignatureAgeBracket | undefined;
     try {
-      verificationOutcome = classifyLoginSignature(
+      const verification = classifyLoginSignature(
         parsed.data.signature,
         parsed.data.platformUserId,
         playerSignatureSecret,
         Date.now(),
-      ).outcome;
+      );
+      verificationOutcome = verification.outcome;
+      staleAgeBracket = verification.staleAgeBracket;
     } catch {
       verificationOutcome = "bad_signature";
     }
     metrics.loginVerification(verificationOutcome);
+    if (staleAgeBracket !== undefined) {
+      try {
+        metrics.loginStaleSignatureAge(staleAgeBracket);
+      } catch {
+        // Never costs a login (task 0366).
+      }
+    }
     try {
       const resolved = loginCreateEnabled
         ? await repo.resolveOrCreatePlayer(

@@ -25,6 +25,7 @@ import {
   startProfileTelemetry,
   type LoginVerificationOutcome,
   type ProfileMetricsHandle,
+  type StaleSignatureAgeBracket,
 } from "../../src/profile-server/Telemetry";
 
 const CANARY_ID = "zz0274-canary-platform-user-id";
@@ -37,6 +38,7 @@ const ALLOWED_ATTRIBUTE_KEYS: Record<string, readonly string[]> = {
   "geoconflict.profile.http.duration": ["route", "method", "status_class"],
   "geoconflict.profile.session.rejected": ["reason"],
   "geoconflict.profile.login.verification": ["outcome"],
+  "geoconflict.profile.login.verification.stale_age": ["bracket"],
   "geoconflict.profile.tenure.claims": ["outcome"],
   "geoconflict.profile.alert.relay": ["result", "keyed"],
   "geoconflict.profile.db.pool.waiting": [],
@@ -216,12 +218,49 @@ describe("createProfileMetrics", () => {
     expect(ok?.value).toBe(2);
   });
 
+  // Task 0366. A separate counter, so the `outcome` counter above stays unchanged.
+  test("stale signature age: one counter, label `bracket`, exactly the eight bounded values", async () => {
+    handle = makeHandle(harness);
+    const brackets: StaleSignatureAgeBracket[] = [
+      "future_5m_15m",
+      "future_over_15m",
+      "past_15m_20m",
+      "past_20m_30m",
+      "past_30m_1h",
+      "past_1h_6h",
+      "past_6h_24h",
+      "past_over_24h",
+    ];
+    for (const bracket of brackets) {
+      handle.metrics.loginStaleSignatureAge(bracket);
+    }
+    handle.metrics.loginStaleSignatureAge("past_1h_6h");
+
+    const collected = await harness.collect();
+    const staleAge = find(
+      collected,
+      "geoconflict.profile.login.verification.stale_age",
+    );
+    expect(staleAge.dataPoints).toHaveLength(8);
+    expect(
+      staleAge.dataPoints.map((point) => point.attributes.bracket).sort(),
+    ).toEqual([...brackets].sort());
+    for (const point of staleAge.dataPoints) {
+      expect(Object.keys(point.attributes)).toEqual(["bracket"]);
+    }
+    const pastHours = staleAge.dataPoints.find(
+      (point) => point.attributes.bracket === "past_1h_6h",
+    );
+    expect(pastHours?.value).toBe(2);
+  });
+
   test("no instrument carries an attribute key outside its allowlist", async () => {
     handle = makeHandle(harness);
     handle.metrics.loginRequest("unknown", "bad_request");
     handle.metrics.playerCreated("unknown", "login");
     handle.metrics.sessionRejected("invalid");
     handle.metrics.loginVerification("bad_signature");
+    handle.metrics.loginStaleSignatureAge("past_over_24h");
     handle.metrics.tenureClaim("below_minimum");
     handle.metrics.alertRelay("malformed", "unkeyed");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);
@@ -426,6 +465,7 @@ describe("startProfileTelemetry", () => {
       noopProfileMetrics.httpRequest("/x", "GET", "5xx", 1);
       noopProfileMetrics.sessionRejected("expired");
       noopProfileMetrics.loginVerification("ok");
+      noopProfileMetrics.loginStaleSignatureAge("future_5m_15m");
       noopProfileMetrics.tenureClaim("granted");
       noopProfileMetrics.alertRelay("failed", "unkeyed");
     }).not.toThrow();

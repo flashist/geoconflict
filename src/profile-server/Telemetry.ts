@@ -112,6 +112,30 @@ export type LoginVerificationOutcome =
   | "id_mismatch"
   | "ok";
 
+/**
+ * How far a `stale` login signature's `issuedAt` was from now (task 0366). Eight
+ * bounded values — computed from the age by fixed edges, never from player data,
+ * and never the raw age. Each range is open below and closed above, so the window's
+ * own limits (exactly 900 s old / 300 s ahead) are `ok` and get no bracket:
+ *  - `future_5m_15m`   — 300 s < ahead ≤ 900 s: a small clock difference.
+ *  - `future_over_15m` — ahead > 900 s: a gross error (seconds/ms mix-up, hours off).
+ *  - `past_15m_20m`    — 900 s < age ≤ 1 200 s: just past the window.
+ *  - `past_20m_30m`    — ≤ 1 800 s.
+ *  - `past_30m_1h`     — ≤ 3 600 s.
+ *  - `past_1h_6h`      — ≤ 21 600 s.
+ *  - `past_6h_24h`     — ≤ 86 400 s.
+ *  - `past_over_24h`   — > 86 400 s.
+ */
+export type StaleSignatureAgeBracket =
+  | "future_5m_15m"
+  | "future_over_15m"
+  | "past_15m_20m"
+  | "past_20m_30m"
+  | "past_30m_1h"
+  | "past_1h_6h"
+  | "past_6h_24h"
+  | "past_over_24h";
+
 /** 2xx…5xx. Bounded on purpose — the raw status code would be a wider label. */
 export type StatusClass = "1xx" | "2xx" | "3xx" | "4xx" | "5xx";
 
@@ -167,6 +191,8 @@ export interface ProfileMetrics {
   sessionRejected(reason: SessionRejectedReason): void;
   /** Once per `POST /v1/login` whose body parsed (task 0325, S2). */
   loginVerification(outcome: LoginVerificationOutcome): void;
+  /** Once per `POST /v1/login` whose outcome was `stale` (task 0366). */
+  loginStaleSignatureAge(bracket: StaleSignatureAgeBracket): void;
   /** Once per `POST /v1/profile/tenure-grant` request (task 0253). */
   tenureClaim(outcome: TenureClaimOutcome): void;
   /**
@@ -215,6 +241,7 @@ export const noopProfileMetrics: ProfileMetrics = {
   httpRequest: () => {},
   sessionRejected: () => {},
   loginVerification: () => {},
+  loginStaleSignatureAge: () => {},
   tenureClaim: () => {},
   alertRelay: () => {},
 };
@@ -292,6 +319,13 @@ export function createProfileMetrics(
     {
       description:
         "POST /v1/login signed-player-data check outcomes (shadow mode), by outcome",
+    },
+  );
+  const loginStaleSignatureAges = meter.createCounter(
+    "geoconflict.profile.login.verification.stale_age",
+    {
+      description:
+        "POST /v1/login stale signatures, by how far issuedAt was from now (past/future bracket)",
     },
   );
   const tenureClaims = meter.createCounter(
@@ -420,6 +454,9 @@ export function createProfileMetrics(
     },
     loginVerification: (outcome) => {
       loginVerifications.add(1, { outcome });
+    },
+    loginStaleSignatureAge: (bracket) => {
+      loginStaleSignatureAges.add(1, { bracket });
     },
     tenureClaim: (outcome) => {
       tenureClaims.add(1, { outcome });

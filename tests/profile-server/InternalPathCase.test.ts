@@ -172,6 +172,7 @@ function build(): { app: ReturnType<typeof createApp>; deps: Deps } {
     httpRequest: () => {},
     sessionRejected: () => {},
     loginVerification: () => {},
+    loginStaleSignatureAge: () => {},
     tenureClaim: () => {},
     alertRelay: (result, keyed) => alertRelayMetric(result, keyed),
   };

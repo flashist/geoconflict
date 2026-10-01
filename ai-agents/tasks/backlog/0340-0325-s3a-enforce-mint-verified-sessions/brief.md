@@ -161,7 +161,7 @@ deploy. This task does not close until that note is applied or the owner rules o
 
 ## Notes
 
-- **Depends on:** [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
+- **Depends on:** [`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
   **not met** in `0339` on 2026-10-01; the next step toward it is this measurement, then a fix and an S2-exit
   re-check that are not filed yet) plus an explicit owner approval to enforce. *Repointed 2026-10-01, kept as
   written:* ~~[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (hard — its S2
@@ -187,7 +187,7 @@ how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's 
 - **Gate item 1 above (*"`0339`'s S2 exit is met"*) is NOT met.** `0339` closed on 2026-10-01 *(agent-closed — not
   owner-verified)* with its result recorded as a failed verification: ≈ 68 % `ok`, ≈ 32 % `stale`, not falling
   (readings in `0339`'s `worklog.md`). `0339` closing does **not** open this task.
-- **What the gate now waits on:** [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) (measure how
+- **What the gate now waits on:** [`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (measure how
   old `stale` signatures are) → a fix chosen from its readings → an S2-exit re-check with the owner. Only the first
   is filed. Gate item 2 (a separate owner approval to enforce) is unchanged.
 - The *Freshness window* bullet under *What to build* still holds: any retune of 900 s / 300 s is a plan decision

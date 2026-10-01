@@ -6,8 +6,10 @@ import { createHmac } from "crypto";
 import {
   LOGIN_SIGNATURE_MAX_AGE_SECONDS,
   LOGIN_SIGNATURE_MAX_FUTURE_SECONDS,
+  staleSignatureAgeBracket,
   verifySignedPlayer,
 } from "../../src/profile-server/PlayerSignature";
+import type { StaleSignatureAgeBracket } from "../../src/profile-server/Telemetry";
 
 const SECRET = "0325-synthetic-player-signature-key";
 const OTHER_SECRET = "0325-some-other-key";
@@ -250,6 +252,57 @@ describe("verifySignedPlayer", () => {
       expect(
         verifySignedPlayer(signed({ issuedAt: NOW_MS }), SECRET, NOW_MS).status,
       ).toBe("stale");
+    });
+  });
+
+  // Task 0366: a stale result carries a fixed age bracket — and nothing else does.
+  describe("stale age bracket", () => {
+    test.each<[string, number]>([
+      ["exactly 900 s old", NOW_SEC - 900],
+      ["exactly 300 s ahead", NOW_SEC + 300],
+    ])("%s → ok, with no ageBracket", (_label, issuedAt) => {
+      expect(verifySignedPlayer(signed({ issuedAt }), SECRET, NOW_MS)).toEqual({
+        status: "ok",
+        platformUserId: UNIQUE_ID,
+        issuedAtMs: issuedAt * 1000,
+      });
+    });
+
+    test.each<[string, number, StaleSignatureAgeBracket]>([
+      ["901 s old (just past the window)", NOW_SEC - 901, "past_15m_20m"],
+      ["301 s ahead (just past the window)", NOW_SEC + 301, "future_5m_15m"],
+      ["25 min old", NOW_SEC - 25 * 60, "past_20m_30m"],
+      ["45 min old", NOW_SEC - 45 * 60, "past_30m_1h"],
+      ["3 h old", NOW_SEC - 3 * 3600, "past_1h_6h"],
+      ["12 h old", NOW_SEC - 12 * 3600, "past_6h_24h"],
+      ["30 days old", NOW_SEC - 30 * 86_400, "past_over_24h"],
+      ["10 min ahead", NOW_SEC + 10 * 60, "future_5m_15m"],
+      ["1 h ahead", NOW_SEC + 3600, "future_over_15m"],
+      ["a milliseconds issuedAt", NOW_MS, "future_over_15m"],
+    ])("%s → %s", (_label, issuedAt, bracket) => {
+      expect(verifySignedPlayer(signed({ issuedAt }), SECRET, NOW_MS)).toEqual({
+        status: "stale",
+        ageBracket: bracket,
+      });
+    });
+
+    test.each<[number, StaleSignatureAgeBracket, StaleSignatureAgeBracket]>([
+      [1_200, "past_15m_20m", "past_20m_30m"],
+      [1_800, "past_20m_30m", "past_30m_1h"],
+      [3_600, "past_30m_1h", "past_1h_6h"],
+      [21_600, "past_1h_6h", "past_6h_24h"],
+      [86_400, "past_6h_24h", "past_over_24h"],
+    ])(
+      "exactly %i s old → %s; 1 ms more → %s",
+      (edgeSeconds, atEdge, pastEdge) => {
+        expect(staleSignatureAgeBracket(edgeSeconds * 1000)).toBe(atEdge);
+        expect(staleSignatureAgeBracket(edgeSeconds * 1000 + 1)).toBe(pastEdge);
+      },
+    );
+
+    test("exactly 900 s ahead → future_5m_15m; 1 ms more → future_over_15m", () => {
+      expect(staleSignatureAgeBracket(-900_000)).toBe("future_5m_15m");
+      expect(staleSignatureAgeBracket(-900_001)).toBe("future_over_15m");
     });
   });
 
