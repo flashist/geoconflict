@@ -3,7 +3,36 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-01 (latest) at `HEAD` = `49a419d` — FIVE ROWS ADDED; `0310`'S GATE RE-POINTED TO `0297`
+> # 📊 RE-COUNTED 2026-10-01 (latest) at `HEAD` = `4f9f857` — SIX ROWS ADDED, ONE MOVED STRAIGHT ON TO SPRINT 7
+>
+> **`backlog.md`: 116 rows — 86 `🔲 Backlog` · 22 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
+> 89 OPEN** (was 110 / 84). Counted by me this run, by each row's leading status glyph. All six filed 2026-10-01 by
+> spawned `fkit-producer`s on owner rulings or requests relayed by `fkit-lead` (ADR-021/037; ⛔ not producer precedent):
+>
+> - `0360` — refuse name-change requests that look like the default guest name (`Anon` + digits), with a clear
+>   message on the card. **Not urgent (owner).** Trigger: one such request rejected by hand 2026-10-01. ⚠️ The rule
+>   goes on the name-change path only — **not** the shared `usernameRules.ts`, which would break the game's own guest
+>   names at join. Seven matching/wording questions left for the plan step.
+> - `0361` — a Telegram confirmation when a name change is decided (approve / reject / clear), in the Name Changes
+>   topic, sent only after the decision commits; says whether the player's inbox message was written (replacing the
+>   owner's manual DB check). A Telegram failure never touches the decision; internal id only, no Yandex id.
+> - `0362` — a Telegram notification when a player becomes a citizen (bought or earned), in a **new Citizenship
+>   topic** (owner-placed). New env var carried through the profile deploy, harness and config-parity check.
+>   ⚠️ **Owner step:** create the topic by hand and put its id in the local, gitignored profile config. Never on a
+>   replayed purchase or duplicate credit.
+> - `0364` — names lose hyphens and apostrophes in matches; decide who may keep them. Split out of the cancelled
+>   `0308` ([[tasks/player-name-lost-space]]); `0308`'s plan is prior analysis — its approval does not carry over.
+> - `0365` — block names made of invisible characters, and warn the moderator about look-alike names (the two safety
+>   parts of `0308`; part (b) is owner ruling R2, now the home of
+>   [[decisions/adr-115-approved-name-in-matches]]'s D6 revisit). Odd-space normalization, replace-instead-of-delete
+>   and card cleaning were **dropped** by the owner.
+> - `0366` — measure how old `stale` login signatures are; filed after [[tasks/verified-login-live-check]] (`0339`)
+>   failed, then **moved to Sprint 7 the same day** (row now `➡️ Moved to Sprint 7 — priority 30`).
+> - **`sprint-backlog.md`: unchanged** this window.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-10-01 at `HEAD` = `49a419d` — FIVE ROWS ADDED; `0310`'S GATE RE-POINTED TO `0297` *(history)*
 >
 > **`backlog.md`: 110 rows — 81 `🔲 Backlog` · 21 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
 > 84 OPEN** (was 105 / 79). Counted by me this run, by each row's leading status glyph.
@@ -674,3 +703,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/lobby-close-leftovers-investigation]] — task `0335`: case 1 folded into `0228`, case 2 noted on `0252`, and the gate on `0354`'s everyone-flag
 - [[decisions/adr-117-server-deploy-version-names]] — ADR-117, whose follow-ups `0357` and `0359` sit here
 - [[tasks/profile-deploy-version-tags]] — task `0355`, whose Q7 became `0357`
+- [[tasks/player-name-lost-space]] — task `0308` (cancelled 2026-10-01), source of `0364` and `0365`
+- [[tasks/verified-login-live-check]] — task `0339` (failed 2026-10-01), source of `0366`

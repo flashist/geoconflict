@@ -43,11 +43,13 @@
 >     in the ~11–16 s **before migration `007` finished**, none after. Filed as `0346` on the Backlog board.
 >   - ✅/⚠️ the login-verification metric exists; first minutes: **`ok` and `stale` only, roughly half each**,
 >     `no_secret` none; clock skew on the box ruled out. Minutes of data — `0339`'s multi-day watch owns it.
+>     *(2026-10-01: that watch closed — ≈ 68 % `ok` / ≈ 32 % `stale` over ≈ 40 h; **S2 exit not met**; game version
+>     confirmed `0.0.155` — [[tasks/verified-login-live-check]].)*
 >   - **`0298` Part B:** the armed guards stopped none of the three deploys, but **their output was not
 >     captured** — the record `0298` owner step 3 asks for does not exist for these runs.
 > - **Still owed:** the game-deploy checks; quick check #3 (an approved name in a match); the citizen bell
 >   message; `0341` step 1.3 by hand (or confirming the hourly probe) and step 2; the watch; the `0341` drill
->   and `0289` (the owner deferred both to a quiet day); `0339`'s watch.
+>   and `0289` (the owner deferred both to a quiet day); ~~`0339`'s watch~~ (done 2026-10-01, failed).
 > - ⚠️ **Rollback cautions that now stand:** never roll back to game `0.0.153` (never served); migration `007`
 >   stays applied (no down migration); keep an S2-or-later profile image as `0340`'s future rollback target;
 >   a `0250` S1 rollback reopens the leak and can fire false `Citizenship:Earned:XP` from old bundles.
@@ -665,3 +667,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[systems/analytics]] — the `Profile:Login:Signature:*` events whose arrival the 2026-09-29 game checks were meant to confirm
 - [[tasks/profile-deploy-version-tags]] — task `0355`: the first tagged profile deploy must be the slot that first ships `0309`'s log line, with no second profile deploy before `0297` §1 reads it
 - [[tasks/hmac-construction-log-label]] — task `0309`: its log line is lost on container recreate — read it before the next profile deploy
+- [[tasks/verified-login-live-check]] — task `0339`, which read this window's login-verification results (S2 exit not met)
+- [[tasks/telemetry-deploy-version-tags]] — task `0356`: the first telemetry deploy after it is committed is named `<base>-telemetry.<N>`

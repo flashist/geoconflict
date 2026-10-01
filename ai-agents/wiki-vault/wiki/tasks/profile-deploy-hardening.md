@@ -36,3 +36,4 @@ T4g completed the final profile-deploy hardening slice before the profile box mo
 - [[tasks/deploy-apt-noninteractive]] — task `0286`: three more ordering assertions in the hardening harness (`DEBIAN_FRONTEND` above each script's first `apt` call)
 - [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30): version names, refuse-on-uncommitted, a registry claim check, and T20–T39 in this harness; the `git` stub now fails on any unstubbed call
 - [[decisions/adr-117-server-deploy-version-names]] — ADR-117: the naming rule; digest pinning unchanged
+- [[tasks/telemetry-deploy-version-tags]] — task `0356`, which grew this harness to 740 assertions (T40–T54)

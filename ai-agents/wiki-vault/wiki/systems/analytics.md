@@ -348,6 +348,10 @@ for now, in its own metric `geoconflict.profile.login.verification` (Uptrace, no
 `Failed` with the server's `absent` count — the difference is roughly the old bundles still in circulation.
 ⚠️ **Whether these events arrive in GameAnalytics was not reported** after the 2026-09-29 game deploy
 ([[systems/weekend-deploy-window]]); `0339` owns that check.
+📌 **2026-10-01 — they arrive** (`0339`, [[tasks/verified-login-live-check]]): over 2026-09-29/30, `Ready` ≈ 8,390
+(≈ 99.5 %), `Waited` 46 (mean 575 / ≈ 811 ms — **mean only**, GameAnalytics offered no percentile), `Timeout` 0,
+`Failed` 0. ⚠️ GameAnalytics showed a *"Demo mode"* banner while read — the data has this project's own events, so it
+reads as real; noted, not proven.
 
 ## Monetization Measurement Baseline
 
@@ -539,3 +543,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/worker-start-failure-reporting]] — task `0348`, `Worker:InitFailedCause:{Cause}`
 - [[tasks/worker-reuses-page-map]] — task `0035`, worker-failure telemetry silent after a leave
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, the `Citizenship:TenureGrant:Claimed` popup timing
+- [[tasks/verified-login-live-check]] — task `0339`: the first live counts of the four `Profile:Login:Signature:*` events

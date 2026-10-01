@@ -5,7 +5,17 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-01 (latest, `49a419d`): 3 rows — 3 `🔲 Backlog`; 3 OPEN; still NOT started.** ⚠️ Counted by me
+> 🆕 **2026-10-01 (latest, `4f9f857`): 4 rows — 4 `🔲 Backlog`; 4 OPEN; still NOT started.** ⚠️ Counted by me this
+> run. Verify task **`0363`** — for [[tasks/telemetry-deploy-version-tags]] (`0356`) — was filed 2026-10-01 and placed
+> at **rank 1** by `fkit-lead` at `0356`'s close, on the owner's standing build/verify-split rule (appended at 4, then
+> moved up; no closed row exists here, so none was renumbered). Owner-run after the weekend telemetry deploy: the
+> deploy printed a `<base>-telemetry.<N>` name and succeeded; the annotated git tag is on origin at the deployed
+> commit; the box marker and the local deploy record show the same version and commit; Uptrace still answers.
+> ⚠️ Preconditions: `0356` **committed** and deployed. Does not block Sprint 7's deploy. **New order: `0363` 1 ·
+> `0358` 2 · `0351` 3 · `0343` 4.** ⚠️ `0363` above `0358` is **placement, not merit** — two short owner checks on
+> different boxes, runnable in either order. The line-3 banner was not touched.
+>
+> *History — `49a419d`:* **3 rows — 3 `🔲 Backlog`; 3 OPEN; still NOT started.** ⚠️ Counted by me
 > this run, by each row's leading status glyph. Two **verify tasks** were filed on 2026-09-30 and placed at the top,
 > on the owner's standing build/verify-split rule (*"verify task on top of the next sprint"*; it must not block
 > Sprint 7's deploy):
@@ -71,3 +81,4 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[decisions/product-strategy]] — `plan-index.md` lists this board and repoints the priority table to `0342` / `0343`
 - [[tasks/profile-deploy-version-tags]] — task `0355`, verified by `0358` (rank 1)
 - [[tasks/worker-reuses-page-map]] — task `0035`, verified by `0351` (rank 2)
+- [[tasks/telemetry-deploy-version-tags]] — task `0356`, verified by `0363` (rank 1)

@@ -5,7 +5,28 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-01 (latest, `49a419d`) — 30 ROWS, 19 OPEN: NINE TASKS CLOSED, TWO ROWS ADDED
+> # 🆕 2026-10-01 (latest, `4f9f857`) — 31 ROWS, 17 OPEN: `0339` FAILED, `0356` DONE, `0308` CANCELLED, `0366` ADDED
+>
+> **Re-counted at `HEAD` = `4f9f857`, by each row's leading status glyph: 31 rows — 11 `✅ Done` · 10 `🔲 Backlog` ·
+> 6 `🚧 Blocked` · 1 `🔄 In progress` (`0341`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 17 OPEN** (was 30 / 19). ⚠️ Counted by
+> me this run. Every close is agent-closed — not owner-verified.
+>
+> - 🚨 **`0339` closed as a FAILED verification — S2 exit NOT met** ([[tasks/verified-login-live-check]]): ≈ 68 % `ok`,
+>   ≈ 32 % `stale`, not falling; owner *"Agree"*. `0325` not reopened; **`0340` not started** and now waits on `0366`.
+> - **`0366` added at rank 30** — measure how old `stale` login signatures are (a past/future age bracket on `stale`
+>   only; profile server only). Filed on the Backlog board, then moved here the same day by owner ruling Q1 *"Move to
+>   Sprint 7 (Recommended)"*. ⚠️ **Rank 30 is append rank, not merit** — flagged for owner confirmation; **on merit it
+>   belongs directly below `0337`**, because it should ride Saturday's (2026-10-03/04) profile deploy (or wait until
+>   `0297` §1 has read `0309`'s log line). Q2 *"Fold into the re-check (Recommended)"*: **no separate verify task** for
+>   `0366` — an owner-ruled exception to the build/verify-split rule, for this task only.
+> - **`0356` done** — telemetry deploys carry a version name ([[tasks/telemetry-deploy-version-tags]]); verify `0363`
+>   at the top of [[decisions/sprint-8]]. ⚠️ Until it is committed, a real telemetry deploy refuses to run.
+> - **`0308` cancelled — not reproduced** ([[tasks/player-name-lost-space]]); its leftovers became `0364` (hyphens and
+>   apostrophes in matches) and `0365` (invisible-character names + look-alike warning), both on the Backlog board.
+>
+> ---
+>
+> # 2026-10-01 (`49a419d`) — 30 ROWS, 19 OPEN: NINE TASKS CLOSED, TWO ROWS ADDED *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `49a419d`, by each row's leading status glyph: 30 rows — 9 `✅ Done` · 10
 > `🔲 Backlog` · 6 `🚧 Blocked` · 3 `🔄 In progress` · 2 `➡️ Moved`; 19 OPEN** (was 28 / 26). ⚠️ Counted by me this
@@ -189,3 +210,6 @@ moved rows here; they did not start this sprint.**
 - [[tasks/hmac-construction-log-label]] — task `0309`, closed 2026-09-30 on local proof, no result
 - [[tasks/profile-deploy-version-tags]] — task `0355`, closed 2026-09-30; `0356` follows it here
 - [[decisions/adr-117-server-deploy-version-names]] — ADR-117, the naming rule `0355` built and `0356` reuses
+- [[tasks/verified-login-live-check]] — task `0339`, closed 2026-10-01 as a FAILED verification; follow-up `0366` sits here
+- [[tasks/telemetry-deploy-version-tags]] — task `0356`, closed 2026-10-01; verify `0363` on Sprint 8
+- [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced)

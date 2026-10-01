@@ -21,7 +21,7 @@ to git, `/health` said only `{"status":"ok"}`, and telemetry `service.version` w
 running on that box?" was answerable only from a deploy log on the operator's laptop.
 
 Split (confirmed by the owner): this task is the **profile** server; the telemetry server is **`0356`** (Sprint 7,
-rank 29). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, file it"*, Backlog board).
+rank 29 — **done 2026-10-01**, agent-closed, not deployed: [[tasks/telemetry-deploy-version-tags]]). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, file it"*, Backlog board).
 
 ## Key Changes
 
@@ -71,3 +71,4 @@ rank 29). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, 
 - [[systems/weekend-deploy-window]] — the slot the first tagged deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0358`
 - [[decisions/sprint-backlog]] — the Backlog board, where `0357` (game-server version) and `0359` (registry retention) sit
+- [[tasks/telemetry-deploy-version-tags]] — task `0356`, the telemetry half, reusing the shared helper (done 2026-10-01)

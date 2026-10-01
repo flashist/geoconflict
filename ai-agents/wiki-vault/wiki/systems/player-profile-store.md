@@ -15,7 +15,9 @@
 >   server **still mints only `vfy:false`**; each login's signature is classified into the metric
 >   `geoconflict.profile.login.verification` (7 outcomes). The purchase key now also serves identity. First
 >   minutes: `ok` and `stale` roughly half each — `0339` owns the watch. **S3a (minting `vfy:true`) is `0340`**,
->   gated on `0339` plus an owner approval.
+>   gated on `0339` plus an owner approval. 🚨 **2026-10-01: `0339` FAILED — S2 exit not met** (≈ 68 % `ok`,
+>   ≈ 32 % `stale` over ≈ 40 h, not falling; cause unknown — [[tasks/verified-login-live-check]]). `0340` waits on
+>   `0366` (measure how old `stale` signatures are) first.
 > - ⛔ **Rollback rule from ADR-116:** once `0340` ships, never roll the profile server straight back to a
 >   pre-S2 build — keep an S2-or-later image as the rollback target.
 >
@@ -503,3 +505,4 @@ than picking silently.
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the login signature check in shadow mode, deployed 2026-09-29
 - [[decisions/adr-116-verified-login]] — the first verified identity: signed player data at login, carried as `vfy`
 - [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed): `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
+- [[tasks/verified-login-live-check]] — task `0339`: the login-verification counter read live; S2 exit not met (2026-10-01)

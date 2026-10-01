@@ -66,7 +66,10 @@ bumping or suffixing `package.json`; warn-and-deploy on uncommitted files (decli
   (Backlog board).
 - **How other servers apply it:** telemetry (**`0356`**) — `<base>-telemetry.<N>` via the same helper; it runs only
   third-party images, so decision 4 and the decision-6 surfaces do not apply (a marker file on the box instead);
-  ⚠️ decision 3 there is the default but `0356` says it is **not yet ruled for that task**. Game server
+  ⚠️ decision 3 there is the default but `0356` says it is **not yet ruled for that task**. *(📌 2026-10-01: ruled at
+  `0356`'s plan gate — **refuse** on uncommitted shipped files, no deploy lock, no commit-exact upload; `0356` is
+  done (agent-closed — not owner-verified), not deployed; verify `0363` on Sprint 8 — see
+  [[tasks/telemetry-deploy-version-tags]].)* Game server
   (**`0357`**) — not renamed; only its fake `service.version` `"1.0.0"` is replaced by the real version.
 - **Re-raise only if:** the game's own versioning changes shape; a tool starts reading or sorting git tags; the
   registry offers an atomic "create tag only if absent"; or a server must routinely deploy uncommitted code.
@@ -77,4 +80,5 @@ bumping or suffixing `package.json`; warn-and-deploy on uncommitted files (decli
 - [[tasks/profile-deploy-hardening]] — the digest-pinned deploy and harness this keeps intact
 - [[systems/project-operations]] — the game's `bump-version.js` flow
 - [[systems/telemetry]] — `0356` / `0357` apply this to the telemetry box and the game server's `service.version`
+- [[tasks/telemetry-deploy-version-tags]] — task `0356` (done 2026-10-01), which applied it to the telemetry box
 - [[decisions/sprint-7]] — `0355`, `0356`; [[decisions/sprint-backlog]] — `0357`, `0359`

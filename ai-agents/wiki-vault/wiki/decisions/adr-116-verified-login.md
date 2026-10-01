@@ -14,6 +14,11 @@
 > decision changed; only the task that carries S3a. Wherever the ADR says "`0325` S3a", read **`0340`**. S3a
 > starts only when **both** hold: `0339`'s S2 exit is met, **and** the owner explicitly approves enforcing
 > after `0339`'s numbers are in. See [[tasks/verified-login-shadow-mode]].
+>
+> 🚨 **2026-10-01 — `0339` closed as a FAILED verification: the S2 exit was NOT met** (≈ 68 % `ok`, ≈ 32 % `stale`,
+> not falling; owner *"Agree"*). So **S3a (`0340`) has not started**; its gate now also waits on **`0366`**, which
+> measures how old the `stale` signatures are before the 900 s / 300 s window is retuned or kept. The canonical ADR
+> changed only its link path for `0339`; **no decision changed.** See [[tasks/verified-login-live-check]].
 
 ## Context
 
@@ -131,3 +136,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[decisions/sprint-6]] — the board that carried `0325`
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy, in the order this ADR's clarification set
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case stays open until `0332`
+- [[tasks/verified-login-live-check]] — task `0339`, the live S2 check: FAILED 2026-10-01 (S2 exit not met); follow-up `0366`

@@ -51,6 +51,10 @@ how an approved name could reach other players, and at what trust level.
 moderator (Recommended)"*, by owner ruling R2 on 2026-09-29** — see `0308`'s *plan APPROVED, moved to Sprint 7*
 addendum. `0308` now sits on [[decisions/sprint-7]]; ADR-115's look-alike item waits with it.
 
+📌 **2026-10-01:** `0308` was **cancelled** (not reproduced — [[tasks/player-name-lost-space]]). R2's look-alike
+warning carries over to **`0365`** (Backlog), and ADR-115's residual 2 was amended to point there; the residual itself
+is unchanged.
+
 ## Related
 
 - [[decisions/adr-115-approved-name-in-matches]] — the ADR D3 asked for
@@ -60,3 +64,4 @@ addendum. `0308` now sits on [[decisions/sprint-7]]; ADR-115's look-alike item w
 - [[tasks/player-name-path-security-review]] — task `0307`, the name rules and the look-alike residual
 - [[tasks/name-change-approved-message-wording]] — task `0316`, the wording this would have changed
 - [[decisions/sprint-6]] — the board carrying this task
+- [[tasks/player-name-lost-space]] — task `0308`, where D6 was answered (R2); cancelled 2026-10-01, R2 carried to `0365`

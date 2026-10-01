@@ -43,7 +43,10 @@ without opening them:
 **Dispositions (every finding has one):**
 - **Handed to `0308`:** `\s` admits newline/tab/no-break space/U+2028/U+3000/U+FEFF; Hangul fillers being
   *allowed* in names. Characterization tests (`tests/UsernameHostileInputs.test.ts`) pin today's behaviour
-  and are meant to flip there. ⚠️ `0308` was **parked** 2026-09-27 (see [[decisions/sprint-6]]).
+  and are meant to flip there. ⚠️ `0308` was **parked** 2026-09-27 (see [[decisions/sprint-6]]). 📌 **2026-10-01:
+  `0308` was cancelled** (not reproduced — [[tasks/player-name-lost-space]]). Refusing invisible-only names (rows 9 /
+  15, incl. the Hangul fillers) moved to **`0365`**; **odd-space normalization** (newline, tab, no-break space,
+  U+2028, U+3000 → a plain space) was **dropped by the owner**.
 - **Owner-accepted residuals, with the owner's words:** look-alike / full-width / invisible-space names beat
   the `lower(display_name)` uniqueness check (**Q2**, *"Accept for now"*; re-raise if approved names are shown
   to other players — ⚠️ **that condition was met by `0322`**, and the owner re-ruled it in `0317` D6 — see
@@ -78,3 +81,4 @@ name joining through an unguarded path is refused with 1002.
 - [[decisions/sprint-backlog]] — the Backlog board, where `0319` (close residual (b) once identity is verified) was filed from this review
 - [[systems/player-profile-store]] — the profile store, updated 2026-09-28 with this task's change
 - [[tasks/start-screen-approved-name-lock]] — task `0321` (2026-09-28): the start-screen name box prefills and locks to a citizen's approved name
+- [[tasks/player-name-lost-space]] — task `0308`, which took this review's hand-offs; cancelled 2026-10-01, safety parts → `0365`

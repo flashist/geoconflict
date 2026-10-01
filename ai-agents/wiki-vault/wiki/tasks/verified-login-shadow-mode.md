@@ -13,6 +13,10 @@
 > [[systems/weekend-deploy-window]]. The profile server with S2 came up that evening, and the new login
 > metric exists in Uptrace. ⚠️ **The first minutes showed `ok` and `stale` roughly half each** — minutes of
 > data, not a conclusion; clock skew on the profile box was ruled out. That watch belongs to `0339`.
+>
+> 🚨 **2026-10-01 — `0339` closed as a FAILED verification: the S2 exit was NOT met** — over ≈ 40 h, ≈ 68 % `ok`
+> and ≈ 32 % `stale`, not falling. This task is **not** reopened; `0340` is **not** started and now waits on **`0366`**
+> (measure how old the `stale` signatures are). See [[tasks/verified-login-live-check]].
 
 ## Goal
 
@@ -61,9 +65,11 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
   whether the metric and the four events arrive, is `0339`'s to prove.
 - **What moved out:**
   - `0339` — verify S2 live: the deploy order, the metric's outcomes, the four client events, the owner's S2
-    exit call. 🔄 In progress on Sprint 7 since 2026-09-30 (the watch started).
+    exit call. ~~🔄 In progress on Sprint 7 since 2026-09-30~~ → **closed 2026-10-01 as FAILED (S2 exit not
+    met)** — [[tasks/verified-login-live-check]].
   - `0340` — S3a enforce: mint `vfy:true` only when the signature verifies, the signed id equals the asserted
-    one and it is fresh. Gated on `0339`'s exit **plus** an explicit owner approval.
+    one and it is fresh. Gated on `0339`'s exit **plus** an explicit owner approval. *(2026-10-01: that exit was not
+    met; the gate now waits on `0366` first.)*
 - **Blocks, now repointed to `0340`:** `0250` slice S3b (verified-only paid state), `0319` (gate the
   name-change routes on a verified caller), `0323` (mark a server-confirmed name) and `0332` (the join token).
 - **Still open, by design:** the game server still trusts the client-sent id (ADR-103); that closes only with
@@ -85,3 +91,4 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[decisions/sprint-6]] — the board that closed it
 - [[decisions/sprint-7]] — where `0339` and `0340` live
 - [[systems/flashist-init]] — the facade that pre-fetches the signed player data at boot
+- [[tasks/verified-login-live-check]] — task `0339`, the live S2 check that FAILED 2026-10-01 (S2 exit not met)

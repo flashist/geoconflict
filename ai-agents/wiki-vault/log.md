@@ -4290,3 +4290,26 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 33 touched pages (+ `index.md`):** 0 broken wiki-links (full vault also 0); every vault page indexed. **2 one-way links found and fixed** (`sprint-backlog` → `profile-deploy-version-tags`; `architecture-overview` → `worker-reuses-page-map`).
 - 🔒 **Secret scan on this run's vault diff: clean** — no IP, URL, connection string, hex secret, digest, token or player id. The dev-box IP in `0035`'s brief and the owner's game id in `0347`/`0348` were deliberately omitted.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Committed or pushed nothing (`d6a15e2` is the owner's own commit).
+
+## 2026-10-01 — ingest (sync)
+
+- **Sync window:** `d6a15e2` → HEAD (`4f9f857`). Commits: `1dc601d` ("Wiki sync" — the vault only; it committed the rest of the previous run's edits, so nothing was left uncommitted from it), `05c3cfa`, `46ed1f0`, `4f9f857` ("Sprint push"). Spawned by `fkit-lead` after the owner ran `/fkit-wiki-sync`. The lead's description of the window matched what was found; tree clean at start.
+- **Changed source files detected under `ai-agents/` (vault excluded): 42. Ingest-worthy after the filter: 16** (4 knowledge-base — ADR-115, ADR-116, ADR-117, the weekend runbook; 4 sprint boards; 8 done/cancelled briefs). Skipped by the filter: 19 `tasks/backlog/*` briefs (open — incl. new `0360`–`0366`; recorded from the boards, not paged) and 7 working artifacts (`0308` plan/worklog, `0325` worklog, `0339` worklog, `0356` plan/review/worklog). ⚠️ The `0308`, `0339` and `0356` worklogs and `0356`'s review were **read as supporting evidence**, not ingested as sources; `0365`'s brief was read only to confirm which `0307` hand-offs it covers.
+- **Ingested — 3 new task pages:**
+  - `ai-agents/tasks/done/0339-…/brief.md` → **created** [[wiki/tasks/verified-login-live-check]] (closed as a FAILED verification — S2 exit not met; follow-up `0366`)
+  - `ai-agents/tasks/done/0356-…/brief.md` → **created** [[wiki/tasks/telemetry-deploy-version-tags]] (box marker path deliberately not written out)
+  - `ai-agents/tasks/cancelled/0308-…/brief.md` → **created** [[wiki/tasks/player-name-lost-space]] (cancelled — not reproduced; leftovers `0364`, `0365`)
+- **Ingested — decisions:**
+  - `ai-agents/knowledge-base/decisions/adr-115-…md` → **updated** [[wiki/decisions/adr-115-approved-name-in-matches]] (Amendment 2026-10-01: D6 revisit `0308` → `0365`; no decision changed)
+  - `ai-agents/knowledge-base/decisions/adr-116-…md` → **updated** [[wiki/decisions/adr-116-verified-login]] (source changed a link path only; page gained the `0339` FAILED note — from `0339`'s brief)
+  - `ai-agents/knowledge-base/decisions/adr-117-…md` → **updated** [[wiki/decisions/adr-117-server-deploy-version-names]] (`0356` done; its decision-3 "not yet ruled" now ruled = refuse)
+- **Ingested — sprint boards** (all counts by me this run, by each row's leading status glyph):
+  - `ai-agents/sprints/plan-sprint-7.md` → **updated** [[wiki/decisions/sprint-7]] — **31 rows — 11 Done · 10 Backlog · 6 Blocked · 1 In progress · 2 Moved · 1 Cancelled; 17 open** (was 30 / 19); `0366` at append rank 30 (on merit below `0337`, flagged for owner confirmation)
+  - `ai-agents/sprints/plan-sprint-8.md` → **updated** [[wiki/decisions/sprint-8]] — **4 rows, 4 open**, not started; verify `0363` rank 1
+  - `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **116 rows, 89 open** (was 110 / 84); new `0360`, `0361`, `0362`, `0364`, `0365`; `0366` moved to Sprint 7
+- **Also updated (stale claims, history kept):** [[wiki/tasks/verified-login-shadow-mode]], [[wiki/systems/player-profile-store]], [[wiki/systems/analytics]] (the four signature events now have live counts), [[wiki/systems/weekend-deploy-window]] (`0339`'s watch closed; game version `0.0.155`), [[wiki/tasks/approved-name-in-matches-investigation]], [[wiki/tasks/player-name-path-security-review]] (`0308` hand-offs → `0365` / dropped), [[wiki/tasks/profile-deploy-version-tags]], [[wiki/systems/telemetry]]; Related back-links only on [[wiki/decisions/sprint-6]], [[wiki/tasks/citizenship-name-change]], [[wiki/tasks/hmac-construction-log-label]], [[wiki/tasks/profile-deploy-hardening]].
+- **Skipped (already covered):** `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md`, `ai-agents/sprints/done/plan-sprint-6.md`, and the done briefs `0314`, `0317`, `0321`, `0325`, `0355` — **link-path updates only** (`0308` → `cancelled/`, `0339` / `0356` → `done/`); covered via the pages above.
+- [[wiki/index]]: 3 new entries (3 tasks); 8 entries annotated.
+- **Targeted lint on 21 touched pages (+ `index.md`):** 0 broken wiki-links (full vault also 0); every vault page indexed. **1 one-way link found and fixed** (`sprint-backlog` → `adr-115`).
+- 🔒 **Secret scan on this run's vault diff and new pages: clean** — no IP, URL, connection string, hex secret, token, player id or signature value.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

@@ -1,6 +1,6 @@
 # ADR-115 — A Citizen's Approved Name Is Shown in Matches at ADR-103 Trust Level
 
-**Date**: 2026-09-28 (rulings given 2026-09-27 and 2026-09-28; amended 2026-09-28)
+**Date**: 2026-09-28 (rulings given 2026-09-27 and 2026-09-28; amended 2026-09-28 and 2026-10-01)
 **Status**: accepted
 
 > Project ADR-115 — see [[decisions/adr-numbering-two-series]].
@@ -13,6 +13,16 @@
 >
 > 📌 The source ADR cites `file:line` against the 2026-09-28 working tree. Per the vault's citation rule this
 > page names functions instead; read the source ADR for the line frame.
+>
+> 📌 **Amended 2026-10-01 — `0308` cancelled; the D6 revisit moves to `0365`.** Facts only; **no decision changed.**
+> Recorded by the architect on an owner ruling given live via `AskUserQuestion`, relayed by `fkit-lead`: *"New task
+> for the 2 safety parts (Recommended)"*. `0308` was cancelled as not reproduced ([[tasks/player-name-lost-space]]), so
+> residual 2's *"revisited in `0308`"* no longer names a live task. The revisit now lives in **`0365`** (block
+> invisible-character names + warn the moderator about look-alike names; Backlog, unscheduled), whose part (b) builds
+> on owner ruling **R2** of 2026-09-29, *"Warn the moderator (Recommended)"* — the only `0308` ruling that carries over.
+> **Residual 2 is still an accepted residual:** R2 only *warns*; it never refuses or changes a name and touches no code
+> this ADR cites. The "re-raise only if" list is unchanged. D6's verbatim text (*"revisit in 0308"*) is kept as the
+> owner said it.
 
 ## Context
 
@@ -66,7 +76,8 @@ not exist yet); waiting for verified identity (D3); dropping or bypassing the fi
 1. **Forged id (D3).** Sending a citizen's Yandex id gets that citizen's approved name; forger and victim in
    the same match both show it.
 2. **Typed copies and look-alikes (D1, D6).** Anyone can still type the same string or a look-alike —
-   revisited in `0308`.
+   revisited in `0308`. *(Amended 2026-10-01: `0308` was cancelled; the revisit now lives in `0365` — a moderator
+   warning only. The residual itself is unchanged.)*
 3. **Slow resolve / freshness.** A resolve that has not answered by `start()` leaves the typed name; the name
    is only as fresh as the last resolve — an approval or a `0314` clear takes effect from the next one.
 4. **Widens `0068` R3.** The unauthenticated `GET /api/game/:id` lobby poll now carries the approved name
@@ -100,3 +111,5 @@ is **closeout of this ADR, not a new defect.**
 - [[tasks/citizenship-name-change]] — task `0067`, the name-change feature this follow-up extends
 - [[decisions/adr-116-verified-login]] — verified login at the profile server (accepted 2026-09-29); this ADR's residual 1 closes with `0332`, not with ADR-116
 - [[tasks/verified-login-shadow-mode]] — task `0325`, closed as the S2 build; S3a is `0340`
+- [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced); the D6 revisit moved to `0365`
+- [[decisions/sprint-backlog]] — the Backlog board, where `0365` (the D6 revisit since 2026-10-01) sits
