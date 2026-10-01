@@ -5,6 +5,16 @@
 # Reads credentials from .env and .env.telemetry.
 # Uploads setup-telemetry.sh and runs it on the remote server.
 # Safe to run multiple times — setup-telemetry.sh is idempotent.
+#
+# Version name (task 0356, ADR-117): every deploy is named <base>-telemetry.<N>, e.g.
+# 0.0.155-telemetry.1 — base = package.json's X.Y.Z (read at the deployed commit, never
+# written) without any -dev.N/-staging.N, N = a counter per base. The box runs only pinned
+# third-party images, so the name means "which commit of OUR telemetry setup is live". It goes
+# to the box as /opt/uptrace/deployed-version (written by setup-telemetry.sh), to the local
+# deploy record (TELEMETRY_DEPLOY_RECORD, default ~/.geoconflict/telemetry-deploy.log — no host,
+# no secret), and — only once the remote setup succeeded — becomes an annotated git tag on the
+# deployed commit. Git is therefore required. A deploy whose shipped telemetry files have
+# uncommitted changes is refused before anything touches the box.
 
 set -e
 
@@ -77,6 +87,69 @@ case "$UPTRACE_PROJECT_TOKEN:$UPTRACE_SECRET_KEY:$UPTRACE_ADMIN_PASSWORD" in
         exit 1
         ;;
 esac
+
+# ── Version-name helper (task 0356) ───────────────────────────────────────────
+# Shared with build-deploy-profile.sh (0355). Missing ⇒ stop here: a deploy that cannot name
+# itself would leave a box nobody can match to a commit.
+DEPLOY_VERSION_HELPER="$(dirname "$0")/scripts/deploy-version-tag.sh"
+if [ ! -f "$DEPLOY_VERSION_HELPER" ]; then
+    echo "Error: version-name helper not found ($DEPLOY_VERSION_HELPER) — refusing to deploy. Nothing was sent to the box."
+    exit 1
+fi
+# shellcheck source=scripts/deploy-version-tag.sh
+source "$DEPLOY_VERSION_HELPER"
+
+# ── Source commit + version name (task 0356) ──────────────────────────────────
+# The tag names a commit, but the upload is the LIVE file. So the deploy is REFUSED, before
+# the box is touched, when there is no git commit or when a file this deploy ships has
+# uncommitted or untracked changes (owner ruling at 0356's plan gate, 2026-10-01 — same as
+# 0355). SCOPED to what ships: the uploaded setup script, this script (it builds the staged
+# env) and the helper — a doc or a profile-only change never blocks a telemetry deploy.
+# What it proves, exactly: at the moment of this check, those three files are committed. An
+# edit made after the check but before the upload still ships unseen (0355 residual R3).
+GIT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+if [ "$GIT_COMMIT" = "unknown" ]; then
+    echo "Error: no git commit (git rev-parse HEAD failed) — refusing to deploy a setup no commit"
+    echo "       can name. Nothing was sent to the box. Run this from the repo checkout."
+    exit 1
+fi
+
+TELEMETRY_SHIPPED_PATHS=(setup-telemetry.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh)
+if DIRTY_SHIPPED=$(deploy_shipped_tree_dirty "${TELEMETRY_SHIPPED_PATHS[@]}"); then
+    echo "Error: files this deploy ships have uncommitted changes — refusing to deploy."
+    echo "       The box would not match commit ${GIT_COMMIT}. Nothing was sent to the box."
+    printf '%s\n' "$DIRTY_SHIPPED" | sed 's/^/         /'
+    echo "       Commit, then redeploy."
+    exit 1
+fi
+
+# The name: <base>-telemetry.<N>. The base is read from package.json AT THE COMMIT being
+# deployed (git show), not the working tree: telemetry does not ship package.json, so it is not
+# in the shipped paths above, and an unrelated uncommitted package.json edit must neither block
+# this deploy nor change its name. READ only — no bump, no write.
+if ! command -v node >/dev/null 2>&1; then
+    echo "Error: node not found — cannot read package.json's version to name this deploy."
+    echo "       Nothing was sent to the box."
+    exit 1
+fi
+PACKAGE_VERSION_RAW=""
+if PACKAGE_JSON_AT_COMMIT=$(git show "${GIT_COMMIT}:package.json" 2>/dev/null); then
+    PACKAGE_VERSION_RAW=$(printf '%s' "$PACKAGE_JSON_AT_COMMIT" \
+        | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version' 2>/dev/null || echo "")
+fi
+if ! VERSION_BASE=$(deploy_version_base "$PACKAGE_VERSION_RAW"); then
+    echo "Error: package.json version '${PACKAGE_VERSION_RAW}' (at commit ${GIT_COMMIT}) is not X.Y.Z or"
+    echo "       X.Y.Z-(dev|staging).N — cannot name this deploy. Nothing was sent to the box."
+    exit 1
+fi
+# The deploy record is one of the counter's three sources (a failed attempt that reached the
+# box is recorded, so it uses up its number).
+DEPLOY_RECORD="${TELEMETRY_DEPLOY_RECORD:-$HOME/.geoconflict/telemetry-deploy.log}"
+if ! DEPLOY_VERSION=$(deploy_version_next telemetry "$VERSION_BASE" "$DEPLOY_RECORD"); then
+    echo "Error: could not compute this deploy's version name. Nothing was sent to the box."
+    exit 1
+fi
+echo "Deploy version: ${DEPLOY_VERSION} (package.json ${PACKAGE_VERSION_RAW}, commit ${GIT_COMMIT})"
 
 # ── Validate config locally before touching the server ────────────────────────
 
@@ -218,6 +291,10 @@ fi
 # If the key changes, run: ssh-keygen -R <host> and verify the new fingerprint manually.
 SCP_CMD=(scp -o StrictHostKeyChecking=no)
 SSH_CMD=(ssh -o StrictHostKeyChecking=no)
+# Owned by this script: set only in the password branch below. Cleared first so a value
+# inherited from the shell or a .env* file never reaches finalize_telemetry_deploy's rm -f
+# (mirror of build-deploy-profile.sh).
+SSH_PASSWORD_FILE=""
 
 if [ -n "$SSH_KEY_PATH" ]; then
     SCP_CMD+=(-i "$SSH_KEY_PATH")
@@ -236,8 +313,8 @@ elif [ -n "$SSH_PASSWORD" ]; then
     echo "Warning: Using deprecated password-based SSH fallback for telemetry deploy."
     # K1: write the password to a 0600 file (created before the secret is written) and
     # pass only its PATH to sshpass via -f — the secret never appears in any argv. This
-    # script cleans secrets inline (no record/lock), so a focused EXIT trap removes the
-    # password file on any exit.
+    # focused EXIT trap removes the password file on any exit up to the preflight; from
+    # there on finalize_telemetry_deploy (task 0356) replaces it and removes the file too.
     SSH_PASSWORD_FILE=$(mktemp)
     chmod 600 "$SSH_PASSWORD_FILE"
     printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
@@ -318,6 +395,48 @@ else
     exit 1
 fi
 
+# ── Deploy record + single EXIT trap (task 0356) ──────────────────────────────
+# Installed only now, after the preflight passed and before the first upload: a refusal or a
+# failed preflight above touched nothing on the box, so it writes no record and uses up no
+# number. From here on every exit — success, a failed step under set -e, Ctrl-C — runs
+# finalize_telemetry_deploy exactly once. It REPLACES the password-only trap above, so it
+# removes the sshpass password file itself, and also the local 0600 staged env file (which a
+# failing env-file SCP used to leave behind). Then it appends the whole record block in ONE
+# append, its validation_result= line last. No host, no secret, no operator in the record.
+# No deploy lock (telemetry never had one): two concurrent deploys could pick the same N — the
+# second git tag then fails, warned, never forced.
+LOCAL_TMPENV=""
+DEPLOY_OUTCOME=""
+DEPLOY_FINALIZED=0
+# The version-tag outcome. Empty ⇒ the deploy never reached the tag step.
+GIT_TAG_RESULT=""
+DEPLOY_STARTED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+finalize_telemetry_deploy() {
+    [ "$DEPLOY_FINALIZED" = "1" ] && return 0
+    DEPLOY_FINALIZED=1
+    # Secrets first — the local staged env file and the sshpass 0600 password file.
+    [ -n "$LOCAL_TMPENV" ] && rm -f "$LOCAL_TMPENV" || true
+    [ -n "${SSH_PASSWORD_FILE:-}" ] && rm -f "$SSH_PASSWORD_FILE" || true
+    local block
+    block=$(printf '%s\n' "----" \
+        "timestamp=${DEPLOY_STARTED_AT}" \
+        "env=telemetry" \
+        "commit=${GIT_COMMIT}" \
+        "version=${DEPLOY_VERSION}" \
+        "package_version=${PACKAGE_VERSION_RAW}" \
+        "validation_result=${DEPLOY_OUTCOME:-failed} git_tag=${GIT_TAG_RESULT:-skipped:deploy-not-completed}")
+    if mkdir -p "$(dirname "$DEPLOY_RECORD")" 2>/dev/null \
+        && printf '%s\n' "$block" >> "$DEPLOY_RECORD" 2>/dev/null; then
+        :
+    else
+        echo "Warning: could not write the deploy record to $DEPLOY_RECORD" >&2
+    fi
+}
+trap finalize_telemetry_deploy EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 # ── Upload setup script ───────────────────────────────────────────────────────
 
 print_header "UPLOADING SETUP SCRIPT"
@@ -345,6 +464,10 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 # ⚠️ scripts/check-config-parity.mjs covers game/profile/client only, so it does not see
 # these two. The hardening harness (tests/scripts/profile-deploy-hardening.test.sh) is
 # the only gate that this hop exists — the same residual task 0277 recorded.
+#
+# Task 0356 adds TELEMETRY_DEPLOY_VERSION + TELEMETRY_DEPLOY_COMMIT — this deploy's name and
+# commit, computed above (plain tokens, safe in single quotes). setup-telemetry.sh writes them
+# to /opt/uptrace/deployed-version once every step succeeded.
 LOCAL_TMPENV=$(mktemp)
 chmod 600 "$LOCAL_TMPENV"
 cat > "$LOCAL_TMPENV" << EOF
@@ -367,6 +490,8 @@ export TELEMETRY_SERVER_HOST='${TELEMETRY_SERVER_HOST}'
 export TELEMETRY_DOMAIN='${TELEMETRY_DOMAIN}'
 export TELEMETRY_ALERT_PROBE_URL='${TELEMETRY_ALERT_PROBE_URL:-}'
 export PROFILE_ALERT_WEBHOOK_TOKEN='${PROFILE_ALERT_WEBHOOK_TOKEN:-}'
+export TELEMETRY_DEPLOY_VERSION='${DEPLOY_VERSION}'
+export TELEMETRY_DEPLOY_COMMIT='${GIT_COMMIT}'
 EOF
 REMOTE_ENV="/root/.uptrace-deploy-env-$$"
 "${SCP_CMD[@]}" "$LOCAL_TMPENV" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_ENV}"
@@ -378,9 +503,52 @@ rm -f "$LOCAL_TMPENV"
     . ${REMOTE_ENV} && \
     rm -f ${REMOTE_ENV} && \
     ${REMOTE_SCRIPT}"
+# Mark the deploy successful so finalize_telemetry_deploy records validation_result=ok.
+DEPLOY_OUTCOME=ok
+
+# ── Version tag (task 0356) ───────────────────────────────────────────────────
+# Only now — the remote setup succeeded — does the name become an annotated git tag on the
+# captured GIT_COMMIT (not whatever HEAD is by now). All of it is WARN-ONLY: the deploy already
+# happened, the exit code stays 0, and any fault is fixed with the printed git command — NEVER
+# by redeploying. The outcome lands on the record's validation_result= line.
+print_header "TAGGING ${DEPLOY_VERSION}"
+GIT_TAG_RESULT="interrupted"
+if ! deploy_commit_on_a_remote_branch "$GIT_COMMIT"; then
+    echo "Warning: commit ${GIT_COMMIT} is not on any remote branch — pushing the tag uploads"
+    echo "         that commit to origin as well. Push its branch when you can."
+fi
+# No host in the message: commit + "ran OK" is what the tag vouches for.
+TAG_MESSAGE=$(printf '%s\n' "Telemetry server deploy ${DEPLOY_VERSION}" "" \
+    "version=${DEPLOY_VERSION}" "commit=${GIT_COMMIT}" \
+    "package_version=${PACKAGE_VERSION_RAW}" "validation_result=ok")
+GIT_TAG_RESULT=$(deploy_tag_and_push "$DEPLOY_VERSION" "$GIT_COMMIT" "$TAG_MESSAGE") || GIT_TAG_RESULT="tag-failed"
+case "$GIT_TAG_RESULT" in
+    pushed)
+        echo "Git tag ${DEPLOY_VERSION} → commit ${GIT_COMMIT}, pushed to origin."
+        ;;
+    push-failed)
+        echo ""
+        echo "WARNING: deploy ${DEPLOY_VERSION} is LIVE, but its git tag was NOT pushed (it is kept locally)."
+        echo "         Retry — no redeploy needed:"
+        echo "           git push origin refs/tags/${DEPLOY_VERSION}"
+        echo "         If origin rejects it because the tag already exists there, leave it — never force it."
+        ;;
+    *)
+        GIT_TAG_RESULT="tag-failed"
+        echo ""
+        echo "WARNING: deploy ${DEPLOY_VERSION} is LIVE, but git tag ${DEPLOY_VERSION} could NOT be created"
+        echo "         (it already exists, or git failed — see above). Nothing was overwritten."
+        echo "         If the tag already exists, leave it — never force it; this deploy stays untagged"
+        echo "         and the deploy record names it. If git itself failed (e.g. no user.name/user.email),"
+        echo "         fix that and run — no redeploy needed:"
+        echo "           git tag -a ${DEPLOY_VERSION} -m \"Telemetry server deploy ${DEPLOY_VERSION}\" ${GIT_COMMIT} && git push origin refs/tags/${DEPLOY_VERSION}"
+        ;;
+esac
 
 print_header "DONE"
 echo "Uptrace setup completed on ${TELEMETRY_SERVER_HOST}."
+echo "Deployed version: ${DEPLOY_VERSION} (git tag: ${GIT_TAG_RESULT})"
+echo "On the box: cat /opt/uptrace/deployed-version"
 echo ""
 echo "Next steps:"
 echo "  1. Set OTEL_EXPORTER_OTLP_ENDPOINT in .env.prod (printed above by the remote script)"

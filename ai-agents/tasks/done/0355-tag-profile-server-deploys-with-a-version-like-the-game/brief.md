@@ -36,7 +36,7 @@ The owner wants the profile and telemetry servers tagged the same way, so "what 
 answer.
 
 **Split (producer's call, flagged for the owner).** This brief covers the **profile** server only. The **telemetry**
-server is [`0356`](../../backlog/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md). They are different
+server is [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md). They are different
 deploy units, are tested apart, and can ship apart — and they are genuinely different: the profile server is **our own
 image**, while the telemetry box runs **only third-party images** configured by our setup script (see below). The
 naming scheme is decided **once**, at this task's plan step, and `0356` reuses it.
@@ -171,7 +171,7 @@ After deploy (the verify task filed at close, top of Sprint 8 — owner-run, wee
 ## Notes
 
 - **Depends on:** nothing (the scheme is ruled at this task's own plan step)
-- **Blocks:** [`0356`](../../backlog/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) — soft: `0356`
+- **Blocks:** [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) — soft: `0356`
   reuses the naming scheme ruled here.
 - **Ordering constraint:** the profile deploy carrying this change must come **after** `0297` §1 reads `0309`'s log
   line (or be that same weekend deploy, read before recreate). Say this at the slot.
@@ -211,11 +211,11 @@ After deploy (the verify task filed at close, top of Sprint 8 — owner-run, wee
 by that producer; this task's status and rank are unchanged.
 
 - **Split kept.** The owner confirmed keeping this task and
-  [`0356`](../../backlog/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) as two tasks.
+  [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) as two tasks.
 - **Plan approved 2026-09-30** (see `plan.md` in this folder, which carries the gate's full ruling text).
 - **Q1 — name format ruled: `<base>-profile.<N>`**, e.g. `0.0.155-profile.3` — the owner's original suffix idea plus a
   counter. The architect's alternative `profile-<base>.<N>` was **declined**. It follows that
-  [`0356`](../../backlog/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) uses
+  [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) uses
   **`<base>-telemetry.<N>`**. (`package.json` is still never written with a suffix.)
 - **Q4 — uncommitted shipped files ruled: refuse to deploy.** This **overrides** the recommendation written in Q4
   above ("still deploy, skip the git tag, warn loudly"): if a shipped file has uncommitted changes, the deploy stops

@@ -26,6 +26,9 @@
 #                               ⚠️ No " and no \ — it is embedded in a JSON body, and this
 #                               script REFUSES to deploy a token containing either
 #   Both are persist-or-reuse: blank on a redeploy REUSES what is already on the box.
+#   TELEMETRY_DEPLOY_VERSION — this deploy's name, <X.Y.Z>-telemetry.<N> (task 0356)
+#   TELEMETRY_DEPLOY_COMMIT  — the 40-hex commit it was deployed from (task 0356)
+#   Both only feed the version marker; unset or malformed (e.g. a hand run) → "unknown".
 #
 # What this script does:
 #   1. Ensures a swapfile exists (low-RAM VPS OOM cushion)
@@ -36,7 +39,9 @@
 #   6. Adds weekly backup cron jobs for PostgreSQL
 #   7. Adds daily disk usage monitoring
 #   8. Writes the alert-path liveness probe + its hourly cron (task 0284)
-#   9. Prints connection info and DSN for the game server
+#   9. Writes the version marker $UPTRACE_DIR/deployed-version, last, once every step
+#      above succeeded (task 0356)
+#  10. Prints connection info and DSN for the game server
 
 set -e
 
@@ -163,6 +168,35 @@ is_truthy() {
             return 1
             ;;
     esac
+}
+
+# ── Version marker (task 0356) ────────────────────────────────────────────────
+# Answers "which commit of our telemetry setup is live?" on the box: exactly two lines,
+# version=<X.Y.Z>-telemetry.<N> and commit=<40-hex>, in $UPTRACE_DIR/deployed-version. No
+# secret, no host. A value that is unset (a hand run) or not of that exact shape is recorded
+# as "unknown", with a warning that names the variable and never echoes the value. Written to
+# a temp file in the same dir and renamed over the marker, so it is never half-written. Called
+# once, at the very end: a setup that dies midway leaves the PREVIOUS marker, which is the
+# truth — the old config is what fully applied.
+write_deploy_version_marker() {
+    local version="${TELEMETRY_DEPLOY_VERSION:-}" commit="${TELEMETRY_DEPLOY_COMMIT:-}" tmp
+    if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-telemetry\.[0-9]+$ ]]; then
+        echo "Warning: TELEMETRY_DEPLOY_VERSION is unset or not <X.Y.Z>-telemetry.<N> — the marker records version=unknown."
+        version="unknown"
+    fi
+    if ! [[ "$commit" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "Warning: TELEMETRY_DEPLOY_COMMIT is unset or not a 40-character commit — the marker records commit=unknown."
+        commit="unknown"
+    fi
+    tmp=$(mktemp "$UPTRACE_DIR/.deployed-version.XXXXXX")
+    if ! { printf 'version=%s\ncommit=%s\n' "$version" "$commit" > "$tmp" \
+           && chmod 644 "$tmp" \
+           && mv -f "$tmp" "$UPTRACE_DIR/deployed-version"; }; then
+        rm -f "$tmp"
+        echo "Error: could not write the version marker $UPTRACE_DIR/deployed-version."
+        return 1
+    fi
+    echo "Deployed version: ${version} (marker: $UPTRACE_DIR/deployed-version)"
 }
 
 # ── Role marker (X1) ──────────────────────────────────────────────────────────
@@ -1231,6 +1265,10 @@ EOF
 
 chmod 644 "$CRON_FILE"
 echo "✅ Cron jobs written to $CRON_FILE"
+
+# ── Version marker (task 0356) ────────────────────────────────────────────────
+# Last mutation of the run, after every step above succeeded under set -e.
+write_deploy_version_marker
 
 # ── Print connection info ─────────────────────────────────────────────────────
 

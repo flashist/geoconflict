@@ -13,7 +13,7 @@ this number says. Rank 1 is out of reach because closed rows sit below it (ADR-0
 owner ruling). See the Sprint 7 addendum dated 2026-09-30 for `0355`/`0356`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

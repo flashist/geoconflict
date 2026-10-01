@@ -59,7 +59,7 @@ version; the telemetry just doesn't use it.
   **server** half of that filter starts to mean something; the **browser** half still carries a commit (Q2).
 - **Related, not dependencies:** [`0355`](../../done/0355-tag-profile-server-deploys-with-a-version-like-the-game/brief.md)
   replaces the profile server's own fake `"1.0.0"` (`src/profile-server/Telemetry.ts:480`) with its ruled tag
-  (`<base>-profile.<N>`); [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) tags
+  (`<base>-profile.<N>`); [`0356`](../../done/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) tags
   the telemetry deploy. Neither touches `src/server/OtelResource.ts`, and this task touches no deploy script. No
   ordering between them — but keeping the attribute shapes consistent with `0355`'s is worth a look at plan time.
 - **Weekend deploy slot** (owner ruling 2026-09-29) — ships with a normal game deploy.
@@ -112,7 +112,7 @@ After deploy (the verify task filed at close — owner-run, weekend slot):
 - **Blocks:** nothing
 - Small: one resource function, one helper, one test.
 - **Related:** [`0355`](../../done/0355-tag-profile-server-deploys-with-a-version-like-the-game/brief.md) (profile's own
-  `"1.0.0"`, Q7 there is this task's origin), [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md).
+  `"1.0.0"`, Q7 there is this task's origin), [`0356`](../../done/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md).
 
 ### Open questions for the plan step (plain words, recommended option first)
 

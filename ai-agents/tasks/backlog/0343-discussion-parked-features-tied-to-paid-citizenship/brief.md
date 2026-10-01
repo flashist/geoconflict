@@ -7,7 +7,12 @@
 Sprint 8
 
 ## Priority
-3
+4
+
+> 📌 **2026-10-01 — was 3, now 4.** Moved down one by the placement of verify task `0363` (for `0356`) at the top of
+> Sprint 8, on the owner's standing build/verify-split rule, relayed by `fkit-lead` to a spawned `fkit-producer`
+> (ADR-021/037; ⛔ not producer precedent). Not a merit judgement; nothing else about this task changed. The
+> note(s) below are kept as written (ADR-035).
 
 > 📌 **2026-09-30 — was 2, now 3.** Moved down one by the placement of verify task `0358` (for `0355`) at the top of
 > Sprint 8, on the owner's standing build/verify-split rule, relayed by `fkit-lead` to a spawned `fkit-producer`

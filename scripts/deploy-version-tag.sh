@@ -2,7 +2,7 @@
 # deploy-version-tag.sh — version names for server deploys (task 0355; reused by 0356).
 #
 # SOURCED, never run: functions only, no top-level side effects. build-deploy-profile.sh
-# sources it; the telemetry deploy is meant to reuse it with its own server name + pathspec.
+# sources it; build-deploy-telemetry.sh (0356) reuses it with its own server name + pathspec.
 #
 # The name (owner ruling at 0355's plan gate, 2026-09-30):  <base>-<server>.<N>
 #   base   = package.json's X.Y.Z with any -dev.N / -staging.N removed — the last game

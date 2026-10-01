@@ -100,7 +100,8 @@ EOF
     # call would let a new, untested git operation slip into any deploy path unseen.
     # Fixture knobs, all under $WORK: dirty (porcelain lines; the pathspec after "--" is
     # honoured), status_fail (git status errors), local_tags, remote_tags (raw ls-remote
-    # lines), ls_remote_fail, tag_fail, push_fail, commit_unpushed, no_git_head.
+    # lines), ls_remote_fail, tag_fail, push_fail, commit_unpushed, no_git_head, pkg_version
+    # (also answers `git show <sha>:package.json`, task 0356).
     cat > "$BIN/git" <<EOF
 #!/bin/bash
 line="git \$(printf '%q ' "\$@")"
@@ -138,6 +139,14 @@ case "\$1" in
       grep -qxF "\$3" "$WORK/local_tags" 2>/dev/null && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
       echo "\$3" >> "$WORK/local_tags"; exit 0
     fi ;;
+  show)
+    # Task 0356: the telemetry deploy reads package.json AT the deployed commit
+    # ("git show <sha>:package.json"), never the working tree. Answers from \$WORK/pkg_version.
+    case "\$2" in
+      *:package.json)
+        printf '{\n  "name": "fixture",\n  "version": "%s"\n}\n' "\$(cat "$WORK/pkg_version" 2>/dev/null || echo 0.0.155)"
+        exit 0 ;;
+    esac ;;
   ls-remote)
     [ -f "$WORK/ls_remote_fail" ] && { echo "fatal: could not read from remote repository" >&2; exit 128; }
     [ -f "$WORK/remote_tags" ] && cat "$WORK/remote_tags"
@@ -191,6 +200,11 @@ touch "$WORK/scp.called"
 src=\${@: -2:1}; dst=\${!#}
 case "\$dst" in
   *.profile-deploy-env-*) cp "\$src" "$WORK/staged.env" 2>/dev/null || true ;;
+  # Task 0356: the telemetry deploy's staged env. scp_env_fail makes THIS upload fail, so a
+  # test can prove the local 0600 staged file is still removed on that path.
+  *.uptrace-deploy-env-*)
+    [ -f "$WORK/scp_env_fail" ] && exit 1
+    cp "\$src" "$WORK/staged.env" 2>/dev/null || true ;;
 esac
 exit 0
 EOF
@@ -2601,7 +2615,8 @@ awk '/^RUN /{r=NR} /^COPY /{c=NR} /^ARG PROFILE_BUILD_/{if(!a)a=NR} /^CMD /{m=NR
 grep -q 'PROFILE_BUILD_' "$P" \
   && fail "setup-profile.sh names PROFILE_BUILD_* — a profile.env key would override the version baked into the image" \
   || pass "setup-profile.sh never names PROFILE_BUILD_* (no env_file can override the baked version)"
-for f in "$B" "$H"; do
+# Task 0356: the telemetry deploy now tags too, so the same lints cover it.
+for f in "$B" "$H" "$REPO_ROOT/build-deploy-telemetry.sh"; do
   n=$(basename "$f")
   [ -f "$f" ] || { fail "$n: missing"; continue; }
   grep -nE '^[^#]*bump-version' "$f" >/dev/null && fail "$n: calls bump-version.js" || pass "$n: never calls bump-version.js"
@@ -2612,6 +2627,352 @@ for f in "$B" "$H"; do
   # No quote before `git`: a message that merely says "no git commit" is not a call.
   grep -nE '^[^#"]*git +commit' "$f" >/dev/null && fail "$n: runs git commit" || pass "$n: no git commit"
 done
+# ══ Task 0356: version-tagged telemetry deploys ══════════════════════════════
+# Same scheme as 0355 (ADR-117): <base>-telemetry.<N>, e.g. 0.0.155-telemetry.1. The telemetry
+# box runs only pinned third-party images, so the name means "which commit of OUR setup
+# scripts is live". It reaches three places: the staged env → a marker on the box
+# (/opt/uptrace/deployed-version), the local deploy record, and — only after the remote
+# setup succeeded — an annotated git tag. A deploy whose SHIPPED telemetry files are dirty is
+# refused before anything touches the box (owner ruling at 0356's plan gate, 2026-10-01).
+# Driven through the REAL build-deploy-telemetry.sh with the same stubs; setup-telemetry.sh is
+# copied in only as the uploaded file (and for the Uptrace-version grep) — never executed.
+# The base is read from package.json AT THE COMMIT (git show), never the working tree: the
+# fixture's working-tree package.json deliberately says 0.0.999, so every name below that
+# reads 0.0.155 proves where it came from.
+TEL_HOST="203.0.113.20"                                   # documentation range — not a real box
+TEL_TOKEN='synthetic-0356-project-token-not-real'
+TEL_SECRET='synthetic-0356-secret-key-not-real'
+TEL_ADMIN='synthetic-0356-admin "pass" not-real'
+TEL_GIT_ALL=$(mktemp)                                     # every telemetry run's git argv, for the cross-run lint
+TEL_RUN_COUNT=0
+TEL_UNSTUBBED_RUNS=0
+TEL_PKG_JSON=$(printf '{\n  "name": "fixture",\n  "version": "0.0.999"\n}')
+
+run_telemetry_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK logs
+    RUN="$WORK/trun"; rm -rf "$RUN"; mkdir -p "$RUN/scripts"
+    cp "$REPO_ROOT/build-deploy-telemetry.sh" "$RUN/build-deploy-telemetry.sh"
+    cp "$REPO_ROOT/setup-telemetry.sh" "$RUN/setup-telemetry.sh"
+    # HELPER_STUB=absent (a caller shell variable, as in run_deploy) leaves the helper out.
+    if [ "${HELPER_STUB:-}" != "absent" ] && [ -f "$REPO_ROOT/scripts/deploy-version-tag.sh" ]; then
+        cp "$REPO_ROOT/scripts/deploy-version-tag.sh" "$RUN/scripts/deploy-version-tag.sh"
+    fi
+    printf '%s\n' "$TEL_PKG_JSON" > "$RUN/package.json"
+    : > "$WORK/fixture_ssh_key"; chmod 600 "$WORK/fixture_ssh_key"
+    rm -f "$WORK/docker.argv" "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" \
+          "$WORK/sshpass.filemode" "$WORK/scp.called" "$WORK/staged.env" \
+          "$WORK/git.argv" "$WORK/calls.log" "$WORK/unstubbed.log"
+    # env -i + an allow-list, for the same reason as run_deploy: nothing of the operator's
+    # real environment (their .env.telemetry.secret values) may reach the staged file.
+    ( cd "$RUN"
+      env -i \
+        PATH="$BIN:$PATH" HOME="$WORK/home" TMPDIR="${TMPDIR:-/tmp}" \
+        TELEMETRY_SERVER_HOST="$TEL_HOST" \
+        UPTRACE_PROJECT_TOKEN="$TEL_TOKEN" UPTRACE_SECRET_KEY="$TEL_SECRET" UPTRACE_ADMIN_PASSWORD="$TEL_ADMIN" \
+        TELEMETRY_SSH_KEY="$WORK/fixture_ssh_key" \
+        TELEMETRY_DEPLOY_RECORD="$RECORD" \
+        "$@" \
+        bash build-deploy-telemetry.sh > "$WORK/out.log" 2>&1 )
+    RC=$?
+    cat "$WORK/git.argv" >> "$TEL_GIT_ALL" 2>/dev/null
+    TEL_RUN_COUNT=$((TEL_RUN_COUNT + 1))
+    if [ -s "$WORK/unstubbed.log" ]; then
+        TEL_UNSTUBBED_RUNS=$((TEL_UNSTUBBED_RUNS + 1))
+        fail "run_telemetry_deploy made a git call the stub does not know: $(head -1 "$WORK/unstubbed.log") (see $WORK/out.log)"
+    fi
+}
+TNEW() { NEW; RECORD="$WORK/home/.geoconflict/telemetry-deploy.log"; echo telemetry > "$WORK/marker"; }
+staged_value() { ( . "$WORK/staged.env" >/dev/null 2>&1; eval "printf '%s' \"\${$1-}\"" ); }
+tel_no_box() {  # <label> — nothing reached the box, nothing was tagged, nothing recorded
+    [ ! -f "$WORK/scp.called" ] && pass "$1: no SCP" || fail "$1: an SCP ran"
+    grep -q 'setup-telemetry\.sh' "$WORK/ssh.argv" 2>/dev/null && fail "$1: the remote setup ran" || pass "$1: no remote setup run"
+    grep -qE '^git (tag -a|push)' "$WORK/git.argv" 2>/dev/null && fail "$1: it tagged or pushed" || pass "$1: no git tag / git push"
+    [ ! -f "$RECORD" ] && pass "$1: no record block (no number used)" || fail "$1: a record block was written"
+}
+
+echo "== T40: tagged telemetry deploy — name, staged env, annotated tag AFTER the remote run, record (0356) =="
+TNEW
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
+[ "$(staged_value TELEMETRY_DEPLOY_VERSION)" = "0.0.155-telemetry.1" ] \
+  && pass "staged env: TELEMETRY_DEPLOY_VERSION=0.0.155-telemetry.1 (from the commit's package.json, not the tree's 0.0.999)" \
+  || fail "staged TELEMETRY_DEPLOY_VERSION is '$(staged_value TELEMETRY_DEPLOY_VERSION)'"
+grep -qx "export TELEMETRY_DEPLOY_VERSION='0.0.155-telemetry.1'" "$WORK/staged.env" 2>/dev/null \
+  && pass "…as a plain single-quoted export line" || fail "no \"export TELEMETRY_DEPLOY_VERSION='0.0.155-telemetry.1'\" line"
+[ "$(staged_value TELEMETRY_DEPLOY_COMMIT)" = "$T_SHA" ] \
+  && pass "staged env: TELEMETRY_DEPLOY_COMMIT=<full 40-hex sha>" || fail "staged TELEMETRY_DEPLOY_COMMIT is '$(staged_value TELEMETRY_DEPLOY_COMMIT)'"
+TAGLINE=$(grep '^git tag -a ' "$WORK/git.argv" 2>/dev/null | head -1)
+printf '%s' "$TAGLINE" | grep -qE "^git tag -a 0\.0\.155-telemetry\.1 -m .* $T_SHA \$" \
+  && pass "annotated tag 0.0.155-telemetry.1 on the captured full commit" || fail "no 'git tag -a 0.0.155-telemetry.1 -m … $T_SHA' (got: ${TAGLINE:-none})"
+printf '%s' "$TAGLINE" | grep -qE 'Telemetry.{0,2}server.{0,2}deploy' && printf '%s' "$TAGLINE" | grep -q 'package_version=0.0.155' \
+  && pass "tag message names the telemetry deploy and carries package_version" || fail "tag message lacks 'Telemetry server deploy' or package_version"
+printf '%s' "$TAGLINE" | grep -qF "$TEL_HOST" && fail "tag message carries the host" || pass "tag message carries no host"
+grep -qx 'git push origin refs/tags/0.0.155-telemetry.1 ' "$WORK/git.argv" 2>/dev/null \
+  && pass "pushed exactly refs/tags/0.0.155-telemetry.1" || fail "no 'git push origin refs/tags/0.0.155-telemetry.1'"
+L_DEPLOY=$(grep -n '^ssh .*setup-telemetry\.sh' "$WORK/calls.log" 2>/dev/null | tail -1 | cut -d: -f1)
+L_TAG=$(grep -n '^git tag -a ' "$WORK/calls.log" 2>/dev/null | head -1 | cut -d: -f1)
+[ -n "$L_DEPLOY" ] && [ -n "$L_TAG" ] && [ "$L_TAG" -gt "$L_DEPLOY" ] \
+  && pass "the git tag comes AFTER the remote setup ssh" || fail "git tag not after the remote setup ssh (deploy line ${L_DEPLOY:-none}, tag line ${L_TAG:-none})"
+grep -qx 'version=0.0.155-telemetry.1' "$RECORD" 2>/dev/null && grep -qx "commit=$T_SHA" "$RECORD" \
+  && grep -qx 'package_version=0.0.155' "$RECORD" && grep -qx 'env=telemetry' "$RECORD" \
+  && pass "record has env=telemetry, version=, commit=, package_version=" || fail "record lacks env/version/commit/package_version (see $RECORD)"
+grep -qE '^timestamp=[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}Z$' "$RECORD" 2>/dev/null && pass "record has a UTC timestamp=" || fail "record lacks timestamp="
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=ok git_tag=pushed" ] \
+  && pass "record's LAST line: validation_result=ok git_tag=pushed" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+[ "$(grep -c '^----$' "$RECORD" 2>/dev/null)" = "1" ] && pass "exactly one record block" || fail "expected one record block"
+if grep -qF "$TEL_HOST" "$RECORD" 2>/dev/null || grep -qF 'synthetic-0356' "$RECORD" 2>/dev/null \
+   || grep -qE '^(host|operator)=' "$RECORD" 2>/dev/null; then
+  fail "the record carries a host, an operator or a fixture secret"
+else
+  pass "the record carries no host, no operator and no secret"
+fi
+[ "$(cat "$RUN/package.json")" = "$TEL_PKG_JSON" ] && pass "package.json byte-identical afterwards" || fail "package.json was modified by the deploy"
+grep -q '^git show abc1234000000000000000000000000000000000:package.json ' "$WORK/git.argv" 2>/dev/null \
+  && pass "the base is read from package.json AT the captured commit (git show <sha>:package.json)" || fail "no 'git show <sha>:package.json'"
+grep -q 'Deployed version: 0.0.155-telemetry.1 (git tag: pushed)' "$WORK/out.log" && grep -qF 'cat /opt/uptrace/deployed-version' "$WORK/out.log" \
+  && pass "DONE names the version, the tag outcome and the on-box marker" || fail "DONE lacks 'Deployed version: … (git tag: pushed)' or the marker hint"
+
+echo "== T41: counter = 1 + max over local tags, remote tags and the record; per server, anchored (0356) =="
+TNEW
+printf '%s\n' 0.0.155-telemetry.1 0.0.155-telemetry.2 0.0.155-profile.40 0.0.154-telemetry.50 pre-t4-profile-backend-infra > "$WORK/local_tags"
+printf '%s\trefs/tags/%s\n' \
+  1111111111111111111111111111111111111111 0.0.155-telemetry.9 \
+  2222222222222222222222222222222222222222 0.0.155-telemetry.10 \
+  3333333333333333333333333333333333333333 '0.0.155-telemetry.10^{}' \
+  4444444444444444444444444444444444444444 0.0.155-profile.40 \
+  5555555555555555555555555555555555555555 0.0.154-telemetry.50 > "$WORK/remote_tags"
+mkdir -p "$(dirname "$RECORD")"
+printf '%s\n' ---- version=0.0.155-telemetry.11 version=0.0.155-profile.60 \
+  'validation_result=failed git_tag=skipped:deploy-not-completed' > "$RECORD"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ "$(staged_value TELEMETRY_DEPLOY_VERSION)" = "0.0.155-telemetry.12" ] \
+  && pass "next name is 0.0.155-telemetry.12 (profile tags, other bases, ^{} and pre-t4 ignored)" \
+  || fail "expected 0.0.155-telemetry.12, staged '$(staged_value TELEMETRY_DEPLOY_VERSION)'"
+
+echo "== T42: a -dev.N package version names the base (0356) =="
+TNEW; echo 0.0.155-dev.2 > "$WORK/pkg_version"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ "$(staged_value TELEMETRY_DEPLOY_VERSION)" = "0.0.155-telemetry.1" ] && pass "0.0.155-dev.2 → 0.0.155-telemetry.1" \
+  || fail "0.0.155-dev.2 named '$(staged_value TELEMETRY_DEPLOY_VERSION)'"
+grep -qx 'package_version=0.0.155-dev.2' "$RECORD" 2>/dev/null && pass "record keeps the raw package_version" || fail "record lacks package_version=0.0.155-dev.2"
+
+echo "== T43: an odd package version stops before the box is touched (0356) =="
+TNEW; echo 1.2 > "$WORK/pkg_version"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "version '1.2' → deploy refused (rc=$RC)" || fail "version '1.2' did not stop the deploy"
+tel_no_box "T43"
+grep -q 'Nothing was sent to the box' "$WORK/out.log" && pass "…saying nothing was sent to the box" || fail "no 'Nothing was sent to the box' message"
+
+echo "== T44: uncommitted SHIPPED telemetry files refuse the deploy before the box (owner ruling 2026-10-01) =="
+TNEW; printf ' M setup-telemetry.sh\n?? scripts/deploy-version-tag.sh\n' > "$WORK/dirty"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "dirty setup-telemetry.sh → deploy refused (rc=$RC)" || fail "a dirty shipped telemetry file did not stop the deploy"
+grep -q 'setup-telemetry.sh' "$WORK/out.log" && grep -q 'scripts/deploy-version-tag.sh' "$WORK/out.log" \
+  && pass "…listing the dirty paths" || fail "the refusal does not list the dirty paths"
+grep -q 'Commit, then redeploy' "$WORK/out.log" && pass "…saying 'Commit, then redeploy'" || fail "no 'Commit, then redeploy' hint"
+[ ! -f "$WORK/ssh.argv" ] && pass "…before even the read-only preflight SSH" || fail "an SSH ran before the refusal"
+tel_no_box "T44"
+grep -qE '^git status --porcelain --untracked-files=normal -- setup-telemetry\.sh build-deploy-telemetry\.sh scripts/deploy-version-tag\.sh $' "$WORK/git.argv" 2>/dev/null \
+  && pass "the dirty check is scoped to exactly the three shipped telemetry files" || fail "git status was not scoped to the telemetry shipped paths"
+
+echo "== T45: uncommitted changes OUTSIDE the shipped files (docs, src/, package.json) still deploy and tag (0356) =="
+TNEW; printf ' M ai-agents/tasks/backlog/notes.md\n M src/core/game/GameImpl.ts\n M package.json\n?? scratch.txt\n' > "$WORK/dirty"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "non-shipped changes → deploy proceeds (rc=0)" || fail "a non-shipped change stopped the deploy (rc=$RC); see $WORK/out.log"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=ok git_tag=pushed" ] && pass "…and it is tagged" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+
+echo "== T46: a failed remote setup does not tag, records its name, and uses up its number (0356) =="
+TNEW; : > "$WORK/fail_deploy"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "deploy failed (rc=$RC)" || fail "fail_deploy did not fail the deploy"
+grep -qE '^git (tag -a|push)' "$WORK/git.argv" 2>/dev/null && fail "a FAILED deploy was tagged or pushed" || pass "no git tag/push on a failed deploy"
+grep -qx 'version=0.0.155-telemetry.1' "$RECORD" 2>/dev/null && pass "record names the attempt 0.0.155-telemetry.1" || fail "record lacks version=0.0.155-telemetry.1"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=failed git_tag=skipped:deploy-not-completed" ] \
+  && pass "record: validation_result=failed git_tag=skipped:deploy-not-completed" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+rm -f "$WORK/fail_deploy"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "the retry deploy exited 0" || fail "retry exited $RC; see $WORK/out.log"
+[ "$(staged_value TELEMETRY_DEPLOY_VERSION)" = "0.0.155-telemetry.2" ] && pass "the retry is 0.0.155-telemetry.2 (the failed attempt used up .1)" \
+  || fail "the retry got '$(staged_value TELEMETRY_DEPLOY_VERSION)'"
+[ "$(grep -c '^----$' "$RECORD" 2>/dev/null)" = "2" ] && [ "$(grep -c '^validation_result=' "$RECORD" 2>/dev/null)" = "2" ] \
+  && pass "two attempts → two whole blocks" || fail "expected 2 record blocks"
+# The single EXIT trap also owns the local 0600 staged env: before 0356 a failing env-file SCP
+# under set -e skipped its rm and left that secrets file in $TMPDIR.
+TNEW; : > "$WORK/scp_env_fail"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "a failing staged-env SCP fails the deploy (rc=$RC)" || fail "a failing staged-env SCP did not fail the deploy"
+ENV_SRC=$(awk '{ for (i = 1; i < NF; i++) if ($(i+1) ~ /\.uptrace-deploy-env-/) print $i }' "$WORK/scp.argv" 2>/dev/null | tail -1)
+[ -n "$ENV_SRC" ] && [ ! -e "$ENV_SRC" ] && pass "…and the local 0600 staged env file is removed anyway" \
+  || fail "the local staged env file was left behind after a failed SCP (${ENV_SRC:-no upload seen})"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=failed git_tag=skipped:deploy-not-completed" ] \
+  && pass "…and the attempt is recorded as failed" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+
+echo "== T47: the tag already exists → warned, nothing pushed, exit stays 0 (0356) =="
+TNEW; : > "$WORK/tag_fail"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy still exits 0" || fail "a tag failure changed the exit code ($RC)"
+grep -q 'WARNING' "$WORK/out.log" && grep -q 'never force it' "$WORK/out.log" && pass "…with a WARNING that says never force it" || fail "no WARNING / 'never force it' for a failed tag"
+grep -q '^git push' "$WORK/git.argv" 2>/dev/null && fail "…but it pushed anyway" || pass "…and no git push"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=ok git_tag=tag-failed" ] && pass "record: ok … git_tag=tag-failed" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+
+echo "== T48: the tag push fails → warned with the exact retry, deploy stays ok (0356) =="
+TNEW; : > "$WORK/push_fail"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy still exits 0" || fail "a push failure changed the exit code ($RC)"
+grep -q 'WARNING' "$WORK/out.log" && pass "…with a WARNING" || fail "no WARNING for a failed push"
+grep -qF 'git push origin refs/tags/0.0.155-telemetry.1' "$WORK/out.log" && pass "…carrying the retry command" || fail "no retry command in the output"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=ok git_tag=push-failed" ] && pass "record: ok … git_tag=push-failed" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+
+echo "== T49: git ls-remote fails → warned; the counter uses local tags + the record (0356) =="
+TNEW; : > "$WORK/ls_remote_fail"; echo 0.0.155-telemetry.3 > "$WORK/local_tags"
+mkdir -p "$(dirname "$RECORD")"; printf '%s\n' ---- version=0.0.155-telemetry.5 'validation_result=failed git_tag=skipped:deploy-not-completed' > "$RECORD"
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+grep -qi 'remote tags' "$WORK/out.log" && pass "warned that remote tags could not be read" || fail "no warning about the unreadable remote tags"
+[ "$(staged_value TELEMETRY_DEPLOY_VERSION)" = "0.0.155-telemetry.6" ] && pass "counter from local .3 + record .5 → .6" \
+  || fail "expected 0.0.155-telemetry.6, got '$(staged_value TELEMETRY_DEPLOY_VERSION)'"
+
+echo "== T50: no git commit, or git status failing, refuses before the box (0356) =="
+TNEW; : > "$WORK/no_git_head"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "no git (rev-parse fails) → deploy refused (rc=$RC)" || fail "a deploy with no git commit was not refused"
+tel_no_box "T50 no-commit"
+TNEW; : > "$WORK/status_fail"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "git status error → deploy refused (rc=$RC) — fails closed" || fail "a failing git status did not stop the deploy (fail-OPEN)"
+grep -q 'git status failed' "$WORK/out.log" && pass "…saying git status failed" || fail "the refusal does not say git status failed"
+tel_no_box "T50 status-fail"
+
+echo "== T51: the version-name helper is missing → refused before the box (0356) =="
+TNEW
+HELPER_STUB=absent run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "missing scripts/deploy-version-tag.sh → deploy refused (rc=$RC)" || fail "a missing helper did not stop the deploy"
+grep -q 'Nothing was sent to the box' "$WORK/out.log" && pass "…saying nothing was sent to the box" || fail "no 'Nothing was sent to the box' message"
+[ ! -f "$WORK/ssh.argv" ] && pass "…before any SSH" || fail "an SSH ran before the refusal"
+tel_no_box "T51"
+
+echo "== T52: a wrong-role preflight aborts before the SCP and uses no number (0356) =="
+TNEW; echo profile > "$WORK/marker"
+run_telemetry_deploy
+[ "$RC" -ne 0 ] && pass "wrong-role deploy aborted (rc=$RC)" || fail "wrong-role should abort"
+grep -q "provisioned as role 'profile'" "$WORK/out.log" && pass "named the wrong role" || fail "no wrong-role message"
+tel_no_box "T52"
+
+echo "== T53: password fallback — 0600 file during use, gone after success AND failure, never in argv (0356) =="
+TNEW
+run_telemetry_deploy TELEMETRY_SSH_KEY= TELEMETRY_SSH_PASSWORD="$SECRET_PW" ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1
+[ "$RC" -eq 0 ] && pass "password-path deploy exited 0" || fail "password-path deploy exited $RC; see $WORK/out.log"
+if [ -s "$WORK/sshpass.filemode" ] && awk '$2!="600"{bad=1} END{exit bad+0}' "$WORK/sshpass.filemode"; then
+  pass "sshpass password file was mode 0600 on every use"; else fail "sshpass password file not 0600 (or sshpass never used)"; fi
+pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
+[ -n "$pwfile" ] && [ ! -f "$pwfile" ] && pass "password file removed after a successful deploy" || fail "password file left after success (${pwfile:-none})"
+grep -rqF "$SECRET_PW" "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null && fail "SSH password LEAKED into an argv" || pass "password never appears in any argv"
+[ "$(tail -1 "$RECORD" 2>/dev/null)" = "validation_result=ok git_tag=pushed" ] && pass "…and it is recorded ok and tagged" || fail "record's last line is '$(tail -1 "$RECORD" 2>/dev/null)'"
+: > "$WORK/fail_deploy"
+run_telemetry_deploy TELEMETRY_SSH_KEY= TELEMETRY_SSH_PASSWORD="$SECRET_PW" ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1
+[ "$RC" -ne 0 ] && pass "password-path failed deploy failed (rc=$RC)" || fail "fail_deploy did not fail the password-path deploy"
+pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
+[ -n "$pwfile" ] && [ ! -f "$pwfile" ] && pass "password file removed after a FAILED deploy (the merged trap kept the cleanup)" || fail "password file left after failure (${pwfile:-none})"
+
+echo "== T54: key auth — an INHERITED SSH_PASSWORD_FILE is not deleted at exit, success or failure (0356 review R1) =="
+# The script owns SSH_PASSWORD_FILE only in the password branch. A value arriving from the
+# operator's shell or a .env* file must never reach finalize_telemetry_deploy's rm -f.
+TNEW
+DECOY="$WORK/operator-file-not-ours"; printf 'keep me\n' > "$DECOY"
+run_telemetry_deploy SSH_PASSWORD_FILE="$DECOY"
+[ "$RC" -eq 0 ] && pass "key-auth deploy with an inherited SSH_PASSWORD_FILE exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ -f "$DECOY" ] && pass "inherited SSH_PASSWORD_FILE target survived a successful key-auth deploy" \
+  || fail "a successful key-auth deploy DELETED the file named by an inherited SSH_PASSWORD_FILE"
+: > "$WORK/fail_deploy"
+run_telemetry_deploy SSH_PASSWORD_FILE="$DECOY"
+[ "$RC" -ne 0 ] && pass "key-auth failed deploy failed (rc=$RC)" || fail "fail_deploy did not fail the key-auth deploy"
+[ -f "$DECOY" ] && pass "inherited SSH_PASSWORD_FILE target survived a FAILED key-auth deploy" \
+  || fail "a failed key-auth deploy DELETED the file named by an inherited SSH_PASSWORD_FILE"
+
+echo "== Every telemetry run: never a forced/bulk tag push, no unstubbed git call (0356) =="
+grep -qE '^git push ' "$TEL_GIT_ALL" && pass "telemetry runs did push tags (the lint below is not vacuous)" || fail "no telemetry run pushed a tag (the lint below would be vacuous)"
+grep -E '^git push ' "$TEL_GIT_ALL" | grep -qE ' (-f|--force|--force-with-lease|--tags|--follow-tags|--mirror|--all|--delete|-d) ' \
+  && fail "a telemetry git push carried a force/bulk/delete flag" || pass "no telemetry git push used -f/--force/--tags/--follow-tags/--mirror/--all/--delete"
+grep -E '^git tag ' "$TEL_GIT_ALL" | grep -qE ' (-f|--force|-d|--delete) ' \
+  && fail "a telemetry git tag call forced or deleted" || pass "no telemetry git tag -f / -d"
+[ "$TEL_RUN_COUNT" -gt 0 ] && [ "$TEL_UNSTUBBED_RUNS" -eq 0 ] \
+  && pass "none of the $TEL_RUN_COUNT telemetry runs made an unstubbed git call" \
+  || fail "$TEL_UNSTUBBED_RUNS of $TEL_RUN_COUNT telemetry runs made an unstubbed git call (or none ran)"
+rm -f "$TEL_GIT_ALL"
+
+echo "== Behavioural: the on-box version marker (setup-telemetry.sh write_deploy_version_marker, 0356) =="
+# The real function, extracted and run in a temp dir standing in for /opt/uptrace — like the
+# probe-token guard above. It writes only under $UPTRACE_DIR, so running it has no other effect.
+TS="$REPO_ROOT/setup-telemetry.sh"
+MARKER_FN=$(awk '/^write_deploy_version_marker\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$TS")
+[ -n "$MARKER_FN" ] && pass "setup-telemetry.sh: located write_deploy_version_marker (the checks below are not vacuous)" \
+  || fail "setup-telemetry.sh: no write_deploy_version_marker() — the box would carry no version marker"
+MDIR=$(mktemp -d)
+( eval "$MARKER_FN"; UPTRACE_DIR="$MDIR"; TELEMETRY_DEPLOY_VERSION=0.0.155-telemetry.7; TELEMETRY_DEPLOY_COMMIT="$T_SHA"; write_deploy_version_marker ) > "$MDIR.out" 2>&1
+[ "$(cat "$MDIR/deployed-version" 2>/dev/null)" = "$(printf 'version=0.0.155-telemetry.7\ncommit=%s' "$T_SHA")" ] \
+  && pass "valid inputs → the marker is exactly 'version=…' + 'commit=…'" || fail "marker content is '$(cat "$MDIR/deployed-version" 2>/dev/null)'"
+[ "$(mode_of "$MDIR/deployed-version" 2>/dev/null)" = "644" ] && pass "…mode 644" || fail "marker mode is $(mode_of "$MDIR/deployed-version" 2>/dev/null)"
+[ "$(ls -A "$MDIR")" = "deployed-version" ] && pass "…and nothing else is left in the dir (temp file renamed, not copied)" || fail "the dir holds: $(ls -A "$MDIR" | tr '\n' ' ')"
+grep -q 'Deployed version: 0.0.155-telemetry.7' "$MDIR.out" && pass "…and it prints the deployed version" || fail "no 'Deployed version:' line"
+rm -rf "$MDIR" "$MDIR.out"
+MDIR=$(mktemp -d)
+( eval "$MARKER_FN"; UPTRACE_DIR="$MDIR"; unset TELEMETRY_DEPLOY_VERSION TELEMETRY_DEPLOY_COMMIT; write_deploy_version_marker ) > "$MDIR.out" 2>&1
+[ "$(cat "$MDIR/deployed-version" 2>/dev/null)" = "$(printf 'version=unknown\ncommit=unknown')" ] \
+  && pass "unset inputs (a hand run) → version=unknown / commit=unknown" || fail "unset-input marker is '$(cat "$MDIR/deployed-version" 2>/dev/null)'"
+grep -q 'TELEMETRY_DEPLOY_VERSION' "$MDIR.out" && grep -q 'TELEMETRY_DEPLOY_COMMIT' "$MDIR.out" \
+  && pass "…with a warning naming each variable" || fail "no warning naming TELEMETRY_DEPLOY_VERSION / TELEMETRY_DEPLOY_COMMIT"
+rm -rf "$MDIR" "$MDIR.out"
+for junk in '0.0.155-telemetry.1 extra' '../../etc/passwd' '198.51.100.7'; do
+  MDIR=$(mktemp -d)
+  ( eval "$MARKER_FN"; UPTRACE_DIR="$MDIR"; TELEMETRY_DEPLOY_VERSION="$junk"; TELEMETRY_DEPLOY_COMMIT="$junk"; write_deploy_version_marker ) > "$MDIR.out" 2>&1
+  [ "$(cat "$MDIR/deployed-version" 2>/dev/null)" = "$(printf 'version=unknown\ncommit=unknown')" ] \
+    && pass "junk input '$junk' → unknown in both fields" || fail "junk input '$junk' → marker '$(cat "$MDIR/deployed-version" 2>/dev/null)'"
+  grep -qF "$junk" "$MDIR.out" "$MDIR/deployed-version" 2>/dev/null \
+    && fail "junk input '$junk' was echoed into the output or the marker" || pass "…and the junk never appears in the output or the marker"
+  rm -rf "$MDIR" "$MDIR.out"
+done
+
+echo "== Structural: version-tagged telemetry deploys (0356) =="
+BT="$REPO_ROOT/build-deploy-telemetry.sh"
+# The marker call: exactly once, top level, outside every heredoc, after the cron block and
+# before SETUP COMPLETE — so it is written only when every step above succeeded under set -e.
+awk '
+  !inh && /<</ && !/<<</ { d=$0; sub(/.*<<-?[ ]*["'"'"']?/, "", d); sub(/[^A-Za-z_].*/, "", d); if (d != "") { inh=1; next } }
+  inh { if ($0 == d) inh=0; else if ($0 ~ /write_deploy_version_marker/) bad=1; next }
+  /^write_deploy_version_marker$/ { n++; c=NR }
+  /^chmod 644 "\$CRON_FILE"$/ { cron=NR }
+  /^print_header "SETUP COMPLETE"$/ { done=NR }
+  END { exit !(n==1 && !bad && cron>0 && c>cron && c<done) }' "$TS" \
+  && pass "setup-telemetry.sh: the marker is written once, outside any heredoc, after the cron block and before SETUP COMPLETE" \
+  || fail "setup-telemetry.sh: write_deploy_version_marker is not called exactly once at top level between the cron block and SETUP COMPLETE"
+TSHIP=$(grep -E '^TELEMETRY_SHIPPED_PATHS=\(.*\)$' "$BT" | head -1)
+[ -n "$TSHIP" ] && pass "build-deploy-telemetry.sh: TELEMETRY_SHIPPED_PATHS is one single-line array" \
+  || fail "build-deploy-telemetry.sh: no single-line TELEMETRY_SHIPPED_PATHS=( … ) (the checks below would be vacuous)"
+TSHIP=" $(printf '%s' "$TSHIP" | sed -E 's/^TELEMETRY_SHIPPED_PATHS=\((.*)\)$/\1/') "
+missing=""
+for f in setup-telemetry.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh; do
+  case "$TSHIP" in *" $f "*) : ;; *) missing="$missing $f" ;; esac
+done
+[ -z "$missing" ] && pass "TELEMETRY_SHIPPED_PATHS covers the uploaded script, this script and the helper" || fail "TELEMETRY_SHIPPED_PATHS lacks:$missing"
+grep -qE '^if DIRTY_SHIPPED=\$\(deploy_shipped_tree_dirty "\$\{TELEMETRY_SHIPPED_PATHS\[@\]\}"\); then$' "$BT" \
+  && pass "build-deploy-telemetry.sh: the dirty check uses TELEMETRY_SHIPPED_PATHS" \
+  || fail "build-deploy-telemetry.sh: the dirty check does not call deploy_shipped_tree_dirty with TELEMETRY_SHIPPED_PATHS"
+grep -nE '^[^#]*git status --porcelain' "$BT" >/dev/null \
+  && fail "build-deploy-telemetry.sh: a raw whole-tree 'git status --porcelain'" || pass "build-deploy-telemetry.sh: no whole-tree git status"
+# The 0284 staged-hop lint, for the two values this task adds (the deploy's own name/commit,
+# not operator-supplied variables, hence their own pattern).
+grep -qE "^export TELEMETRY_DEPLOY_VERSION='\\\$\{DEPLOY_VERSION\}'$" "$BT" \
+  && grep -qE "^export TELEMETRY_DEPLOY_COMMIT='\\\$\{GIT_COMMIT\}'$" "$BT" \
+  && pass "build-deploy-telemetry.sh: stages export TELEMETRY_DEPLOY_VERSION and TELEMETRY_DEPLOY_COMMIT" \
+  || fail "build-deploy-telemetry.sh: the staged env heredoc lacks the TELEMETRY_DEPLOY_VERSION / TELEMETRY_DEPLOY_COMMIT exports — the box marker would read unknown"
+awk '/DEPLOY-TARGET PREFLIGHT/{if(!p)p=NR} /^trap finalize_telemetry_deploy EXIT$/{t=NR; n++} /UPLOADING SETUP SCRIPT/{if(!u)u=NR} END{exit !(n==1 && p>0 && t>p && t<u)}' "$BT" \
+  && pass "build-deploy-telemetry.sh: the record/cleanup EXIT trap is installed after the preflight and before the first SCP" \
+  || fail "build-deploy-telemetry.sh: 'trap finalize_telemetry_deploy EXIT' is not installed once between DEPLOY-TARGET PREFLIGHT and UPLOADING SETUP SCRIPT"
+awk '/^finalize_telemetry_deploy\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$BT" | grep -q 'rm -f "\$SSH_PASSWORD_FILE"' \
+  && pass "build-deploy-telemetry.sh: finalize_telemetry_deploy still removes the sshpass password file" \
+  || fail "build-deploy-telemetry.sh: finalize_telemetry_deploy does not remove \$SSH_PASSWORD_FILE — replacing the old trap would leak it"
+
 echo "== Every run_deploy: no git call the stub does not know (0355 review R4) =="
 [ "$RUN_DEPLOY_COUNT" -gt 0 ] && [ "$UNSTUBBED_RUNS" -eq 0 ] \
   && pass "none of the $RUN_DEPLOY_COUNT run_deploy calls made an unstubbed git call" \

@@ -7,7 +7,12 @@
 Sprint 8
 
 ## Priority
-1
+2
+
+> 📌 **2026-10-01 — was 1, now 2.** Moved down one by the placement of verify task `0363` (for `0356`) at the top of
+> Sprint 8, on the owner's standing build/verify-split rule, relayed by `fkit-lead` to a spawned `fkit-producer`
+> (ADR-021/037; ⛔ not producer precedent). Not a merit judgement — `0363` and this task are independent owner checks on different boxes; nothing else about this task changed. The
+> note(s) below are kept as written (ADR-035).
 
 > **Rank 1 is OWNER-RULED placement** — the owner's standing build/verify-split rule (2026-09-29): a verify task that
 > needs a deploy plus an owner check goes *"on top of the next sprint"* and must not block the current sprint's
@@ -128,7 +133,7 @@ this step **"not observable"** — that is not a failure.
 - **Depends on:** `0355` (build, closed 2026-09-30) — committed, then deployed in the weekend slot.
 - **Blocks:** nothing. ⚠️ In particular it does **not** block Sprint 7's deploy.
 - **Related:** `0309` (its log line ships in the same deploy) and `0297` §1 (reads that line — see Ordering).
-  [`0356`](../0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) (telemetry tagging) reuses
+  [`0356`](../../done/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) (telemetry tagging) reuses
   0355's helper and will need its own verify. [`0357`](../0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md)
   (the game server's own fake `1.0.0`) is separate — a `1.0.0` on **game-server** telemetry is not a failure of this
   task.

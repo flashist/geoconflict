@@ -220,7 +220,7 @@ only, server name and pathspec as parameters). Each server's deploy script reuse
   `ai-agents/tasks/done/0355-tag-profile-server-deploys-with-a-version-like-the-game/` — `brief.md` (§ *Owner
   rulings — 2026-09-30*), `plan.md` (§ *Owner decisions at approval* overrides the plan body), `worklog.md`
   (decision logs), `review.md` (R1–R9, *Accepted residuals*).
-- `ai-agents/tasks/backlog/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md`;
+- `ai-agents/tasks/done/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md`;
   `ai-agents/tasks/backlog/0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md`.
 - Code: `scripts/deploy-version-tag.sh` (`deploy_version_base`, `deploy_version_next`, `deploy_shipped_tree_dirty`,
   `deploy_registry_tag_state`, `deploy_first_free_in_registry`, `deploy_tag_and_push`); `build-deploy-profile.sh`
