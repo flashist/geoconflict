@@ -45,7 +45,7 @@ Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-le
 `fkit-producer` with no owner channel (ADR-021; the relay named each ruling, ADR-037 §3); ⛔ not producer
 precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md).
 - **This task is rank 5**, after [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md),
-  [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
+  [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
   and [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
 - **It now DEPENDS ON `0302` and `0248`** — the popup describes their perks. On `0302`, the owner:
   *"it should be the 2nd priority for the Sprint 6, because the "funnel/explanation" of the perks would

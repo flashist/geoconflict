@@ -143,3 +143,5 @@ exact rules. Each question below changes what gets blocked:
 - No player id, host or IP is recorded here on purpose.
 - Size: small — one new pure check, one branch in the repository, one wire value, one card message, two lang keys,
   tests.
+
+**Addendum 2026-10-01 (append-only, spawned `fkit-producer` on an owner ruling relayed by `fkit-lead`; ⛔ not producer precedent):** the *"plan after `0308` lands"* notes above are **stale** — `0308` was cancelled 2026-10-01 (not reproduced) and will not land; the charset re-check point is now [`0364`](../0364-names-lose-hyphens-and-apostrophes-in-matches/brief.md) (may widen the rule to `-` `'`) and [`0365`](../0365-block-invisible-character-names-and-warn-the-moderator-about-look-alike-names/brief.md) (refuses invisible characters in the shared rule). Neither blocks this task.

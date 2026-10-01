@@ -98,7 +98,7 @@ in `0308`).
 - **Related:** [`0317`](../../done/0317-investigate-show-a-citizens-approved-name-in-matches/brief.md) (source
   investigation and rulings) ·
   [`0322`](../0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md) (server-side
-  swap) · [`0308`](../../backlog/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
+  swap) · [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
   (the name rule the box enforces; soft) · [`0314`](../../done/0314-name-change-rejected-state-sticks-on-the-card-and-no-way-to-clear-a-name-decide-and-fix/brief.md)
   (clear a name) · [`0318`](../../done/0318-investigate-citizenship-card-vanishes-after-a-match-on-a-shaky-connection/brief.md)
   (degraded sessions).

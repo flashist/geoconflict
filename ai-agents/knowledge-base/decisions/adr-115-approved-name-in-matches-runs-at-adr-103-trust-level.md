@@ -2,7 +2,8 @@
 
 - **Status:** accepted
 - **Date:** 2026-09-28 (rulings given 2026-09-27 and 2026-09-28; code as built by task `0322`, uncommitted at
-  the time of writing). **Amended** 2026-09-28 — see *Amendment* below.
+  the time of writing). **Amended** 2026-09-28 — see *Amendment* below. **Amended** 2026-10-01 — `0308` cancelled;
+  the D6 revisit now lives in `0365` (see *Amendment — 2026-10-01*).
 - **Deciders:** Owner (Mark Dolbyrev). Every ruling below was given live via `AskUserQuestion` in the
   `fkit lead` session and relayed by `fkit-lead`. **This ADR records rulings already given; it makes no new
   decision.** The one exception is marked: the "re-raise only if" conditions are the architect's reading of
@@ -121,7 +122,9 @@ readable without it:
      and the victim in the same match both show it. The trust note sits on the field
      (`src/server/Client.ts:40-54`).
   2. **Typed copies and look-alikes (D1, D6).** Anyone can still type the same string, or a look-alike.
-     Revisited in `0308`.
+     Revisited in `0308`. *(Amended 2026-10-01:)* `0308` was **cancelled** 2026-10-01; the revisit now lives in
+     [`0365`](../../tasks/backlog/0365-block-invisible-character-names-and-warn-the-moderator-about-look-alike-names/brief.md) (warn the moderator about look-alike names, owner ruling R2 of 2026-09-29). The residual
+     itself is unchanged — see *Amendment — 2026-10-01*.
   3. **Slow resolve / freshness.** If the resolve has not answered by `start()`, that match shows the typed
      name (as `0068` already accepted). The name is only as fresh as the last resolve (join, reconnect or
      late `update_identity`); an approval or a `0314` clear takes effect from the next one.
@@ -166,6 +169,30 @@ Facts only; no decision changed.
   (`ai-agents/tasks/backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md`).
   The "re-raise only if" condition is unchanged; only its "not filed yet" note is updated.
 
+## Amendment — 2026-10-01 (`0308` cancelled; the D6 revisit moves to `0365`)
+
+Facts only; no decision changed. Recorded by the architect on an owner ruling given live 2026-10-01 in the
+`fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` — verbatim option chosen: **"New task for the 2
+safety parts (Recommended)"** — *"Producer files one small backlog task: block invisible-character names + warn the
+moderator about look-alike names. The nice-to-have parts are dropped. Architect fixes ADR-115's 'revisited in 0308'
+line."*
+
+- **`0308` was cancelled 2026-10-01** — the "lost space" report was not reproduced. Its folder moved to
+  [`tasks/cancelled/0308-…`](../../tasks/cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md). So *"Revisited in `0308`"* (residual 2) no longer names a live task.
+- **Where the D6 revisit lives now: [`0365`](../../tasks/backlog/0365-block-invisible-character-names-and-warn-the-moderator-about-look-alike-names/brief.md)** (*Block names made of invisible characters, and warn the
+  moderator about look-alike names*; Backlog, unscheduled). Its part (b) builds on owner ruling **R2, 2026-09-29**
+  — **"Warn the moderator (Recommended)"** — which answered D6 and is recorded verbatim in `0308`'s brief
+  (ruling table, row R2) and `plan.md` (*Owner rulings 2026-09-29*). Per `0365`'s brief, R2 is the **only** `0308`
+  ruling that carries over.
+- **What did not change.** Residual 2 is still an accepted residual: R2 only *warns* the moderator; it never
+  refuses a name, never changes a stored name, and changes no code this ADR cites. The "re-raise only if" list is
+  unchanged, and a finding of the form *"a player can type a citizen's name or a look-alike"* is still closeout of
+  this ADR, not a new defect.
+- **Kept as written, on purpose.** D6's row in *Owner rulings — verbatim* still says *"revisit in 0308"* /
+  *"Handle it properly with 0308"*: that is the owner's text of 2026-09-27 and is not rewritten. Residual 2's
+  original *"Revisited in `0308`."* is kept visible, with the 2026-10-01 note after it (per `decisions/README.md`:
+  keep every superseded wording visible).
+
 ## Related
 
 - ADR-103 — the identity-trust seam this ADR extends to a third user
@@ -179,4 +206,5 @@ Facts only; no decision changed.
 - `ai-agents/knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md` §6 — where the
   forged-id case actually closes
 - Tasks: `0317` (source), `0322` (this build), `0068` (R3, same seam), `0302` (lobby gate), `0321` (prefill
-  and lock), `0323` (the mark), `0308` (name rule), `0325` (verified login), `0332` (join token), `0267`
+  and lock), `0323` (the mark), `0308` (name rule — **cancelled 2026-10-01**), `0365` (invisible names + look-alike warning — the D6
+  revisit since 2026-10-01), `0325` (verified login), `0332` (join token), `0267`

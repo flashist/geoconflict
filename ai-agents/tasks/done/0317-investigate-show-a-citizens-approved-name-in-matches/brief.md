@@ -76,7 +76,7 @@ moderation step for to be the name other players see.
 - **Blocks:** the in-match-name implementation briefs this investigation will propose.
 - ⚠️ Any implementation it proposes will likely depend on
   [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) and
-  [`0308`](../../backlog/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md);
+  [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md);
   the investigation itself need not wait for them, but must read their current state.
 - **Related:** [`0067`](../../done/0067-name-change-citizens-only/brief.md) (ruling (b)) ·
   [`0068`](../../done/0068-citizen-verified-icon/brief.md) (citizen flag in matches — the precedent and the
@@ -122,7 +122,7 @@ report's rude-name filter point and the placement of the briefs. This satisfies 
 - **B3** → [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) — the mark (D5). End of
   [Sprint 7](../../../sprints/plan-sprint-7.md). Depends on `0322`.
 - **D6** → recorded as a note in
-  [`0308`](../../backlog/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)'s
+  [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)'s
   Notes. `0308`'s status and plan unchanged.
   - 📌 *Appended 2026-09-29 (ADR-035, pointer only; this brief's status unchanged):* **D6 was answered in `0308` as
     option A, "Warn the moderator (Recommended)", by owner ruling R2 on 2026-09-29** — see `0308`'s *plan APPROVED,

@@ -75,7 +75,7 @@ uniqueness frees the old name.
 - **Depends on:** nothing
 - **Related:** [`0312`](../../done/0312-name-change-a-working-documented-operator-decide-command-approve-and-reject/brief.md)
   (an operator "clear" action rides its command shape — if both run, do `0312` first) ·
-  [`0308`](../../backlog/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
+  [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
   and [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md) (same
   name paths) · [`0067`](../../done/0067-name-change-citizens-only/brief.md) (original state machine) ·
   [`0311`](../0311-remove-the-game-name-from-player-facing-texts/brief.md) (no game name in new copy).
