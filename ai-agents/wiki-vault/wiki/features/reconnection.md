@@ -3,6 +3,17 @@
 **Status**: active
 **Source files**: `src/client/ReconnectModal.ts`, `src/client/ReconnectSession.ts`, `src/client/Main.ts`, `src/core/execution/MarkDisconnectedExecution.ts`
 
+> 🆕 **2026-09-30 — a refresh after a FAILED match start can now rejoin** (task `0347`, committed `9cb8ee4`,
+> not yet released — [[tasks/rejoin-after-failed-match-start]]). The reconnect session used to be saved only
+> after the game worker started, so a worker start failure left nothing to restore (a gap since `026701c`,
+> 2026-03-07, not a regression). It is now saved as soon as the server's `start` reaches the lobby, before the
+> worker is built; multiplayer only. Rejoin still needs a **click**; a second failure keeps the session and nothing
+> retries by itself. ⚠️ **Owner-accepted limits:** a rejoin after the ~20 s spawn phase lands as a **spectator**;
+> such a match emits no `Game:Start` (see [[systems/analytics]]). The same run made start failures rarer and
+> clearer: the worker start limit is **15 s** and crashes report their real reason
+> ([[tasks/worker-start-failure-reporting]], `0348`), and the worker no longer re-downloads the map
+> ([[tasks/worker-reuses-page-map]], `0035`).
+
 ## Summary
 
 When a player's browser tab crashes or closes unexpectedly mid-match, reopening the game detects the interrupted session and offers to rejoin if the match is still ongoing and the player's character is still alive. If the match ended or the player was eliminated while disconnected, no prompt is shown.
@@ -55,3 +66,6 @@ Source: `ai-agents/tasks/done/0077-reconnection-analytics/brief.md`
 - [[decisions/sprint-1]] — sprint where reconnection was built
 - [[decisions/autospawn-late-join-fix]] — related: late-join spawn timing issues
 - [[systems/client-game-teardown]] — the runner and its reconnect interval survive a normal leave-lobby, so an abandoned game may keep attempting reconnects (task `0231` — ⚠️ **reasoned from code, never observed**)
+- [[tasks/rejoin-after-failed-match-start]] — task `0347` (2026-09-30): the session is saved before the worker starts
+- [[tasks/worker-start-failure-reporting]] — task `0348` (2026-09-30): real crash reason, 15 s limit, leftover worker stopped
+- [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map; a leave during the start stops it

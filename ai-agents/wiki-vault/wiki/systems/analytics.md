@@ -210,6 +210,21 @@ The analytics reference also defines placement-specific community CTA tap IDs. `
 
 The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]].
 
+## Worker Start & Reconnect Events (tasks `0347`, `0348`, `0035` — built 2026-09-30, committed `9cb8ee4`, not yet released)
+
+Source: `ai-agents/knowledge-base/analytics-event-reference.md` § *Worker Initialization Events* and
+§ *Reconnection Events*, as changed in the 2026-09-30 sync window.
+
+| Event | What changed |
+|---|---|
+| `Worker:InitFailedCause:{Timeout\|Crash}` | 🆕 `0348`. Fires right after `Worker:InitFailed`, once per failure; the cause totals add up to `Worker:InitFailed`. `Timeout` = no answer within the **15 s** start limit (`WORKER_INIT_TIMEOUT_MS`, was 5 s); `Crash` = anything else (script failed to load, an error thrown at once, an async start failure the worker now reports as `init_failed`, `new WorkerClient` throwing). **Value:** whole seconds from the worker start to the failure. ⚠️ **Older `Worker:InitFailed` data cannot be split** — before `0348` an async crash was reported as a timeout after 5 s. |
+| `Worker:InitFailed` and `…Cause:*` | `0035`: **not logged when the player had already left the join** (nor the popup or the Uptrace line). A `Crash` from a map download now happens only on the no-page-map fallback. |
+| `Reconnect:*` (no event added or changed) | `0347`: the Rejoin prompt can now also follow a **failed match start**. ⚠️ `Reconnect:Succeeded` does not prove the player got back in — `Worker:InitFailed` can follow it. ⚠️ **Owner-accepted (Q2):** a rejoin-after-failed-start match emits **no `Game:Start`**, `Game:End` fires more than once (first with `Game:Abandon`), and `Match:Duration` / `Match:Spawned` do not fire. ⚠️ **Owner-accepted (Q1):** a rejoin after the ~20 s spawn phase lands as a spectator. |
+
+See [[tasks/rejoin-after-failed-match-start]], [[tasks/worker-start-failure-reporting]],
+[[tasks/worker-reuses-page-map]]. The `0348` Uptrace warning (`Worker init failed (<cause>): <reason>`) was
+checked only at a local fake sink.
+
 ## Citizenship Funnel Events (built 2026-08-24 — not yet live)
 
 Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on local/mock scope; all of them are gated behind the 0054 `CITIZENSHIP_CARD_ENABLED` flag (default OFF), so **none fire in production** until the flip-ON at launch.
@@ -379,6 +394,10 @@ the card**. They fire only after a successful `POST /v1/login` whose reply says 
 `Claimed` / `Rejected:*` fire at most once per player except when two tabs race. ⛔ **"ClaimFailed, never
 Claimed" does not mean ungranted** — the server's grant table is the truth. See [[tasks/tenure-xp-grant]].
 
+🆕 **2026-09-30 (`0336`, committed `26b85c0`, not yet released):** the `Claimed` row now says the thank-you popup
+opens right after the claim **or once the player is back on the start screen — never over a lobby or match — and a
+match start closes it.** No event added or renamed. See [[tasks/tenure-popup-never-over-match]].
+
 ## Citizenship Restart Prompt Events (task `0303` — built 2026-09-28, not yet seen live)
 
 | Event | When |
@@ -516,3 +535,7 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/citizenship-card-late-recovery-recheck]] — task `0329`, whose effect `Session:PlatformRecovered` sizes
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the four `Profile:Login:Signature:*` events
 - [[decisions/adr-116-verified-login]] — rulings D1 (no wait limit) and D2 (the four events)
+- [[tasks/rejoin-after-failed-match-start]] — task `0347`, the Reconnection Events caveats (Q1, Q2)
+- [[tasks/worker-start-failure-reporting]] — task `0348`, `Worker:InitFailedCause:{Cause}`
+- [[tasks/worker-reuses-page-map]] — task `0035`, worker-failure telemetry silent after a leave
+- [[tasks/tenure-popup-never-over-match]] — task `0336`, the `Citizenship:TenureGrant:Claimed` popup timing

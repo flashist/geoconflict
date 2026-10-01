@@ -35,6 +35,11 @@ never showed, and start-screen cleanup was skipped.
   sends `start_game` after the window closed during the settings save — R1); the four plan leftovers → `0335`
   (investigate). Leftovers named: the `0228` join race window; `0252`'s Transport listener leak now reachable
   here too; an orphan unstarted private lobby if the host closes before `createLobby` answers.
+- 🆕 **2026-09-30 — all three follow-ups CLOSED `(agent-closed — not owner-verified)`** (committed, not yet
+  released): `0333` → [[tasks/host-create-leaves-public-lobby]] (the public leave now happens at the Create tap);
+  `0334` → [[tasks/host-start-stops-after-window-close]] (no `start_game` after the window closes); `0335` →
+  [[tasks/lobby-close-leftovers-investigation]] (all four leftovers real, none serious — case 1 folded into `0228`,
+  case 2 noted on `0252`, cases 3 and 4 accepted as known).
 - `0252`'s route table wrongly listed this route as already shipped — struck at source by owner ruling
   *"Fix it now"*.
 - **Evidence:** built test-first (recorded as "red 13/4, then green"); full `npm test` 170 suites / 2966
@@ -49,5 +54,8 @@ never showed, and start-screen cleanup was skipped.
 - [[tasks/private-lobby-citizen-perk]] — task `0302`: only citizens can host
 - [[tasks/private-lobby-start-url]] — task `0198`, the earlier private-lobby fix on Yandex
 - [[decisions/sprint-7]] — follow-ups `0333`, `0334`, `0335`
+- [[tasks/host-create-leaves-public-lobby]] — task `0333`, review R2 fixed
+- [[tasks/host-start-stops-after-window-close]] — task `0334`, review R1 fixed
+- [[tasks/lobby-close-leftovers-investigation]] — task `0335`, the four plan leftovers investigated and ruled
 - [[decisions/sprint-6]] — the board carrying this task
 - [[decisions/sprint-backlog]] — the Backlog board, where this task was filed before an owner ruling moved it to Sprint 6

@@ -10,6 +10,11 @@
 > box ([[tasks/citizenship-paid]]). ⇒ **The secret value is correct.** ⚠️ **Which of the two HMAC
 > constructions matched is still unknown** — backlog tasks `0309` (record it) → `0310` (drop the other).
 > ⚠️ **Live reconciliation is still unexercised** (`0297` §4).
+>
+> 🆕 **2026-09-30 — `0309` closed on LOCAL PROOF ONLY, with NO RESULT** ([[tasks/hmac-construction-log-label]]):
+> the verifier now logs a fixed label (`base64_payload` / `decoded_json`) on success; nothing else changed in what
+> it accepts. **Which construction Yandex uses is still unknown** until the profile box is deployed and a real
+> purchase is logged — owner ruling *"Move it into 0297"*. `0310`'s gate now points at `0297`.
 
 > 🔴 **CORRECTED 2026-09-19 — THE PAYMENTS ROUTES ARE NOT 503ING ON THE BOX.** Verified **read-only**
 > by `fkit-lead` on an owner ruling that day: a `POST` to a deliberately **non-existent sub-path** under
@@ -90,3 +95,4 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[tasks/personal-inbox]] — task `0012`, which filled this task's post-grant inbox seam and wrapped its call site
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the purchase HMAC-envelope check is shared with the player-login check; the same key now serves identity
 - [[decisions/adr-116-verified-login]] — one key serves payments and identity (a wider blast radius, accepted)
+- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): logs which of the two constructions matched; result still owed in `0297`

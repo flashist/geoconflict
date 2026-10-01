@@ -33,7 +33,7 @@ The server is a **relay, not a simulator** — clients execute the game logic. S
 
 - **Turn interval is ~66.7 ms**, not the stock 100 ms — `turnIntervalMs()` returns `100 / flashist_gameSpeedCoef` with the coefficient at `1.5`. See [[decisions/adr-107-turn-interval-1-5x]].
 - The main thread drives the worker with a `requestAnimationFrame` **heartbeat pump** — one tick per frame normally, batched while catching up. Catch-up threshold is 30 queued turns; beyond it an overlay shows and rendering is suppressed until the queue drains.
-- Worker initialization has a 5,000 ms timeout.
+- Worker initialization has a ~~5,000 ms~~ **15,000 ms** timeout (`WORKER_INIT_TIMEOUT_MS`, task `0348`, committed `9cb8ee4` 2026-09-30, not yet released — [[tasks/worker-start-failure-reporting]]); an async start crash now fails at once with its real reason, and since `0035` the worker reuses the page's map instead of downloading it again ([[tasks/worker-reuses-page-map]]).
 - Clients hash state every 10 ticks; the server takes a **majority vote** and flags minority clients desynced. Out-of-sync clients cannot vote on the winner.
 - Singleplayer / tutorial / replay have **no server** — `LocalServer.ts` emulates one in-browser and feeds the same `Turn` objects to the same worker.
 

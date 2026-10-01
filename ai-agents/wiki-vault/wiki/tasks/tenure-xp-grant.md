@@ -86,3 +86,4 @@ task no longer gates the `PROFILE_INTERNAL_TOKEN` set at the window; its binding
 - [[tasks/citizenship-card-late-recovery-recheck]] — task `0329` (2026-09-28): the citizenship card re-checks its gate when the Yandex platform recovers late
 - [[tasks/citizenship-restart-prompt]] — task `0303` (2026-09-28): a "restart to apply" popup after a purchase or a citizenship-making tenure gift
 - [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name
+- [[tasks/tenure-popup-never-over-match]] — task `0336` (2026-09-30): the thank-you popup never opens over a lobby or match, and a match start closes it

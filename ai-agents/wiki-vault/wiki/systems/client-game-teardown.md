@@ -41,6 +41,12 @@ This is the fact most likely to mislead a reader of `Main.ts`. `gameStop` is the
 | desync modal | ❌ | ❌ | **`0233`, open** |
 | lobby error, pre-runner | ❌ | ❌ | **`0233`, open — and whether a monitor is even running here is UNSETTLED** |
 
+> 🆕 **2026-09-30 — site B grew, and the start can now be stopped** (committed `9cb8ee4`, not yet released).
+> `0348` ([[tasks/worker-start-failure-reporting]]): the worker-init failure path now calls `worker?.cleanup()`, so a
+> failed start no longer leaves a worker running. `0035` ([[tasks/worker-reuses-page-map]]): `joinLobby` aborts on
+> leave and on a lobby `error`, which stops a **still-starting** worker and silences the failure popup and telemetry
+> for a join already left. Neither task touched the rows above for a runner that **did** start (`0231` etc.).
+
 ### Bounded vs accumulating — the distinction that drove every rank
 
 | Task | What it covers | Class |
@@ -63,6 +69,10 @@ The chain, read from code at `c910452`:
 4. `WorkerClient.ts:44-51` forwards only `game_update`.
 5. ⇒ `ClientGameRunner`'s `if ("errMsg" in gu)` guard **can never be true**. The `showErrorModal` and the `this.stop()` behind it **never run**.
 6. **Why it typechecks:** `WorkerClient.start()`'s parameter is typed `(gu: GameUpdateViewData | ErrorUpdate) => void` — **the type is wider than anything the code can deliver**, which is exactly why a dead branch compiled clean and sat unnoticed.
+
+🆕 **2026-09-30 — point 3 is now true only for game ticks.** `0348` added one worker→main error message,
+`init_failed`, used **only during the start** (an async start failure used to vanish and read as a timeout). The
+tick-time `ErrorUpdate` path above is not in `0348`'s change list, so nothing here says `0232` changed.
 
 ⚠️ **A second silent-drop path in the same area, recorded and NOT assumed:** `WorkerClient.ts:36-43` adds a `worker.addEventListener("error", …)` whose whole body is guarded by `if (this.initReject)`, and `initReject` is cleared the moment init succeeds or times out. ⇒ read from code, **a worker-level `error` event after initialization does nothing at all.** Not exercised; confirm or refute it.
 
@@ -131,3 +141,7 @@ Every leaked `PerformanceMonitor` keeps emitting `Performance:*` events, which i
 - [[tasks/mobile-quick-wins]] — where `Performance:FPS:*` was originally used as a measurement, now inflated by these leaks
 - [[decisions/sprint-4]] — the board carrying `0225`, `0227`, `0231`, `0232`, `0233`
 - [[decisions/sprint-backlog]] — the board carrying `0228` and `0229`
+- [[tasks/worker-start-failure-reporting]] — task `0348`: site B stops the worker; `init_failed` for the start only
+- [[tasks/worker-reuses-page-map]] — task `0035`: leaving during the start stops the worker
+- [[tasks/rejoin-after-failed-match-start]] — task `0347`: the reconnect session is saved before site B can run
+- [[tasks/lobby-close-leftovers-investigation]] — task `0335`: `0228` (case 1) shown reachable through `0327`'s close routes; `0252` (case 2) measured at +24 listeners per join

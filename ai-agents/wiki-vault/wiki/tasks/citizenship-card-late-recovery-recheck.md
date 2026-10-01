@@ -29,6 +29,9 @@ and because a hidden card publishes no citizenship status, a paying citizen also
   **R2** (owner: *"Record as accepted"*): the disconnect lifecycle of the late reveal — accepted residual with
   its future fix named. **R3** (owner: *"Accept + file own bug"*): a reveal that starts during a quick-join's
   setup can still open the gift popup as the player enters a lobby — filed as **`0336`**, end of Sprint 7.
+  🆕 **`0336` closed 2026-09-30** `(agent-closed — not owner-verified)`, committed, not yet released — the popup now
+  waits for the start screen and a match start closes it; it deliberately reversed one of this task's pinned
+  gate-reveal test assertions (owner-ruled). See [[tasks/tenure-popup-never-over-match]].
 
 ## Outcome
 
@@ -49,6 +52,7 @@ and because a hidden card publishes no citizenship status, a paying citizen also
 - [[tasks/tenure-xp-grant]] — the gift popup review R1 kept off a live match
 - [[systems/flashist-init]] — the late-recovery branch and the new signal
 - [[decisions/sprint-7]] — `0336`, the residual review R3 filed
+- [[tasks/tenure-popup-never-over-match]] — task `0336`, which fixed review R3 (closed 2026-09-30)
 - [[decisions/sprint-6]] — the board carrying this task
 - [[systems/analytics]] — the analytics system page; this task's events are listed there
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, B4 of the same report

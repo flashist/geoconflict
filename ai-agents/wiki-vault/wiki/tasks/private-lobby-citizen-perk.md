@@ -63,6 +63,10 @@ of the perks would depend on it."*
   iframe, copy-link inside the iframe, a purchase unlocking the button live).
 - **Follow-ups found later:** closing a joined lobby window did not leave the lobby — fixed by `0327`
   ([[tasks/private-lobby-close-leaves-lobby]]); two host-side leftovers filed as `0333`/`0334` (Sprint 7).
+  🆕 **Both closed 2026-09-30** — [[tasks/host-create-leaves-public-lobby]], [[tasks/host-start-stops-after-window-close]].
+  ⚠️ `0335` ([[tasks/lobby-close-leftovers-investigation]]) sized its leftovers on the **assumption** that the
+  `private_lobbies` flag is on for testers only — **the owner did not confirm the console state.** Follow-up
+  **`0354`** (Backlog): testers see private lobbies by default, plus an "everyone" flag, empty by default.
 
 ## Related
 
@@ -73,6 +77,9 @@ of the perks would depend on it."*
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`: the kill switch hides the row, never unlocks it
 - [[tasks/citizenship-restart-prompt]] — task `0303`: a perk that reads status at load time
 - [[tasks/private-lobby-close-leaves-lobby]] — task `0327`, the close-without-leave bug found in `0303`'s review
+- [[tasks/host-create-leaves-public-lobby]] — task `0333` (2026-09-30): Create leaves the public lobby first
+- [[tasks/host-start-stops-after-window-close]] — task `0334` (2026-09-30): Start stops once the host window closes
+- [[tasks/lobby-close-leftovers-investigation]] — task `0335` (2026-09-30): production reach rests on this perk's citizen-only create and tester-only flag
 - [[tasks/citizenship-card-late-recovery-recheck]] — task `0329`: a hidden card left the perk `unknown` → locked
 - [[systems/analytics]] — `LockedFeature:Tap:{FeatureId}` and the `private_lobbies` flag
 - [[decisions/sprint-6]] — the board carrying this task
