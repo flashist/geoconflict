@@ -28,6 +28,8 @@
 >   and card cleaning were **dropped** by the owner.
 > - `0366` — measure how old `stale` login signatures are; filed after [[tasks/verified-login-live-check]] (`0339`)
 >   failed, then **moved to Sprint 7 the same day** (row now `➡️ Moved to Sprint 7 — priority 30`).
+>   📝 *Later, `e581824`:* `0366` closed done on Sprint 7 ([[tasks/stale-login-signature-age]]); this board's
+>   `➡️ Moved` row now links to its `done/` folder. Row counts unchanged (116 rows, 89 open — re-counted at `e581824`).
 > - **`sprint-backlog.md`: unchanged** this window.
 >
 > ---
@@ -705,3 +707,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/profile-deploy-version-tags]] — task `0355`, whose Q7 became `0357`
 - [[tasks/player-name-lost-space]] — task `0308` (cancelled 2026-10-01), source of `0364` and `0365`
 - [[tasks/verified-login-live-check]] — task `0339` (failed 2026-10-01), source of `0366`
+- [[tasks/stale-login-signature-age]] — task `0366`, filed here 2026-10-01 and moved to Sprint 7 the same day; done

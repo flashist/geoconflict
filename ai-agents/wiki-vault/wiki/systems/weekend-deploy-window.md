@@ -669,3 +669,4 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/hmac-construction-log-label]] — task `0309`: its log line is lost on container recreate — read it before the next profile deploy
 - [[tasks/verified-login-live-check]] — task `0339`, which read this window's login-verification results (S2 exit not met)
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`: the first telemetry deploy after it is committed is named `<base>-telemetry.<N>`
+- [[tasks/stale-login-signature-age]] — task `0366`: targets the 2026-10-03/04 profile deploy, or waits until `0297` §1 reads `0309`'s log line

@@ -5,7 +5,22 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-01 (latest, `4f9f857`) — 31 ROWS, 17 OPEN: `0339` FAILED, `0356` DONE, `0308` CANCELLED, `0366` ADDED
+> # 🆕 2026-10-01 (latest, `e581824`) — 31 ROWS, 16 OPEN: `0366` DONE
+>
+> **Re-counted at `HEAD` = `e581824`, by each row's leading status glyph: 31 rows — 12 `✅ Done` · 9 `🔲 Backlog` ·
+> 6 `🚧 Blocked` · 1 `🔄 In progress` (`0341`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 16 OPEN** (was 31 / 17). ⚠️ Counted by
+> me this run.
+>
+> - **`0366` done (agent-closed — not owner-verified)** — [[tasks/stale-login-signature-age]]: new counter
+>   `geoconflict.profile.login.verification.stale_age`, label `bracket`, 8 fixed values; the existing `outcome`
+>   counter is unchanged. ⚠️ A bracket can include genuine signatures for a *different* id (`stale` is decided before
+>   the id check). ⚠️ **Not deployed** — targets Saturday's (2026-10-03/04) profile deploy. ⚠️ The row's text says
+>   *"Not committed"*; the code is in `e581824`, so that clause is now stale. Per Q2, reading the brackets is **not**
+>   the close condition — it folds into the S2-exit re-check before `0340`, which stays not started.
+>
+> ---
+>
+> # 2026-10-01 (`4f9f857`) — 31 ROWS, 17 OPEN: `0339` FAILED, `0356` DONE, `0308` CANCELLED, `0366` ADDED *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `4f9f857`, by each row's leading status glyph: 31 rows — 11 `✅ Done` · 10 `🔲 Backlog` ·
 > 6 `🚧 Blocked` · 1 `🔄 In progress` (`0341`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 17 OPEN** (was 30 / 19). ⚠️ Counted by
@@ -213,3 +228,4 @@ moved rows here; they did not start this sprint.**
 - [[tasks/verified-login-live-check]] — task `0339`, closed 2026-10-01 as a FAILED verification; follow-up `0366` sits here
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, closed 2026-10-01; verify `0363` on Sprint 8
 - [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced)
+- [[tasks/stale-login-signature-age]] — task `0366`, rank 30, closed 2026-10-01 (agent-closed — not owner-verified); not deployed

@@ -19,6 +19,12 @@
 > not falling; owner *"Agree"*). So **S3a (`0340`) has not started**; its gate now also waits on **`0366`**, which
 > measures how old the `stale` signatures are before the 900 s / 300 s window is retuned or kept. The canonical ADR
 > changed only its link path for `0339`; **no decision changed.** See [[tasks/verified-login-live-check]].
+>
+> 📝 **2026-10-01 — `0366` built (agent-closed — not owner-verified), not deployed.** Every `stale` login now also
+> counts an age bracket (`geoconflict.profile.login.verification.stale_age`, 8 fixed values). The window and what
+> counts as `stale` are unchanged; no decision changed. **S3a (`0340`) still has not started** — it waits on the
+> brackets being read after a deploy, a fix chosen from them, and an S2-exit re-check with the owner. See
+> [[tasks/stale-login-signature-age]].
 
 ## Context
 
@@ -137,3 +143,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy, in the order this ADR's clarification set
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case stays open until `0332`
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check: FAILED 2026-10-01 (S2 exit not met); follow-up `0366`
+- [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed)

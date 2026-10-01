@@ -53,3 +53,4 @@ recorded which. This task **finds out**; `0310` then **removes** the other.
 - [[systems/weekend-deploy-window]] — the weekend slot the deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0310`
 - [[tasks/verified-login-live-check]] — task `0339`; its follow-up `0366` may wait on this task's log line being read
+- [[tasks/stale-login-signature-age]] — task `0366`: its profile deploy rides Saturday's slot or waits on this task's log line being read

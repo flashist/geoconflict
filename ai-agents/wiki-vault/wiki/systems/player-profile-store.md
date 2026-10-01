@@ -17,7 +17,9 @@
 >   minutes: `ok` and `stale` roughly half each — `0339` owns the watch. **S3a (minting `vfy:true`) is `0340`**,
 >   gated on `0339` plus an owner approval. 🚨 **2026-10-01: `0339` FAILED — S2 exit not met** (≈ 68 % `ok`,
 >   ≈ 32 % `stale` over ≈ 40 h, not falling; cause unknown — [[tasks/verified-login-live-check]]). `0340` waits on
->   `0366` (measure how old `stale` signatures are) first.
+>   `0366` (measure how old `stale` signatures are) first. **`0366` built 2026-10-01** (agent-closed — not
+>   owner-verified; committed in `e581824`, **not deployed**): every `stale` login also counts an age bracket,
+>   `geoconflict.profile.login.verification.stale_age` (label `bracket`, 8 fixed values) — [[tasks/stale-login-signature-age]].
 > - ⛔ **Rollback rule from ADR-116:** once `0340` ships, never roll the profile server straight back to a
 >   pre-S2 build — keep an S2-or-later image as the rollback target.
 >
@@ -506,3 +508,4 @@ than picking silently.
 - [[decisions/adr-116-verified-login]] — the first verified identity: signed player data at login, carried as `vfy`
 - [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed): `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
 - [[tasks/verified-login-live-check]] — task `0339`: the login-verification counter read live; S2 exit not met (2026-10-01)
+- [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed)

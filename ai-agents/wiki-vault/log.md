@@ -4313,3 +4313,18 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 21 touched pages (+ `index.md`):** 0 broken wiki-links (full vault also 0); every vault page indexed. **1 one-way link found and fixed** (`sprint-backlog` → `adr-115`).
 - 🔒 **Secret scan on this run's vault diff and new pages: clean** — no IP, URL, connection string, hex secret, token, player id or signature value.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-10-01 — ingest (sync)
+
+- **Sync window:** `4f9f857` → HEAD (`e581824441bbfe103c671b624d13f773f4b19c64`). Commits: `d1fd12b` ("Wiki sync" — vault only), `e581824` ("Sprint push"). Spawned by `fkit-lead` on the owner's `/fkit-wiki-sync` with no argument.
+- ⚠️ **Caller's note was stale:** the spawn said task `0366`'s work was uncommitted and outside the window. It is **committed in `e581824`** (brief, plan, worklog, review, and its `src/profile-server/` + `tests/` changes; `git status` clean). Per the procedure, the committed brief was ingested.
+- **Changed source files detected under `ai-agents/` (vault excluded): 9. Ingest-worthy after the filter: 4.** Skipped by the filter: `tasks/backlog/0340-…/brief.md` (open — link repoint only), and 4 working artifacts (`0339` worklog; `0366` plan / worklog / review).
+- Ingested: `ai-agents/tasks/done/0366-measure-how-old-stale-login-signatures-are/brief.md` → **created** [[wiki/tasks/stale-login-signature-age]] (what was built taken from its Sprint 7 row and the committed code, since the brief is pre-build)
+- Ingested: `ai-agents/sprints/plan-sprint-7.md` → **updated** [[wiki/decisions/sprint-7]] — **31 rows — 12 Done · 9 Backlog · 6 Blocked · 1 In progress · 2 Moved · 1 Cancelled; 16 open** (was 31 / 17; counted by me at `e581824`); `0366` done
+- Ingested: `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — link repoint only; **116 rows, 89 open, unchanged** (re-counted)
+- **Also updated (dated notes / back-links, history kept):** [[wiki/decisions/adr-116-verified-login]], [[wiki/systems/player-profile-store]], [[wiki/tasks/verified-login-live-check]], [[wiki/tasks/verified-login-shadow-mode]], [[wiki/tasks/hmac-construction-log-label]], [[wiki/systems/weekend-deploy-window]]
+- Skipped (already covered): `ai-agents/tasks/done/0339-…/brief.md` — link-path update only (`0366` → `done/`); [[wiki/tasks/verified-login-live-check]] already covers it.
+- [[wiki/index]]: 1 new entry (task); 1 entry annotated (`sprint-7`).
+- **Targeted lint on 9 touched pages (+ `index.md`):** 0 broken wiki-links, every link target indexed, 0 one-way links from the new page.
+- 🔒 **Secret scan on the new page: clean** — no IP, URL, connection string, token, player id or signature value.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

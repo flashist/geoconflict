@@ -9,6 +9,8 @@
 > `fkit lead` session, relayed by `fkit-lead`). Per the brief's own step 6: `0325` is **not** reopened, `0340`
 > (S3a — mint verified sessions) is **not** started, and a follow-up, **`0366`** (measure how old the `stale`
 > signatures are), was filed and moved onto [[decisions/sprint-7]]. `0340` now waits on `0366`.
+> 📝 *Later the same day:* `0366` was built and closed (agent-closed — not owner-verified), **not deployed** —
+> [[tasks/stale-login-signature-age]]. The cause of `stale` stays unknown until its brackets are read.
 
 ## Goal
 
@@ -88,3 +90,4 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[systems/player-profile-store]] — the profile login and its verification counter
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy this read
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line must be read before a second profile deploy
+- [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed)
