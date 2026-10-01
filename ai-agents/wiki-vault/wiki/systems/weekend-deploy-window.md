@@ -663,3 +663,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[decisions/adr-116-verified-login]] — its deploy-order clarification set the 2026-09-29 order
 - [[decisions/sprint-7]] — the verify tasks `0337`, `0339`, `0341` for this window
 - [[systems/analytics]] — the `Profile:Login:Signature:*` events whose arrival the 2026-09-29 game checks were meant to confirm
+- [[tasks/profile-deploy-version-tags]] — task `0355`: the first tagged profile deploy must be the slot that first ships `0309`'s log line, with no second profile deploy before `0297` §1 reads it
+- [[tasks/hmac-construction-log-label]] — task `0309`: its log line is lost on container recreate — read it before the next profile deploy

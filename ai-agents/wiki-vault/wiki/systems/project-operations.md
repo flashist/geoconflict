@@ -66,3 +66,5 @@ Source: `ai-agents/knowledge-base/geoconflict-producer-knowledge-base.md`
 - [[systems/agent-conventions]] — the standing rules that govern task status, ownership, and reporting
 - [[decisions/fkit-transfer-blueprint]] — the agent toolkit these operations run on
 - [[systems/weekend-deploy-window]] — how a multi-task deploy slot is ordered: the constraints that fix each step's position, and the four rulings that cut work out of it
+- [[decisions/adr-117-server-deploy-version-names]] — ADR-117 (2026-09-30): server deploys are named `<base>-<server>.<N>` from the shared `package.json` number, which only a game deploy bumps
+- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30): the profile deploy now carries a version name and an annotated git tag after success

@@ -56,3 +56,4 @@ Inventory what does not update after a purchase, then choose live update vs a re
 - [[systems/analytics]] — the three `Citizenship:RestartPrompt:*` events
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/citizenship-card-vanishes-investigation]] — task `0318` (2026-09-28): why the citizenship card vanished after a match on a shaky connection
+- [[tasks/tenure-popup-never-over-match]] — task `0336` (2026-09-30): the tenure popup follows this task's "never interrupt a lobby or match" rule

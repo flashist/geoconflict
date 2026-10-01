@@ -70,3 +70,4 @@ rank 29). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, 
 - [[systems/project-operations]] — the game's `bump-version.js` flow this mirrors
 - [[systems/weekend-deploy-window]] — the slot the first tagged deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0358`
+- [[decisions/sprint-backlog]] — the Backlog board, where `0357` (game-server version) and `0359` (registry retention) sit

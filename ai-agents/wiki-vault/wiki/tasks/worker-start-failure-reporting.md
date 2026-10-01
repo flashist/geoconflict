@@ -18,8 +18,8 @@ new finding:
 around `createGameRunner(...).then(...)` only caught errors thrown straight away. A failure inside the async map
 load / runner build was never posted back, and `WorkerClient`'s `error` listener does not see a rejected
 promise. So the page waited the full 5 s and reported **"Worker initialization timeout"**. ⚠️ This made `0035`'s
-regression point *"real crashes still fail fast"* true only for synchronous errors. For the owner's case (game
-`FVgxfTRH`) nobody could tell a slow download from a crash.
+regression point *"real crashes still fail fast"* true only for synchronous errors. For the owner's failed match
+nobody could tell a slow download from a crash.
 
 ## Key Changes
 

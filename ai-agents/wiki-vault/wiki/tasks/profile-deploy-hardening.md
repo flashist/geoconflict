@@ -34,3 +34,5 @@ T4g completed the final profile-deploy hardening slice before the profile box mo
 - [[tasks/setup-profile-heredoc-root-command-execution]] — task `0282`, which added five assertions locking the compose here-document's delimiter **quoted** (8 `0282` assertions green at close), so a future unquoting turns `npm test` red
 - [[tasks/name-change-daily-digest]] — task `0283`, which added assertions for the digest cron line, the deploy-time send and `check_name_change_digest`; ⚠️ **removing the digest without removing them turns `npm test` red — that is the guard, not a broken test**
 - [[tasks/deploy-apt-noninteractive]] — task `0286`: three more ordering assertions in the hardening harness (`DEBIAN_FRONTEND` above each script's first `apt` call)
+- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30): version names, refuse-on-uncommitted, a registry claim check, and T20–T39 in this harness; the `git` stub now fails on any unstubbed call
+- [[decisions/adr-117-server-deploy-version-names]] — ADR-117: the naming rule; digest pinning unchanged

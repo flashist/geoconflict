@@ -286,3 +286,5 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[decisions/adr-114-admin-server-alert-relay]] — the profile box is the admin server
 - [[decisions/adr-113-internal-player-id]] — the internal player id and login/session reshape of the profile tier
 - [[tasks/client-source-map-upload-verification]] — task `0260`, the source-map correction recorded above
+- [[tasks/worker-start-failure-reporting]] — task `0348` (2026-09-30): the worker start limit is now 15 s
+- [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map

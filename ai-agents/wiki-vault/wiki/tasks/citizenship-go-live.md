@@ -126,3 +126,4 @@ unknown** — backlog follow-ups `0309` → `0310`. A snapshot at about 14:47 UT
 - [[tasks/citizenship-name-change]] — task `0067`, the name-change UI — first seen live after the launch
 - [[tasks/citizenship-xp-progress-ui]] — task `0191`, the card — first seen in a browser at the launch
 - [[systems/project-brief]] — product ground truth — the go-live-before-proof tradeoff, now live
+- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): closed on local proof; which construction matched is still unknown

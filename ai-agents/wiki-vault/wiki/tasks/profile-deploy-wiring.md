@@ -27,3 +27,4 @@ T4e3 completed the transport half of profile deployment. Bad SSH targets fail be
 - [[tasks/profile-onbox-stack-gate]] — on-box compose, health gate, and rollback target
 - [[tasks/profile-server-bring-up-runbook]] — operator runbook for the real TLS 200 milestone
 - [[tasks/profile-deploy-hardening]] — later T4g hardening of the deploy transport and records
+- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30): the image is now tagged with its version name only (`profile-<sha>` dropped); the box still deploys by digest

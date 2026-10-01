@@ -5,8 +5,21 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> **Counted at `HEAD` = `b434732`, by each row's leading status glyph: 1 row — 1 `🔲 Backlog`; 1 OPEN.**
-> ⚠️ Counted by me this run. [[decisions/sprint-7]] is the active sprint.
+> 🆕 **2026-10-01 (latest, `49a419d`): 3 rows — 3 `🔲 Backlog`; 3 OPEN; still NOT started.** ⚠️ Counted by me
+> this run, by each row's leading status glyph. Two **verify tasks** were filed on 2026-09-30 and placed at the top,
+> on the owner's standing build/verify-split rule (*"verify task on top of the next sprint"*; it must not block
+> Sprint 7's deploy):
+>
+> | Rank | Task | Status |
+> |---|---|---|
+> | 1 | **`0358`** — verify [[tasks/profile-deploy-version-tags]] (`0355`) in production: after the weekend profile deploy (next slot 2026-10-03/04), the deploy printed a `<base>-profile.<N>` name and succeeded, `/health` reports it, the annotated git tag is on origin at the deployed commit, the registry holds the name, and telemetry shows it *if observable*. Placed by `fkit-lead` at `0355`'s close (standing rule, not a fresh owner ruling) | Backlog |
+> | 2 | **`0351`** — verify [[tasks/worker-reuses-page-map]] (`0035`) on the dev box: a public match starts and each map file downloads once. Owner ruling *"File a verify task for Sprint 8"* | Backlog |
+> | 3 | `0343` discussion: eight parked features (was rank 1, then 2) | Backlog |
+>
+> ⚠️ `0358` above `0351` is **placement, not merit** — both are short owner-run checks on different boxes. The line-3
+> banner was not touched.
+>
+> *History:* at `b434732` the board had 1 row (`0343`), 1 open.
 
 ## Context
 
@@ -25,7 +38,7 @@ test to the producer**.
 
 | Rank | Task | Status |
 |---|---|---|
-| 1 *(first row of a new board — a position, not a merit rank)* | `0343` **Discussion: eight parked features** — paid-citizenship perks and more | Backlog |
+| ~~1~~ **3** *(first row of a new board — a position, not a merit rank; moved down by the two verify tasks above, 2026-09-30)* | `0343` **Discussion: eight parked features** — paid-citizenship perks and more | Backlog |
 
 **What `0343` holds:**
 
@@ -56,3 +69,5 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[decisions/sprint-5]] — the original home of most of these items; its prose now points at `0343`
 - [[decisions/sprint-backlog]] — `0342`, the "not tied to paid citizenship" discussion brief
 - [[decisions/product-strategy]] — `plan-index.md` lists this board and repoints the priority table to `0342` / `0343`
+- [[tasks/profile-deploy-version-tags]] — task `0355`, verified by `0358` (rank 1)
+- [[tasks/worker-reuses-page-map]] — task `0035`, verified by `0351` (rank 2)

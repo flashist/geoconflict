@@ -5,7 +5,35 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-09-30 (latest, `b434732`) — SPRINT 7 IS THE ACTIVE SPRINT: 28 ROWS, 26 OPEN
+> # 🆕 2026-10-01 (latest, `49a419d`) — 30 ROWS, 19 OPEN: NINE TASKS CLOSED, TWO ROWS ADDED
+>
+> **Re-counted at `HEAD` = `49a419d`, by each row's leading status glyph: 30 rows — 9 `✅ Done` · 10
+> `🔲 Backlog` · 6 `🚧 Blocked` · 3 `🔄 In progress` · 2 `➡️ Moved`; 19 OPEN** (was 28 / 26). ⚠️ Counted by me this
+> run. Every close is **`✅ Done (agent-closed — not owner-verified)`**, all on 2026-09-30, all committed, **none
+> deployed** (latest game tag `0.0.155`):
+>
+> - **The reconnect run is finished:** `0347` [[tasks/rejoin-after-failed-match-start]] → `0348`
+>   [[tasks/worker-start-failure-reporting]] → `0035` [[tasks/worker-reuses-page-map]]. `0035`'s dev-box proof is
+>   verify task `0351` on [[decisions/sprint-8]].
+> - **The lobby-close follow-ups are finished:** `0333` [[tasks/host-create-leaves-public-lobby]], `0334`
+>   [[tasks/host-start-stops-after-window-close]], `0335` [[tasks/lobby-close-leftovers-investigation]] (report;
+>   case 1 → `0228`, case 2 → `0252`, cases 3–4 accepted), and `0336` [[tasks/tenure-popup-never-over-match]].
+> - **`0309` [[tasks/hmac-construction-log-label]] closed on LOCAL PROOF with NO RESULT** (owner: *"Move it into
+>   0297"*). `0297` stays `🚧 Blocked` — its blocker is now **the profile deploy + a real purchase**, not `0309`.
+> - **Two rows added 2026-09-30, owner-ruled TOP of the sprint** (appended at 28–29 because ADR-035 forbids
+>   renumbering closed rows): **`0355`** — profile deploys carry a version name ([[tasks/profile-deploy-version-tags]],
+>   **closed** the same day; verify `0358` on Sprint 8; rule recorded as
+>   [[decisions/adr-117-server-deploy-version-names]]) — and **`0356`**, the same for the telemetry server (`🔲 Backlog`).
+>   ⚠️ Their order against the other top groups (**Q8**) is **not ruled**.
+> - **`0308` (player name loses its space) set `🔄 In progress`** 2026-09-30 by `fkit-lead`: plan re-approved, **waiting
+>   on the owner's Step 0 snippet — no build before it.** `0339` and `0341` stay `🔄 In progress`.
+> - 🚨 **Deploy ordering carried on the board:** the first tagged profile deploy must be the weekend slot that first
+>   ships `0309`'s log line, and **no second profile deploy may come before `0297` §1 reads it** (container logs are
+>   lost on recreate).
+>
+> ---
+>
+> # 2026-09-30 (`b434732`) — SPRINT 7 IS THE ACTIVE SPRINT: 28 ROWS, 26 OPEN *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `b434732`, by each row's leading status glyph: 28 rows — 18 `🔲 Backlog` · 6
 > `🚧 Blocked` · 2 `🔄 In progress` · 2 `➡️ Moved`; 26 OPEN** (was 11, all open). ⚠️ Counted by me this run. The
@@ -54,7 +82,34 @@ moved rows here; they did not start this sprint.**
 
 ## Decision
 
-**The board at `b434732` (2026-09-30), open rows by rank** — ranks are positions, not merit (see above):
+**The board at `49a419d` (2026-10-01), open rows by rank** — ranks are positions, not merit (see above):
+
+| Rank | Task | Status |
+|---|---|---|
+| 1 | `0337` verify `0331` in production | Backlog |
+| — | `0027` New Maps — Community Demand (tracker; unranked ≠ low) | Backlog |
+| 4 | `0030` S3-backed match archival | Backlog |
+| 5 | `0032` client null-id errors | Blocked |
+| 6 | `0219` profile P4 operability | Blocked |
+| 7 | `0221` profile P6 OS hardening | Blocked |
+| 8 | `0323` mark a server-confirmed approved name | Backlog |
+| 9 | `0332` join token | Backlog |
+| 14 | `0213` epic — profile backend + S3 | Backlog |
+| 15 | `0308` player name loses its space | **In progress** (waiting on the owner's Step 0 snippet) |
+| 16 | `0340` `0325` S3a — mint verified sessions | Backlog |
+| 17 | `0250` authenticated profile read (S1 built; S3b waits on `0340`) | Blocked |
+| 18 | `0248` suppress interstitial ads for paid citizens | Backlog |
+| 19 | `0301` citizenship explainer popup | Backlog |
+| 21 | `0297` paid citizenship owner-run test-buy | Blocked — **now on the profile deploy + a real purchase** |
+| 25 | `0339` verify `0325` S2 live | In progress |
+| 26 | `0341` verify `0285` in production | In progress |
+| 27 | `0289` idle-period alert proof | Blocked (on `0341`) |
+| 29 | `0356` telemetry deploys carry a version name (owner-ruled top, after `0355`) | Backlog |
+
+**Closed 2026-09-30** (all `✅ Done (agent-closed — not owner-verified)`): 10 `0333`, 11 `0334`, 12 `0335`, 13
+`0336`, 20 `0309`, 22 `0347`, 23 `0348`, 24 `0035`, 28 `0355`.
+
+*The table below is the board at `b434732` (2026-09-30), kept as history.*
 
 | Rank | Task | Status |
 |---|---|---|
@@ -124,3 +179,13 @@ moved rows here; they did not start this sprint.**
 - [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; this board's line-3 banner makes it the active sprint
 - [[tasks/uptrace-channel-state-check]] — task `0285`, whose production check `0341` sits here
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case waits on `0332` here
+- [[tasks/rejoin-after-failed-match-start]] — task `0347`, closed 2026-09-30 (reconnect run, 1 of 3)
+- [[tasks/worker-start-failure-reporting]] — task `0348`, closed 2026-09-30 (reconnect run, 2 of 3)
+- [[tasks/worker-reuses-page-map]] — task `0035`, closed 2026-09-30 (reconnect run, 3 of 3)
+- [[tasks/host-create-leaves-public-lobby]] — task `0333`, closed 2026-09-30
+- [[tasks/host-start-stops-after-window-close]] — task `0334`, closed 2026-09-30
+- [[tasks/lobby-close-leftovers-investigation]] — task `0335`, closed 2026-09-30
+- [[tasks/tenure-popup-never-over-match]] — task `0336`, closed 2026-09-30
+- [[tasks/hmac-construction-log-label]] — task `0309`, closed 2026-09-30 on local proof, no result
+- [[tasks/profile-deploy-version-tags]] — task `0355`, closed 2026-09-30; `0356` follows it here
+- [[decisions/adr-117-server-deploy-version-names]] — ADR-117, the naming rule `0355` built and `0356` reuses

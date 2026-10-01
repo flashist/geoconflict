@@ -100,3 +100,4 @@ timestamp ⇒ paid). The owner ruled that a must-fix in `0250` (authenticated pr
 - [[decisions/sprint-4]] — the board this work started on, before the 2026-09-23 rescope moved it to Sprint 5
 - [[systems/project-brief]] — product ground truth — the go-live-before-proof tradeoff, now live
 - [[tasks/citizenship-restart-prompt]] — task `0303` (2026-09-28): a "restart to apply" popup after a purchase or a citizenship-making tenure gift
+- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the HMAC-construction label is built but not deployed; the answer is still owed in `0297`

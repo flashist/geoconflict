@@ -3,7 +3,38 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-09-30 (latest) at `HEAD` = `b434732` — SIX ROWS ADDED, `0309` MOVED TO SPRINT 7; `0035` LEFT `sprint-backlog.md` FOR SPRINT 7
+> # 📊 RE-COUNTED 2026-10-01 (latest) at `HEAD` = `49a419d` — FIVE ROWS ADDED; `0310`'S GATE RE-POINTED TO `0297`
+>
+> **`backlog.md`: 110 rows — 81 `🔲 Backlog` · 21 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
+> 84 OPEN** (was 105 / 79). Counted by me this run, by each row's leading status glyph.
+>
+> - **Five new `🔲 Backlog` rows, all filed 2026-09-30** by spawned `fkit-producer`s on owner rulings or requests
+>   relayed by `fkit-lead` (ADR-021/037; ⛔ not producer precedent):
+>   - `0352` — after leaving a started match, the public-lobby card stays stuck on the old lobby (`0s`, clicks do
+>     nothing). Found during [[tasks/worker-reuses-page-map]]'s Verify; pre-existing. Suspected cause is **the
+>     verifier's reading, not re-verified**: `Main.ts` stops the lobby polling at game start and `handleLeaveLobby`
+>     never restarts it.
+>   - `0353` — the host window polls for players before a lobby exists and throws an uncaught error every second.
+>     Found during [[tasks/host-create-leaves-public-lobby]]'s Verify; pre-existing; console noise, not
+>     player-visible.
+>   - `0354` — show private lobbies to testers by default, plus an "everyone" remote flag, empty by default (owner
+>     request). ⚠️ Setting the everyone-flag is gated on revisiting `0335` cases 1 and 3
+>     ([[tasks/lobby-close-leftovers-investigation]]).
+>   - `0357` — the game server's telemetry reports its real version, not a hard-coded `"1.0.0"` (owner *"Yes, file
+>     it"*, `0355`'s Q7). Open owner question: whether the browser's version (today the commit) should line up too.
+>   - `0359` — decide registry clean-up (retention) rules so a server version number is never reused — ADR-117's
+>     open point (owner *"File a task for it"*); decision only, owner `fkit-architect`. **No registry clean-up
+>     exists today — nothing breaks yet.** See [[decisions/adr-117-server-deploy-version-names]].
+> - **`0310` (drop the unused HMAC construction) — gate re-pointed**, owner ruling *"Re-point to 0297
+>   (Recommended)"*: ~~depends on `0309`~~ — `0309` closed with **no result** ([[tasks/hmac-construction-log-label]]),
+>   so `0310` now waits for the construction label recorded in `0297`'s worklog after the deploy and a real purchase.
+>   ⚠️ Starting before that could reject paid purchases.
+> - **`sprint-backlog.md`: 25 rows, unchanged** (20 `⬜ No sprint` · 2 `⏸ Parked` · 3 `➡️ Moved`) — only `0035`'s
+>   brief link now points at `done/`.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-09-30 at `HEAD` = `b434732` — SIX ROWS ADDED, `0309` MOVED TO SPRINT 7; `0035` LEFT `sprint-backlog.md` FOR SPRINT 7 *(history)*
 >
 > **`backlog.md`: 105 rows — 76 `🔲 Backlog` · 21 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 Cancelled;
 > 79 OPEN** *(was 99 / 74 — ⚠️ this run's glyph count of the `68303d5` file gives 98 rows plus the one
@@ -637,3 +668,9 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, whose deliberately-unrun verification step 3 is this board's `0294`
 - [[tasks/after-deploy-production-checks]] — task `0296`, whose second-device check triggered this board's epic `0304`
 - [[tasks/citizenship-go-live]] — task `0065`, whose first real purchases left the HMAC-construction question this board's `0309` → `0310` answer
+- [[tasks/hmac-construction-log-label]] — task `0309` (closed 2026-09-30, no result); `0310`'s gate now points at `0297`
+- [[tasks/worker-reuses-page-map]] — task `0035`, once a `sprint-backlog.md` row (now a Moved pointer); its Verify found `0352`
+- [[tasks/host-create-leaves-public-lobby]] — task `0333`, whose Verify found `0353`
+- [[tasks/lobby-close-leftovers-investigation]] — task `0335`: case 1 folded into `0228`, case 2 noted on `0252`, and the gate on `0354`'s everyone-flag
+- [[decisions/adr-117-server-deploy-version-names]] — ADR-117, whose follow-ups `0357` and `0359` sit here
+- [[tasks/profile-deploy-version-tags]] — task `0355`, whose Q7 became `0357`

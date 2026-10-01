@@ -135,3 +135,4 @@ Found 2026-08-28 during `0067`'s build, and owner-approved the same day as **its
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, whose B2 check catches this task's shape
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, whose R12 fix stopped the guard silently dropping this task's shape
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, which widened this task's persistence finding from one variable to four and fixed all four
+- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the follow-up that will name the matching construction once deployed

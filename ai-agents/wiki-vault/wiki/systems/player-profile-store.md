@@ -502,3 +502,4 @@ than picking silently.
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`: the game server's egress address in this box's `/internal/` allowlist
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the login signature check in shadow mode, deployed 2026-09-29
 - [[decisions/adr-116-verified-login]] — the first verified identity: signed player data at login, carried as `vfy`
+- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed): `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
