@@ -3,7 +3,27 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-02 (latest) at `HEAD` = `2247699` — ONE ROW ADDED AND MOVED STRAIGHT ON TO SPRINT 7
+> # 📊 RE-COUNTED 2026-10-02 (latest) at `HEAD` = `957a56b` — ONE ROW ADDED (`0374`)
+>
+> **`backlog.md`: 118 rows — 87 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
+> 90 OPEN** (was 117 / 89). Counted by me this run, by each row's leading status glyph.
+>
+> - `0374` — **lobby windows end their "joining a lobby" mark when they close, not only when their request settles.**
+>   Filed 2026-10-02 by a spawned `fkit-producer` on an OWNER RULING relayed by `fkit-lead` (ADR-021/037), *"File one
+>   small task (Recommended)"*; ⛔ not producer precedent. It fixes findings **R1** (`src/client/HostLobbyModal.ts`,
+>   the private-lobby create) and **R2** (`src/client/JoinPrivateLobbyModal.ts`, the lobby lookup) of the 2026-10-02
+>   deploy-readiness review (range `0.0.155..8a7f8c5`; reviewer-verified correct, severity **low**): if either request
+>   hangs and the player closes the window, the mark that `0336` uses to hold back the tenure gift popup stays held, so
+>   the popup is **delayed** until the request finally fails (how long: **not measured**). Nothing is lost; no player is
+>   blocked. Preferred fix: end the mark at the close; a timeout alone is **not** acceptable — it could open the popup
+>   over a still-open lobby window, the very thing `0336` stopped ([[tasks/tenure-popup-never-over-match]]).
+>   `src/client/` only; unit-tested, no live check required. **Not for this weekend** (owner). ⚠️ **Placement UNRULED** —
+>   the owner named no sprint or rank; on merit low priority, any sprint that next touches the start-screen popups.
+>   Open — not paged.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-10-02 at `HEAD` = `2247699` — ONE ROW ADDED AND MOVED STRAIGHT ON TO SPRINT 7 *(history — superseded above)*
 >
 > **`backlog.md`: 117 rows — 86 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
 > 89 OPEN** (was 116 / 89 — open count unchanged). Counted by me this run, by each row's leading status glyph.
@@ -721,3 +741,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/verified-login-live-check]] — task `0339` (failed 2026-10-01), source of `0366`
 - [[tasks/stale-login-signature-age]] — task `0366`, filed here 2026-10-01 and moved to Sprint 7 the same day; done
 - [[tasks/hardening-harness-speedup]] — task `0371`, filed here 2026-10-02 and moved to Sprint 7 the same day; done
+- [[tasks/tenure-popup-never-over-match]] — task `0336`, whose popup gate `0374` (filed here 2026-10-02, open) fixes for a hung lobby request

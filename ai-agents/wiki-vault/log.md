@@ -4399,3 +4399,16 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 11 touched pages (+ `index.md`):** 0 broken wiki-links; 2 one-way links found (`analytics` → `sprint-8`, `analytics` → `stale-login-signature-age`) and fixed; new page indexed.
 - 🔒 **Secret scan on this run's vault diff and the new page: clean** — no URL, IP, connection string, hex secret, token, signature or player id.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-10-02 — ingest (sync)
+
+- **Sync window:** `0c9a620` → HEAD (`957a56b0b48b5229f6b5294f07a6c32d549e4f83`). Commits: `ea167be` ("Wiki sync" — vault only), `8a7f8c5` and `957a56b` ("Sprint push"). Spawned by `fkit-lead` on the owner's `/fkit-wiki-sync`, no argument. The caller's description of the window matched what was found.
+- **Changed source files detected under `ai-agents/` (vault excluded): 4. Ingest-worthy after the filter: 2** — `ai-agents/sprints/plan-sprint-7.md`, `ai-agents/sprints/backlog.md`. Filtered out: 2 backlog briefs — `0250` (dated S1-deployed correction; the same text is on its Sprint 7 row, ingested from there) and `0374` (new, open — read as supporting context, not paged).
+- Ingested: `ai-agents/sprints/plan-sprint-7.md` → **updated** [[wiki/decisions/sprint-7]] — **36 rows, 13 open (unchanged)**, counted by me by leading status glyph; three dated corrections recorded: `0250` S1 **went live in the 2026-09-29 deploy** (owner ruling *"Yes, correct it (Recommended)"*; deployed, **not verified in use**; still `🚧 Blocked`), `0369` → committed in `57f3147` (docs only), `0372` → committed in `0c9a620`, not deployed.
+- Ingested: `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **118 rows, 90 open** (was 117 / 89); `0374` added (R1/R2 of the 2026-10-02 deploy-readiness review; low; placement UNRULED).
+- **Also updated (dated notes / back-links, history kept):** [[wiki/systems/player-profile-store]], [[wiki/systems/analytics]] (struck "no S1 deploy is recorded in the repo"), [[wiki/systems/weekend-deploy-window]], [[wiki/tasks/tenure-popup-never-over-match]], [[wiki/tasks/alert-channel-ui-reenable-runbook]], [[wiki/tasks/stale-login-client-diagnostics]].
+- ✔️ **Re-checked this run:** `68303d5` is an ancestor of tag `0.0.155` (tag commit `00825f0`, 2026-09-29). The runbook's deploy record itself was not re-read; its "N2 / N3.2 not reported" is recorded as the board states it.
+- [[wiki/index]]: 0 new entries; 5 entries annotated (`sprint-7`, `sprint-backlog`, `player-profile-store`, `analytics`, `tenure-popup-never-over-match`).
+- **Targeted lint on 8 touched pages (+ `index.md`):** 0 broken wiki-links; every link target indexed; 0 one-way links (2 new pairs added both ways: `sprint-7` ↔ `player-profile-store`, `sprint-backlog` ↔ `tenure-popup-never-over-match`).
+- 🔒 **Secret scan on this run's vault diff: clean** — no URL, IP, connection string, hex secret, chat/topic id or token.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

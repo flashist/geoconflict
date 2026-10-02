@@ -5,7 +5,31 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-02 (latest, `0c9a620`) — 36 ROWS, 13 OPEN: GOAL SET · `0372` ADDED AND DONE · `0219` G3/G4 STAY DEFERRED
+> # 🆕 2026-10-02 (latest, `957a56b`) — 36 ROWS, 13 OPEN (UNCHANGED): THREE DATED BOARD CORRECTIONS, NO STATUS OR RANK CHANGE
+>
+> **Re-counted at `HEAD` = `957a56b`, by each row's leading status glyph: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` ·
+> 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 36 / 13). ⚠️ Counted by me this run.
+>
+> - 📌 **`0250` (rank 17) — slice S1 (the paid-state leak fix) WENT LIVE in the 2026-09-29 deploy.** The row and the
+>   brief had said S1 was *"NOT deployed"* and waiting for a weekend slot; both now strike that and carry a dated
+>   correction. Evidence on the board: commit `68303d5` is an ancestor of game tag `0.0.155` (tag commit `00825f0`,
+>   2026-09-29); the profile deploy that evening ran from a checkout holding `68303d5` (runbook § *What happened
+>   2026-09-29*); `src/profile-server/PublicProjection.ts` unchanged since. ✔️ **I re-checked the ancestry this run**
+>   (`git merge-base --is-ancestor 68303d5 0.0.155` → yes). Source: the `fkit-reviewer` deploy-readiness review of
+>   2026-10-02 (range `0.0.155..8a7f8c5`); OWNER RULING 2026-10-02 *"Yes, correct it (Recommended)"*, relayed by
+>   `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent. 🚨 **Deployed, NOT verified in use** — the
+>   runbook records N2's game checks and N3.2 (citizen bell message) as *not reported*. **Status stays `🚧 Blocked`,
+>   rank unchanged** — S3b still waits on `0340`. See [[systems/player-profile-store]], [[systems/weekend-deploy-window]].
+> - 📌 **`0369` (rank 33) and `0372` (rank 35) rows corrected** (owner request, live `fkit lead` session, relayed by
+>   `fkit-lead`): `0369` — *"Not committed"* struck → **committed in `57f3147`; docs only, nothing to deploy**. `0372` —
+>   *"Not committed"* struck → **committed in `0c9a620`; not deployed** (the deploy is still pending). This resolves
+>   the "row still says *Not committed*" notes on both task pages and in the sections below.
+> - Not on this board: `0374` (lobby windows end their joining mark on close — R1/R2 of the same 2026-10-02 review) was
+>   filed on the **Backlog** board, placement unruled — see [[decisions/sprint-backlog]].
+>
+> ---
+>
+> # 2026-10-02 (`0c9a620`) — 36 ROWS, 13 OPEN: GOAL SET · `0372` ADDED AND DONE · `0219` G3/G4 STAY DEFERRED *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `0c9a620`, by each row's leading status glyph: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` ·
 > 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 35 / 13). ⚠️ Counted by me this run.
@@ -218,6 +242,10 @@ moved rows here; they did not start this sprint.**
 
 ## Decision
 
+**The board at `957a56b` (2026-10-02)** — the same 13 open rows, ranks and statuses as at `0c9a620`. Only dated
+corrections were added: 17 `0250` — S1 **deployed 2026-09-29** (not verified in use; still `Blocked`, S3b waits on
+`0340`); 33 `0369` and 35 `0372` — *"Not committed"* corrected to committed (`57f3147` / `0c9a620`).
+
 **The board at `0c9a620` (2026-10-02)** — the open rows are the same 13 as at `57f3147` below (`0219`'s G3/G4 deferral
 re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026-10-02:** 35 `0372` — `✅ Done
 (agent-closed — not owner-verified)`.
@@ -410,4 +438,5 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, rank 32, closed 2026-10-02 (runbook SQL fallback; tested locally only)
 - [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)
+- [[systems/player-profile-store]] — where `0250` S1 (rank 17, deployed 2026-09-29) lives
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it on Sprint 8

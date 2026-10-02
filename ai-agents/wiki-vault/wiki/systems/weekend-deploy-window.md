@@ -25,7 +25,11 @@
 > - **What shipped:** everything committed since the 2026-09-26 deploys. Game image: `0302`, `0303`, `0307`,
 >   `0311`, `0314` client, `0316`, `0321`, `0322`, `0326`–`0330`, `0250` S1 client, `0325` S2 client, `0331`.
 >   Profile image: `0312`–`0315` (+ migration `007`), the `0322` resolve field, `0250` S1 server, `0325` S2
->   server, `0285` relay + check 13. Telemetry: `0285`'s probe. 🚨 **`0298` Part B — the first ARMED runs of
+>   server, `0285` relay + check 13. Telemetry: `0285`'s probe. 📌 *2026-10-02: the `0250` brief and Sprint 7 row,
+>   which still said S1 "NOT deployed", were corrected to match (owner ruling; commit `68303d5` is in `0.0.155` —
+>   re-checked by the wiki). The correction treats `0.0.155` (tag commit `00825f0`, 2026-09-29) as that night's game
+>   tag — consistent with the ⚠️ above, but the runbook itself still does not name it. S1 is deployed, not verified in use.*
+>   🚨 **`0298` Part B — the first ARMED runs of
 >   the config guards.**
 > - **Results (lead-checked unless marked):**
 >   - ✅ pre-flight: config parity `--enforce` exit 0; `npm run lint` exit 0; `npm test` 3221/3221 (179 suites);

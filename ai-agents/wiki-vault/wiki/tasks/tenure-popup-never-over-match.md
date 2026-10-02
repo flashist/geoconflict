@@ -7,6 +7,12 @@
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `26b85c0`; **not in any deploy yet**
 > (latest game tag `0.0.155`). ⚠️ **The real claim path was NOT RUN live** — it cannot be reached in local dev;
 > covered by unit tests only. The tenure popup itself **is live in production** since `0.0.154`.
+>
+> 📌 **2026-10-02 — a known gap in this gate is filed as `0374`** (Backlog, open, placement unruled — see
+> [[decisions/sprint-backlog]]): the host and join-private-lobby windows end their joining mark only when their
+> create / lookup request settles, not when the window closes, so a **hung** request delays the popup after the
+> player is back on the start screen. Low severity (a delay; nothing lost). Source: R1/R2 of the 2026-10-02
+> deploy-readiness review.
 
 ## Goal
 
@@ -63,3 +69,4 @@ Owner rulings at the plan: scope **1 + 2 + 3** (all three fix directions); **Q1 
 - [[tasks/host-create-leaves-public-lobby]] — task `0333`, the Create path the host marker covers
 - [[systems/analytics]] — the `Citizenship:TenureGrant:Claimed` row
 - [[decisions/sprint-7]] — the board
+- [[decisions/sprint-backlog]] — `0374` (filed 2026-10-02, open, placement unruled): end the lobby windows' joining mark at close, the gap this gate left

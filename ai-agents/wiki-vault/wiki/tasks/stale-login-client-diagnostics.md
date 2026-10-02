@@ -9,7 +9,9 @@
 > ("Sprint push", 2026-10-02 — checked with `git show --stat`: `src/client/SignatureAgeAnalytics.ts`,
 > `src/client/flashist/FlashistFacade.ts` and two test files). 🚨 **NOT deployed.** It targets the **2026-10-03/04
 > game deploy**; if it misses, it rides 2026-10-10/11 and `0373`'s earliest read slides a week. The board row says
-> *"Not committed"* — true when the producer closed it, now stale (the code is in `0c9a620`). **No event has been
+> *"Not committed"* — true when the producer closed it, now stale (the code is in `0c9a620`). 📌 *2026-10-02: the row
+> is now corrected — "committed in `0c9a620`; not deployed" (owner request, relayed by `fkit-lead`); the deploy is
+> still pending.* **No event has been
 > seen arriving yet**; that, and reading the data, is task `0373`. No separate verify task was filed.
 
 ## Goal

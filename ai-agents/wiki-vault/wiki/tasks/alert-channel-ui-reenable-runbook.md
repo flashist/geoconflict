@@ -6,6 +6,8 @@
 
 > ✅ **Closed 2026-10-02** `(agent-closed — not owner-verified)` by a spawned `fkit-producer`, on owner ruling *"Close it
 > (Recommended)"*. The board row says *"Not committed at close"*; the runbook rewrite is now in git (commit `57f3147`).
+> 📌 *2026-10-02: the board row is now corrected to say so — "committed in `57f3147`; docs only, nothing to deploy"
+> (owner request, relayed by `fkit-lead`).*
 > Doc-only — no code, no deploy.
 >
 > ⚠️ **The live look was the owner's.** Box commands owner-run; UI actions by `fkit-lead` in the owner's browser at the

@@ -3,6 +3,14 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 **2026-10-02 (`957a56b`) — `0250` S1 deploy now on the board too.** The `0250` brief and its Sprint 7 row had
+> still said S1 was *"NOT deployed"*; both now carry a dated correction (owner ruling *"Yes, correct it
+> (Recommended)"*, from the 2026-10-02 deploy-readiness review): commit `68303d5` is in game tag `0.0.155`, and the
+> 2026-09-29 profile deploy ran from a checkout holding it (re-checked by me: `68303d5` is an ancestor of `0.0.155`).
+> This page already said S1 shipped (note below). 🚨 **Deployed, NOT verified in use** — the runbook has N2's game
+> checks and N3.2 (citizen bell message) as *not reported*. `0250` stays `🚧 Blocked`; S3b waits on `0340`.
+> See [[decisions/sprint-7]].
+>
 > 🆕 **2026-09-30 (`b434732`) — DEPLOYED 2026-09-29, and the first verified-identity code is on the box.**
 >
 > - **The Sprint 6 store changes above are now deployed** (telemetry → game → profile, 2026-09-29; see
@@ -47,7 +55,8 @@
 >   read is **dead** — the citizenship purchase is consumed after the grant. Owner rulings 2026-09-27 (verbatim,
 >   from the Sprint 6 board): D1 *"Raw facts: paid + date"* · D2 *"Paid only (Recommended)"* · D3 *"New task,
 >   above 0250 (Recommended)"* ⇒ verified login filed as **`0325`** · D4 *"Accept all (Recommended)"* · D5 *"Fix
->   all 4 in 0250 (Recommended)"*. **Slice S1 (the leak fix) is built and reviewed** (*Ready to merge*) — its
+>   all 4 in 0250 (Recommended)"*. **Slice S1 (the leak fix) is built and reviewed** (*Ready to merge*) *(📌 since then:
+>   deployed 2026-09-29, not verified in use — see the 2026-10-02 note at the top)* — its
 >   known cost: a paid citizen under 100 XP sees **100 / 100** on an unverified read, and
 >   `Citizenship:Earned:XP` is **dormant** ([[systems/analytics]]). S1's deploy is owner-run, **client first,
 >   then profile server** (reversed, old clients drop the neutral inbox message). **S3b waits on `0325`**, itself
@@ -520,3 +529,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/verified-login-live-check]] — task `0339`: the login-verification counter read live; S2 exit not met (2026-10-01)
 - [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed)
 - [[tasks/profile-os-baseline-hardening]] — task `0221` (P6): OS baseline, `unless-stopped` + `init`, graceful shutdown; closed 2026-10-01 with two owner-accepted residuals
+- [[decisions/sprint-7]] — the board holding `0250` (rank 17; S1 deployed 2026-09-29, S3b waits on `0340`)
