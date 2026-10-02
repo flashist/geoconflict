@@ -104,7 +104,8 @@ below.
   only the 🚨 half while going green. The junk-Bearer fixture supersedes it; ⛔ **`plan.md` is byte-frozen
   and was NOT edited** — the supersession is recorded in the brief.
   ⛔ **The pass does NOT satisfy amendment A1** (delivery after an *idle* period): both bursts were
-  minutes apart on a **warm** connection. That work moved to `0289`.
+  minutes apart on a **warm** connection. That work moved to `0289`. *(📌 2026-10-01: `0289` closed on observed
+  evidence, no drill, **bounded to 4 h 36 min** — [[tasks/alert-delivery-after-idle]].)*
 - ✅ **Owner step 7.7 — the creation-switch drill PASSED 2026-09-19**, owner-executed on the live box.
   Switch **OFF** ⇒ `503 {"error":"creation_paused"}` with **0** identity rows and **0** `players` rows;
   switch **ON** ⇒ `200 "created":true` with 1 row; that row removed through the junk-cleanup runbook's own
@@ -204,3 +205,4 @@ conflate the two reasons A4 waited — one is cleared, one is not.**
 - [[tasks/profile-identity-epic]] — epic `0266`, the parent; closed 2026-09-26 once all five slices were done
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26
+- [[tasks/alert-delivery-after-idle]] — task `0289`, amendment A1 (idle-period delivery), closed 2026-10-01 bounded to 4 h 36 min

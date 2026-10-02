@@ -188,6 +188,14 @@ does not prove delivery, the channel's copy of the secret, or an attached monito
 drill** (disable with one SQL update → see the page → re-enable in the UI → see OK) **it is proven by tests
 only.** See [[tasks/uptrace-channel-state-check]].
 
+📌 **2026-10-01 — the owner's drill RAN and PASSED** ([[tasks/uptrace-channel-state-production-check]], `0341`): check 13
+was seen to trip on the real stack, the dead-man's switch paged, alerting was down ≈ 3 min, and the "no write" counters
+were unchanged. 🚨 **One deviation — the channel was re-enabled by the reverse SQL update, NOT in the UI**, so the
+runbook's *"re-enable in the UI"* step is **unproven by that drill**. Filed as `0368` (document the SQL fallback; still
+`🔲 Backlog`) and `0369` (find the UI control). Per the Sprint 7 board's `0369` row (2026-10-01, `🔄 In progress`): a
+`disabled` channel is re-enabled in the UI by **`Unpause channel` (▶)**, and ⚠️ the *Test channel* button failed
+silently three times in that session. The runbook is **not yet corrected** — `0369`'s rewrite step is pending.
+
 ### Three ways the probe will surprise you
 
 1. 🚩 **A rolled-back profile image predating `0284` never writes the marker.** The daily check then
@@ -312,6 +320,8 @@ fates.** `0274` closed 2026-09-19 carrying these as named gaps:
   has its own task, `0289`**, filed 2026-09-19 to the **Sprint 4 board**, `🔲 Backlog`. 🚨 **Do not conflate
   the two things called "A1".** ⛔ **And `0283`'s digest does NOT discharge it**: its ~9.5 h gap is weak
   evidence toward idle delivery, not the test it asks for.
+  📌 **2026-10-01: `0289` CLOSED on observed evidence, bounded to 4 h 36 min** — see the idle bullet under *What this
+  channel does NOT cover* below and [[tasks/alert-delivery-after-idle]].
 
 ⇒ ⛔ **ONE alert rule exists (A5). That is unchanged by any of the above** — filing a task is not building a
 rule.
@@ -347,6 +357,12 @@ for that deploy; do not discover it at 3 a.m.**
   a warm connection, so the stale-connection defect was never exercised. ⚠️ And the reverse is worth
   flagging: **an hourly probe keeps that hop warm, so it could MASK an idle-path defect** a rare real
   alert would hit.
+  📌 **2026-10-01 — partly answered, NOT closed as a gap.** `0289` closed on owner-confirmed evidence, no drill: a
+  message from the long-running profile-api process (the relay's own sender, pool and proxy, per the plan's code
+  reading) arrived after **4 h 36 min** of silence, Alerts topic empty. ⛔ **Still unproven:** an overnight gap; whether
+  the retry was used; the **monitoring → relay** hop after quiet; the Alerts-topic route itself (the evidence went to the
+  Name Changes topic). See [[tasks/alert-delivery-after-idle]]. The runbook line saying *unproven* is updated by `0368`,
+  not yet done.
 
 ### The fail-silent Telegram defect this relay refuses to inherit
 
@@ -372,12 +388,15 @@ deploy. **Do not read "0061 is fixed" off `0277`.**
 "fixed for good"**: a freshly restarted process has no stale sockets, so the retry has not been seen
 covering the stale-socket case, and the cause is still **not confirmed in code**. For the alert path
 itself, `0295`'s close found **no end-to-end alert delivery observed after that deploy** — reachability
-only; idle-period delivery is still `0289`'s. See [[tasks/feedback-telegram-delivery-failure]] and
+only; idle-period delivery is still `0289`'s *(closed 2026-10-01, bounded to 4 h 36 min —
+[[tasks/alert-delivery-after-idle]])*. See [[tasks/feedback-telegram-delivery-failure]] and
 [[tasks/game-prod-egress-ip-allowlist]].
 
 ## Related
 
 - [[tasks/uptrace-channel-state-check]] — task `0285`, check 13: the channel's own `status`, read by the probe and reported through the same marker
+- [[tasks/uptrace-channel-state-production-check]] — task `0341`: check 13 seen to trip in production 2026-10-01; channel re-enabled by SQL, UI path unproven
+- [[tasks/alert-delivery-after-idle]] — task `0289`: amendment A1 closed 2026-10-01 on observed evidence, bounded to 4 h 36 min
 - [[decisions/adr-114-admin-server-alert-relay]] — the ADR that placed the relay on the admin box
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, which built and proved the relay
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the guard on the 403 channel-disable trap
@@ -400,3 +419,4 @@ only; idle-period delivery is still `0289`'s. See [[tasks/feedback-telegram-deli
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the player-feedback consumer of the same fix; closed 2026-09-26
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, which kept this relay's allowlist entry and closed step 5 on indirect evidence
 - [[tasks/name-change-digest-pending-list]] — task `0315` (2026-09-27): the digest's second message lists pending requests
+- [[decisions/sprint-7]] — the board carrying `0341`, `0289`, `0368` and `0369`

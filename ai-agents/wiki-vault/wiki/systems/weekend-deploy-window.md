@@ -50,6 +50,11 @@
 > - **Still owed:** the game-deploy checks; quick check #3 (an approved name in a match); the citizen bell
 >   message; `0341` step 1.3 by hand (or confirming the hourly probe) and step 2; the watch; the `0341` drill
 >   and `0289` (the owner deferred both to a quiet day); ~~`0339`'s watch~~ (done 2026-10-01, failed).
+>   *(📌 2026-10-01: **`0341` steps 1.3, 2 and the drill all ran and passed** — check 13 seen to trip; re-enabled by
+>   reverse SQL, ⚠️ not the UI ([[tasks/uptrace-channel-state-production-check]]). **`0289` closed without a drill**, on
+>   a 4 h 36 min observed gap ([[tasks/alert-delivery-after-idle]]). **`0221`'s B4 read** (unattended upgrades seen
+>   installing on 2026-09-29) closed it, with `0221-B5`/`0221-B6` as owner-accepted residuals
+>   ([[tasks/profile-os-baseline-hardening]]).)*
 > - ⚠️ **Rollback cautions that now stand:** never roll back to game `0.0.153` (never served); migration `007`
 >   stays applied (no down migration); keep an S2-or-later profile image as `0340`'s future rollback target;
 >   a `0250` S1 rollback reopens the leak and can fire false `Citizenship:Earned:XP` from old bundles.
@@ -670,3 +675,6 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/verified-login-live-check]] — task `0339`, which read this window's login-verification results (S2 exit not met)
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`: the first telemetry deploy after it is committed is named `<base>-telemetry.<N>`
 - [[tasks/stale-login-signature-age]] — task `0366`: targets the 2026-10-03/04 profile deploy, or waits until `0297` §1 reads `0309`'s log line
+- [[tasks/profile-os-baseline-hardening]] — task `0221`: its B1–B6 ran in the 2026-09-26 window (B4 read 2026-10-01); closed with two residuals
+- [[tasks/uptrace-channel-state-production-check]] — task `0341`: the 2026-09-29 deploy of `0285`, verified 2026-10-01
+- [[tasks/alert-delivery-after-idle]] — task `0289`: deferred from the window to a quiet day, then closed without a drill 2026-10-01

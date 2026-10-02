@@ -14,6 +14,13 @@
 > `channel state: delivering`. ⚠️ **Still not done:** the hand-run probe after the profile deploy, the "no write"
 > check, and **the drill** (the owner deferred it to a quiet day) — so check 13 has **still never been seen to trip**.
 >
+> ✅ **2026-10-01 — SEEN TO TRIP IN PRODUCTION** ([[tasks/uptrace-channel-state-production-check]], `0341`, closed
+> agent-closed — not owner-verified; the owner ran and watched every step). Probe `delivering` + check 13 OK; "no write"
+> counters unchanged; drill: SQL disable → `channel state: disabled` → `alert-channel-state … DISABLED` FAIL → the
+> dead-man's switch page seen ~14:26 UTC → re-enabled → OK; alerting down ≈ 3 min. 🚨 **One deviation:** the channel was
+> re-enabled by the **reverse SQL update, not in the UI** (ruling Q3's method) — so the UI re-enable path is **not**
+> proven by it (filed `0368` + `0369`). The "not yet seen to trip" lines below are history.
+>
 > ⛔ No hosts, IPs, URLs, chat or topic ids, or secrets on this page.
 
 ## Goal
@@ -57,7 +64,9 @@ automatic re-enable. Kept separate from `0284` by owner ruling D4 — do not fol
   update, run the probe, force the checks, see the dead-man's switch page with `alert-channel-state … DISABLED`,
   re-enable in the UI, see OK); "no write" shown on the real stack. The exit-code mapping was measured on psql
   16 locally, not on the box's Postgres 17.
-- `0289` (prove a Telegram alert arrives after idle) is **blocked on this drill** (Sprint 6 board).
+- `0289` (prove a Telegram alert arrives after idle) is **blocked on this drill** (Sprint 6 board). *(📌 2026-10-01:
+  the drill ran under `0341`; `0289` then closed on observed evidence without its own drill —
+  [[tasks/alert-delivery-after-idle]].)*
 
 ## Related
 
@@ -67,3 +76,4 @@ automatic re-enable. Kept separate from `0284` by owner ruling D4 — do not fol
 - [[decisions/adr-114-admin-server-alert-relay]] — why the relay lives on the profile/admin box
 - [[systems/telemetry]] — the monitoring box and its Postgres
 - [[decisions/sprint-6]] — the board carrying this task
+- [[tasks/uptrace-channel-state-production-check]] — task `0341`, the production check and drill (passed 2026-10-01, SQL re-enable)

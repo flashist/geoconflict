@@ -347,7 +347,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
   ⛔ **`GameServer.end()` is the WRONG seam for that** — `phase()` requires `noActive`, and `selectMatchCredits` excludes anyone absent from `activeClients`, so crediting hooked there **would award ZERO in every match that ends the normal way.** *"It would look implemented and do nothing."* **Structural, not a preference.**
 - 🚨 **The whole crediting path is a no-op in production (verified 2026-08-23, task `0062`)**: `deploy.sh` never forwards `PROFILE_INTERNAL_TOKEN`, so `ProfileApiClient.isConfigured()` is false and both `upsertProfile()` and `creditMatch()` silently no-op (the miss is logged at `debug`, invisible in prod logs); the profile server independently fails **closed** on the empty token. Net effect: **no profile row is ever created and no XP is ever credited in production** — this blocks earned (`0017`) and paid (`0018`) citizenship. The fix is one line in `deploy.sh`. 🔄 *2026-09-23: `0062` closed as built + reviewed (agent-closed — not owner-verified); whether the token actually reaches production is now `0296` A1–A4, still unrun with a real value.* Found by the 2026-08-22 outage config-drift sweep; see [[decisions/incident-2026-08-22-public-lobbies-outage]].
 
-### 🔲 The clean-slate epic's operability tail — `0219`, `0220`, `0221` — SCOPED, NOT STARTED
+### 🔲 The clean-slate epic's operability tail — `0219`, `0220`, `0221` — SCOPED, NOT STARTED *(📌 heading is history: `0221` closed 2026-10-01, see below)*
 
 **Added 2026-09-08. All three are `🔲 Backlog` on the Sprint 4 board, part of the `0213` clean-slate
 epic. ⛔ Nothing has been built, measured or verified — these are BRIEFS.** They are recorded here
@@ -422,6 +422,16 @@ inflate it:** the credit ledger's idempotency primary key means a dropped-and-re
 double-credit, so **the consequence is a dropped request, not corrupted data.** ⚠️ An
 **unattended reboot on a single-box service is an unattended outage** — surface that choice rather
 than picking silently.
+
+📌 **2026-10-01 — `0221` CLOSED** `(agent-closed — not owner-verified)`; the owner ran every live check. What shipped:
+`unattended-upgrades` security-only with **automatic reboot off**; a fail-closed `fail2ban` sshd jail; an sshd drop-in
+(password auth off, root `prohibit-password`, pinned in a `Match all` block); compose **`restart: unless-stopped` +
+`init: true`** (G7); and a graceful SIGTERM drain that closes the pool (G8). 🚨 **The non-root deploy user was split
+out to `0254` (owner ruling Q8) — the deploy still runs as root.** ⚠️ **Two residuals accepted by the owner, not
+passed:** after a Docker *daemon* restart the app came back because the **systemd `profile` unit recreated the
+containers**, not because of `unless-stopped`; and the SIGTERM drain was seen to close cleanly but **no in-flight request
+was seen completing**. G8 stays LOW only while the credit ledger's idempotency key exists. See
+[[tasks/profile-os-baseline-hardening]].
 
 ## Related
 
@@ -509,3 +519,4 @@ than picking silently.
 - [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed): `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
 - [[tasks/verified-login-live-check]] — task `0339`: the login-verification counter read live; S2 exit not met (2026-10-01)
 - [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed)
+- [[tasks/profile-os-baseline-hardening]] — task `0221` (P6): OS baseline, `unless-stopped` + `init`, graceful shutdown; closed 2026-10-01 with two owner-accepted residuals

@@ -208,3 +208,4 @@ red. **Those are the guards working, not broken tests.**
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose owner step 5 proved the **per-request** operator notification. ⛔ **A DIFFERENT mechanism from this digest**, and this digest does not discharge its amendment A1
 - [[decisions/sprint-backlog]] — the board this task was filed on before its promotion to Sprint 4
 - [[tasks/name-change-decision-resets-notify-limit]] — task `0313` (2026-09-27): an operator decision resets the player's 10-minute notify slot
+- [[tasks/alert-delivery-after-idle]] — task `0289`: this digest's ~9.5 h gap was a near-miss that did not discharge it; `0289` closed 2026-10-01 on a name-change notifier gap instead

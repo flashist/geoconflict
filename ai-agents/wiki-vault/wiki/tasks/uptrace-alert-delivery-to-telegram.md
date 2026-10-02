@@ -120,3 +120,5 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, whose planning found this blocker and whose alert rules this delivery channel carries. ⛔ **This task shipped a proven pipeline with nothing feeding it — that is `0274`'s work**
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, whose connection fix this task carried (ND-2)
 - [[tasks/uptrace-channel-state-check]] — task `0285` (2026-09-28): check 13 reads the monitoring stack's own channel state
+- [[tasks/alert-delivery-after-idle]] — task `0289` (2026-10-01): a send after 4 h 36 min idle arrived; whether this task's one retry was used is not determined
+- [[tasks/uptrace-channel-state-production-check]] — task `0341` (2026-10-01): check 13 seen to trip in production; channel re-enabled by SQL

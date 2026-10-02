@@ -169,3 +169,5 @@ replacement for a probe that crosses the allowlist.
 - [[systems/weekend-deploy-window]] — 🚨 this probe is the **second caller** on `PROFILE_INTERNAL_ALLOW_IPS`; every profile deploy in that window must carry the **full** list — ⛔ **append, never replace**
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, whose step 5 cited this probe's daily reachability line as indirect evidence (2026-09-26)
 - [[tasks/deploy-apt-noninteractive]] — task `0286`: the debconf prompts were seen during this task's telemetry deploy (observed during, not caused by)
+- [[tasks/uptrace-channel-state-production-check]] — task `0341` (2026-10-01): the production drill modelled on this task's own, run against check 13
+- [[tasks/alert-delivery-after-idle]] — task `0289`: this probe's hourly run keeps the monitoring → relay hop warm, so that hop's idle path stays unproven

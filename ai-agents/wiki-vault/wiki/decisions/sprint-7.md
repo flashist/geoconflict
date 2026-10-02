@@ -5,7 +5,37 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-01 (latest, `e581824`) — 31 ROWS, 16 OPEN: `0366` DONE
+> # 🆕 2026-10-01 (latest, `e11f2eb`) — 34 ROWS, 16 OPEN: `0221`, `0341`, `0289` DONE · `0367`, `0368`, `0369` ADDED
+>
+> **Re-counted at `HEAD` = `e11f2eb`, by each row's leading status glyph: 34 rows — 15 `✅ Done` · 11 `🔲 Backlog` ·
+> 4 `🚧 Blocked` · 1 `🔄 In progress` (`0369`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 16 OPEN** (was 31 / 16). ⚠️ Counted by
+> me this run.
+>
+> - **`0221` done (agent-closed — not owner-verified)** — [[tasks/profile-os-baseline-hardening]]. The owner ran every
+>   live check (B1–B3 on 2026-09-26, B4 on 2026-10-01); **B5 and B6 closed as owner-accepted residuals, not passes.**
+> - **`0341` done (agent-closed — not owner-verified)** — [[tasks/uptrace-channel-state-production-check]]: verification
+>   passed; check 13 seen to trip; alerting down ≈ 3 min. 🚨 Channel re-enabled by **reverse SQL, not the UI** — the UI
+>   step is unproven by it.
+> - **`0289` done (agent-closed — not owner-verified)** — [[tasks/alert-delivery-after-idle]]: closed on **observed
+>   evidence, no drill** (owner ruling), **bounded to 4 h 36 min**; an overnight gap is still unproven. Its runbook edit
+>   rides `0368`.
+> - **`0367` added, rank 31, `🔲 Backlog`, owner `fkit-coder`** — cut the public lobby wait from 2 minutes to 1 minute,
+>   as a test. Owner rulings Q0–Q4: placed **directly below `0366`** with the top group (number stays 31, ADR-035), built
+>   for the 2026-10-03/04 game-server deploy; keep 1 min if matches/day hold or rise **and** the lone-real-player share
+>   does not jump noticeably; 7 days after vs 7 before; change only the number. A verify task is filed at close, not
+>   before.
+> - **`0368` added, rank 32, `🔲 Backlog`** — write `0341`'s proven SQL re-enable into the runbook as a fallback, mark the
+>   UI step unproven, and (owner-confirmed) replace the runbook's *"idle delivery unproven"* lines with `0289`'s bounded
+>   result.
+> - **`0369` added, rank 33, `🔄 In progress`** — find the UI re-enable for a `disabled` channel and correct the runbook.
+>   Live look (steps 1–5) done 2026-10-01: **`Unpause channel` (▶)** re-enables it; ⚠️ the *Test channel* button failed
+>   silently 3×. The runbook rewrite (step 6) is pending.
+> - Owner rulings: `0368`/`0369` split kept (*"Keep two"*); both **left at the bottom** — 32/33 are their real place.
+>   `0366`'s row now reads committed in `e581824` (still **not deployed**) and placed directly below `0337`.
+>
+> ---
+>
+> # 2026-10-01 (`e581824`) — 31 ROWS, 16 OPEN: `0366` DONE *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `e581824`, by each row's leading status glyph: 31 rows — 12 `✅ Done` · 9 `🔲 Backlog` ·
 > 6 `🚧 Blocked` · 1 `🔄 In progress` (`0341`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 16 OPEN** (was 31 / 17). ⚠️ Counted by
@@ -118,7 +148,31 @@ moved rows here; they did not start this sprint.**
 
 ## Decision
 
-**The board at `49a419d` (2026-10-01), open rows by rank** — ranks are positions, not merit (see above):
+**The board at `e11f2eb` (2026-10-01), open rows by rank** — ranks are positions, not merit (see above):
+
+| Rank | Task | Status |
+|---|---|---|
+| 1 | `0337` verify `0331` in production | Backlog |
+| — | `0027` New Maps — Community Demand (tracker; unranked ≠ low) | Backlog |
+| 4 | `0030` S3-backed match archival | Backlog |
+| 5 | `0032` client null-id errors | Blocked |
+| 6 | `0219` profile P4 operability | Blocked |
+| 8 | `0323` mark a server-confirmed approved name | Backlog |
+| 9 | `0332` join token | Backlog |
+| 14 | `0213` epic — profile backend + S3 | Backlog |
+| 16 | `0340` `0325` S3a — mint verified sessions | Backlog |
+| 17 | `0250` authenticated profile read | Blocked |
+| 18 | `0248` suppress interstitial ads for paid citizens | Backlog |
+| 19 | `0301` citizenship explainer popup | Backlog |
+| 21 | `0297` paid citizenship owner-run test-buy | Blocked |
+| 31 | `0367` public lobby wait 2 min → 1 min, a test (owner-placed directly below `0366`) | Backlog |
+| 32 | `0368` runbook: SQL re-enable for a disabled alert channel | Backlog |
+| 33 | `0369` find the UI re-enable and correct the runbook | **In progress** |
+
+**Closed 2026-10-01** (all `✅ Done (agent-closed — not owner-verified)`): 7 `0221`, 25 `0339` (a FAILED verification),
+26 `0341`, 27 `0289`, 29 `0356`, 30 `0366`. Cancelled: 15 `0308`.
+
+*The table below is the board at `49a419d` (2026-10-01), kept as history.*
 
 | Rank | Task | Status |
 |---|---|---|
@@ -228,4 +282,8 @@ moved rows here; they did not start this sprint.**
 - [[tasks/verified-login-live-check]] — task `0339`, closed 2026-10-01 as a FAILED verification; follow-up `0366` sits here
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, closed 2026-10-01; verify `0363` on Sprint 8
 - [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced)
-- [[tasks/stale-login-signature-age]] — task `0366`, rank 30, closed 2026-10-01 (agent-closed — not owner-verified); not deployed
+- [[tasks/stale-login-signature-age]] — task `0366`, rank 30, closed 2026-10-01 (agent-closed — not owner-verified); committed in `e581824`, not deployed; owner-placed directly below `0337`
+- [[tasks/profile-os-baseline-hardening]] — task `0221`, rank 7, closed 2026-10-01 (B5/B6 owner-accepted residuals)
+- [[tasks/uptrace-channel-state-production-check]] — task `0341`, rank 26, closed 2026-10-01 (passed; SQL re-enable, UI unproven)
+- [[tasks/alert-delivery-after-idle]] — task `0289`, rank 27, closed 2026-10-01 on observed evidence, bounded to 4 h 36 min
+- [[systems/alert-delivery]] — the alert path `0341`, `0289`, `0368` and `0369` concern

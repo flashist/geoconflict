@@ -67,7 +67,9 @@ immediately** (owner-run, reported live).
 1. **"Works now", not "fixed for good."** Two sends straight after a fresh deploy ran on a fresh process
    with fresh sockets. The past failure needed a stale pooled socket, which a just-restarted process
    does not have. The retry is **expected** to cover it; nothing has observed it doing so in production.
-   Whether delivery survives an idle period is task `0289`'s question (open on Sprint 5; not paged).
+   Whether delivery survives an idle period is task `0289`'s question (open on Sprint 5; not paged). *(📌 2026-10-01:
+   `0289` closed — a message arrived after 4 h 36 min idle; ⛔ this does **not** confirm or rule out the stale-socket
+   mechanism — [[tasks/alert-delivery-after-idle]].)*
 2. **"Diagnosable" is in the tree, not observed.** The cause code is unit-tested, but verification
    step 1 (trigger a real failure in prod and read the cause) was **never run**.
 3. **Verification step 5** (a boot-scoped zero-failure log count) **never run**. Steps 3, 4 and 6
@@ -90,3 +92,4 @@ immediately** (owner-run, reported live).
 - [[decisions/sprint-5]] — the board that tracked its close
 - [[decisions/sprint-backlog]] — where the follow-up `0300` was filed
 - [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the remote `citizenship_ui` kill switch flipped off and on in production, 2026-09-26
+- [[tasks/alert-delivery-after-idle]] — task `0289`, the idle-period delivery question this task raised; closed 2026-10-01, bounded to 4 h 36 min

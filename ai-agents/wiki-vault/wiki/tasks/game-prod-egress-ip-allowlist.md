@@ -53,7 +53,7 @@ since the 2026-09-17 recovery drill — consistent with nothing alerting, ⛔ **
 
 🚩 **Residual, stated plainly: no end-to-end alert delivery was observed after the deploy.** `0274`
 amendment A1 (task `0289` — delivery after an idle period) stays open and separate; this close does not
-discharge it.
+discharge it. *(📌 2026-10-01: `0289` closed on observed evidence, bounded to 4 h 36 min — [[tasks/alert-delivery-after-idle]].)*
 
 ## Related
 
@@ -64,3 +64,4 @@ discharge it.
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the monitoring box's hourly probe through the same allowlist
 - [[decisions/sprint-5]] — the board it was filed on and closed from
 - [[systems/player-profile-store]] — the box whose allowlist and env file hold the measured address
+- [[tasks/alert-delivery-after-idle]] — task `0289`, the idle-delivery residual named here; closed 2026-10-01, bounded to 4 h 36 min

@@ -2,13 +2,18 @@
 
 **Source**: `ai-agents/tasks/done/0366-measure-how-old-stale-login-signatures-are/brief.md` (what was built: its Sprint 7 board row in `ai-agents/sprints/plan-sprint-7.md`, and the committed code in `src/profile-server/`)
 **Status**: done (agent-closed — not owner-verified)
-**Sprint/Tag**: Sprint 7, rank 30 (append rank — on merit directly below `0337`; flagged for owner confirmation) / task `0366`
+**Sprint/Tag**: Sprint 7, rank 30 (✅ owner-ruled 2026-10-01: placed **directly below `0337`**, with the top group, whatever the number says — the number stays 30, ADR-035) / task `0366`
 
 > ✅ Done (agent-closed — not owner-verified), 2026-10-01. Built to the owner-approved plan; the code landed in
 > commit `e581824` ("Sprint push", 2026-10-01). ⚠️ **Not deployed** — it targets Saturday's (2026-10-03/04) profile
 > deploy. ⚠️ The board row's own text says *"Not committed"*; that was true when the producer closed it and is now
 > stale — the code **is** in `e581824` (checked with `git show`, 2026-10-01). **No bracket has been read yet**, so
 > the cause of `stale` is still unknown.
+>
+> 📌 **2026-10-01, later — board and brief corrected by OWNER RULING** (verbatim *"I've commited the files, you can do
+> the needed things by producer"*, relayed by `fkit-lead`; not producer precedent): the row's *"Not committed"* is now
+> struck through and reads committed in `e581824`, **still NOT deployed**; and the placement directly below `0337` is
+> recorded. The "stale row text" caveat above is now history.
 
 ## Goal
 
