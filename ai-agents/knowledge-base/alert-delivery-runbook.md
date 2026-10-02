@@ -45,6 +45,8 @@ Two consequences you must hold on to:
    the monitoring UI.** Re-enabling is a separate step; fixing the IP alone does not undo the disable.
    If you cannot re-enable it in the UI, use the
    [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback).
+   In the UI: **Alerting → CHANNELS → the channel's row → `Unpause channel` (▶)** — see
+   [Re-enabling a channel in the monitoring UI](#re-enabling-a-channel-in-the-monitoring-ui).
    _(Owner ruling B, 2026-09-17 — risk accepted, documented here.)_
 
    The deploy prints the allowlist every run, and now warns loudly when it is **empty** (empty renders
@@ -217,16 +219,26 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
    If a real alert hit the same failure, the channel is already disabled. **Fixing the address does
    not undo the disable** — see the rule above, it is the same rule. If you cannot re-enable it in the
    UI, use the [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback) below.
+   In the UI: **Alerting → CHANNELS → the channel's row → `Unpause channel` (▶)**
+   ([details](#re-enabling-a-channel-in-the-monitoring-ui)). To confirm alerting is live, use a real
+   alert — the *Test channel* button is
+   [not a liveness signal](#the-test-channel-button-is-not-a-liveness-signal).
 
 #### When `alert-channel-state` fails
 
 1. If `alert-path-probe` failed too, fix that first — check 13's state is UNKNOWN without a fresh probe.
-2. `DISABLED`: **re-enable the channel in the monitoring UI**, then find what disabled it — usually a
+2. `DISABLED`: **re-enable the channel in the monitoring UI** (**Alerting → CHANNELS → row →
+   `Unpause channel` (▶)**, [details](#re-enabling-a-channel-in-the-monitoring-ui)), then find what
+   disabled it — usually a
    401/403/404 from the relay (check `PROFILE_INTERNAL_ALLOW_IPS`; the channel's own copy of the secret).
    Fixing the cause does **not** undo the disable, and re-enabling does not fix the cause: do both.
    If you cannot re-enable it in the UI, use the
    [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback) below.
-3. `PAUSED` / `DRAFT`: set the channel back to delivering (or finish saving it) in the monitoring UI.
+3. ~~`PAUSED` / `DRAFT`: set the channel back to delivering (or finish saving it) in the monitoring UI.~~
+   *(Wording until 2026-10-02; replaced by `0369`, which named the control.)*
+   `PAUSED`: the same control — **Alerting → CHANNELS → row → `Unpause channel` (▶)** (seen 2026-10-01,
+   `0369`). `DRAFT`: finish saving it in the monitoring UI — ⚠️ a draft channel has never been looked at;
+   what the UI offers for it is not known.
 4. `no channel's URL equals TELEMETRY_ALERT_PROBE_URL`: compare the channel's URL in the monitoring UI
    with `TELEMETRY_ALERT_PROBE_URL`. They must be identical — a trailing slash counts.
 5. `could not read the channel state`: read `/var/log/uptrace-alert-probe.log` on the monitoring box.
@@ -250,9 +262,56 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
 6. After any fix, run `/opt/uptrace/alert-probe.sh` by hand (its log ends `channel state: …`), then
    `/opt/profile/checks.sh` on the profile box, and confirm `alert-channel-state … OK`.
 
+#### Re-enabling a channel in the monitoring UI
+
+**This runbook's first choice** (task `0369`; seen on the live UI, not taken from vendor docs). It works
+for both `disabled` and `paused`.
+
+1. Open **Alerting → CHANNELS** and find the channel's row (`alerts-to-telegram`, type webhook). Its
+   status shows 🔴 `disabled` or ⚪ `paused`.
+2. Press **`Unpause channel` (▶)**. Hover the row's icons to read their names. Seen while `disabled`, in
+   order: *Test channel · Unpause channel · Edit channel · Delete channel*. While `delivering`, the second
+   action reads **`Pause channel` (⏸)** instead.
+3. Reload the page and check the row reads `delivering`.
+4. Do step 6 of *When `alert-channel-state` fails* above: hand-run the probe (its log ends
+   `channel state: delivering`), then `checks.sh` (`alert-channel-state … OK`).
+5. Prove a message arrives with the throwaway-monitor drill, **not** *Test channel* — see the next
+   subsection.
+
+⚠️ **Bounds:**
+- Seen once, 2026-10-01, on one host, on the monitoring UI version deployed that day.
+- The `disabled` state was set by SQL (as in `0341`), not by a real failed delivery. A vendor-written
+  disable was not seen.
+- The *Edit channel* page was **not opened**, on purpose: it was expected to show the channel's secret.
+  What it shows, and whether it has a status control, is unknown — and not needed.
+- `DRAFT` was not looked at.
+- ✅ A real alert **did** arrive after this UI re-enable: 🚨 at 17:29 and ✅ at 17:30 UTC, 2026-10-01.
+  Compare SQL caveat 2 below: after an SQL re-enable this is still unproven.
+
+#### The Test channel button is not a liveness signal
+
+⚠️ **Only an arrival means something. No arrival from *Test channel* does not mean the channel is dead.**
+
+- On 2026-10-01, after the UI re-enable, the button was pressed 3 times (15:34, 15:43, 16:07 UTC).
+  Nothing reached Telegram.
+- The relay counter `geoconflict_profile_alert_relay` showed no call at those times — the presses never
+  reached the relay.
+- An earlier press the same day (14:31, `0341`, after the SQL re-enable) did arrive and was counted
+  `sent`.
+- All 3 presses also came after a **Pause → Unpause** of the channel (~15:34:01 UTC, a check of the
+  `paused` state); the first press was ~36 s after it.
+- **Cause unknown.** The monitoring stack's container log shows nothing for any press, working or not.
+  Not investigated further (owner ruling, 2026-10-02: a warning only). Whether the re-enable route, or
+  the Pause → Unpause before the presses, matters is not known.
+
+⇒ **To prove delivery, run
+[the throwaway-monitor drill](#the-working-drill-procedure--reusable-run-it-again-whenever-you-need-to)**
+— it delivered 🚨 and ✅ the same afternoon.
+
 #### Re-enabling a DISABLED channel — SQL fallback
 
-**A fallback, not the first choice.** Re-enable in the monitoring UI first. Use this only if you cannot
+**A fallback, not the first choice.** Re-enable in the monitoring UI first
+([how](#re-enabling-a-channel-in-the-monitoring-ui)). Use this only if you cannot
 do it there. It is the reverse of the SQL update `0341`'s drill used, and the one place this method is
 written down (task `0368`).
 
@@ -298,7 +357,8 @@ SQL
       step 3 above;
     - exactly one matching channel and it **is** `disabled` — then the URL did not reach psql (the
       `-e ALERT_PROBE_URL` hand-off into the container failed), so the update compared against the
-      wrong text. Re-enable in the UI instead; do not work around it by pasting the URL into the SQL.
+      wrong text. Re-enable in the UI instead ([how](#re-enabling-a-channel-in-the-monitoring-ui));
+      do not work around it by pasting the URL into the SQL.
   - `ALERT_PROBE_URL is empty …` — the probe is not configured on this box; see *Configuration*.
   - an `ERROR:` line (exit code 3) — the schema is not what this was checked against (was the monitoring
     image upgraded?). Re-verify the schema (task `0285` step 0) before trying anything else.
@@ -307,7 +367,8 @@ SQL
   (`alert-channel-state … OK`). Then confirm a message actually reaches Telegram. In `0341` the
   channel's *Test channel* button did that; ⚠️ it has since failed silently 3 times (`0369`), so **no
   arrival from it does not prove the channel is dead**. The reliable proof is the throwaway-monitor
-  drill (*The working drill procedure* below).
+  drill (*The working drill procedure* below). See
+  [The Test channel button is not a liveness signal](#the-test-channel-button-is-not-a-liveness-signal).
 
 ⚠️ **Caveats, in plain words:**
 
@@ -597,8 +658,9 @@ a rule whose **data** returns below threshold on its own. A rule that cannot go 
 - ⛔ **It does not prove SUSTAINED delivery.** `0283`'s daily digest remains the only non-circular proof
   of that. Unchanged.
 - ⛔ **It says nothing about the 403 channel-disable trap.** `0284`'s liveness probe (above) now guards
-  the **cause** of that trap; the **already-disabled state** is still uncovered and is a separate
-  follow-up.
+  the **cause** of that trap; ~~the **already-disabled state** is still uncovered and is a separate
+  follow-up.~~ *(True until `0285` shipped check 13.)* The already-disabled state is now caught by check
+  13 (`0285`), seen to trip once on the real box (`0341`, 2026-10-01) — see *The channel's own state*.
 
 ### 📝 A naming alias, so nobody hunts for a section that does not exist
 

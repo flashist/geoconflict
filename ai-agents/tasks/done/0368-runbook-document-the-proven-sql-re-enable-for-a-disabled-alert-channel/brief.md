@@ -45,7 +45,7 @@ the smallest independently shippable units, and this work has a clean seam, so t
 
 - **this task (`0368`)** — write down the re-enable method that is **already proven** (the reverse SQL update from
   `0341`'s drill) as a fallback, and say plainly that the UI step is unproven. Needs no outage, no owner time.
-- **[`0369`](../../backlog/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md)** — find
+- **[`0369`](../../done/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md)** — find
   the real UI control for a DISABLED channel (or confirm there is none) and correct the UI wording. Needs a short
   supervised alerting outage on an owner-chosen day.
 
@@ -172,7 +172,7 @@ first; line numbers below are as of 2026-10-01 and will drift with items 1–3:
 ## Notes
 
 - **Depends on:** [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (done 2026-10-01 — the drill that proved the SQL route)
-- **Blocks:** [`0369`](../../backlog/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md)
+- **Blocks:** [`0369`](../../done/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md)
   (soft — `0369` edits the same runbook lines and falls back to this subsection if the UI has no control).
 - **Related:** [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
   (check 13; verified schema) · [`0284`](../../done/0284-alert-path-liveness-probe-a-webhook-403-permanently-disables-uptrace-alerting/brief.md)

@@ -25,7 +25,13 @@ Sprint 7
 > bottom"**. Rank **33 is this task's real place** — not the top group. Appended; nothing above edited (ADR-035).
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
+
+📌 **Set 2026-10-02** by a spawned `fkit-producer` (no owner channel, ADR-021/037), relayed by `fkit-lead` from
+`fkit-sprint-ship-loop`, on OWNER RULING *"Close it (Recommended)"* (live `AskUserQuestion`; ⛔ not producer precedent).
+Step 6 (runbook rewrite) done 2026-10-02 to the owner-approved plan; stateful review round 1 R1–R4 all fixed, ledger
+closed-out, no residuals. Details: [`plan.md`](plan.md), [`worklog.md`](worklog.md), [`review.md`](review.md). The note
+below is the earlier value's, kept as history — true until 2026-10-02: ~~🔄 In progress~~
 
 📌 **Set 2026-10-01** by a spawned `fkit-producer` with no owner channel (ADR-021/037), on facts relayed by
 `fkit-lead` from the live `fkit lead` session; ⛔ not producer precedent. Why: the **live look (steps 1–5) was done
