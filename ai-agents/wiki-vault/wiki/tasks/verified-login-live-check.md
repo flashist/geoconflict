@@ -11,6 +11,16 @@
 > signatures are), was filed and moved onto [[decisions/sprint-7]]. `0340` now waits on `0366`.
 > 📝 *Later the same day:* `0366` was built and closed (agent-closed — not owner-verified), **not deployed** —
 > [[tasks/stale-login-signature-age]]. The cause of `stale` stays unknown until its brackets are read.
+>
+> 📌 **2026-10-02 — CORRECTION (appended to the brief after close; nothing above it edited, ADR-035).** Two counts in
+> the Step 2 table were **wrong by method**: **`absent` is exactly 1 across all of S2, not ≈ 26**, and **`id_mismatch`
+> is 6 in this task's window, not ≈ 8** (read-only exact ClickHouse sums, 2026-10-02, relayed by `fkit-lead`; the ≈
+> figures came from a per-minute average over a series that existed only briefly). **The `ok` / `stale` shares, the
+> failed result and the close are unchanged.** The same exact-sum check found `stale` **flat at ~32–33 %** over ~20 k
+> logins since 2026-09-29 20:05 UTC (~21–26 % at 02–06 UTC, ~40–43 % at 20–23 UTC) — as recorded in `0372`'s brief.
+> **Follow-ups filed the same day:** `0372` — client diagnostics, done (agent-closed — not owner-verified), committed,
+> **not deployed** ([[tasks/stale-login-client-diagnostics]]); and `0373` — read the data and choose the fix, owner-placed
+> at rank 2 on [[decisions/sprint-8]]. `0340` now waits on `0373`.
 
 ## Goal
 
@@ -42,8 +52,8 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
   |---|---|---|
   | `ok` | ≈ 8,200 | ≈ 68 % |
   | `stale` | ≈ 3,800 | ≈ 32 % (≈ 35 % in the last hour — **not falling**) |
-  | `absent` | ≈ 26 | ≈ 0.2 % |
-  | `id_mismatch` | ≈ 8 | < 0.1 % |
+  | `absent` | ~~≈ 26~~ **exactly 1** across all of S2 *(corrected 2026-10-02)* | ~~≈ 0.2 %~~ < 0.1 % |
+  | `id_mismatch` | ~~≈ 8~~ **6** in this window *(corrected 2026-10-02)* | < 0.1 % |
   | `bad_signature`, `bad_payload`, `no_secret` | **0** — no series at all | 0 |
 
 - **Step 3 — client events** (GameAnalytics, 2026-09-29 and 09-30): `Ready` ≈ 8,390 (≈ 99.5 %), `Waited` 46
@@ -91,3 +101,5 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy this read
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line must be read before a second profile deploy
 - [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, client-side follow-up filed 2026-10-02 (age by boot kind, second-call check, held time); `0373` reads it
+- [[decisions/sprint-8]] — where `0373`, the reading task, sits at rank 2

@@ -61,3 +61,4 @@ confirmed (Recommended)"* — this task is B4, and it shipped **only because the
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy that shipped it
 - [[decisions/sprint-6]] — the board that closed it
 - [[decisions/sprint-7]] — where `0337`, the verify task, sits
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: the same-tab reload on match exit is its leading (unproven) cause of `stale` logins

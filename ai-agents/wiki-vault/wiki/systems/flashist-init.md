@@ -80,3 +80,4 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the remote `citizenship_ui` kill switch flipped off and on in production, 2026-09-26
 - [[tasks/match-exit-keeps-query-string]] — task `0331`: a match exit now keeps the query string (Yandex's `sdk` parameter)
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the facade pre-fetches Yandex's signed player data at boot for the profile login
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: `takeYandexPlayerSignature()` now fires signature-age and second-call diagnostics (login unchanged)

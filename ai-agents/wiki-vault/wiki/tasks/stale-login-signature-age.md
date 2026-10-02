@@ -14,6 +14,14 @@
 > the needed things by producer"*, relayed by `fkit-lead`; not producer precedent): the row's *"Not committed"* is now
 > struck through and reads committed in `e581824`, **still NOT deployed**; and the placement directly below `0337` is
 > recorded. The "stale row text" caveat above is now history.
+>
+> 📌 **2026-10-02 — the "next, not filed" step is now filed.** An architect consult (read-only) found these server
+> brackets **cannot pick the fix on their own** (they cannot tell first boot from after-match reload, or whether a
+> second Yandex call returns a newer `issuedAt`). Two tasks followed, on owner rulings: **`0372`** — client diagnostics
+> mirroring these brackets one-to-one, done (agent-closed — not owner-verified), committed in `0c9a620`, **not
+> deployed** ([[tasks/stale-login-client-diagnostics]]); and **`0373`** — read both sets of data and choose the fix,
+> owner-placed at rank 2 on [[decisions/sprint-8]]. The *"fold into the re-check"* ruling (Q2) is now carried out by
+> `0373`.
 
 ## Goal
 
@@ -80,7 +88,7 @@ board to Sprint 7 the same day.
 - **Deploy constraint:** rides Saturday's (2026-10-03/04) profile deploy, or waits until `0297` §1 has read `0309`'s
   log line from the profile container ([[tasks/hmac-construction-log-label]]) — no second profile deploy before
   that read. See [[systems/weekend-deploy-window]].
-- **Next, not filed:** once the brackets are read — a **fix** chosen from them (retune, or the other fix in the
+- **Next** *(filed 2026-10-02 as `0373` — see the note at the top)*: once the brackets are read — a **fix** chosen from them (retune, or the other fix in the
   table) and an **S2-exit re-check** with the owner. Only then can `0340` be considered (it also needs a separate
   owner approval to enforce — [[decisions/adr-116-verified-login]]).
 - **Optional sub-check** (does an old cached build fail to reach the server? — `0339`'s side finding): its result is
@@ -96,3 +104,6 @@ board to Sprint 7 the same day.
 - [[decisions/sprint-backlog]] — where it was filed before the move
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line gates a second profile deploy
 - [[systems/weekend-deploy-window]] — the weekend deploy slot this targets
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, the client-side labels that mirror these brackets (same edges, a parity test)
+- [[decisions/sprint-8]] — where `0373` reads these brackets (rank 2)
+- [[systems/analytics]] — the client mirror of these brackets (`0372`'s `Profile:Login:SignatureAge:*` events)

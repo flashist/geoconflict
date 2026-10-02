@@ -93,3 +93,4 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[systems/flashist-init]] — the facade that pre-fetches the signed player data at boot
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check that FAILED 2026-10-01 (S2 exit not met)
 - [[tasks/stale-login-signature-age]] — task `0366`: counts how old this check's `stale` signatures are (done 2026-10-01, not deployed)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics on this check's `stale` logins (signature age by boot kind, second-call check, held ms on `Ready`); committed, not deployed

@@ -53,3 +53,4 @@ match exit ([[tasks/citizenship-card-vanishes-investigation]]).
 - [[tasks/degraded-mode-ux-treatment]] — task `0049`, the original degraded-mode events
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, whose effect this task's after-match `InitTimeout` share measures
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, which reuses `bootFollowsMatchExit` to split signature age by boot kind

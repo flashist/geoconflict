@@ -5,7 +5,28 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-02 (latest, `2247699`): 5 rows — 5 `🔲 Backlog`; 5 OPEN; still NOT started.** ⚠️ Counted by me this
+> 🆕 **2026-10-02 (latest, `0c9a620`): 6 rows — 6 `🔲 Backlog`; 6 OPEN; still NOT started.** ⚠️ Counted by me this
+> run. Task **`0373` — read the stale-login data and choose the fix** — was filed 2026-10-02 by a spawned
+> `fkit-producer` on owner rulings (filing *"a 'read the data and decide' task for the top of the next sprint"*; the
+> S2-exit threshold — *"Decide it with the data (Recommended)"*), appended at rank 6, then **moved to rank 2 by OWNER
+> RULING**, verbatim *"Move to rank 2 (Recommended)"* (relayed by `fkit-lead`; ⛔ not producer precedent). **New order:
+> `0370` 1 · `0373` 2 · `0363` 3 · `0358` 4 · `0351` 5 · `0343` 6** — all open, so no closed row was renumbered
+> (ADR-035). Owner `fkit-producer`; ⚠️ **the decision is the owner's** (the owner chooses the fix and sets the
+> threshold; GameAnalytics numbers are owner-read).
+>
+> - ⏳ **Rank 2 does not let it start early.** Preconditions: `0372` deployed in a game deploy and `0366` in a profile
+>   deploy (both target 2026-10-03/04), then **5–7 days of data including a weekend evening (UTC 20–23)** — earliest
+>   useful read after the evening of 2026-10-10 (UTC) if both land on time.
+> - **What it reads:** `0366`'s server age brackets ([[tasks/stale-login-signature-age]]) and `0372`'s client events
+>   ([[tasks/stale-login-client-diagnostics]]), after freezing a prediction table **before** the first query. Possible
+>   outcomes: a second Yandex call gives fresh data (→ a small client refetch task); Yandex returns the same signed data
+>   for the whole visit (→ the owner chooses a fix); the 900 s window is simply too tight (→ a retune); a clock problem;
+>   or *"not determined"*.
+> - It is the next step on the chain that blocks `0340` (S3a, [[decisions/adr-116-verified-login]]) and, behind it,
+>   `0332`, `0323`, `0250` S3b, `0248` and `0301`.
+> - The line-3 banner (`🔲 Backlog`) was not touched.
+>
+> *History —* **`2247699` (2026-10-02): 5 rows — 5 `🔲 Backlog`; 5 OPEN; still NOT started.** ⚠️ Counted by me this
 > run. Verify task **`0370`** — for [[tasks/public-lobby-one-minute]] (`0367`, the 1-minute public lobby test) — was
 > filed 2026-10-02 at `0367`'s close (owner ruling *"Close + file both tasks (Recommended)"* plus the standing
 > build/verify-split rule) and placed at **rank 1** (appended at 5, then moved up; no closed row exists here, so none
@@ -13,7 +34,7 @@
 > rule — keep 1 minute if multiplayer matches per day hold or rise **and** the lone-real-player share does not jump
 > noticeably. **Owner rulings 2026-10-02:** the deploy day is left out of both windows; Step 1 (re-run the "before"
 > query) is done **at the weekend deploy (2026-10-03/04), when the owner asks** — whether or not this sprint has started.
-> ⚠️ Rank 1 is **placement, not merit** — but it is the only row with a fixed date. **New order: `0370` 1 · `0363` 2 ·
+> ⚠️ Rank 1 is **placement, not merit** — but it is the only row with a fixed date. **Order then: `0370` 1 · `0363` 2 ·
 > `0358` 3 · `0351` 4 · `0343` 5.** The line-3 banner was not touched.
 >
 > *History —* **`4f9f857` (2026-10-01): 4 rows — 4 `🔲 Backlog`; 4 OPEN; still NOT started.** ⚠️ Counted by me this
@@ -52,14 +73,14 @@ citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog
 test to the producer**.
 
 - **Named 2026-09-29 — owner ruling D**, exact wording: *"Paid Citizenship Perks and More Content"*.
-- ⚠️ **No goal set.** The producer did not invent one; the name is not a goal.
+- ⚠️ **No goal set.** The producer did not invent one; the name is not a goal. *(Sprint 7's goal was set 2026-10-02 — see [[decisions/sprint-7]]; this board's was not.)*
 - **Not started** — the owner did not start this sprint.
 
 ## Decision
 
 | Rank | Task | Status |
 |---|---|---|
-| ~~1~~ **3** *(first row of a new board — a position, not a merit rank; moved down by the two verify tasks above, 2026-09-30)* | `0343` **Discussion: eight parked features** — paid-citizenship perks and more | Backlog |
+| ~~1~~ ~~3~~ **6** *(first row of a new board — a position, not a merit rank; moved down by the verify tasks and `0373` above — 2026-09-30, 2026-10-01, 2026-10-02)* | `0343` **Discussion: eight parked features** — paid-citizenship perks and more | Backlog |
 
 **What `0343` holds:**
 
@@ -94,3 +115,8 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/worker-reuses-page-map]] — task `0035`, verified by `0351` (rank 2)
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, verified by `0363` (rank 1)
 - [[tasks/public-lobby-one-minute]] — task `0367`, verified by `0370` (rank 1, filed 2026-10-02)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, the client events `0373` (rank 2) reads
+- [[tasks/stale-login-signature-age]] — task `0366`, the server brackets `0373` (rank 2) reads
+- [[tasks/verified-login-live-check]] — task `0339`, the failed live check that started the `0373` chain
+- [[decisions/adr-116-verified-login]] — the verified-login decision; `0340` (S3a) waits on `0373`
+- [[systems/analytics]] — the `0372` events `0373` (rank 2) reads

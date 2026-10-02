@@ -1,8 +1,13 @@
 # Analytics System
 
 **Layer**: client
-**Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
+**Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-02 — 24 new profile-login diagnostic events (task `0372`)**: `Profile:Login:SignatureAge:*` (20) and
+> `Profile:Login:Signature:Refetch:*` (4), plus a held-ms value on `Profile:Login:Signature:Ready`. Committed in
+> `0c9a620`, **not deployed** (targets the 2026-10-03/04 game deploy). See *Profile Login Signature Age Events* below
+> and [[tasks/stale-login-client-diagnostics]].
+>
 > 🆕 **2026-09-26 — the citizenship and inbox events CAN NOW FIRE in production.** `CITIZENSHIP_CARD_ENABLED`
 > is `true` since release `0.0.154` ([[tasks/citizenship-go-live]]); the *"zero citizenship events have ever
 > fired"* and *"gated by `false`"* statements below are the pre-launch record. What is known: **one real
@@ -332,13 +337,17 @@ for now, in its own metric `geoconflict.profile.login.verification` (Uptrace, no
 
 - **At most one of these four per take** — once per page load, plus once per `Profile:Session:Relogin`.
 - **Guests fire none**, and neither does a load with no SDK. **Not gated** by `CITIZENSHIP_CARD_ENABLED`.
-- ⛔ They carry nothing but their name, plus a wait in ms on `Waited` / `Timeout`. **Never the signature.**
+- ⛔ They carry nothing but their name, plus a wait in ms on `Waited` / `Timeout` and (since task `0372`, A3) the ms
+  held on `Ready`. **Never the signature.**
+- 🆕 Task `0372` adds, on the same take, at most one `Profile:Login:SignatureAge:*` event and (first take of the page
+  load only) at most one `Profile:Login:Signature:Refetch:*` event — see the next section. The Refetch events share
+  this prefix but are **not** among the four: exclude them when counting takes.
 - **No wait limit on a slow answer (D1)** — only a call still silent 60 s after login asked counts as failed.
   In every non-`Ready`/`Waited` case the login is still sent, unsigned, so it is unverified — never refused.
 
 | Event | When |
 |---|---|
-| `Profile:Login:Signature:Ready` | The boot pre-fetch had already finished when login asked, and was at most 300 s old. No wait |
+| `Profile:Login:Signature:Ready` | The boot pre-fetch had already finished when login asked, and was at most 300 s old. No wait. **Value** (task `0372`, A3): ms held — `askedAt − fetchedAt` of the pre-fetch, 0–300 000; before the `0372` build it carried no value |
 | `Profile:Login:Signature:Waited` | Login waited and got a usable signature. **Value:** ms waited. Relogins, a held signature over 300 s old, and a degraded boot that recovered late land here |
 | `Profile:Login:Signature:Timeout` | The 60 s hang net fired. **Value:** ms waited (≈ 60 000 by construction; the count is what matters) |
 | `Profile:Login:Signature:Failed` | The signed call threw, returned no string, or an empty or over-long one (over `SIGNATURE_MAX` = 2932) |
@@ -352,6 +361,64 @@ for now, in its own metric `geoconflict.profile.login.verification` (Uptrace, no
 (≈ 99.5 %), `Waited` 46 (mean 575 / ≈ 811 ms — **mean only**, GameAnalytics offered no percentile), `Timeout` 0,
 `Failed` 0. ⚠️ GameAnalytics showed a *"Demo mode"* banner while read — the data has this project's own events, so it
 reads as real; noted, not proven.
+
+## Profile Login Signature Age Events (task `0372` — built 2026-10-02, committed `0c9a620`, NOT deployed)
+
+Client diagnostics for the ~1 in 3 profile logins the server calls `stale` ([[tasks/stale-login-client-diagnostics]];
+the reading is task `0373` on [[decisions/sprint-8]]). **Analytics only: login sends exactly the signature it sent
+before, at the same moment.** Fired from `takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`;
+pure helpers in `src/client/SignatureAgeAnalytics.ts`. ⚠️ Targets the 2026-10-03/04 game deploy; **not yet seen
+arriving**.
+
+**A1 — `Profile:Login:SignatureAge:<BootKind>:<Label>`** (20 strings, no value)
+
+- Fires once on **every take that returns a signature** (`Ready` and `Waited` paths — boot login and every relogin),
+  never on `Timeout` / `Failed`, never for a guest or with no SDK. Counting relogins keeps it comparable with the
+  server's ~32 % `stale` share.
+- `<BootKind>`: `AfterMatch` when this page load follows a match exit (`bootFollowsMatchExit`, the same flag as
+  `Session:PlatformDegraded`, task `0328`), else `FirstBoot`.
+- `<Label>`: device now − `issuedAt`, bracketed with **exactly the server's edges** (task `0366`,
+  [[tasks/stale-login-signature-age]]); a test sweeps every edge against the server's function.
+- Five colon parts — the GameAnalytics maximum (each part ≤ 64 chars).
+- ⚠️ **Device-clock caveat:** a wrong device clock lands in the far `Future*` / `Past*` labels and can mark stale a
+  signature the server finds fresh. **Check first** that the client's non-`Fresh` share is close to the server's ~32 %.
+
+| Client label | Server (`0366`) | Age = device now − `issuedAt` |
+|---|---|---|
+| `Fresh` | `ok` | at most 900 s old **and** at most 300 s ahead (both inclusive) |
+| `Future5m15m` | `future_5m_15m` | 300 s < ahead ≤ 900 s |
+| `FutureOver15m` | `future_over_15m` | ahead > 900 s |
+| `Past15m20m` | `past_15m_20m` | 900 s < age ≤ 1 200 s |
+| `Past20m30m` | `past_20m_30m` | ≤ 1 800 s |
+| `Past30m1h` | `past_30m_1h` | ≤ 3 600 s |
+| `Past1h6h` | `past_1h_6h` | ≤ 21 600 s |
+| `Past6h24h` | `past_6h_24h` | ≤ 86 400 s |
+| `PastOver24h` | `past_over_24h` | > 86 400 s |
+| `Unreadable` | — (client only) | `issuedAt` could not be read (no dot, bad base64, not JSON, missing / non-finite, over `SIGNATURE_MAX`) |
+
+**A2 — `Profile:Login:Signature:Refetch:<Result>`** (4 strings, no value) — does a second Yandex call return a newer
+signature? Both `issuedAt` values come from Yandex, so **no clock is involved**.
+
+- Only when A1's label is one of the six `Past*`; only on the **page load's first take** (never a relogin); **at most
+  one extra `getPlayer({ signed: true })` per page load, never retried**; no cross-load cap (owner ruling 2026-10-02).
+- **Login is not held up** — the call is started, not awaited; login sends the **original** signature (owner ruling
+  2026-10-02); the second one is used only for the comparison and dropped.
+- Exactly one event per comparison started — unless the player leaves the page before it answers (within the 60 s
+  net), in which case nothing is counted.
+
+| Event | When |
+|---|---|
+| `Profile:Login:Signature:Refetch:Newer` | The second `issuedAt` is strictly later |
+| `Profile:Login:Signature:Refetch:Same` | Equal |
+| `Profile:Login:Signature:Refetch:Older` | Strictly earlier — not expected; its own label (owner ruling Q1) so it never hides inside another |
+| `Profile:Login:Signature:Refetch:Failed` | The call threw, returned no usable signature, one whose `issuedAt` is `Unreadable`, or stayed silent 60 s |
+
+**Reading them (task `0373`):** `Newer` ≫ `Same` ⇒ a second call on the same page would fix stale logins; `Same`
+dominant ⇒ it would not. ⚠️ `Same` cannot tell Yandex's servers reusing the signed data from the Yandex SDK caching
+it in the page — either way a same-page refetch would not fix it. A2's sample can include wrong-clock loads, and A2
+does not carry A1's label. ⚠️ **Yandex call limit** (20 player calls per 5 min, documented; whether `getPlayer`
+counts is unclear): A2 adds at most one call per page load — if the limit bites, that call counts `Failed`, or a
+later load's own call may fail instead. Bounded, not zero.
 
 ## Monetization Measurement Baseline
 
@@ -544,3 +611,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/worker-reuses-page-map]] — task `0035`, worker-failure telemetry silent after a leave
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, the `Citizenship:TenureGrant:Claimed` popup timing
 - [[tasks/verified-login-live-check]] — task `0339`: the first live counts of the four `Profile:Login:Signature:*` events
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: the 20 `Profile:Login:SignatureAge:*` + 4 `Profile:Login:Signature:Refetch:*` events and `Ready`'s held-ms value (committed, not deployed)

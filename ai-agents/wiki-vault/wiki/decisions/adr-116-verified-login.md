@@ -25,6 +25,13 @@
 > counts as `stale` are unchanged; no decision changed. **S3a (`0340`) still has not started** — it waits on the
 > brackets being read after a deploy, a fix chosen from them, and an S2-exit re-check with the owner. See
 > [[tasks/stale-login-signature-age]].
+>
+> 📝 **2026-10-02 — the chain to S3a got two more steps (vault note; the canonical ADR did not change in this
+> window).** `0372` (client diagnostics: signature age by boot kind, a second-call check, held ms) is built — done
+> (agent-closed — not owner-verified), committed, **not deployed** — and `0373` (read the data, choose the fix; the
+> owner sets the S2-exit threshold there, *"Decide it with the data (Recommended)"*) sits at rank 2 on
+> [[decisions/sprint-8]]. **`0340`'s dependency now points at `0373`.** Still no decision changed; S3a still needs the
+> S2 exit met **and** a separate owner approval. See [[tasks/stale-login-client-diagnostics]].
 
 ## Context
 
@@ -144,3 +151,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case stays open until `0332`
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check: FAILED 2026-10-01 (S2 exit not met); follow-up `0366`
 - [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics feeding `0373`, the reading task S3a (`0340`) now waits on (done 2026-10-02, not deployed)

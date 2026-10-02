@@ -1,11 +1,35 @@
-# Sprint 7 *(no theme name yet)*
+# Sprint 7 *(no theme name yet — goal set 2026-10-02)*
 
 **Date**: 2026-09-27
 **Status**: proposed *(page-type field; the board is **🔄 In progress since 2026-09-29** — see below)*
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-02 (latest, `57f3147`) — 35 ROWS, 13 OPEN: `0369` DONE · "NOT COMMITTED" CORRECTED
+> # 🆕 2026-10-02 (latest, `0c9a620`) — 36 ROWS, 13 OPEN: GOAL SET · `0372` ADDED AND DONE · `0219` G3/G4 STAY DEFERRED
+>
+> **Re-counted at `HEAD` = `0c9a620`, by each row's leading status glyph: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` ·
+> 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 35 / 13). ⚠️ Counted by me this run.
+>
+> - 🎯 **Sprint goal set by OWNER RULING** (live `AskUserQuestion` in the `fkit lead` session — the owner typed his own
+>   answer — relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent). Verbatim: ***"The goal is
+>   bugfixes and extending citizenship/profiles features."*** ⚠️ The owner gave **no scope list, no success criteria
+>   and no row changes** with it; none were added. **Still open:** the theme name (the H1 is still *"Sprint 7"*).
+> - **`0219` G3/G4 stay deferred — OWNER RULING**, verbatim *"Keep deferred (Recommended)"* — even though `0285` and
+>   `0289`, deferred alongside them on 2026-09-19, are now both closed. Status and rank unchanged.
+> - **`0372` added at rank 35 and done (agent-closed — not owner-verified)** — [[tasks/stale-login-client-diagnostics]]:
+>   client-only analytics for stale login signatures (A1 age by boot kind, A2 second-call `Newer`/`Same`/`Older`/`Failed`,
+>   A3 held ms on `Ready`); login unchanged. Owner ruling *"Close it (Recommended)"*. Rank 35 is an **append rank**,
+>   not merit — owner ruling *"Leave the number, start now (Recommended)"*; on merit it sits with `0366`. Code in
+>   `0c9a620` (the row still says *"Not committed"* — written before the commit); 🚨 **not deployed** — targets the
+>   2026-10-03/04 game deploy. Its partner **`0373`** (read the data, choose the fix) was filed on [[decisions/sprint-8]]
+>   and owner-placed at rank 2 there.
+> - `0340`'s brief: its gate is now preceded by `0372` + `0373`, and its `Depends on` line was repointed to `0373`.
+>   `0339`'s brief and worklog carry a dated correction (`absent` exactly 1, `id_mismatch` 6) —
+>   [[tasks/verified-login-live-check]].
+>
+> ---
+>
+> # 2026-10-02 (`57f3147`) — 35 ROWS, 13 OPEN: `0369` DONE · "NOT COMMITTED" CORRECTED *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `57f3147`, by each row's leading status glyph: 35 rows — 19 `✅ Done` · 9 `🔲 Backlog` ·
 > 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 35 / 14). No `🔄 In progress` row remains. ⚠️ Counted
@@ -187,9 +211,16 @@ producer precedent), verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to 
 moved rows here; they did not start this sprint.**
 
 - ⚠️ **No theme name — an open owner question.** The title is just *"Sprint 7"*.
-- ⚠️ **No goal set.** The producer did not invent one. The source describes the contents, not a goal.
+- 🎯 **Goal — set 2026-10-02 by OWNER RULING**, verbatim: ***"The goal is bugfixes and extending citizenship/profiles
+  features."*** Plain gloss: fixing bugs, and building out the citizenship and player-profile features. No scope list,
+  success criteria or row changes came with it. *(History: from 2026-09-27 until that ruling there was no goal; the
+  producer did not invent one.)*
 
 ## Decision
+
+**The board at `0c9a620` (2026-10-02)** — the open rows are the same 13 as at `57f3147` below (`0219`'s G3/G4 deferral
+re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026-10-02:** 35 `0372` — `✅ Done
+(agent-closed — not owner-verified)`.
 
 **The board at `57f3147` (2026-10-02), open rows by rank** — ranks are positions, not merit (see above):
 
@@ -379,3 +410,4 @@ moved rows here; they did not start this sprint.**
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, rank 32, closed 2026-10-02 (runbook SQL fallback; tested locally only)
 - [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it on Sprint 8
