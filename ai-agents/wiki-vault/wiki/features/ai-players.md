@@ -41,6 +41,8 @@ During preparation countdown:
 3. AI cap: `N_ai <= aiPlayersMax`
 4. Inject AI to meet target using jitter delays (deterministic RNG per `lobbyId + joinIndex`)
 
+> 📌 **2026-10-02 (task `0367`):** in production no `timeoutSec` is set, so the ramp runs over the **whole public lobby window** (`gameCreationRate()`), and a lobby holding any AI player never starts early — it waits the full window. When `0367` cut that window 120 s → 60 s, AI players began arriving **twice as fast**, reaching the **same** target by the start. Per `0367`'s brief (code reading). See [[tasks/public-lobby-one-minute]].
+
 ### In-Match Behavior
 
 AI Players are created in `GameRunner` from `gameStartInfo.aiPlayers`. `ExecutionManager.aiPlayerExecutions()` drives them through `FakeHumanExecution`, which initializes shared `BotBehavior` logic. AI execution randomness is seeded by `gameID + playerID` for determinism.
@@ -120,3 +122,4 @@ There is no direct player-facing intent for AI creation. The server and shared c
 - [[tasks/winmodal-participation-comment-correction]] — task `0207`, the participation comment that misdescribes this player type
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, the FFA award an AI player would have been eligible for. 🔴 **REVERTED 2026-09-04 — never deployed**
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which **expires ADR-110's T1 argument** by making crediting independent of any winner
+- [[tasks/public-lobby-one-minute]] — task `0367`: the lobby window this ramp spans was halved to 60 s (2026-10-02)

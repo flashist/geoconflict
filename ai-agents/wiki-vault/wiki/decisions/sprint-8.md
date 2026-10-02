@@ -5,13 +5,24 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-01 (latest, `4f9f857`): 4 rows — 4 `🔲 Backlog`; 4 OPEN; still NOT started.** ⚠️ Counted by me this
+> 🆕 **2026-10-02 (latest, `2247699`): 5 rows — 5 `🔲 Backlog`; 5 OPEN; still NOT started.** ⚠️ Counted by me this
+> run. Verify task **`0370`** — for [[tasks/public-lobby-one-minute]] (`0367`, the 1-minute public lobby test) — was
+> filed 2026-10-02 at `0367`'s close (owner ruling *"Close + file both tasks (Recommended)"* plus the standing
+> build/verify-split rule) and placed at **rank 1** (appended at 5, then moved up; no closed row exists here, so none
+> was renumbered). Read-only: compare the 7 days after the game-server deploy with the 7 days before, on the owner-ruled
+> rule — keep 1 minute if multiplayer matches per day hold or rise **and** the lone-real-player share does not jump
+> noticeably. **Owner rulings 2026-10-02:** the deploy day is left out of both windows; Step 1 (re-run the "before"
+> query) is done **at the weekend deploy (2026-10-03/04), when the owner asks** — whether or not this sprint has started.
+> ⚠️ Rank 1 is **placement, not merit** — but it is the only row with a fixed date. **New order: `0370` 1 · `0363` 2 ·
+> `0358` 3 · `0351` 4 · `0343` 5.** The line-3 banner was not touched.
+>
+> *History —* **`4f9f857` (2026-10-01): 4 rows — 4 `🔲 Backlog`; 4 OPEN; still NOT started.** ⚠️ Counted by me this
 > run. Verify task **`0363`** — for [[tasks/telemetry-deploy-version-tags]] (`0356`) — was filed 2026-10-01 and placed
 > at **rank 1** by `fkit-lead` at `0356`'s close, on the owner's standing build/verify-split rule (appended at 4, then
 > moved up; no closed row exists here, so none was renumbered). Owner-run after the weekend telemetry deploy: the
 > deploy printed a `<base>-telemetry.<N>` name and succeeded; the annotated git tag is on origin at the deployed
 > commit; the box marker and the local deploy record show the same version and commit; Uptrace still answers.
-> ⚠️ Preconditions: `0356` **committed** and deployed. Does not block Sprint 7's deploy. **New order: `0363` 1 ·
+> ⚠️ Preconditions: `0356` **committed** and deployed. Does not block Sprint 7's deploy. **Order then: `0363` 1 ·
 > `0358` 2 · `0351` 3 · `0343` 4.** ⚠️ `0363` above `0358` is **placement, not merit** — two short owner checks on
 > different boxes, runnable in either order. The line-3 banner was not touched.
 >
@@ -82,3 +93,4 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/profile-deploy-version-tags]] — task `0355`, verified by `0358` (rank 1)
 - [[tasks/worker-reuses-page-map]] — task `0035`, verified by `0351` (rank 2)
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, verified by `0363` (rank 1)
+- [[tasks/public-lobby-one-minute]] — task `0367`, verified by `0370` (rank 1, filed 2026-10-02)

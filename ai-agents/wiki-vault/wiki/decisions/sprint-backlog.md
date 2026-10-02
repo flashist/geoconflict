@@ -3,7 +3,19 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-01 (latest) at `HEAD` = `4f9f857` — SIX ROWS ADDED, ONE MOVED STRAIGHT ON TO SPRINT 7
+> # 📊 RE-COUNTED 2026-10-02 (latest) at `HEAD` = `2247699` — ONE ROW ADDED AND MOVED STRAIGHT ON TO SPRINT 7
+>
+> **`backlog.md`: 117 rows — 86 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
+> 89 OPEN** (was 116 / 89 — open count unchanged). Counted by me this run, by each row's leading status glyph.
+>
+> - `0371` — make the profile-deploy-hardening shell harness finish inside its 150 s deadline again. Filed here
+>   2026-10-02 at `0367`'s close (owner ruling *"Close + file both tasks (Recommended)"*) with placement unruled, then
+>   **moved to Sprint 7 the same day** on owner ruling *"Move into Sprint 7 (Recommended)"* (row now `➡️ Moved to
+>   Sprint 7 — priority 34`). Done the same day — see [[tasks/hardening-harness-speedup]].
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-10-01 at `HEAD` = `4f9f857` — SIX ROWS ADDED, ONE MOVED STRAIGHT ON TO SPRINT 7 *(history — superseded above)*
 >
 > **`backlog.md`: 116 rows — 86 `🔲 Backlog` · 22 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
 > 89 OPEN** (was 110 / 84). Counted by me this run, by each row's leading status glyph. All six filed 2026-10-01 by
@@ -708,3 +720,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/player-name-lost-space]] — task `0308` (cancelled 2026-10-01), source of `0364` and `0365`
 - [[tasks/verified-login-live-check]] — task `0339` (failed 2026-10-01), source of `0366`
 - [[tasks/stale-login-signature-age]] — task `0366`, filed here 2026-10-01 and moved to Sprint 7 the same day; done
+- [[tasks/hardening-harness-speedup]] — task `0371`, filed here 2026-10-02 and moved to Sprint 7 the same day; done

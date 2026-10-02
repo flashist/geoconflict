@@ -196,6 +196,14 @@ runbook's *"re-enable in the UI"* step is **unproven by that drill**. Filed as `
 `disabled` channel is re-enabled in the UI by **`Unpause channel` (▶)**, and ⚠️ the *Test channel* button failed
 silently three times in that session. The runbook is **not yet corrected** — `0369`'s rewrite step is pending.
 
+📌 **2026-10-02 — `0368` done (agent-closed — not owner-verified; committed in `2247699`):** the runbook now carries
+§ *Re-enabling a DISABLED channel — SQL fallback* — a guarded update (only a `disabled` channel, only when exactly one
+channel has the probe's URL), the URL sent as a bound parameter so it never reaches output or logs, `UPDATE 1` expected.
+The three UI re-enable sentences point to it; per owner ruling they do **not** call the UI control unproven (`0369`
+found it). 🚩 **Tested on a throwaway local Postgres only, not on the box**, and a **real monitor-fired alert after an
+SQL re-enable is still unproven**. Check 13's *"not yet seen to trip"* runbook lines are now struck as history. See
+[[tasks/alert-channel-sql-reenable-runbook]]. `0369` (name the UI control) is still open.
+
 ### Three ways the probe will surprise you
 
 1. 🚩 **A rolled-back profile image predating `0284` never writes the marker.** The daily check then
@@ -362,7 +370,8 @@ for that deploy; do not discover it at 3 a.m.**
   reading) arrived after **4 h 36 min** of silence, Alerts topic empty. ⛔ **Still unproven:** an overnight gap; whether
   the retry was used; the **monitoring → relay** hop after quiet; the Alerts-topic route itself (the evidence went to the
   Name Changes topic). See [[tasks/alert-delivery-after-idle]]. The runbook line saying *unproven* is updated by `0368`,
-  not yet done.
+  ~~not yet done~~ — 📌 **done 2026-10-02**: the runbook's IDLE paragraph now states the observed 4 h 36 min result
+  with every bound ([[tasks/alert-channel-sql-reenable-runbook]]).
 
 ### The fail-silent Telegram defect this relay refuses to inherit
 
@@ -420,3 +429,4 @@ only; idle-period delivery is still `0289`'s *(closed 2026-10-01, bounded to 4 h
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, which kept this relay's allowlist entry and closed step 5 on indirect evidence
 - [[tasks/name-change-digest-pending-list]] — task `0315` (2026-09-27): the digest's second message lists pending requests
 - [[decisions/sprint-7]] — the board carrying `0341`, `0289`, `0368` and `0369`
+- [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's SQL fallback for re-enabling a disabled channel, and the idle-result update

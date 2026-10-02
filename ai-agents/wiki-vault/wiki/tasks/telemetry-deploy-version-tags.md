@@ -67,3 +67,4 @@ recorded it: no git read, no deploy record, no marker on the box.
 - [[tasks/profile-deploy-hardening]] — the shell harness this extends
 - [[systems/weekend-deploy-window]] — the slot the first tagged telemetry deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0363`
+- [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): this task's new harness checks multiplied the stub writes that pushed the hardening harness past its 150 s deadline; fixed test-side

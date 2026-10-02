@@ -19,7 +19,8 @@
 > counters unchanged; drill: SQL disable → `channel state: disabled` → `alert-channel-state … DISABLED` FAIL → the
 > dead-man's switch page seen ~14:26 UTC → re-enabled → OK; alerting down ≈ 3 min. 🚨 **One deviation:** the channel was
 > re-enabled by the **reverse SQL update, not in the UI** (ruling Q3's method) — so the UI re-enable path is **not**
-> proven by it (filed `0368` + `0369`). The "not yet seen to trip" lines below are history.
+> proven by it (filed `0368` + `0369`). The "not yet seen to trip" lines below are history. 📌 *2026-10-02:* `0368` done —
+> the runbook's own "not yet seen to trip" lines are struck too, and it gained the SQL fallback ([[tasks/alert-channel-sql-reenable-runbook]]).
 >
 > ⛔ No hosts, IPs, URLs, chat or topic ids, or secrets on this page.
 
@@ -77,3 +78,4 @@ automatic re-enable. Kept separate from `0284` by owner ruling D4 — do not fol
 - [[systems/telemetry]] — the monitoring box and its Postgres
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/uptrace-channel-state-production-check]] — task `0341`, the production check and drill (passed 2026-10-01, SQL re-enable)
+- [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's check-13 lines updated and the SQL re-enable fallback added

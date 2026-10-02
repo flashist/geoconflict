@@ -61,7 +61,8 @@ the producer verified none of it):**
 
 **Carried elsewhere:** the runbook update this task owed (*"delivery after an IDLE period is unproven"* → this bounded
 result) **rides `0368`** as a dated scope addition, owner-confirmed 2026-10-01 (*"Yes, keep it in 0368
-(Recommended)"*). Until `0368` lands, the runbook still says *unproven*.
+(Recommended)"*). ~~Until `0368` lands, the runbook still says *unproven*.~~ 📌 **2026-10-02: `0368` landed** — the
+runbook's IDLE paragraph now states this bounded result, drill not run, every bound kept. See [[tasks/alert-channel-sql-reenable-runbook]].
 
 ## Related
 
@@ -76,3 +77,4 @@ result) **rides `0368`** as a dated scope addition, owner-confirmed 2026-10-01 (
 - [[decisions/sprint-7]] — the board (rank 27); closed 2026-10-01
 - [[systems/weekend-deploy-window]] — the 2026-09-29 window that deferred this to a quiet day
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`, whose close named this as an open residual
+- [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, which carried this task's runbook edit (done 2026-10-02)

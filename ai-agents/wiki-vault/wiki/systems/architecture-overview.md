@@ -52,7 +52,7 @@ The server is a **relay, not a simulator** — clients execute the game logic. S
 One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/static; each worker serves HTTP + WebSocket. Prod runs 20 workers, dev/preprod 2.
 
 - **Game placement is deterministic sharding, not load balancing** — `workerIndex(gameID) = simpleHash(gameID) % numWorkers()`. The **client computes the same index independently** to pick its worker URL, so client and server must ship the same worker count and be deployed together.
-- **Public lobby scheduling is master-side**: a 100 ms interval polls lobbies and creates one when none is open. The lobby window is 120,000 ms.
+- **Public lobby scheduling is master-side**: a 100 ms interval polls lobbies and creates one when none is open. The lobby window (`gameCreationRate()`) is **60,000 ms in prod and preprod** (dev overrides it to 5,000 ms). *Changed 2026-10-02 by task `0367`, committed in `2247699` — ~~120,000 ms~~ until then; ⚠️ **not yet deployed** (weekend game-server slot), and it is framed as a test with a one-number revert. See [[tasks/public-lobby-one-minute]].*
 - **Join** caps 3 concurrent clients per IP on public games, kicks a same-`persistentID` client in prod, supports reconnect, and upserts the player's profile.
 - **Winner** is decided by a vote counted **by unique IP**. Hard game cap is 3 h.
 - **Auth is three independent layers**: player identity (a `PersistentId` UUID is accepted anonymously with no cryptography; otherwise EdDSA-only JWT verification), cosmetic entitlements (**fails open** — see [[decisions/adr-102-privilege-refresher-fails-open]]), and an admin/service header key.
@@ -288,3 +288,4 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/client-source-map-upload-verification]] — task `0260`, the source-map correction recorded above
 - [[tasks/worker-start-failure-reporting]] — task `0348` (2026-09-30): the worker start limit is now 15 s
 - [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map
+- [[tasks/public-lobby-one-minute]] — task `0367` (2026-10-02): the public lobby window cut 120 s → 60 s

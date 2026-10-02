@@ -5,7 +5,33 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-01 (latest, `e11f2eb`) — 34 ROWS, 16 OPEN: `0221`, `0341`, `0289` DONE · `0367`, `0368`, `0369` ADDED
+> # 🆕 2026-10-02 (latest, `2247699`) — 35 ROWS, 14 OPEN: `0367`, `0368`, `0371` DONE · `0371` MOVED IN
+>
+> **Re-counted at `HEAD` = `2247699`, by each row's leading status glyph: 35 rows — 18 `✅ Done` · 9 `🔲 Backlog` ·
+> 4 `🚧 Blocked` · 1 `🔄 In progress` (`0369`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 14 OPEN** (was 34 / 16). ⚠️ Counted by
+> me this run.
+>
+> - **`0367` done (agent-closed — not owner-verified)** — [[tasks/public-lobby-one-minute]]: the public lobby window
+>   cut 120 s → 60 s (prod + preprod), a test. **Committed in `2247699` (verified); not deployed** — weekend game-server
+>   slot 2026-10-03/04 (the board row still reads "not committed", written before the commit). Closed over a red full
+>   `npm test` by owner ruling *"Close + file both tasks (Recommended)"* — the red ruled pre-existing. "Before"
+>   baseline: lone-real-player share 12.4 %. Verify task `0370` filed at the top of [[decisions/sprint-8]].
+> - **`0368` done (agent-closed — not owner-verified)** — [[tasks/alert-channel-sql-reenable-runbook]]: the runbook's
+>   SQL fallback for a disabled alert channel, plus `0289`'s idle result. Owner ruling *"Keep fix + close
+>   (Recommended)"* also accepted a review fix that changes behaviour (the update now touches only a `disabled`
+>   channel). 🚩 Command tested locally only, **not on the box**.
+> - **`0371` filed, moved in, and done (agent-closed — not owner-verified)** — [[tasks/hardening-harness-speedup]]:
+>   filed on the Backlog board at `0367`'s close; owner ruled *"Move into Sprint 7 (Recommended)"* → **rank 34**
+>   (append position, ADR-035). The harness is fast again (255 s → 54 s alone, 740 checks unchanged); full `npm test`
+>   green twice in a row. ⚠️ Accepted residual: heavy machine load can still cause a 150 s kill.
+> - **Owner rulings on `0370` (2026-10-02):** the deploy day is **left out** of both 7-day windows; its Step 1 (re-run the
+>   "before" query) is done **at the weekend deploy**, read-only, **when the owner asks** — it falls inside this sprint
+>   and nobody runs it unprompted.
+> - `0369` unchanged: `🔄 In progress`, runbook rewrite (step 6) pending.
+>
+> ---
+>
+> # 2026-10-01 (`e11f2eb`) — 34 ROWS, 16 OPEN: `0221`, `0341`, `0289` DONE · `0367`, `0368`, `0369` ADDED *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `e11f2eb`, by each row's leading status glyph: 34 rows — 15 `✅ Done` · 11 `🔲 Backlog` ·
 > 4 `🚧 Blocked` · 1 `🔄 In progress` (`0369`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 16 OPEN** (was 31 / 16). ⚠️ Counted by
@@ -148,6 +174,29 @@ moved rows here; they did not start this sprint.**
 
 ## Decision
 
+**The board at `2247699` (2026-10-02), open rows by rank** — ranks are positions, not merit (see above):
+
+| Rank | Task | Status |
+|---|---|---|
+| 1 | `0337` verify `0331` in production | Backlog |
+| — | `0027` New Maps — Community Demand (tracker; unranked ≠ low) | Backlog |
+| 4 | `0030` S3-backed match archival | Backlog |
+| 5 | `0032` client null-id errors | Blocked |
+| 6 | `0219` profile P4 operability | Blocked |
+| 8 | `0323` mark a server-confirmed approved name | Backlog |
+| 9 | `0332` join token | Backlog |
+| 14 | `0213` epic — profile backend + S3 | Backlog |
+| 16 | `0340` `0325` S3a — mint verified sessions | Backlog |
+| 17 | `0250` authenticated profile read | Blocked |
+| 18 | `0248` suppress interstitial ads for paid citizens | Backlog |
+| 19 | `0301` citizenship explainer popup | Backlog |
+| 21 | `0297` paid citizenship owner-run test-buy | Blocked |
+| 33 | `0369` find the UI re-enable and correct the runbook | **In progress** |
+
+**Closed 2026-10-02** (all `✅ Done (agent-closed — not owner-verified)`): 31 `0367`, 32 `0368`, 34 `0371`.
+
+*The table below is the board at `e11f2eb` (2026-10-01), kept as history.*
+
 **The board at `e11f2eb` (2026-10-01), open rows by rank** — ranks are positions, not merit (see above):
 
 | Rank | Task | Status |
@@ -287,3 +336,6 @@ moved rows here; they did not start this sprint.**
 - [[tasks/uptrace-channel-state-production-check]] — task `0341`, rank 26, closed 2026-10-01 (passed; SQL re-enable, UI unproven)
 - [[tasks/alert-delivery-after-idle]] — task `0289`, rank 27, closed 2026-10-01 on observed evidence, bounded to 4 h 36 min
 - [[systems/alert-delivery]] — the alert path `0341`, `0289`, `0368` and `0369` concern
+- [[tasks/public-lobby-one-minute]] — task `0367`, rank 31, closed 2026-10-02 (agent-closed — not owner-verified); committed in `2247699`, not deployed; verify `0370` on Sprint 8
+- [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, rank 32, closed 2026-10-02 (runbook SQL fallback; tested locally only)
+- [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02

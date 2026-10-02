@@ -54,7 +54,8 @@ original profile-first order. See [[systems/weekend-deploy-window]].
   find the control in time, and the row actions seen were *Test / Pause / Edit / Delete*. 📌 *2026-10-01, later
   (from the Sprint 7 board's `0369` row):* `0369`'s live look found a `disabled` channel is re-enabled in the UI by
   **`Unpause channel` (▶)**, and ⚠️ its *Test channel* button failed silently three times there. `0369`'s runbook
-  rewrite is still pending.
+  rewrite is still pending. 📌 *2026-10-02:* `0368` is done — this drill's SQL re-enable is now written into the
+  runbook as a guarded fallback (tested locally only, not on the box); see [[tasks/alert-channel-sql-reenable-runbook]].
 - Whether the dead-man's switch incident resolves itself on the next success ping — the owner closed it by hand.
 - Everything check 13 never claimed: delivery, the channel's own copy of the secret, an attached monitor, delivery after
   idle (`0289`).
@@ -73,3 +74,4 @@ original profile-first order. See [[systems/weekend-deploy-window]].
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy that carried `0285`
 - [[decisions/sprint-7]] — the board (rank 26); closed 2026-10-01
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the relay whose channel this drill disabled and re-enabled
+- [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, which wrote this drill's SQL re-enable into the runbook (done 2026-10-02)

@@ -4347,3 +4347,24 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 15 touched pages (+ `index.md`):** 0 broken wiki-links; every link target indexed; **1 one-way link found and fixed** (`uptrace-alert-delivery-to-telegram` → `uptrace-channel-state-production-check`).
 - 🔒 **Secret scan on this run's vault diff and new pages: clean** — no IP, URL, connection string, hex secret, chat/topic id or token.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-10-02 — ingest (sync)
+
+- **Sync window:** `e11f2eb` → HEAD (`2247699ad717182e8359be980224434afd817067`). Commits: `40ccb06` ("Wiki sync" — vault only), `2247699` ("Sprint push"). Spawned by `fkit-lead` on the owner's `/fkit-wiki-sync`, no argument. The caller's description of the window matched what was found; tree clean at start.
+- **Changed source files detected under `ai-agents/` (vault excluded): 28. Ingest-worthy after the filter: 11** (3 knowledge-base — `alert-delivery-runbook.md`, `architecture.md`, ADR-107; 3 sprint boards; 5 done briefs — `0367`, `0368`, `0371`, `0289`, `0341`). Skipped by the filter: 6 backlog briefs (`0343`, `0351`, `0358`, `0363` — rank cells; `0369` — link repoint; `0370` new — open, recorded from the Sprint 8 board, not paged) and 11 in-folder working artifacts. ⚠️ The `0367`, `0368` and `0371` worklogs were **read as supporting evidence**, not ingested as sources (`0371`'s brief is pre-build).
+- Ingested: `ai-agents/tasks/done/0367-cut-the-public-lobby-wait-from-2-minutes-to-1-minute/brief.md` → **created** [[wiki/tasks/public-lobby-one-minute]]
+- Ingested: `ai-agents/tasks/done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md` → **created** [[wiki/tasks/alert-channel-sql-reenable-runbook]] (no URL, host or secret written; the command summarized, not copied)
+- Ingested: `ai-agents/tasks/done/0371-make-the-profile-deploy-hardening-shell-harness-finish-inside-its-150-s-deadline/brief.md` → **created** [[wiki/tasks/hardening-harness-speedup]]
+- Ingested: `ai-agents/knowledge-base/architecture.md` → **updated** [[wiki/systems/architecture-overview]] (lobby window 120,000 → 60,000 ms, old value kept struck)
+- Ingested: `ai-agents/knowledge-base/decisions/adr-107-turn-interval-speed-up-1-5x.md` → **updated** [[wiki/decisions/adr-107-turn-interval-1-5x]] (dated note; sentence kept)
+- Ingested: `ai-agents/knowledge-base/alert-delivery-runbook.md` → **updated** [[wiki/systems/alert-delivery]] (SQL fallback landed; idle line done)
+- Ingested: `ai-agents/sprints/plan-sprint-7.md` → **updated** [[wiki/decisions/sprint-7]] — **35 rows — 18 Done · 9 Backlog · 4 Blocked · 1 In progress (`0369`) · 2 Moved · 1 Cancelled; 14 open** (was 34 / 16), counted by me by leading status glyph; new open-rows table at `2247699`
+- Ingested: `ai-agents/sprints/plan-sprint-8.md` → **updated** [[wiki/decisions/sprint-8]] — **5 rows, 5 open** (was 4 / 4); verify `0370` at rank 1 with its two owner rulings
+- Ingested: `ai-agents/sprints/backlog.md` → **updated** [[wiki/decisions/sprint-backlog]] — **117 rows, 89 open** (was 116 / 89); `0371` row added as `➡️ Moved`
+- **Also updated (dated notes / back-links, history kept):** [[wiki/features/ai-players]], [[wiki/tasks/alert-delivery-after-idle]], [[wiki/tasks/uptrace-channel-state-production-check]], [[wiki/tasks/uptrace-channel-state-check]], [[wiki/tasks/alert-path-liveness-probe]], [[wiki/tasks/profile-deploy-version-tags]], [[wiki/tasks/telemetry-deploy-version-tags]], [[wiki/tasks/supertest-profile-server-flake]]
+- **Skipped (already covered):** the done briefs `0289` and `0341` — link-path updates only (`0368` → `done/`). Old `backlog/` paths for `0367` / `0368` / `0371`: **none found in the vault** (the vault named them by ID only).
+- ⚠️ **Board text vs repo:** the Sprint 7 rows for `0367`, `0368`, `0371` say "not committed"; they **are committed in `2247699`** (checked: `DefaultConfig.ts`, the new test, the harness and the runbook are in that commit). Pages record committed, **not deployed**.
+- [[wiki/index]]: 3 new entries (3 tasks); 6 entries annotated (`sprint-7`, `sprint-8`, `sprint-backlog`, `architecture-overview`, `alert-delivery`, `adr-107`).
+- **Targeted lint on 18 touched pages (+ `index.md`):** 0 broken wiki-links; every link target exists; every link from the 3 new pages has a back-link; all 3 indexed.
+- 🔒 **Secret scan on this run's vault diff and new pages: clean** — no URL, IP, connection string, hex secret, chat/topic id or token.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

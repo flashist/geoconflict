@@ -72,3 +72,4 @@ rank 29 — **done 2026-10-01**, agent-closed, not deployed: [[tasks/telemetry-d
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0358`
 - [[decisions/sprint-backlog]] — the Backlog board, where `0357` (game-server version) and `0359` (registry retention) sit
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, the telemetry half, reusing the shared helper (done 2026-10-01)
+- [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): this task's new harness checks multiplied the stub writes that pushed the hardening harness past its 150 s deadline; fixed test-side
