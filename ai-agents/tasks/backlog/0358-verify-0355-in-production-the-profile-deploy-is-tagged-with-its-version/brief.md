@@ -7,7 +7,13 @@
 Sprint 8
 
 ## Priority
-3
+4
+
+> 📌 **2026-10-02 (later) — was 3, now 4.** Moved down one by the OWNER-RULED move of `0373` (read the
+> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
+> OWNER RULING given live via `AskUserQuestion`, verbatim *"Move to rank 2 (Recommended)"*, relayed by `fkit-lead` to a
+> spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Not a merit judgement on this task; nothing else
+> about it changed. The note(s) below are kept as written (ADR-035).
 
 > 📌 **2026-10-02 — was 2, now 3.** Moved down one by the placement of verify task `0370` (for `0367`) at the top of
 > Sprint 8, on the owner's standing build/verify-split rule and the 2026-10-02 close ruling, relayed by `fkit-lead` to a

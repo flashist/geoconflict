@@ -241,3 +241,13 @@ producer verified none of them.
   [`0366`](../0366-measure-how-old-stale-login-signatures-are/brief.md) — measure how old `stale` signatures
   are. `0325` is **not** reopened. `0340` is **not** started; its gate now waits on `0366` (dated note in
   `0340`'s brief). **This task closes with this failed result.**
+
+## 📌 2026-10-02 — CORRECTION (appended after close; nothing above edited, ADR-035)
+
+The headline numbers above carry two counts that were wrong by method: **`absent` is exactly 1 across all of S2,
+not ≈ 26**, and **`id_mismatch` is 6 in this task's window, not ≈ 8** (read-only exact ClickHouse sums, 2026-10-02,
+relayed by `fkit-lead`; the ≈ figures came from a per-minute average over a series that existed only briefly). The
+`ok` / `stale` shares, the failed result and the close are unchanged. Detail: [`worklog.md`](worklog.md) § *2026-10-02
+— CORRECTION*. Follow-ups filed the same day:
+[`0372`](../0372-client-diagnostics-for-stale-login-signatures/brief.md) ·
+[`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md).

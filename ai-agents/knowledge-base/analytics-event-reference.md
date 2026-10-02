@@ -463,27 +463,127 @@ it with `POST /v1/login`. The server only **counts** what it proves for now (ser
 `geoconflict.profile.login.verification`, not in this doc).
 
 - **At most one of these four per take.** A take happens once per login — so once per page load,
-  plus once per `Profile:Session:Relogin`.
+  plus once per `Profile:Session:Relogin`. Task `0372` adds, on the same take, at most one
+  `Profile:Login:SignatureAge:*` event and (first take of the page load only) at most one
+  `Profile:Login:Signature:Refetch:*` event — see _Profile Login Signature Age Events_ below. The
+  Refetch events share this section's `Profile:Login:Signature:` prefix but are **not** among the
+  four: exclude them when counting takes.
 - **Guests fire none**, and neither does a load with no SDK.
 - **Not gated by `CITIZENSHIP_CARD_ENABLED`**, like the session events above.
-- ⛔ They carry nothing but their name, plus a wait in ms on `Waited` / `Timeout`. **Never the
-  signature.**
+- ⛔ They carry nothing but their name, plus the ms held on `Ready` (task `0372`) and a wait in ms on
+  `Waited` / `Timeout`. **Never the signature.**
 - **No wait limit on a slow answer (owner ruling D1).** Only a call still silent 60 s after login
   asked counts as failed. That is `Timeout`, the event that sizes the hang problem. A real
   failure falls back at once. In every non-`Ready`/`Waited` case the login is still sent, just
   without a signature, so it is unverified. It is never refused.
 
-| Enum Key                          | Event String                      | When Fired                                                                                                                                                                                 |
-| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `PROFILE_LOGIN_SIGNATURE_READY`   | `Profile:Login:Signature:Ready`   | The boot pre-fetch (started right after the plain `getPlayer()`) had already finished when login asked, and was at most 300 s old (held exactly 300 s still counts). No wait at all                                             |
-| `PROFILE_LOGIN_SIGNATURE_WAITED`  | `Profile:Login:Signature:Waited`  | Login waited for the signed call and it answered with a usable signature. **Value:** ms waited, counted from when login asked. A relogin, a held signature over 300 s old, and a degraded boot that recovered late all make a fresh call, so they land here |
-| `PROFILE_LOGIN_SIGNATURE_TIMEOUT` | `Profile:Login:Signature:Timeout` | The 60 s hang safety net fired: the signed call never answered. **Value:** ms waited (≈ 60 000 by construction; the count is what matters). The late answer, if any, is thrown away |
-| `PROFILE_LOGIN_SIGNATURE_FAILED`  | `Profile:Login:Signature:Failed`  | The signed call threw, returned no string, or returned an empty or over-long one (over `SIGNATURE_MAX` = 2932, which the server would refuse with 400). If the boot pre-fetch had already failed, fires when login asks; otherwise fires when the failed answer comes back while login waits |
+| Enum Key                          | Event String                      | When Fired                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PROFILE_LOGIN_SIGNATURE_READY`   | `Profile:Login:Signature:Ready`   | The boot pre-fetch (started right after the plain `getPlayer()`) had already finished when login asked, and was at most 300 s old (held exactly 300 s still counts). No wait at all. **Value** (task `0372`, A3): ms held — `askedAt − fetchedAt` of the pre-fetch, 0–300 000. Before the `0372` build it carried no value |
+| `PROFILE_LOGIN_SIGNATURE_WAITED`  | `Profile:Login:Signature:Waited`  | Login waited for the signed call and it answered with a usable signature. **Value:** ms waited, counted from when login asked. A relogin, a held signature over 300 s old, and a degraded boot that recovered late all make a fresh call, so they land here                                                                |
+| `PROFILE_LOGIN_SIGNATURE_TIMEOUT` | `Profile:Login:Signature:Timeout` | The 60 s hang safety net fired: the signed call never answered. **Value:** ms waited (≈ 60 000 by construction; the count is what matters). The late answer, if any, is thrown away                                                                                                                                        |
+| `PROFILE_LOGIN_SIGNATURE_FAILED`  | `Profile:Login:Signature:Failed`  | The signed call threw, returned no string, or returned an empty or over-long one (over `SIGNATURE_MAX` = 2932, which the server would refuse with 400). If the boot pre-fetch had already failed, fires when login asks; otherwise fires when the failed answer comes back while login waits                               |
 
 > **Reading them.** `Timeout` ÷ (all four) is the share of logged-in logins lost to a hung signed
 > call. `Waited`'s value spread shows how long the call really takes on slow connections. Before
 > this task's S3a gate, compare the sum of `Timeout` + `Failed` with the server's `absent` count.
 > Their difference is roughly the old client bundles still in circulation.
+
+### Profile Login Signature Age Events
+
+Client diagnostics for the ~1 in 3 profile logins the server calls `stale` (task `0372`; the reading
+is task `0373`). **Analytics only: login sends exactly the signature it sent before, at the same
+moment.** Fired from `takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`; the
+pure helpers are in `src/client/SignatureAgeAnalytics.ts`.
+
+#### A1 — `Profile:Login:SignatureAge:<BootKind>:<Label>`
+
+- **Fires once on every take that returns a signature** — the `Ready` and `Waited` paths, so the boot
+  login **and every relogin**. Never on `Timeout` / `Failed`, never for a guest or with no SDK. Counting
+  relogins too keeps it comparable with the server's ~32 % `stale` share, which also counts them.
+- **No value.** The label is the bracket; the raw age never leaves the client.
+- **`<BootKind>`**: `AfterMatch` when this page load follows a match exit (`bootFollowsMatchExit`, the
+  same flag as `Session:PlatformDegraded`, task `0328`), else `FirstBoot`.
+- **`<Label>`**: the age of the signature's own `issuedAt` against the **device clock**, bracketed with
+  **exactly the edges the server uses** (task `0366`, `src/profile-server/PlayerSignature.ts`). A test
+  sweeps every edge against the server's function, so the two cannot drift apart silently.
+- ⚠️ **Device-clock caveat.** A wrong device clock shows up in the far `Future*` / `Past*` labels and
+  can label as stale a signature the server finds fresh. Before reading anything else, check that the
+  client's non-`Fresh` share is close to the server's ~32 %.
+- Five colon parts — the GameAnalytics maximum (each part ≤ 64 chars), already used by
+  `Profile:Login:Restart:Suppressed:InMatch`.
+
+| Client label    | Server (`0366`)   | Meaning (age = device now − `issuedAt`)                                                                                                              |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Fresh`         | server `ok`       | at most 900 s old **and** at most 300 s ahead (both inclusive)                                                                                       |
+| `Future5m15m`   | `future_5m_15m`   | 300 s < ahead ≤ 900 s                                                                                                                                |
+| `FutureOver15m` | `future_over_15m` | ahead > 900 s                                                                                                                                        |
+| `Past15m20m`    | `past_15m_20m`    | 900 s < age ≤ 1 200 s                                                                                                                                |
+| `Past20m30m`    | `past_20m_30m`    | ≤ 1 800 s                                                                                                                                            |
+| `Past30m1h`     | `past_30m_1h`     | ≤ 3 600 s                                                                                                                                            |
+| `Past1h6h`      | `past_1h_6h`      | ≤ 21 600 s                                                                                                                                           |
+| `Past6h24h`     | `past_6h_24h`     | ≤ 86 400 s                                                                                                                                           |
+| `PastOver24h`   | `past_over_24h`   | > 86 400 s                                                                                                                                           |
+| `Unreadable`    | — (client-only)   | `issuedAt` could not be read: no dot, bad base64, not JSON, not an object, `issuedAt` missing or not a finite number, or longer than `SIGNATURE_MAX` |
+
+| Enum Key                                                  | Event String                                          |
+| --------------------------------------------------------- | ----------------------------------------------------- |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FRESH`            | `Profile:Login:SignatureAge:FirstBoot:Fresh`          |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_5M_15M`    | `Profile:Login:SignatureAge:FirstBoot:Future5m15m`    |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_OVER_15M`  | `Profile:Login:SignatureAge:FirstBoot:FutureOver15m`  |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_15M_20M`     | `Profile:Login:SignatureAge:FirstBoot:Past15m20m`     |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_20M_30M`     | `Profile:Login:SignatureAge:FirstBoot:Past20m30m`     |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_30M_1H`      | `Profile:Login:SignatureAge:FirstBoot:Past30m1h`      |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_1H_6H`       | `Profile:Login:SignatureAge:FirstBoot:Past1h6h`       |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_6H_24H`      | `Profile:Login:SignatureAge:FirstBoot:Past6h24h`      |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_OVER_24H`    | `Profile:Login:SignatureAge:FirstBoot:PastOver24h`    |
+| `PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_UNREADABLE`       | `Profile:Login:SignatureAge:FirstBoot:Unreadable`     |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FRESH`           | `Profile:Login:SignatureAge:AfterMatch:Fresh`         |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_5M_15M`   | `Profile:Login:SignatureAge:AfterMatch:Future5m15m`   |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_OVER_15M` | `Profile:Login:SignatureAge:AfterMatch:FutureOver15m` |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_15M_20M`    | `Profile:Login:SignatureAge:AfterMatch:Past15m20m`    |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_20M_30M`    | `Profile:Login:SignatureAge:AfterMatch:Past20m30m`    |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_30M_1H`     | `Profile:Login:SignatureAge:AfterMatch:Past30m1h`     |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_1H_6H`      | `Profile:Login:SignatureAge:AfterMatch:Past1h6h`      |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_6H_24H`     | `Profile:Login:SignatureAge:AfterMatch:Past6h24h`     |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_OVER_24H`   | `Profile:Login:SignatureAge:AfterMatch:PastOver24h`   |
+| `PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_UNREADABLE`      | `Profile:Login:SignatureAge:AfterMatch:Unreadable`    |
+
+#### A2 — `Profile:Login:Signature:Refetch:<Result>`
+
+Does a second Yandex call return a newer signature? Both `issuedAt` values come from Yandex, so **no
+clock is involved**.
+
+- **Only when** A1's label is one of the six `Past*` (more than 900 s old) — not `Fresh`, not
+  `Future*`, not `Unreadable`.
+- **Only on the page load's first take** — never on a relogin, even a past-stale one (a guest's take
+  also counts as the first). **At most one extra `getPlayer({ signed: true })` per page load, never
+  retried.** No cross-load cap (owner ruling 2026-10-02).
+- **Login is not held up.** The second call is started inside the take, just before it returns, and is
+  not awaited — only the synchronous start of the Yandex SDK call runs first; login sends the
+  **original** signature (owner ruling 2026-10-02) and the comparison happens alongside. The second
+  signature is used only for the comparison and dropped — never sent, stored, logged or returned.
+- **No value.** Exactly one event per comparison started — unless the player leaves the page before it
+  answers (within the 60 s net), in which case nothing is counted.
+
+| Enum Key                                 | Event String                             | When Fired                                                                                                                                                                     |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `PROFILE_LOGIN_SIGNATURE_REFETCH_NEWER`  | `Profile:Login:Signature:Refetch:Newer`  | The second signature's `issuedAt` is strictly later than the first's                                                                                                           |
+| `PROFILE_LOGIN_SIGNATURE_REFETCH_SAME`   | `Profile:Login:Signature:Refetch:Same`   | Equal `issuedAt`                                                                                                                                                               |
+| `PROFILE_LOGIN_SIGNATURE_REFETCH_OLDER`  | `Profile:Login:Signature:Refetch:Older`  | Strictly earlier — not expected; kept as its own label (owner ruling Q1, 2026-10-02) so it never hides inside another                                                          |
+| `PROFILE_LOGIN_SIGNATURE_REFETCH_FAILED` | `Profile:Login:Signature:Refetch:Failed` | The call threw, returned no usable signature (none, empty, over `SIGNATURE_MAX`), one whose `issuedAt` is `Unreadable`, or stayed silent for 60 s (its late answer is ignored) |
+
+> **Reading them (task `0373`).** `Newer` ≫ `Same` ⇒ a second call on the same page would fix the
+> stale logins. `Same` dominant ⇒ it would not. Note `Same` cannot tell Yandex's servers reusing the
+> signed data from the Yandex SDK caching it inside the page — either way, a same-page refetch would not
+> fix it, which is the question the fix turns on. A2's sample includes some loads whose device clock is
+> wrong (A1 flagged them past-stale; the server may have found them fresh), and A2 does not carry A1's
+> label (no room in five parts).
+>
+> ⚠️ **Yandex call limit.** Yandex documents 20 player calls per 5 minutes; whether the plain and signed
+> `getPlayer` count is unclear. A2 adds at most one call per page load. If the limit ever bites, the
+> extra call is counted `Failed`, or a later load's own signed or plain call may fail instead — handled
+> paths, but bounded rather than zero.
 
 ### Profile Login Restart Events
 

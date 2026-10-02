@@ -177,9 +177,8 @@ describe("takeYandexPlayerSignature", () => {
     await flush();
 
     await expect(facade.takeYandexPlayerSignature()).resolves.toBe(SIGNATURE);
-    expect(signatureEvents()).toEqual([
-      ["Profile:Login:Signature:Ready", undefined],
-    ]);
+    // Task 0372 (A3): the value is the ms held — 0 here, no time has passed.
+    expect(signatureEvents()).toEqual([["Profile:Login:Signature:Ready", 0]]);
     expect(signedCalls(sdk)).toHaveLength(1);
     // Never assigned to the boot path's player object.
     expect(facade.yandexSdkPlayerObject).toBe(authorizedPlayer);
@@ -344,6 +343,10 @@ describe("takeYandexPlayerSignature", () => {
 
       await expect(facade.takeYandexPlayerSignature()).resolves.toBe(SIGNATURE);
       expect(signedCalls(sdk)).toHaveLength(1);
+      // Task 0372 (A3): Ready carries the ms held.
+      expect(signatureEvents()).toEqual([
+        ["Profile:Login:Signature:Ready", SIGNED_PLAYER_HELD_MAX_AGE_MS],
+      ]);
     });
 
     test("held longer than 300 s → discarded, a fresh call is made and used", async () => {
@@ -430,5 +433,449 @@ describe("takeYandexPlayerSignature", () => {
     expect(everything).not.toContain(SIGNATURE);
     expect(everything).not.toContain(SIGNATURE_B);
     expect(signatureEvents()).toHaveLength(2);
+  });
+});
+
+// ── Task 0372: stale-signature diagnostics (A1 age, A2 refetch, A3 held ms) ─────
+// Synthetic envelopes carrying a top-level issuedAt (seconds). The device clock is
+// pinned with jest.setSystemTime, so each signature's age is exact.
+
+const NOW_MS = 1_790_000_000_000;
+const NOW_SECONDS = NOW_MS / 1000;
+const SYNTHETIC_ID = "syntheticUniqueId0372";
+const SYNTHETIC_NAME = "SyntheticPublicName0372";
+const MAC_HALF = "c3ludGhldGljLW1hYw==";
+
+/** A synthetic `<mac>.<payload>` whose payload's issuedAt is `issuedAtSeconds`. */
+function signedAt(issuedAtSeconds: number): string {
+  const payload = btoa(
+    JSON.stringify({
+      algorithm: "HMAC-SHA256",
+      issuedAt: issuedAtSeconds,
+      data: { uniqueID: SYNTHETIC_ID, publicName: SYNTHETIC_NAME },
+    }),
+  );
+  return `${MAC_HALF}.${payload}`;
+}
+const STALE_ISSUED_AT = NOW_SECONDS - 2_000; // Past30m1h
+const STALE = signedAt(STALE_ISSUED_AT);
+
+const eventsWithPrefix = (prefix: string): Array<[string, unknown]> =>
+  addDesignEvent.mock.calls
+    .filter(([event]) => typeof event === "string" && event.startsWith(prefix))
+    .map(([event, value]) => [event, value]);
+const ageEvents = () => eventsWithPrefix("Profile:Login:SignatureAge:");
+const refetchEvents = () =>
+  eventsWithPrefix("Profile:Login:Signature:Refetch:");
+/** The four take events only (Ready / Waited / Timeout / Failed). */
+const takeEvents = () =>
+  signatureEvents().filter(
+    ([event]) => !event.startsWith("Profile:Login:Signature:Refetch:"),
+  );
+
+/** initPlayer() for an authorized player, with extra seeded fields. */
+async function bootWith(
+  fields: Record<string, unknown>,
+  signedAnswers: Array<() => Promise<unknown>>,
+): Promise<{ facade: TestFacade; sdk: { getPlayer: jest.Mock } }> {
+  const sdk = makeSdk(authorizedPlayer, signedAnswers);
+  const facade = makeFacade({ yandexGamesSDK: sdk, ...fields });
+  await facade.initPlayer();
+  return { facade, sdk };
+}
+
+describe("task 0372 — stale-signature diagnostics", () => {
+  beforeEach(() => {
+    jest.setSystemTime(NOW_MS);
+  });
+
+  describe("A1: the signature's age, by boot kind", () => {
+    test.each<[string, Record<string, unknown>, string]>([
+      ["unset (a test facade)", {}, "FirstBoot"],
+      ["false", { bootFollowsMatchExit: false }, "FirstBoot"],
+      ["true", { bootFollowsMatchExit: true }, "AfterMatch"],
+    ])(
+      "bootFollowsMatchExit %s → %s (Ready path)",
+      async (_label, fields, bootKind) => {
+        const { facade } = await bootWith(fields, [
+          () => Promise.resolve({ signature: signedAt(NOW_SECONDS) }),
+        ]);
+        await flush();
+        await facade.takeYandexPlayerSignature();
+        expect(ageEvents()).toEqual([
+          [`Profile:Login:SignatureAge:${bootKind}:Fresh`, undefined],
+        ]);
+      },
+    );
+
+    test("the Waited path fires it too, with the label from the device clock", async () => {
+      const slow = deferred<unknown>();
+      const { facade } = await bootWith({ bootFollowsMatchExit: true }, [
+        () => slow.promise,
+        () => new Promise(() => {}), // the A2 refetch — never answers here
+      ]);
+      const take = facade.takeYandexPlayerSignature();
+      await jest.advanceTimersByTimeAsync(1_000);
+      slow.resolve({ signature: signedAt(NOW_SECONDS - 1_000) }); // 1 001 s old now
+      await expect(take).resolves.toBe(signedAt(NOW_SECONDS - 1_000));
+      expect(ageEvents()).toEqual([
+        ["Profile:Login:SignatureAge:AfterMatch:Past15m20m", undefined],
+      ]);
+    });
+
+    test.each<[string, number, string]>([
+      ["300 s + 1 s ahead", NOW_SECONDS + 301, "Future5m15m"],
+      ["a day ahead", NOW_SECONDS + 86_400, "FutureOver15m"],
+      ["901 s old", NOW_SECONDS - 901, "Past15m20m"],
+      ["two days old", NOW_SECONDS - 2 * 86_400, "PastOver24h"],
+    ])("%s → %s", async (_label, issuedAt, expected) => {
+      const { facade } = await bootWith({}, [
+        () => Promise.resolve({ signature: signedAt(issuedAt) }),
+        () => new Promise(() => {}),
+      ]);
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      expect(ageEvents()).toEqual([
+        [`Profile:Login:SignatureAge:FirstBoot:${expected}`, undefined],
+      ]);
+    });
+
+    test("an envelope with no readable issuedAt → Unreadable", async () => {
+      const { facade } = await bootWith({}, [
+        () => Promise.resolve({ signature: SIGNATURE }),
+      ]);
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      expect(ageEvents()).toEqual([
+        ["Profile:Login:SignatureAge:FirstBoot:Unreadable", undefined],
+      ]);
+    });
+
+    test("no A1 on Failed", async () => {
+      const { facade } = await bootWith({}, [
+        () => Promise.reject(new Error("synthetic")),
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBeNull();
+      expect(ageEvents()).toEqual([]);
+    });
+
+    test("no A1 on Timeout", async () => {
+      const { facade } = await bootWith({}, [() => new Promise(() => {})]);
+      const take = facade.takeYandexPlayerSignature();
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      await expect(take).resolves.toBeNull();
+      expect(ageEvents()).toEqual([]);
+    });
+
+    test("no A1 for a guest, or with no SDK", async () => {
+      const sdk = makeSdk(authorizedPlayer, []);
+      await makeFacade({
+        yandexGamesSDK: sdk,
+        yandexSdkPlayerObject: guestPlayer,
+      }).takeYandexPlayerSignature();
+      await makeFacade({
+        yandexSdkPlayerObject: authorizedPlayer,
+      }).takeYandexPlayerSignature();
+      expect(ageEvents()).toEqual([]);
+      expect(refetchEvents()).toEqual([]);
+    });
+  });
+
+  describe("A2: a second signed call, only for a past-stale first take", () => {
+    test.each<[string, string]>([
+      ["Fresh", signedAt(NOW_SECONDS)],
+      ["Future5m15m", signedAt(NOW_SECONDS + 400)],
+      ["FutureOver15m", signedAt(NOW_SECONDS + 5_000)],
+      ["Unreadable", SIGNATURE],
+    ])("%s → no second call", async (_label, signature) => {
+      // makeSdk throws on an unexpected extra signed call — so none may happen.
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature }),
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(signature);
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      expect(signedCalls(sdk)).toHaveLength(1);
+      expect(refetchEvents()).toEqual([]);
+    });
+
+    test.each<[string, () => Promise<unknown>, string]>([
+      [
+        "a later issuedAt",
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT + 1) }),
+        "Newer",
+      ],
+      [
+        "the same issuedAt",
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT) }),
+        "Same",
+      ],
+      [
+        "an earlier issuedAt",
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT - 1) }),
+        "Older",
+      ],
+      [
+        "a rejected call",
+        () => Promise.reject(new Error("synthetic")),
+        "Failed",
+      ],
+      [
+        "a synchronous throw",
+        () => {
+          throw new Error("synthetic sync throw");
+        },
+        "Failed",
+      ],
+      ["signature: null", () => Promise.resolve({ signature: null }), "Failed"],
+      [
+        "an over-long signature",
+        () => Promise.resolve({ signature: "a".repeat(SIGNATURE_MAX + 1) }),
+        "Failed",
+      ],
+      [
+        "an Unreadable second signature",
+        () => Promise.resolve({ signature: SIGNATURE_B }),
+        "Failed",
+      ],
+    ])("%s → Refetch:%s, exactly one", async (_label, answer, result) => {
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        answer,
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await flush();
+      expect(signedCalls(sdk)).toHaveLength(2);
+      expect(refetchEvents()).toEqual([
+        [`Profile:Login:Signature:Refetch:${result}`, undefined],
+      ]);
+      // The take's own event is unchanged.
+      expect(takeEvents()).toEqual([["Profile:Login:Signature:Ready", 0]]);
+    });
+
+    test("a second call silent for 60 s → Failed; its late answer fires nothing more", async () => {
+      const hung = deferred<unknown>();
+      const { facade } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => hung.promise,
+      ]);
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS - 1);
+      expect(refetchEvents()).toEqual([]);
+      await jest.advanceTimersByTimeAsync(1);
+      expect(refetchEvents()).toEqual([
+        ["Profile:Login:Signature:Refetch:Failed", undefined],
+      ]);
+
+      hung.resolve({ signature: signedAt(NOW_SECONDS) });
+      await flush();
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      expect(refetchEvents()).toHaveLength(1);
+    });
+
+    test("login is not held up and gets the ORIGINAL signature (Ready path)", async () => {
+      const never = deferred<unknown>();
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => never.promise,
+      ]);
+      await flush();
+      // No timer advanced: the take must not wait on the second call.
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      expect(signedCalls(sdk)).toHaveLength(2); // the second call IS in flight
+      expect(refetchEvents()).toEqual([]);
+      expect(facade.yandexSdkPlayerObject).toBe(authorizedPlayer);
+    });
+
+    test("login is not held up and gets the ORIGINAL signature (Waited path)", async () => {
+      const slow = deferred<unknown>();
+      const { facade } = await bootWith({}, [
+        () => slow.promise,
+        () => new Promise(() => {}),
+      ]);
+      const take = facade.takeYandexPlayerSignature();
+      slow.resolve({ signature: STALE });
+      await expect(take).resolves.toBe(STALE);
+      expect(refetchEvents()).toEqual([]);
+    });
+
+    test("the second signature is never returned — a later take makes its own call", async () => {
+      const newer = signedAt(STALE_ISSUED_AT + 600);
+      const third = signedAt(NOW_SECONDS);
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => Promise.resolve({ signature: newer }),
+        () => Promise.resolve({ signature: third }),
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(third);
+      expect(signedCalls(sdk)).toHaveLength(3);
+      expect(facade.yandexSdkPlayerObject).toBe(authorizedPlayer);
+    });
+
+    test("at most once per page load: a relogin with a past-stale signature fires A1 but never A2", async () => {
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT + 1) }),
+        // The relogin's fresh call — also past-stale. No 4th answer: a second
+        // refetch would make makeSdk throw "unexpected extra signed call".
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT + 2) }),
+      ]);
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      expect(signedCalls(sdk)).toHaveLength(3);
+      expect(ageEvents()).toEqual([
+        ["Profile:Login:SignatureAge:FirstBoot:Past30m1h", undefined],
+        ["Profile:Login:SignatureAge:FirstBoot:Past30m1h", undefined],
+      ]);
+      expect(refetchEvents()).toEqual([
+        ["Profile:Login:Signature:Refetch:Newer", undefined],
+      ]);
+    });
+
+    test("a Fresh first take, then a past-stale relogin → no refetch at all", async () => {
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: signedAt(NOW_SECONDS) }),
+        () => Promise.resolve({ signature: STALE }),
+      ]);
+      await flush();
+      await facade.takeYandexPlayerSignature();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      expect(signedCalls(sdk)).toHaveLength(2);
+      expect(refetchEvents()).toEqual([]);
+    });
+
+    test("a guest's take still counts as the first — a later take never refetches", async () => {
+      const sdk = makeSdk(authorizedPlayer, [
+        () => Promise.resolve({ signature: STALE }),
+      ]);
+      const facade = makeFacade({
+        yandexGamesSDK: sdk,
+        yandexSdkPlayerObject: guestPlayer,
+      });
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBeNull();
+      (facade as unknown as Record<string, unknown>).yandexSdkPlayerObject =
+        authorizedPlayer;
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+      expect(signedCalls(sdk)).toHaveLength(1);
+      expect(refetchEvents()).toEqual([]);
+    });
+  });
+
+  describe("fail-safe: a fault in the diagnostics never reaches login", () => {
+    test("recordSignatureDiagnostics throwing → the take still returns the signature (Ready and Waited)", async () => {
+      jest
+        .spyOn(
+          FlashistFacade.prototype as unknown as Record<string, () => void>,
+          "recordSignatureDiagnostics",
+        )
+        .mockImplementation(() => {
+          throw new Error("synthetic diagnostics fault");
+        });
+      const { facade } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => Promise.resolve({ signature: SIGNATURE_B }),
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(
+        SIGNATURE_B,
+      );
+    });
+
+    test("GameAnalytics throwing → the take and the refetch are unaffected", async () => {
+      addDesignEvent.mockImplementation(() => {
+        throw new Error("synthetic analytics fault");
+      });
+      const { facade, sdk } = await bootWith({}, [
+        () => Promise.resolve({ signature: STALE }),
+        () => Promise.resolve({ signature: signedAt(STALE_ISSUED_AT) }),
+      ]);
+      await flush();
+      await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+      await flush();
+      expect(signedCalls(sdk)).toHaveLength(2);
+    });
+
+    test("a refetch that throws synchronously never rejects into anything", async () => {
+      const unhandled = jest.fn();
+      process.on("unhandledRejection", unhandled);
+      try {
+        const { facade } = await bootWith({}, [
+          () => Promise.resolve({ signature: STALE }),
+          () => {
+            throw new Error("synthetic sync throw");
+          },
+        ]);
+        await flush();
+        await expect(facade.takeYandexPlayerSignature()).resolves.toBe(STALE);
+        await flush();
+        await jest.advanceTimersByTimeAsync(SIGNED_PLAYER_HANG_MS);
+        expect(unhandled).not.toHaveBeenCalled();
+      } finally {
+        process.off("unhandledRejection", unhandled);
+      }
+    });
+  });
+
+  test("no leak: across A1 and A2, no event or console line carries the signature, its halves, issuedAt, or player data", async () => {
+    const second = signedAt(STALE_ISSUED_AT + 7);
+    const slow = deferred<unknown>();
+    const { facade } = await bootWith({ bootFollowsMatchExit: true }, [
+      () => Promise.resolve({ signature: STALE }),
+      () => Promise.resolve({ signature: second }),
+      () => slow.promise, // the relogin's call
+    ]);
+    await flush();
+    await facade.takeYandexPlayerSignature();
+    await flush();
+    const take = facade.takeYandexPlayerSignature();
+    await jest.advanceTimersByTimeAsync(1_000);
+    slow.resolve({ signature: STALE });
+    await take;
+    await flush();
+
+    const everything = JSON.stringify([
+      addDesignEvent.mock.calls,
+      (GameAnalytics.addErrorEvent as jest.Mock).mock.calls,
+      (console.log as jest.Mock).mock.calls,
+      (console.warn as jest.Mock).mock.calls,
+      (console.error as jest.Mock).mock.calls,
+    ]);
+    for (const signature of [STALE, second]) {
+      const [macHalf, payloadHalf] = signature.split(".");
+      expect(everything).not.toContain(signature);
+      expect(everything).not.toContain(macHalf);
+      expect(everything).not.toContain(payloadHalf);
+    }
+    expect(everything).not.toContain(String(STALE_ISSUED_AT));
+    expect(everything).not.toContain(String(STALE_ISSUED_AT + 7));
+    expect(everything).not.toContain(SYNTHETIC_ID);
+    expect(everything).not.toContain(SYNTHETIC_NAME);
+
+    // The new events fired, and every value is either none or A3's held ms.
+    expect(ageEvents()).toHaveLength(2);
+    expect(refetchEvents()).toEqual([
+      ["Profile:Login:Signature:Refetch:Newer", undefined],
+    ]);
+    for (const [event, value] of addDesignEvent.mock.calls) {
+      if (event === "Profile:Login:Signature:Ready") {
+        expect(value).toBe(0);
+      } else if (event === "Profile:Login:Signature:Waited") {
+        expect(value).toBe(1_000);
+      } else {
+        expect(value).toBeUndefined();
+      }
+    }
   });
 });

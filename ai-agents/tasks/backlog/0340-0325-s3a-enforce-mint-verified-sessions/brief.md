@@ -161,9 +161,11 @@ deploy. This task does not close until that note is applied or the owner rules o
 
 ## Notes
 
-- **Depends on:** [`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
+- **Depends on:** [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — read the stale-login data and
+  choose the fix; then the fix and an S2-exit re-check, not yet filed) plus an explicit owner approval to enforce.
+  *Repointed 2026-10-02 (see the dated note at the end), kept as written:* ~~[`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
   **not met** in `0339` on 2026-10-01; the next step toward it is this measurement, then a fix and an S2-exit
-  re-check that are not filed yet) plus an explicit owner approval to enforce. *Repointed 2026-10-01, kept as
+  re-check that are not filed yet) plus an explicit owner approval to enforce.~~ *Repointed 2026-10-01, kept as
   written:* ~~[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (hard — its S2
   exit) plus an explicit owner approval to enforce.~~ `0325` (the S2 build, closed 2026-09-29) is built into the
   tree.
@@ -192,4 +194,20 @@ how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's 
   is filed. Gate item 2 (a separate owner approval to enforce) is unchanged.
 - The *Freshness window* bullet under *What to build* still holds: any retune of 900 s / 300 s is a plan decision
   put to the owner before enforcing — `0366`'s brackets are the evidence for it.
+- **`## Status` unchanged (`🔲 Backlog`). No folder moved, no board row edited, no mover run on this task.**
+
+## 📌 2026-10-02 — gate update: the "fix chosen from its readings" step is now preceded by `0372` + `0373` (appended; nothing above edited except the `Depends on` repoint, ADR-035)
+
+**Provenance.** OWNER RULINGS given 2026-10-02 via `AskUserQuestion` in the live `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+
+- **Cause of `stale` is still unknown.** A read-only check on 2026-10-02 found it flat at ~32–33 % since S2 went
+  live, with a strong evening peak. An architect consult found `0366`'s server brackets alone cannot choose the fix
+  (they cannot tell whether a second Yandex call returns newer data, or first boot from after-match reload).
+- **The gate's chain is now:** [`0372`](../../done/0372-client-diagnostics-for-stale-login-signatures/brief.md) (client
+  diagnostics, Sprint 7, rides the 2026-10-03/04 game deploy) and `0366` (rides the 2026-10-03/04 profile deploy) →
+  [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (read the data, owner chooses the fix and
+  the S2-exit "good enough" threshold; Sprint 8) → the fix task (not yet filed) → an S2-exit re-check with the owner
+  → this task. Gate item 2 (a separate owner approval to enforce) is unchanged.
+- The `Depends on` line above is repointed from `0366` (done) to `0373`; the old text is kept struck.
 - **`## Status` unchanged (`🔲 Backlog`). No folder moved, no board row edited, no mover run on this task.**

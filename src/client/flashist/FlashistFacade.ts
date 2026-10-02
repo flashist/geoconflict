@@ -15,6 +15,14 @@ import {
   markMatchExit,
 } from "../PlatformDegradedAnalytics";
 import {
+  compareIssuedAt,
+  isPastStale,
+  readSignatureIssuedAtSeconds,
+  signatureAgeLabel,
+  type SignatureAgeLabel,
+  type SignatureRefetchResult,
+} from "../SignatureAgeAnalytics";
+import {
   reinsertSdkLoaderScript,
   runSdkLoaderRetries,
   SDK_LOADER_BACKGROUND_RETRY_DELAYS_MS,
@@ -208,8 +216,10 @@ export const flashistConstants = {
     PROFILE_SESSION_RELOGIN: "Profile:Session:Relogin",
 
     // Yandex signed player data for the login (task 0325, S2; owner ruling D2).
-    // At most ONE per login's take of the signature; guests fire none. They carry
-    // nothing but the name — plus, on Waited/Timeout, the wait in ms as the value.
+    // At most ONE of these four per login's take of the signature; guests fire
+    // none. They carry
+    // nothing but the name — plus, on Ready, the ms held (task 0372), and on
+    // Waited/Timeout, the wait in ms as the value.
     // The pre-fetch had already finished when login asked for it.
     PROFILE_LOGIN_SIGNATURE_READY: "Profile:Login:Signature:Ready",
     // Login waited for it and it arrived; value = ms waited.
@@ -219,6 +229,65 @@ export const flashistConstants = {
     PROFILE_LOGIN_SIGNATURE_TIMEOUT: "Profile:Login:Signature:Timeout",
     // The signed call threw, returned no string, or returned an over-long one.
     PROFILE_LOGIN_SIGNATURE_FAILED: "Profile:Login:Signature:Failed",
+
+    // Signature age at take, by boot kind (task 0372, A1). One per take that
+    // returns a signature, relogins included. No value — the label is the bracket
+    // (device clock), never the raw age. Labels map one to one to 0366's server
+    // brackets (SignatureAgeAnalytics.ts); Unreadable = issuedAt could not be read.
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FRESH:
+      "Profile:Login:SignatureAge:FirstBoot:Fresh",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_5M_15M:
+      "Profile:Login:SignatureAge:FirstBoot:Future5m15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_OVER_15M:
+      "Profile:Login:SignatureAge:FirstBoot:FutureOver15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_15M_20M:
+      "Profile:Login:SignatureAge:FirstBoot:Past15m20m",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_20M_30M:
+      "Profile:Login:SignatureAge:FirstBoot:Past20m30m",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_30M_1H:
+      "Profile:Login:SignatureAge:FirstBoot:Past30m1h",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_1H_6H:
+      "Profile:Login:SignatureAge:FirstBoot:Past1h6h",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_6H_24H:
+      "Profile:Login:SignatureAge:FirstBoot:Past6h24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_OVER_24H:
+      "Profile:Login:SignatureAge:FirstBoot:PastOver24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_UNREADABLE:
+      "Profile:Login:SignatureAge:FirstBoot:Unreadable",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FRESH:
+      "Profile:Login:SignatureAge:AfterMatch:Fresh",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_5M_15M:
+      "Profile:Login:SignatureAge:AfterMatch:Future5m15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_OVER_15M:
+      "Profile:Login:SignatureAge:AfterMatch:FutureOver15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_15M_20M:
+      "Profile:Login:SignatureAge:AfterMatch:Past15m20m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_20M_30M:
+      "Profile:Login:SignatureAge:AfterMatch:Past20m30m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_30M_1H:
+      "Profile:Login:SignatureAge:AfterMatch:Past30m1h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_1H_6H:
+      "Profile:Login:SignatureAge:AfterMatch:Past1h6h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_6H_24H:
+      "Profile:Login:SignatureAge:AfterMatch:Past6h24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_OVER_24H:
+      "Profile:Login:SignatureAge:AfterMatch:PastOver24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_UNREADABLE:
+      "Profile:Login:SignatureAge:AfterMatch:Unreadable",
+
+    // Second signed call (task 0372, A2): only on the page load's FIRST take, only
+    // when that signature is past-stale; never retried. Compares the two issuedAt
+    // values (no clock). Login sends the ORIGINAL signature (owner ruling); the
+    // second call is started, not awaited, inside the take, so login is not held up.
+    // Failed = threw, no usable signature, Unreadable, or silent for 60 s.
+    PROFILE_LOGIN_SIGNATURE_REFETCH_NEWER:
+      "Profile:Login:Signature:Refetch:Newer",
+    PROFILE_LOGIN_SIGNATURE_REFETCH_SAME:
+      "Profile:Login:Signature:Refetch:Same",
+    PROFILE_LOGIN_SIGNATURE_REFETCH_OLDER:
+      "Profile:Login:Signature:Refetch:Older",
+    PROFILE_LOGIN_SIGNATURE_REFETCH_FAILED:
+      "Profile:Login:Signature:Refetch:Failed",
 
     // Restart-after-login (task 0273, owner ruling D3). Requested fires when the
     // auth dialog reported success; exactly one of Performed / Suppressed:* follows.
@@ -477,6 +546,64 @@ export const SIGNED_PLAYER_HANG_MS = 60_000;
  * window, so a login that could only start minutes after boot is not `stale`.
  */
 export const SIGNED_PLAYER_HELD_MAX_AGE_MS = 300_000;
+const analyticEvents = flashistConstants.analyticEvents;
+/**
+ * Task 0372 (A1): the SignatureAge event for each boot kind and label. Typed as a
+ * full Record, so a label added to SignatureAgeLabel without an event is a
+ * compile error.
+ */
+const SIGNATURE_AGE_EVENTS: Record<
+  "FirstBoot" | "AfterMatch",
+  Record<SignatureAgeLabel, string>
+> = {
+  FirstBoot: {
+    Fresh: analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FRESH,
+    Future5m15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_5M_15M,
+    FutureOver15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_FUTURE_OVER_15M,
+    Past15m20m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_15M_20M,
+    Past20m30m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_20M_30M,
+    Past30m1h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_30M_1H,
+    Past1h6h: analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_1H_6H,
+    Past6h24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_6H_24H,
+    PastOver24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_PAST_OVER_24H,
+    Unreadable:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_FIRST_BOOT_UNREADABLE,
+  },
+  AfterMatch: {
+    Fresh: analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FRESH,
+    Future5m15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_5M_15M,
+    FutureOver15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_FUTURE_OVER_15M,
+    Past15m20m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_15M_20M,
+    Past20m30m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_20M_30M,
+    Past30m1h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_30M_1H,
+    Past1h6h: analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_1H_6H,
+    Past6h24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_6H_24H,
+    PastOver24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_OVER_24H,
+    Unreadable:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_UNREADABLE,
+  },
+};
+/** Task 0372 (A2): the Refetch event for each comparison outcome. */
+const SIGNATURE_REFETCH_EVENTS: Record<SignatureRefetchResult, string> = {
+  Newer: analyticEvents.PROFILE_LOGIN_SIGNATURE_REFETCH_NEWER,
+  Same: analyticEvents.PROFILE_LOGIN_SIGNATURE_REFETCH_SAME,
+  Older: analyticEvents.PROFILE_LOGIN_SIGNATURE_REFETCH_OLDER,
+  Failed: analyticEvents.PROFILE_LOGIN_SIGNATURE_REFETCH_FAILED,
+};
 const sleepMs = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 type YandexLoginStatus = "logged-in" | "guest" | "unknown";
@@ -1699,9 +1826,17 @@ export class FlashistFacade {
    * Take-once: the first call gets the boot pre-fetch and clears it; every later
    * call (a relogin, or a degraded boot that recovered late and never pre-fetched)
    * makes a fresh call. A pre-fetch abandoned by the hang net is never reused — its
-   * late answer lands nowhere. Fires at most one Profile:Login:Signature:* event.
+   * late answer lands nowhere. Fires at most one of the four take events
+   * (Ready / Waited / Timeout / Failed), plus — when it returns a signature — one
+   * SignatureAge event, and on the page load's first take at most one
+   * Signature:Refetch event (task 0372). Those diagnostics never change what is
+   * returned or when.
    */
   public async takeYandexPlayerSignature(): Promise<string | null> {
+    // Task 0372: set on every take, guests included, so any later take (a relogin)
+    // is never the first.
+    const isFirstTake = this.hasTakenLoginSignature !== true;
+    this.hasTakenLoginSignature = true;
     try {
       const prefetch = this.signedPlayerPrefetch;
       this.signedPlayerPrefetch = undefined;
@@ -1714,6 +1849,7 @@ export class FlashistFacade {
         return await this.awaitSignedPlayer(
           prefetch?.promise ?? this.fetchSignedPlayer(),
           askedAtMs,
+          isFirstTake,
         );
       }
       if (held.signature === null) {
@@ -1727,11 +1863,20 @@ export class FlashistFacade {
         return await this.awaitSignedPlayer(
           this.fetchSignedPlayer(),
           askedAtMs,
+          isFirstTake,
         );
       }
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_READY,
+        askedAtMs - held.fetchedAtMs,
       );
+      // Guarded here too, so even a fault escaping the method cannot turn a valid
+      // signature into null.
+      try {
+        this.recordSignatureDiagnostics(held.signature, isFirstTake);
+      } catch {
+        // Diagnostics only.
+      }
       return held.signature;
     } catch {
       return null;
@@ -1741,6 +1886,7 @@ export class FlashistFacade {
   private async awaitSignedPlayer(
     pending: Promise<SignedPlayerFetch>,
     askedAtMs: number,
+    isFirstTake: boolean,
   ): Promise<string | null> {
     let hangTimer: ReturnType<typeof setTimeout> | undefined;
     const hang = new Promise<null>((resolve) => {
@@ -1766,7 +1912,74 @@ export class FlashistFacade {
       flashistConstants.analyticEvents.PROFILE_LOGIN_SIGNATURE_WAITED,
       waitedMs,
     );
+    // Guarded here too, so even a fault escaping the method cannot turn a valid
+    // signature into null.
+    try {
+      this.recordSignatureDiagnostics(result.signature, isFirstTake);
+    } catch {
+      // Diagnostics only.
+    }
     return result.signature;
+  }
+
+  // ── Stale-signature diagnostics (task 0372) ─────────────────────────────────
+  // ⛔ Analytics only. Login sends the ORIGINAL signature, at the same moment, no
+  // matter what happens here (owner ruling). The second signature is used only
+  // for the comparison: never returned, stored, logged, or assigned anywhere.
+  // Events carry fixed labels only — never the raw issuedAt or any payload field.
+  //
+  // Optional: tests build facades via Object.create (no field initializers).
+  private hasTakenLoginSignature?: boolean;
+
+  /**
+   * A1: fire the SignatureAge event; on the first take of a page load with a
+   * past-stale signature, start A2 without awaiting it. Synchronous and fully
+   * guarded — a fault here can never reach the take's return value.
+   */
+  private recordSignatureDiagnostics(
+    signature: string,
+    isFirstTake: boolean,
+  ): void {
+    try {
+      const issuedAtSeconds = readSignatureIssuedAtSeconds(signature);
+      const label = signatureAgeLabel(issuedAtSeconds, Date.now());
+      const bootKind = this.bootFollowsMatchExit ? "AfterMatch" : "FirstBoot";
+      flashist_logEventAnalytics(SIGNATURE_AGE_EVENTS[bootKind][label]);
+      if (isFirstTake && issuedAtSeconds !== null && isPastStale(label)) {
+        void this.compareSignatureRefetch(issuedAtSeconds).catch(() => {});
+      }
+    } catch {
+      // Diagnostics only — swallow everything.
+    }
+  }
+
+  /**
+   * A2: one more signed call, at most once per page load (first take only), never
+   * retried. Fires exactly one Refetch event, unless the page goes away first.
+   * Never rejects.
+   */
+  private async compareSignatureRefetch(
+    firstIssuedAtSeconds: number,
+  ): Promise<void> {
+    let result: SignatureRefetchResult = "Failed";
+    let hangTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const hang = new Promise<null>((resolve) => {
+        hangTimer = setTimeout(() => resolve(null), SIGNED_PLAYER_HANG_MS);
+      });
+      const second = await Promise.race([this.fetchSignedPlayer(), hang]);
+      const secondIssuedAtSeconds = readSignatureIssuedAtSeconds(
+        second?.signature ?? null,
+      );
+      if (secondIssuedAtSeconds !== null) {
+        result = compareIssuedAt(firstIssuedAtSeconds, secondIssuedAtSeconds);
+      }
+    } catch {
+      result = "Failed";
+    } finally {
+      clearTimeout(hangTimer);
+    }
+    flashist_logEventAnalytics(SIGNATURE_REFETCH_EVENTS[result]);
   }
 
   private isYandexLoggedIn(): boolean {

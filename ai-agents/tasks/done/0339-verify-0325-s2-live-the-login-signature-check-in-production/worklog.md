@@ -136,3 +136,21 @@ GameAnalytics when read).
 | 6 | "Not met" ⇒ new task, `0325` not reopened, `0340` not started, this closes failed | ✅ `0366` filed; `0325` untouched; `0340` not started |
 | 7 | `stale` recorded | ✅ Step 7 |
 | 8 | No id / signature / token / session / host / IP / URL | ✅ counts and durations only |
+
+## 📌 2026-10-02 — CORRECTION: `absent` and `id_mismatch` counts (appended after close; nothing above edited)
+
+**Provenance.** A read-only check on 2026-10-02 by a spawned coder (exact ClickHouse sums over the same metric),
+relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037). The producer did not run
+the query. This note corrects two numbers only; the task's result and close are unchanged.
+
+- **`absent` (no signature): exact count = 1 across all of S2**, not ≈ 26. The ≈ 26 above was a **method
+  artifact**: Step 2 multiplied a per-minute average by the window length, but the `absent` series existed only
+  briefly, so the average over its short life was spread across the whole 40 h.
+- **`id_mismatch`: 6 in this task's window**, not ≈ 8 (same method artifact, smaller effect).
+- **`ok` / `stale` shares are not affected** — the exact read gives 31.9 % `stale` for this window, matching the
+  ≈ 32 % above.
+- **What still holds:** old builds are still ruled out as a cause of `stale` (Step 7) — more strongly, since almost
+  no signature-less logins arrive at all. The side finding (old builds mostly do not reach the server) is, if
+  anything, sharper.
+- Follow-ups: [`0372`](../0372-client-diagnostics-for-stale-login-signatures/brief.md) and
+  [`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (filed 2026-10-02).

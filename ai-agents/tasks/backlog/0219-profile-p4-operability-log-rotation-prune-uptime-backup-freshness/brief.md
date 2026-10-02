@@ -128,6 +128,14 @@ the same monitoring bucket. ⛔ **Neither of those two was closed, cancelled or 
 ruling; both stay `🔲 Backlog` exactly where they are.** The ruling scopes **prep work**, not their
 existence.
 
+> 📌 **2026-10-02 — G3/G4 DEFERRAL RE-AFFIRMED BY OWNER RULING.** Given live in the `fkit lead` session via
+> `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
+> ⛔ not producer precedent. Owner chose verbatim *"Keep deferred (Recommended)"*. **G3 and G4 stay deferred**
+> even though `0285` and `0289` — the two tasks deferred alongside them above — are now both closed
+> (`✅ Done (agent-closed — not owner-verified)`); their closing does **not** pull G3/G4 back in. `## Status`
+> token (`🚧 Blocked`) and the Sprint 7 rank are unchanged. ⚠️ The cost in point 2 below (the
+> TLS-certificate fuse unwatched; reported `notAfter` 2026-11-20, unverified) still stands.
+
 🚨 **THE COST, PUT TO THE OWNER AND KNOWINGLY ACCEPTED — both halves:**
 
 1. ⛔ **This task does NOT close at the weekend deploy slot.** It stays open with a narrower, accurate
@@ -182,6 +190,9 @@ deploy; only its *confirmation* is deferred.
 
 ## Status
 🚧 Blocked — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
+
+> 📌 **2026-10-02 —** G3/G4 deferral **re-affirmed** by owner ruling (*"Keep deferred (Recommended)"*), despite
+> `0285`/`0289` now being closed — see the dated note in the 2026-09-19 ruling block above. Status token unchanged.
 
 > ### 📌 2026-09-26 deploy window — results
 >
