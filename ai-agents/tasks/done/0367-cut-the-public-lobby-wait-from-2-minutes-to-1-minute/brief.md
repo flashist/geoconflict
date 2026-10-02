@@ -27,7 +27,9 @@ Sprint 7
 > rows). The "flagged for owner confirmation" wording above is kept as history. See the last section of this brief.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+📌 **Set 2026-10-02** by `fkit-lead` driving `fkit-sprint-ship-loop`. *(Earlier value, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-coder

@@ -94,7 +94,7 @@ Source: player feedback messages from the **game server** (`src/server/Master.ts
 
 - **The runbook update** (plan § *What changes in the repo*: `alert-delivery-runbook.md`'s "delivery after an IDLE
   period is unproven" lines → this observed result, with the bounds above) is **not done here**. It rides
-  [`0368`](../../backlog/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) as a dated scope
+  [`0368`](../../done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) as a dated scope
   addition (2026-10-01) — `fkit-lead`'s choice, to avoid a separate doc-only spawn; the owner may object.
 
 ## Decision log

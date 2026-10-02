@@ -126,7 +126,7 @@ already runs in production**. Different blockers, different urgency.
 > `plan.md` (dated note appended there). ⚠️ **Bounded to 4 h 36 min — an overnight gap is still unproven**; retry use
 > not determined; the monitoring → relay hop after quiet is not covered. Full evidence and bounds:
 > [`worklog.md`](./worklog.md). **The runbook update this task owed** (*"delivery after an IDLE period is unproven"*
-> → the observed result) **rides [`0368`](../../backlog/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md)**
+> → the observed result) **rides [`0368`](../../done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md)**
 > as a dated scope addition (`fkit-lead`'s choice; the owner may object). Closed by `/fkit-task-done`
 > *(agent-closed — not owner-verified)*. *Earlier value of the line above, kept as history — true until this
 > close:* ~~🚧 Blocked — plan approved 2026-09-28 (no code); waiting on the OWNER-run drill (owner ruling Q3). `0341`

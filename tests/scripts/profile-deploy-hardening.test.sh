@@ -27,14 +27,31 @@ FAILED=0
 pass() { echo "  ✅ $1"; }
 fail() { echo "  ❌ $1"; FAILED=1; }
 
+# One stub folder for the whole run (task 0371). macOS runs a first-execution check on every
+# NEWLY CREATED executable the first time it is run directly — measured at ~0.16–0.75 s per
+# file, and slower under load. Writing the six stubs afresh for each of ~59 NEW/TNEW calls
+# cost ~350 such checks and pushed this harness past ShellHarnesses.test.ts's 150 s deadline
+# inside a full `npm test`. So the stubs are written ONCE and NEVER rewritten (rewriting in
+# place still paid the check — measured); each stub reads the current $WORK at run time from
+# the pointer file "$STUB_HOME/work", which make_stubs refreshes on every NEW.
+STUB_HOME=$(mktemp -d)
+
 # ── Stub PATH builder ─────────────────────────────────────────────────────────
+# Every call points the stubs at the current $WORK; only the FIRST call writes them (see
+# STUB_HOME above — do not add a per-test stub write, it brings the slowdown back). WORK must
+# only ever be set by NEW: a test that sets WORK= by hand, without NEW, leaves the stubs
+# pointing at the previous fixture folder.
 make_stubs() {
-    BIN="$WORK/bin"; mkdir -p "$BIN"
+    printf '%s\n' "$WORK" > "$STUB_HOME/work"
+    BIN="$STUB_HOME/bin"
+    [ -d "$BIN" ] && return 0
+    mkdir -p "$BIN"
 
     cat > "$BIN/docker" <<EOF
 #!/bin/bash
-echo "docker \$*" >> "$WORK/docker.argv"
-echo "docker \$*" >> "$WORK/calls.log"
+read -r W < "$STUB_HOME/work"
+echo "docker \$*" >> "\$W/docker.argv"
+echo "docker \$*" >> "\$W/calls.log"
 case "\$1 \$2" in
   "buildx build")
     iid=""; for a in "\$@"; do [ "\$prev" = "--iidfile" ] && iid="\$a"; prev="\$a"; done
@@ -55,22 +72,22 @@ case "\$1 \$2" in
     case "\$ref" in
       *@*) d=1 ;;
       *)
-        if grep -qxF "\$ref" "$WORK/registry_pushed" 2>/dev/null; then
-          d=1; [ -f "$WORK/imagetools_mismatch" ] && d=2
-        elif grep -qxF "\$ref" "$WORK/registry_tags" 2>/dev/null; then
+        if grep -qxF "\$ref" "\$W/registry_pushed" 2>/dev/null; then
+          d=1; [ -f "\$W/imagetools_mismatch" ] && d=2
+        elif grep -qxF "\$ref" "\$W/registry_tags" 2>/dev/null; then
           d=3
-        elif [ -f "$WORK/registry_all_taken" ]; then
+        elif [ -f "\$W/registry_all_taken" ]; then
           d=3
-        elif grep -qxF "\$ref" "$WORK/registry_taken_on_recheck" 2>/dev/null && [ -f "$WORK/recheck_seen" ]; then
+        elif grep -qxF "\$ref" "\$W/registry_taken_on_recheck" 2>/dev/null && [ -f "\$W/recheck_seen" ]; then
           d=3
         else
-          grep -qxF "\$ref" "$WORK/registry_taken_on_recheck" 2>/dev/null && : > "$WORK/recheck_seen"
+          grep -qxF "\$ref" "\$W/registry_taken_on_recheck" 2>/dev/null && : > "\$W/recheck_seen"
           unknown_now=0
-          if grep -qxF "\$ref" "$WORK/registry_unknown_on_recheck" 2>/dev/null; then
-            [ -f "$WORK/unknown_recheck_seen" ] && unknown_now=1
-            : > "$WORK/unknown_recheck_seen"
+          if grep -qxF "\$ref" "\$W/registry_unknown_on_recheck" 2>/dev/null; then
+            [ -f "\$W/unknown_recheck_seen" ] && unknown_now=1
+            : > "\$W/unknown_recheck_seen"
           fi
-          if [ -f "$WORK/registry_unknown" ] || [ "\$unknown_now" = "1" ]; then
+          if [ -f "\$W/registry_unknown" ] || [ "\$unknown_now" = "1" ]; then
             echo "ERROR: pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization failed" >&2
           else
             echo "ERROR: docker.io/\$ref: not found" >&2
@@ -85,9 +102,9 @@ case "\$1 \$2" in
 esac
 case "\$1" in
   info) exit 0 ;;
-  login) cat > "$WORK/login.stdin"; exit 0 ;;  # token on stdin — kept (synthetic) so T39 can prove it came that way
+  login) cat > "\$W/login.stdin"; exit 0 ;;  # token on stdin — kept (synthetic) so T39 can prove it came that way
   tag) exit 0 ;;
-  push) echo "\$2" >> "$WORK/registry_pushed"; exit 0 ;;   # the fake registry now holds it
+  push) echo "\$2" >> "\$W/registry_pushed"; exit 0 ;;   # the fake registry now holds it
   inspect) printf '%s/%s@sha256:%064d\n' "\$DOCKER_USERNAME" "\$DOCKER_REPO" 1; exit 0 ;;
 esac
 exit 0
@@ -104,74 +121,76 @@ EOF
     # (also answers `git show <sha>:package.json`, task 0356).
     cat > "$BIN/git" <<EOF
 #!/bin/bash
+read -r W < "$STUB_HOME/work"
 line="git \$(printf '%q ' "\$@")"
-echo "\$line" >> "$WORK/git.argv"
-echo "\$line" >> "$WORK/calls.log"
+echo "\$line" >> "\$W/git.argv"
+echo "\$line" >> "\$W/calls.log"
 case "\$*" in
   "rev-parse --short HEAD"|"rev-parse HEAD")
-    [ -f "$WORK/no_git_head" ] && { echo "fatal: not a git repository" >&2; exit 128; }
+    [ -f "\$W/no_git_head" ] && { echo "fatal: not a git repository" >&2; exit 128; }
     [ "\$2" = "--short" ] && echo "abc1234" || echo "abc1234000000000000000000000000000000000"
     exit 0 ;;
 esac
 case "\$1" in
   status)
     if [ "\$2 \$3" = "--porcelain --untracked-files=normal" ]; then
-      [ -f "$WORK/status_fail" ] && { echo "fatal: not a git repository" >&2; exit 128; }
+      [ -f "\$W/status_fail" ] && { echo "fatal: not a git repository" >&2; exit 128; }
       shift 3; [ "\${1:-}" = "--" ] && shift
-      [ -f "$WORK/dirty" ] || exit 0
+      [ -f "\$W/dirty" ] || exit 0
       while IFS= read -r entry; do
         path="\${entry:3}"
         if [ \$# -eq 0 ]; then echo "\$entry"; continue; fi
         for spec in "\$@"; do
           case "\$path" in "\$spec"|"\$spec"/*) echo "\$entry"; break ;; esac
         done
-      done < "$WORK/dirty"
+      done < "\$W/dirty"
       exit 0
     fi ;;
   tag)
     if [ "\$2" = "-l" ]; then
-      [ -f "$WORK/local_tags" ] || exit 0
-      while IFS= read -r t; do case "\$t" in \$3) echo "\$t" ;; esac; done < "$WORK/local_tags"
+      [ -f "\$W/local_tags" ] || exit 0
+      while IFS= read -r t; do case "\$t" in \$3) echo "\$t" ;; esac; done < "\$W/local_tags"
       exit 0
     fi
     if [ "\$2" = "-a" ]; then
-      [ -f "$WORK/tag_fail" ] && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
-      grep -qxF "\$3" "$WORK/local_tags" 2>/dev/null && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
-      echo "\$3" >> "$WORK/local_tags"; exit 0
+      [ -f "\$W/tag_fail" ] && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
+      grep -qxF "\$3" "\$W/local_tags" 2>/dev/null && { echo "fatal: tag '\$3' already exists" >&2; exit 128; }
+      echo "\$3" >> "\$W/local_tags"; exit 0
     fi ;;
   show)
     # Task 0356: the telemetry deploy reads package.json AT the deployed commit
     # ("git show <sha>:package.json"), never the working tree. Answers from \$WORK/pkg_version.
     case "\$2" in
       *:package.json)
-        printf '{\n  "name": "fixture",\n  "version": "%s"\n}\n' "\$(cat "$WORK/pkg_version" 2>/dev/null || echo 0.0.155)"
+        printf '{\n  "name": "fixture",\n  "version": "%s"\n}\n' "\$(cat "\$W/pkg_version" 2>/dev/null || echo 0.0.155)"
         exit 0 ;;
     esac ;;
   ls-remote)
-    [ -f "$WORK/ls_remote_fail" ] && { echo "fatal: could not read from remote repository" >&2; exit 128; }
-    [ -f "$WORK/remote_tags" ] && cat "$WORK/remote_tags"
+    [ -f "\$W/ls_remote_fail" ] && { echo "fatal: could not read from remote repository" >&2; exit 128; }
+    [ -f "\$W/remote_tags" ] && cat "\$W/remote_tags"
     exit 0 ;;
   push)
-    [ -f "$WORK/push_fail" ] && { echo "error: failed to push some refs" >&2; exit 1; }
+    [ -f "\$W/push_fail" ] && { echo "error: failed to push some refs" >&2; exit 1; }
     exit 0 ;;
   branch)
     if [ "\$2 \$3" = "-r --contains" ]; then
-      [ -f "$WORK/commit_unpushed" ] || echo "  origin/dev"
+      [ -f "\$W/commit_unpushed" ] || echo "  origin/dev"
       exit 0
     fi ;;
 esac
 echo "UNSTUBBED \$line"
-echo "UNSTUBBED \$line" >> "$WORK/unstubbed.log"
+echo "UNSTUBBED \$line" >> "\$W/unstubbed.log"
 exit 97
 EOF
 
     # sshpass stub: record argv + the mode of the -f file, then dispatch to scp/ssh stub.
     cat > "$BIN/sshpass" <<EOF
 #!/bin/bash
-echo "sshpass \$*" >> "$WORK/sshpass.argv"
+read -r W < "$STUB_HOME/work"
+echo "sshpass \$*" >> "\$W/sshpass.argv"
 if [ "\$1" = "-f" ] && [ -f "\$2" ]; then
     if stat -f '%Lp' "\$2" >/dev/null 2>&1; then m=\$(stat -f '%Lp' "\$2"); else m=\$(stat -c '%a' "\$2"); fi
-    echo "\$2 \$m" >> "$WORK/sshpass.filemode"
+    echo "\$2 \$m" >> "\$W/sshpass.filemode"
     shift 2
 fi
 exec "\$@"
@@ -179,32 +198,34 @@ EOF
 
     cat > "$BIN/ssh" <<EOF
 #!/bin/bash
-echo "ssh \$*" >> "$WORK/ssh.argv"
-echo "ssh \$*" >> "$WORK/calls.log"
+read -r W < "$STUB_HOME/work"
+echo "ssh \$*" >> "\$W/ssh.argv"
+echo "ssh \$*" >> "\$W/calls.log"
 last="\${!#}"
 if printf '%s' "\$last" | grep -q 'geoconflict-deploy-role'; then
-    [ -f "$WORK/ssh_unreachable" ] && exit 255          # simulate unreachable/auth-fail
-    cat "$WORK/marker" 2>/dev/null || true               # emit the configured role marker
+    [ -f "\$W/ssh_unreachable" ] && exit 255          # simulate unreachable/auth-fail
+    cat "\$W/marker" 2>/dev/null || true               # emit the configured role marker
     exit 0
 fi
-[ -f "$WORK/fail_deploy" ] && exit 1                      # inject a mid-deploy failure
+[ -f "\$W/fail_deploy" ] && exit 1                      # inject a mid-deploy failure
 exit 0
 EOF
 
     cat > "$BIN/scp" <<EOF
 #!/bin/bash
-echo "scp \$*" >> "$WORK/scp.argv"
-touch "$WORK/scp.called"
+read -r W < "$STUB_HOME/work"
+echo "scp \$*" >> "\$W/scp.argv"
+touch "\$W/scp.called"
 # Capture the staged secrets file (the only upload whose destination is the
 # .profile-deploy-env-<pid> path) so T10 can assert what actually reaches the box.
 src=\${@: -2:1}; dst=\${!#}
 case "\$dst" in
-  *.profile-deploy-env-*) cp "\$src" "$WORK/staged.env" 2>/dev/null || true ;;
+  *.profile-deploy-env-*) cp "\$src" "\$W/staged.env" 2>/dev/null || true ;;
   # Task 0356: the telemetry deploy's staged env. scp_env_fail makes THIS upload fail, so a
   # test can prove the local 0600 staged file is still removed on that path.
   *.uptrace-deploy-env-*)
-    [ -f "$WORK/scp_env_fail" ] && exit 1
-    cp "\$src" "$WORK/staged.env" 2>/dev/null || true ;;
+    [ -f "\$W/scp_env_fail" ] && exit 1
+    cp "\$src" "\$W/staged.env" 2>/dev/null || true ;;
 esac
 exit 0
 EOF
@@ -212,9 +233,10 @@ EOF
     # getent stub so DOMAIN_MATCH is deterministic cross-platform (resolve_ips prefers it).
     cat > "$BIN/getent" <<EOF
 #!/bin/bash
+read -r W < "$STUB_HOME/work"
 # "getent ahosts <name>" → print the controlled IP for any name in \$WORK/resolve_map.
 if [ "\$1" = "ahosts" ]; then
-    ip=\$(grep " \$2\$" "$WORK/resolve_map" 2>/dev/null | awk '{print \$1}' | head -1)
+    ip=\$(grep " \$2\$" "\$W/resolve_map" 2>/dev/null | awk '{print \$1}' | head -1)
     [ -n "\$ip" ] && echo "\$ip  \$2"
 fi
 exit 0

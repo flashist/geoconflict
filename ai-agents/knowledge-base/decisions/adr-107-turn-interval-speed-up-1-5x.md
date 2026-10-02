@@ -124,6 +124,9 @@ are not a reconstruction of anyone's deliberation.*
   more interstitial opportunities. Neither effect has been measured. Note
   `gameCreationRate()` is still `120 * 1000` (`DefaultConfig.ts:247-249`), unchanged: lobby cadence
   did **not** speed up with the matches.
+  *2026-10-02 (task 0367): the lobby window was later cut to 60 s independently; the sentence above
+  is true as of ADR-107's date — its `DefaultConfig.ts:247-249` citation reads `120 * 1000` at commit
+  `40ccb06`, not in later revisions.*
 - **Server turn-broadcast load rose ~50%.** `endTurn()` serialises one `turn` message and sends it to
   every active client (`src/server/GameServer.ts:714-740`). At 15 turns/s instead of 10, per-game
   message count and outbound bytes are ~1.5× for the same match content — and match content is

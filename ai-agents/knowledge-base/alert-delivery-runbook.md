@@ -43,6 +43,8 @@ Two consequences you must hold on to:
    ⇒ **When the monitoring box's IP changes, migrates, or is rebuilt: update
    `PROFILE_INTERNAL_ALLOW_IPS`, redeploy the profile box, and then re-enable the webhook channel in
    the monitoring UI.** Re-enabling is a separate step; fixing the IP alone does not undo the disable.
+   If you cannot re-enable it in the UI, use the
+   [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback).
    _(Owner ruling B, 2026-09-17 — risk accepted, documented here.)_
 
    The deploy prints the allowlist every run, and now warns loudly when it is **empty** (empty renders
@@ -95,8 +97,10 @@ way, so faster detection only shortens how long you were blind; it does not chan
 - ✅ **A channel that is ALREADY disabled is now caught — by check 13, not by the probe's reachability
   test (task `0285`).** Before it, a transient 403 that disabled the channel yesterday left the probe
   green today and alerting dead. Now the same hourly probe also reads the channel's own record and
-  carries it in the same POST; see *The channel's own state* below. ⚠️ **Not yet seen to trip on the
-  real box** — the owner's drill is still to run (see below).
+  carries it in the same POST; see *The channel's own state* below. ~~⚠️ **Not yet seen to trip on the
+  real box** — the owner's drill is still to run (see below).~~ *(True until 2026-10-01.)* It has since
+  tripped once on the real box (`0341`, 2026-10-01) — the bounds are under *The channel's own state*
+  below.
 - ⛔ **It does not check the secret the monitoring stack's channel config holds.** The probe proves the
   copy **the cron** holds matches the relay. Those are two separate copies; the channel's could be
   wrong and every alert dropped while the probe stays green.
@@ -170,9 +174,17 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
 - Not that any **monitor is attached** to the channel.
 - Not **Telegram delivery**, nor a message reaching a human; not `0274` A1 (delivery after idle).
 - It **detects only** — nothing re-enables a channel automatically.
-- ⚠️ **Not yet seen to trip on the real box.** Until the owner's drill (put the channel into a real
+- ~~⚠️ **Not yet seen to trip on the real box.** Until the owner's drill (put the channel into a real
   `disabled` state, watch the dead-man's switch page with `alert-channel-state`, re-enable, watch it
-  go OK) has run, this guard is proven by tests only. One host, no CI.
+  go OK) has run, this guard is proven by tests only. One host, no CI.~~ *(True until 2026-10-01.)*
+- ✅ **Seen to trip on the real box once, 2026-10-01 (`0341`).** An SQL update set the channel to
+  `disabled`; the probe then read `disabled`, a **hand-run** `checks.sh` failed `alert-channel-state`
+  with `DISABLED`, and the dead-man's switch paged the owner. The channel was re-enabled **by SQL, not
+  in the UI** (see [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback)), and the next probe
+  and `checks.sh` read OK. ⚠️ **Bounds:** one host, no CI · the disable was written by SQL, not caused
+  by a real vendor-side failure · the daily 08:00 UTC cron run was **not** the run that tripped · whether
+  the dead-man's switch incident closes itself on the next success ping was **not observed** (it was
+  closed by hand).
 
 #### Three ways it will surprise you
 
@@ -203,7 +215,8 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
    ⚠️ A bare 2xx is *not* success on this route — every drop is a 200 as well, by design.
 4. 🚨 **Then re-enable the notification channel in the monitoring UI and confirm alerting is live.**
    If a real alert hit the same failure, the channel is already disabled. **Fixing the address does
-   not undo the disable** — see the rule above, it is the same rule.
+   not undo the disable** — see the rule above, it is the same rule. If you cannot re-enable it in the
+   UI, use the [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback) below.
 
 #### When `alert-channel-state` fails
 
@@ -211,6 +224,8 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
 2. `DISABLED`: **re-enable the channel in the monitoring UI**, then find what disabled it — usually a
    401/403/404 from the relay (check `PROFILE_INTERNAL_ALLOW_IPS`; the channel's own copy of the secret).
    Fixing the cause does **not** undo the disable, and re-enabling does not fix the cause: do both.
+   If you cannot re-enable it in the UI, use the
+   [SQL fallback](#re-enabling-a-disabled-channel--sql-fallback) below.
 3. `PAUSED` / `DRAFT`: set the channel back to delivering (or finish saving it) in the monitoring UI.
 4. `no channel's URL equals TELEMETRY_ALERT_PROBE_URL`: compare the channel's URL in the monitoring UI
    with `TELEMETRY_ALERT_PROBE_URL`. They must be identical — a trailing slash counts.
@@ -234,6 +249,79 @@ change, not an error field or a timestamp. A webhook channel's `params` holds tw
    secret.
 6. After any fix, run `/opt/uptrace/alert-probe.sh` by hand (its log ends `channel state: …`), then
    `/opt/profile/checks.sh` on the profile box, and confirm `alert-channel-state … OK`.
+
+#### Re-enabling a DISABLED channel — SQL fallback
+
+**A fallback, not the first choice.** Re-enable in the monitoring UI first. Use this only if you cannot
+do it there. It is the reverse of the SQL update `0341`'s drill used, and the one place this method is
+written down (task `0368`).
+
+**Where it runs:** as root on the monitoring box (the probe's env file is root-only), inside the
+monitoring stack's directory, through the same `postgres` compose service the probe's state read uses
+(`setup-telemetry.sh`, `read_channel_state`). Unlike that read, this **writes**, so there is no
+read-only transaction.
+
+```bash
+( set -eu
+  . /opt/uptrace/alert-probe.env
+  [ -n "${ALERT_PROBE_URL:-}" ] || { echo "ALERT_PROBE_URL is empty in alert-probe.env — stop." >&2; exit 1; }
+  export ALERT_PROBE_URL
+  cd /opt/uptrace
+  docker compose exec -T -e ALERT_PROBE_URL postgres \
+    psql -X -v ON_ERROR_STOP=1 -U uptrace -d uptrace <<'SQL'
+\getenv probe_url ALERT_PROBE_URL
+UPDATE notif_channels SET status = 'delivering'
+ WHERE params->>'url' = $1
+   AND status = 'disabled'
+   AND (SELECT count(*) FROM notif_channels WHERE params->>'url' = $1) = 1
+\bind :probe_url \g
+SQL
+)
+```
+
+- **How the URL travels:** it is read from `ALERT_PROBE_URL` in `/opt/uptrace/alert-probe.env`, inside
+  a subshell, so the env file's values do not stay in your shell. It reaches psql through the
+  environment (`-e ALERT_PROBE_URL` names the variable, never its value) and goes to Postgres as a bound
+  parameter (`$1`), not as SQL text — so it is not on any command line, not in psql's output, and not
+  in Postgres's own log **even if the statement fails** (tested locally, see `0368`'s worklog). ⛔ Never
+  paste the URL into the SQL, and never add `set -x`.
+- ⛔ **Never `SELECT` or print `params`.** Its `payload` key holds the shared secret.
+- **The last two conditions are guards:** the update changes a row only when that channel is
+  `disabled` (it never overrides a deliberate pause or turns on a half-saved draft — those are step 3
+  above, in the UI), and only when **exactly one** channel has the probe's URL. With one disabled match
+  the write is the same one `0341` proved.
+- **Expect `UPDATE 1`.** Anything else → **stop**:
+  - `UPDATE 0` — nothing was changed. Look at the channels in the monitoring UI to tell which cause:
+    - no channel has the probe's URL, or several do (the guard refused to touch any) — see *Several
+      channels with the probe's URL* above;
+    - the one matching channel is not `disabled` — `delivering` needs nothing; `paused` / `draft` is
+      step 3 above;
+    - exactly one matching channel and it **is** `disabled` — then the URL did not reach psql (the
+      `-e ALERT_PROBE_URL` hand-off into the container failed), so the update compared against the
+      wrong text. Re-enable in the UI instead; do not work around it by pasting the URL into the SQL.
+  - `ALERT_PROBE_URL is empty …` — the probe is not configured on this box; see *Configuration*.
+  - an `ERROR:` line (exit code 3) — the schema is not what this was checked against (was the monitoring
+    image upgraded?). Re-verify the schema (task `0285` step 0) before trying anything else.
+- **Then:** step 6 above — hand-run `/opt/uptrace/alert-probe.sh` (its log ends
+  `channel state: delivering`), then `/opt/profile/checks.sh` on the profile box
+  (`alert-channel-state … OK`). Then confirm a message actually reaches Telegram. In `0341` the
+  channel's *Test channel* button did that; ⚠️ it has since failed silently 3 times (`0369`), so **no
+  arrival from it does not prove the channel is dead**. The reliable proof is the throwaway-monitor
+  drill (*The working drill procedure* below).
+
+⚠️ **Caveats, in plain words:**
+
+1. **Proven once, on one host, on 2026-10-01** (`0341`) — the unguarded form of the same update. The
+   command above (guards, bound parameter) was tested only locally, against a stand-in table on
+   `postgres:17-alpine`, not on the box.
+2. 🚩 **A real, monitor-fired alert after an SQL re-enable is unproven.** The update writes the vendor's
+   table directly, behind the app's back; if the running app keeps channel state in memory, it might
+   not notice until it restarts. `0341`'s only delivery check was a *Test channel* press, which may not
+   look at the stored status at all. `0289` closed without its drill, so no evidence will come from
+   there; and `0369`'s real alert came after a **UI** re-enable, so it does not count here either.
+3. **It writes the vendor's internal table** and was checked against the pinned images only
+   (`uptrace/uptrace:2.0.2`, `postgres:17-alpine`; `\bind` needs psql 16 or newer). The same upgrade
+   rule as check 13 applies: re-verify the schema before bumping either image.
 
 ---
 
@@ -504,7 +592,8 @@ a rule whose **data** returns below threshold on its own. A rule that cannot go 
 
 - ⛔ **It does NOT discharge `0274` amendment A1**, which requires proving delivery **after an idle
   period** (the stale-connection defect). **Both bursts here were minutes apart on a warm connection.**
-  A1 stands.
+  A1 stands. (2026-10-01: A1 was since closed on observed evidence, bounded to 4 h 36 min — see
+  *What is still unproven*.)
 - ⛔ **It does not prove SUSTAINED delivery.** `0283`'s daily digest remains the only non-circular proof
   of that. Unchanged.
 - ⛔ **It says nothing about the 403 channel-disable trap.** `0284`'s liveness probe (above) now guards
@@ -551,9 +640,30 @@ This drill is **`0274` plan §7.6**. It has been referred to as **"§8"** in sev
 ✅ **What is no longer on this list:** the **recovery message form**. Proven live 2026-09-17 — see the
 drill section above. `alert.status` = `closed`, the relay matches it, the ✅ arrived.
 
-⚠️ **Delivery after an IDLE period is unproven** (`0274` amendment A1). The drill's two bursts were
+~~⚠️ **Delivery after an IDLE period is unproven** (`0274` amendment A1). The drill's two bursts were
 minutes apart on a warm connection, so the stale-connection defect `0061` describes was never
-exercised. Fire once, wait 30–60 min, fire again — that second firing is the test.
+exercised. Fire once, wait 30–60 min, fire again — that second firing is the test.~~ *(True until
+2026-10-01.)*
+
+✅ **Delivery after an IDLE period — observed once, bounded to 4 h 36 min** (`0274` amendment A1,
+closed by task `0289`). On 2026-10-01 a Telegram send from the profile box's long-running process
+**arrived after 4 h 36 min of silence** (08:12 → 12:48 UTC). It came from the name-change notifier,
+which shares the alert relay's sender, connection pool and egress proxy in the same process (code
+reading, `0289`'s plan). An **owner ruling** accepted this observed gap in place of the ≥ 8 h drill —
+**the drill was not run.** Evidence: `ai-agents/tasks/done/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/worklog.md`.
+
+⛔ **What it does NOT cover — each bound stands:**
+- **An overnight (≥ 8 h) gap is still unproven.** The longest gap seen is 4 h 36 min; do not round it up.
+- **Whether the send needed a retry is not determined.** The name-change notifier is not counted by
+  `geoconflict_profile_alert_relay`.
+- **The monitoring → relay hop after quiet is not covered.** This send never crossed it; in production
+  the hourly `0284` probe keeps that hop warm.
+- **The Alerts topic itself** was proven on 2026-09-17 on a warm connection only, not after quiet.
+- **Quiet at the egress proxy is unknown.** If the game server shares that proxy, its sends could have
+  kept it warm.
+- **`0061`'s stale-connection mechanism is neither confirmed nor ruled out.** The HTTP client (undici)
+  closes unused pooled connections within 10 min at most (code reading only), so the 12:48 send most
+  likely opened a fresh connection.
 
 ✅ **Sustained Telegram delivery IS observed, from 2026-09-19 — `0283`'s digest arrived on the real
 box.** The owner deployed the profile box on the evening of **2026-09-18** and read the topic the next
@@ -582,7 +692,9 @@ Evidence: `ai-agents/tasks/done/0283-daily-digest-of-pending-name-change-reviews
    document, which observed delivery makes **more** important, not less.
 2. **Delivery after an IDLE period is still unproven** (`0274` amendment A1, above). The gap here was
    ~9.5 h — closer to a cold connection than the drill's minutes-apart bursts, so it is **weak evidence
-   toward A1, not the test A1 asks for.** ⚠️ **Do not record A1 as discharged by this.**
+   toward A1, not the test A1 asks for.** ⚠️ **Do not record A1 as discharged by this.** *(2026-10-01:
+   A1 was since closed on separate observed evidence, bounded to 4 h 36 min — see the IDLE paragraph
+   above.)*
 3. **The second day's single message is NOT yet observed.** One scheduled firing is not a schedule; the
    proof is the **2026-09-20** 07:00 MSK message arriving, and arriving **once** (`0283` brief
    verification step 4, still open).

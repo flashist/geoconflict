@@ -365,7 +365,8 @@ mismatch (`Worker.ts:81-103`, `:148-155`, `:340-347`).
   lobbies and, if none is open, posts `POST /api/create_game/<randomID>` to the owning worker with the
   admin header (`Master.ts:119-127`, `:490-517`). A lobby is evicted from the public list at
   `msUntilStart <= 250` or when human clients hit `maxPlayers` (`Master.ts:458-478`).
-- **Lobby window** = `gameCreationRate()` = **120,000 ms** (`DefaultConfig.ts:244-246`).
+- **Lobby window** = `gameCreationRate()` = **60,000 ms** in prod and preprod (`DefaultConfig.ts:247-250`;
+  dev overrides it to 5,000 ms). *Changed 2026-10 by task 0367 — was 120,000 ms.*
 - **Per-worker housekeeping** ticks every 1,000 ms (`GameManager.ts:26`); an `Active` game that has not
   started gets `prestart()` then `start()` after a 2,000 ms delay (`GameManager.ts:112-147`).
 - **Join** (`GameServer.addClient()`, `GameServer.ts:168-441`): rejects kicked clients, caps **3

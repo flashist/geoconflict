@@ -7,7 +7,12 @@
 Sprint 8
 
 ## Priority
-1
+2
+
+> 📌 **2026-10-02 — was 1, now 2.** Moved down one by the placement of verify task `0370` (for `0367`) at the top of
+> Sprint 8, on the owner's standing build/verify-split rule and the 2026-10-02 close ruling, relayed by `fkit-lead` to a
+> spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Not a merit judgement; nothing else about this task
+> changed. The note(s) below are kept as written (ADR-035).
 
 > **Rank 1 is placement on the owner's standing build/verify-split rule (2026-09-29)**: a verify task that needs a
 > deploy plus an owner check goes *"on top of the next sprint"* and must not block the current sprint's deploy.

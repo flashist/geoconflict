@@ -5,7 +5,7 @@
 
 > ℹ️ **ID allocation, checked 2026-10-01 before filing** (method:
 > [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md)). Allocated in the same run
-> as [`0368`](../0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md), directly
+> as [`0368`](../../done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md), directly
 > after it; highest before the run was `0367`. `0369`: no task folder, no `## ID` hit, no hit under
 > `ai-agents/sprints/` or `.claude/`.
 
@@ -46,7 +46,7 @@ record a page, a UI state or an arrival it did not see.
 **Filed 2026-10-01 by a spawned `fkit-producer` with no owner channel (ADR-021/037), on an OWNER RULING given live
 2026-10-01 in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`.** ⛔ Not producer precedent.
 Choice, verbatim: **"Yes, file it (Recommended)"**. Split from one requested task into two — see
-[`0368`](../0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) § *Context* for
+[`0368`](../../done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) § *Context* for
 the reason; flagged for owner confirmation there.
 
 ✅ **ANSWERED 2026-10-01 — OWNER RULING** (relayed by `fkit-lead`; ⛔ not producer precedent): **"Keep two
@@ -151,7 +151,7 @@ spawned `fkit-producer` on facts relayed by `fkit-lead`; ⛔ not producer preced
 
 ## Notes
 
-- **Depends on:** [`0368`](../0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) (the SQL fallback step 4 uses, and the runbook wording step 6 replaces), [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (done 2026-10-01 — the drill that found the gap)
+- **Depends on:** [`0368`](../../done/0368-runbook-document-the-proven-sql-re-enable-for-a-disabled-alert-channel/brief.md) (the SQL fallback step 4 uses, and the runbook wording step 6 replaces), [`0341`](../../done/0341-verify-0285-in-production-deploy-it-and-run-its-disabled-channel-drill/brief.md) (done 2026-10-01 — the drill that found the gap)
 - **Blocks:** nothing.
 - 🚨 **Order with [`0289`](../../done/0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md):**
   this task **disables the channel**, which makes `0289`'s result INCONCLUSIVE if it falls inside `0289`'s quiet

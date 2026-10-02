@@ -35,7 +35,8 @@ import path from "node:path";
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 
 /**
- * Jest's default per-test timeout is 5000 ms. The hardening harness alone runs for ~16 s,
+ * Jest's default per-test timeout is 5000 ms. The hardening harness alone runs for ~20–55 s
+ * (measured 2026-10-02 after task 0371; slower on a loaded machine),
  * so without an explicit override it would fail with the literal string
  * "Exceeded timeout of 5000 ms" — which CLAUDE.md documents as the signature of the known
  * supertest flake. A gate whose normal failure mode impersonates a known flake is worse than

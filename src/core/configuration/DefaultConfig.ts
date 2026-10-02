@@ -245,7 +245,8 @@ export abstract class DefaultServerConfig implements ServerConfig {
     return 100 / this.flashist_gameSpeedCoef;
   }
   gameCreationRate(): number {
-    return 120 * 1000;
+    // Flashist Adaptation: public lobby window halved to 1 minute as a test (task 0367); revert = 120 * 1000
+    return 60 * 1000;
   }
   aiPlayersConfig(): AiPlayersConfig {
     return {
