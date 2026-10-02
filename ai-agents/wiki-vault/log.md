@@ -4368,3 +4368,18 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - **Targeted lint on 18 touched pages (+ `index.md`):** 0 broken wiki-links; every link target exists; every link from the 3 new pages has a back-link; all 3 indexed.
 - 🔒 **Secret scan on this run's vault diff and new pages: clean** — no URL, IP, connection string, hex secret, chat/topic id or token.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.
+
+## 2026-10-02 — ingest (sync)
+
+- **Sync window:** `2247699` → HEAD (`57f31478ec69bc60b08d25a76189b826edea7cad`). Commits: `7db3a72` ("Wiki sync" — vault only), `5affb7d` and `57f3147` ("Sprint push"). Spawned by `fkit-lead` on the owner's `/fkit-wiki-sync`, no argument.
+- **Changed source files detected under `ai-agents/` (vault excluded): 9. Ingest-worthy after the filter: 5** — `alert-delivery-runbook.md`, `plan-sprint-7.md`, and the done briefs `0369` (moved `backlog/` → `done/` *and* modified, so kept), `0341`, `0368`. Filtered out: `0369`'s `plan.md` / `worklog.md` / `review.md` and `0341`'s `worklog.md` (working artifacts; `0369`'s worklog and review read as supporting evidence only).
+- Ingested: `ai-agents/tasks/done/0369-find-the-ui-re-enable-for-a-disabled-alert-channel-and-correct-the-runbook/brief.md` → **created** [[wiki/tasks/alert-channel-ui-reenable-runbook]] (control names, UTC times, yes/no only — no URL, host, id or secret)
+- Ingested: `ai-agents/knowledge-base/alert-delivery-runbook.md` → **updated** [[wiki/systems/alert-delivery]] (UI control named as first choice; Test-channel liveness warning; stale drill-bounds bullet struck; "runbook not yet corrected" and "`0369` still open" struck as history)
+- Ingested: `ai-agents/sprints/plan-sprint-7.md` → **updated** [[wiki/decisions/sprint-7]] — **35 rows — 19 Done · 9 Backlog · 4 Blocked · 2 Moved · 1 Cancelled; 13 open** (was 35 / 14), counted by me by leading status glyph; new open-row table at `57f3147`, the `2247699` table kept as history; the "committed in `2247699`; not deployed" correction to the `0367`/`0368`/`0371` rows recorded.
+- **Also updated (dated notes / back-links, history kept):** [[wiki/tasks/alert-channel-sql-reenable-runbook]], [[wiki/tasks/uptrace-channel-state-production-check]], [[wiki/tasks/uptrace-channel-state-check]].
+- **Skipped (already covered):** the done briefs `0341` and `0368` — link-path changes only (`backlog/0369` → `done/0369`). Old `backlog/0369` paths in the vault: **none found** (the vault named `0369` by ID only). The `0367` / `0371` pages already said "committed in `2247699`" from the previous sync.
+- ⚠️ **Board text vs repo:** `0369`'s Sprint 7 row says "Not committed at close"; its runbook edit **is** in `57f3147` (checked with `git log`). Pages record that.
+- [[wiki/index]]: 1 new entry (task `0369`); 4 entries annotated (`alert-delivery`, `sprint-7`, `uptrace-channel-state-check`, `uptrace-channel-state-production-check`).
+- **Targeted lint on 6 touched pages (+ `index.md`):** 0 broken wiki-links; every link from the new page has a back-link; new page indexed.
+- 🔒 **Secret scan on this run's vault diff and the new page: clean** — no URL, IP, connection string, hex secret, chat/topic id or token.
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. Nothing committed or pushed.

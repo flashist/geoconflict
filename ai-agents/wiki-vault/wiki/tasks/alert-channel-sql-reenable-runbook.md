@@ -66,7 +66,10 @@ review round 1, the `status = 'disabled'` guard — a **behaviour change** (a lo
 - Stateful review round 1: R1 + R2 (both low) fixed, ledger closed-out, no residuals.
 - **Noticed, not touched:** a drill-bounds bullet in the runbook (*"the already-disabled state is still uncovered … a
   separate follow-up"*) has been stale since check 13 shipped — a candidate for `0369` or a later tidy-up.
-- **Still open:** `0369` (UI control wording), and the unproven real-alert-after-SQL-re-enable caveat.
+- **Still open:** ~~`0369` (UI control wording), and~~ the unproven real-alert-after-SQL-re-enable caveat.
+- 📌 *2026-10-02:* `0369` done ([[tasks/alert-channel-ui-reenable-runbook]]) — the runbook now names the UI control
+  (`Unpause channel` ▶) as the first choice, keeps this SQL section as the fallback (three links added, otherwise
+  byte-identical), and struck the stale drill-bounds bullet noticed above.
 
 ## Related
 
@@ -76,3 +79,4 @@ review round 1, the `status = 'disabled'` guard — a **behaviour change** (a lo
 - [[tasks/alert-delivery-after-idle]] — task `0289`, whose runbook edit rode here
 - [[tasks/alert-path-liveness-probe]] — task `0284`, the probe whose env file and state read this reuses
 - [[decisions/sprint-7]] — the board (rank 32); closed 2026-10-02
+- [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, the sibling that named the UI control (done 2026-10-02)

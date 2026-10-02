@@ -194,7 +194,8 @@ were unchanged. 🚨 **One deviation — the channel was re-enabled by the rever
 runbook's *"re-enable in the UI"* step is **unproven by that drill**. Filed as `0368` (document the SQL fallback; still
 `🔲 Backlog`) and `0369` (find the UI control). Per the Sprint 7 board's `0369` row (2026-10-01, `🔄 In progress`): a
 `disabled` channel is re-enabled in the UI by **`Unpause channel` (▶)**, and ⚠️ the *Test channel* button failed
-silently three times in that session. The runbook is **not yet corrected** — `0369`'s rewrite step is pending.
+silently three times in that session. ~~The runbook is **not yet corrected** — `0369`'s rewrite step is pending.~~
+*(Corrected 2026-10-02 — see the `0369` note below.)*
 
 📌 **2026-10-02 — `0368` done (agent-closed — not owner-verified; committed in `2247699`):** the runbook now carries
 § *Re-enabling a DISABLED channel — SQL fallback* — a guarded update (only a `disabled` channel, only when exactly one
@@ -202,7 +203,18 @@ channel has the probe's URL), the URL sent as a bound parameter so it never reac
 The three UI re-enable sentences point to it; per owner ruling they do **not** call the UI control unproven (`0369`
 found it). 🚩 **Tested on a throwaway local Postgres only, not on the box**, and a **real monitor-fired alert after an
 SQL re-enable is still unproven**. Check 13's *"not yet seen to trip"* runbook lines are now struck as history. See
-[[tasks/alert-channel-sql-reenable-runbook]]. `0369` (name the UI control) is still open.
+[[tasks/alert-channel-sql-reenable-runbook]]. ~~`0369` (name the UI control) is still open.~~ *(true until 2026-10-02 —
+see below)*
+
+📌 **2026-10-02 — `0369` done (agent-closed — not owner-verified; runbook edit in `57f3147`):** the runbook now names the
+UI control — **Alerting → CHANNELS → the channel's row → `Unpause channel` (▶)**, the same control for `disabled` and
+`paused` (it reads `Pause channel` ⏸ while `delivering`) — and makes it the **first choice**, with SQL as the fallback.
+New § *Re-enabling a channel in the monitoring UI* and § *The Test channel button is not a liveness signal*: ⚠️ the
+*Test channel* button sent nothing 3 times on 2026-10-01 (cause unknown, not investigated by owner ruling), so **no
+arrival from it proves nothing — prove delivery with the throwaway-monitor drill**. A real alert did arrive after the
+UI re-enable (🚨 17:29 / ✅ 17:30 UTC). Bounds: seen once, one host; the disable was SQL-set, not vendor-written; the
+Edit page and `DRAFT` were not looked at. The runbook's stale *"already-disabled state still uncovered"* drill bullet is
+struck (check 13 covers it). See [[tasks/alert-channel-ui-reenable-runbook]].
 
 ### Three ways the probe will surprise you
 
@@ -430,3 +442,4 @@ only; idle-period delivery is still `0289`'s *(closed 2026-10-01, bounded to 4 h
 - [[tasks/name-change-digest-pending-list]] — task `0315` (2026-09-27): the digest's second message lists pending requests
 - [[decisions/sprint-7]] — the board carrying `0341`, `0289`, `0368` and `0369`
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's SQL fallback for re-enabling a disabled channel, and the idle-result update
+- [[tasks/alert-channel-ui-reenable-runbook]] — task `0369` (2026-10-02): the UI re-enable control named (`Unpause channel` ▶), and the *Test channel* liveness warning

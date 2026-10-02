@@ -5,7 +5,24 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-02 (latest, `2247699`) — 35 ROWS, 14 OPEN: `0367`, `0368`, `0371` DONE · `0371` MOVED IN
+> # 🆕 2026-10-02 (latest, `57f3147`) — 35 ROWS, 13 OPEN: `0369` DONE · "NOT COMMITTED" CORRECTED
+>
+> **Re-counted at `HEAD` = `57f3147`, by each row's leading status glyph: 35 rows — 19 `✅ Done` · 9 `🔲 Backlog` ·
+> 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 35 / 14). No `🔄 In progress` row remains. ⚠️ Counted
+> by me this run.
+>
+> - **`0369` done (agent-closed — not owner-verified)** — [[tasks/alert-channel-ui-reenable-runbook]]: the runbook now
+>   names the UI re-enable for a disabled alert channel (**Alerting → CHANNELS → row → `Unpause channel` ▶**) and warns
+>   that *Test channel* is not a liveness signal. Owner ruling *"Close it (Recommended)"*. Doc-only. The row says
+>   *"Not committed at close"*; the runbook edit is in `57f3147`.
+> - **Board correction (owner request, relayed by `fkit-lead`):** the `0367`, `0368` and `0371` rows (and two addendum
+>   notes) now strike *"Not committed"* and say **committed in `2247699` (2026-10-02); not deployed**. This resolves the
+>   ⚠️ below about `0367`'s row reading "not committed".
+> - Links to `0369` on the board and in the `0341` / `0368` briefs re-pointed from `backlog/` to `done/`.
+>
+> ---
+>
+> # 2026-10-02 (`2247699`) — 35 ROWS, 14 OPEN: `0367`, `0368`, `0371` DONE · `0371` MOVED IN *(history — superseded above)*
 >
 > **Re-counted at `HEAD` = `2247699`, by each row's leading status glyph: 35 rows — 18 `✅ Done` · 9 `🔲 Backlog` ·
 > 4 `🚧 Blocked` · 1 `🔄 In progress` (`0369`) · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 14 OPEN** (was 34 / 16). ⚠️ Counted by
@@ -174,6 +191,28 @@ moved rows here; they did not start this sprint.**
 
 ## Decision
 
+**The board at `57f3147` (2026-10-02), open rows by rank** — ranks are positions, not merit (see above):
+
+| Rank | Task | Status |
+|---|---|---|
+| 1 | `0337` verify `0331` in production | Backlog |
+| — | `0027` New Maps — Community Demand (tracker; unranked ≠ low) | Backlog |
+| 4 | `0030` S3-backed match archival | Backlog |
+| 5 | `0032` client null-id errors | Blocked |
+| 6 | `0219` profile P4 operability | Blocked |
+| 8 | `0323` mark a server-confirmed approved name | Backlog |
+| 9 | `0332` join token | Backlog |
+| 14 | `0213` epic — profile backend + S3 | Backlog |
+| 16 | `0340` `0325` S3a — mint verified sessions | Backlog |
+| 17 | `0250` authenticated profile read | Blocked |
+| 18 | `0248` suppress interstitial ads for paid citizens | Backlog |
+| 19 | `0301` citizenship explainer popup | Backlog |
+| 21 | `0297` paid citizenship owner-run test-buy | Blocked |
+
+**Closed 2026-10-02 (later):** 33 `0369` — `✅ Done (agent-closed — not owner-verified)`.
+
+*The table below is the board at `2247699` (2026-10-02), kept as history.*
+
 **The board at `2247699` (2026-10-02), open rows by rank** — ranks are positions, not merit (see above):
 
 | Rank | Task | Status |
@@ -339,3 +378,4 @@ moved rows here; they did not start this sprint.**
 - [[tasks/public-lobby-one-minute]] — task `0367`, rank 31, closed 2026-10-02 (agent-closed — not owner-verified); committed in `2247699`, not deployed; verify `0370` on Sprint 8
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, rank 32, closed 2026-10-02 (runbook SQL fallback; tested locally only)
 - [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02
+- [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)

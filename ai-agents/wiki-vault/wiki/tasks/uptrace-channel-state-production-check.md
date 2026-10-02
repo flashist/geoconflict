@@ -56,6 +56,8 @@ original profile-first order. See [[systems/weekend-deploy-window]].
   **`Unpause channel` (▶)**, and ⚠️ its *Test channel* button failed silently three times there. `0369`'s runbook
   rewrite is still pending. 📌 *2026-10-02:* `0368` is done — this drill's SQL re-enable is now written into the
   runbook as a guarded fallback (tested locally only, not on the box); see [[tasks/alert-channel-sql-reenable-runbook]].
+  📌 *2026-10-02:* `0369` is done — the runbook names `Unpause channel` (▶) as the first-choice UI re-enable, and warns
+  that *Test channel* is not a liveness signal; see [[tasks/alert-channel-ui-reenable-runbook]].
 - Whether the dead-man's switch incident resolves itself on the next success ping — the owner closed it by hand.
 - Everything check 13 never claimed: delivery, the channel's own copy of the secret, an attached monitor, delivery after
   idle (`0289`).
@@ -75,3 +77,4 @@ original profile-first order. See [[systems/weekend-deploy-window]].
 - [[decisions/sprint-7]] — the board (rank 26); closed 2026-10-01
 - [[tasks/uptrace-alert-delivery-to-telegram]] — task `0277`, the relay whose channel this drill disabled and re-enabled
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, which wrote this drill's SQL re-enable into the runbook (done 2026-10-02)
+- [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, which found and named the UI control this drill could not (done 2026-10-02)

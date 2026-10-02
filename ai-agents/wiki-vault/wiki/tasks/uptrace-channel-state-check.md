@@ -21,6 +21,9 @@
 > re-enabled by the **reverse SQL update, not in the UI** (ruling Q3's method) — so the UI re-enable path is **not**
 > proven by it (filed `0368` + `0369`). The "not yet seen to trip" lines below are history. 📌 *2026-10-02:* `0368` done —
 > the runbook's own "not yet seen to trip" lines are struck too, and it gained the SQL fallback ([[tasks/alert-channel-sql-reenable-runbook]]).
+> 📌 *2026-10-02:* `0369` done — the UI re-enable is named (`Unpause channel` ▶, first choice) and the runbook's stale
+> *"already-disabled state still uncovered"* drill bullet is struck, since check 13 covers it
+> ([[tasks/alert-channel-ui-reenable-runbook]]).
 >
 > ⛔ No hosts, IPs, URLs, chat or topic ids, or secrets on this page.
 
@@ -79,3 +82,4 @@ automatic re-enable. Kept separate from `0284` by owner ruling D4 — do not fol
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/uptrace-channel-state-production-check]] — task `0341`, the production check and drill (passed 2026-10-01, SQL re-enable)
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's check-13 lines updated and the SQL re-enable fallback added
+- [[tasks/alert-channel-ui-reenable-runbook]] — task `0369` (2026-10-02): the UI re-enable control named; check 13 now credited in the drill bounds
