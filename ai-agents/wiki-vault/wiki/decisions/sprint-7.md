@@ -5,7 +5,20 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-02 (latest, `957a56b`) — 36 ROWS, 13 OPEN (UNCHANGED): THREE DATED BOARD CORRECTIONS, NO STATUS OR RANK CHANGE
+> # 🆕 2026-10-03 (latest, `bc39b82`) — 36 ROWS, 13 OPEN (UNCHANGED): ONE LINK REPOINT ONLY
+>
+> **Re-counted at `HEAD` = `bc39b82`: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` · 4 `🚧 Blocked` · 2 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 13 OPEN** (unchanged). ⚠️ Counted by me this run. The only board edit in this window: the
+> `0355` close addendum's link to verify task `0358` now points at `done/` — `0358` (and `0363`) closed on
+> [[decisions/sprint-8]] on 2026-10-03 ([[tasks/profile-deploy-version-tags-production-check]],
+> [[tasks/telemetry-deploy-version-tags-production-check]]). ⚠️ **Not reflected on this board:** the 2026-10-03
+> window shipped this sprint's committed work to production in game release `0.0.156` and profile
+> `0.0.156-profile.1` — including `0367` (1-minute lobbies, now live) and the first profile deploy carrying `0309`.
+> No row's text was updated for that here; see [[systems/weekend-deploy-window]].
+>
+> ---
+>
+> # 🆕 2026-10-02 (`957a56b`) — 36 ROWS, 13 OPEN (UNCHANGED): THREE DATED BOARD CORRECTIONS, NO STATUS OR RANK CHANGE
 >
 > **Re-counted at `HEAD` = `957a56b`, by each row's leading status glyph: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` ·
 > 4 `🚧 Blocked` · 2 `➡️ Moved` · 1 `⛔ Cancelled`; 13 OPEN** (was 36 / 13). ⚠️ Counted by me this run.
@@ -440,3 +453,5 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)
 - [[systems/player-profile-store]] — where `0250` S1 (rank 17, deployed 2026-09-29) lives
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it on Sprint 8
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, `0355`'s verify on Sprint 8: passed, closed 2026-10-03
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, `0356`'s verify on Sprint 8: passed, closed 2026-10-03

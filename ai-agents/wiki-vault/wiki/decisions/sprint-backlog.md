@@ -3,7 +3,23 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-02 (latest) at `HEAD` = `957a56b` — ONE ROW ADDED (`0374`)
+> # 📊 RE-COUNTED 2026-10-03 (latest) at `HEAD` = `bc39b82` — ONE ROW ADDED (`0375`)
+>
+> **`backlog.md`: 119 rows — 88 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
+> 91 OPEN** (was 118 / 90). Counted by me this run, by each row's leading status glyph.
+>
+> - `0375` — **investigate why the game server's first profile `resolve` call times out about every 10 minutes.**
+>   Filed 2026-10-03 by a spawned `fkit-producer` on an OWNER RULING relayed by `fkit-lead` (ADR-021/037), *"Yes, file a
+>   backlog task (Recommended)"*; ⛔ not producer precedent. **Owner placed it on this board, not a sprint.** Seen in the
+>   2026-10-03 window: three `attempt 1/3: TimeoutError` lines at 09:40, 09:50, 10:00 UTC, all recovered on retry — the
+>   same signature as watch item F-B of 2026-09-26 ([[tasks/profile-identity-s3-game-server-resolve-and-credit]],
+>   [[systems/weekend-deploy-window]]). ~10 s extra wait per hit; nothing lost. **Read-only investigation first** — no
+>   code, config or box change, and ⛔ **no profile box restart** (the standing `0309` / `0297` §1 rule). The stale
+>   keep-alive idea is a **hypothesis, not a finding**. Report goes to `ai-agents/knowledge-base/reports/`.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-10-02 at `HEAD` = `957a56b` — ONE ROW ADDED (`0374`) *(history — superseded above)*
 >
 > **`backlog.md`: 118 rows — 87 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
 > 90 OPEN** (was 117 / 89). Counted by me this run, by each row's leading status glyph.
@@ -742,3 +758,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/stale-login-signature-age]] — task `0366`, filed here 2026-10-01 and moved to Sprint 7 the same day; done
 - [[tasks/hardening-harness-speedup]] — task `0371`, filed here 2026-10-02 and moved to Sprint 7 the same day; done
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, whose popup gate `0374` (filed here 2026-10-02, open) fixes for a hung lobby request
+- [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: its watch item F-B recurred 2026-10-03 and is now investigation task `0375` (filed here, open)

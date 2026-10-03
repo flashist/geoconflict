@@ -4,6 +4,15 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 33 (split out of `0064` on 2026-09-23) / task `0298`
 
+> 🆕 **2026-10-03 — OWNER STEP 3's RECORD NOW EXISTS (game prod + profile).** Appended to the worklog after the
+> 2026-10-03 window ([[systems/weekend-deploy-window]]), names and counts only. **Game prod `0.0.156`:** name guard
+> REQUIRED 0 on game / profile / client; value guard REQUIRED 0, OPTIONAL 6 (`STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`,
+> `STORAGE_SECRET_KEY`, `STORAGE_BUCKET`, `OTEL_AUTH_HEADER`, `FEEDBACK_WEBHOOK_URL` — blank by recorded decision),
+> OK 18, UNCHECKED 6; secret boundary + per-layer byte scan passed — **no block.** **Profile `0.0.156-profile.1`:**
+> name guard REQUIRED 0 — no block; the on-box value check (report-only), captured later the same day, printed **13
+> OK, 0 findings, 0 optional**, and OTLP ingest reachable. ⚠️ **Dev `0.0.155-dev.1`: guard output NOT captured.**
+> Telemetry has no config-parity guard. The task stays closed as it was.
+>
 > 🆕 **2026-09-29 — the FIRST ARMED DEPLOYS RAN** (telemetry → game → profile; [[systems/weekend-deploy-window]]).
 > The armed guards **stopped none** of the three (owner reported no failure); the pre-flight `--enforce` run was
 > exit 0, `REQUIRED 0`. ⚠️ **The guards' own output was NOT captured** — the record owner step 3 asks for does not

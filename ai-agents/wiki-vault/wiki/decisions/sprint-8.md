@@ -5,7 +5,35 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-02 (latest, `0c9a620`): 6 rows — 6 `🔲 Backlog`; 6 OPEN; still NOT started.** ⚠️ Counted by me this
+> 🆕 **2026-10-03 (latest, `bc39b82`): 6 rows — 2 `✅ Done (agent-closed — not owner-verified)` · 4 `🔲 Backlog`;
+> 4 OPEN.** ⚠️ Counted by me this run. **Ranks unchanged:** `0370` 1 · `0373` 2 · `0363` 3 ✅ · `0358` 4 ✅ · `0351` 5 ·
+> `0343` 6. ⚠️ **The line-3 banner still reads `🔲 Backlog — 2026-09-29` (NOT started)** although two of its rows are
+> now closed — recorded as the board states it, not changed here; whether to start the sprint is the owner's call.
+>
+> - ✅ **`0363` and `0358` closed 2026-10-03** by `/fkit-task-done`, `(agent-closed — not owner-verified)`, on the
+>   OWNER RULING *"Yes, close both (Recommended)"* (relayed by `fkit-lead`). Both verify tasks passed every step after
+>   the 2026-10-03 window: telemetry **`0.0.155-telemetry.1`** at `204f931`
+>   ([[tasks/telemetry-deploy-version-tags-production-check]]); profile **`0.0.156-profile.1`** at `f712263`
+>   ([[tasks/profile-deploy-version-tags-production-check]]). Their files moved `backlog/` → `done/`; the board's links
+>   were repointed.
+> - 🔄 **`0370` (rank 1) — Steps 1–3 done on deploy day, still `🔲 Backlog`:** `0367`'s 1-minute lobby went live in
+>   game release `0.0.156` (~09:32 UTC). **Before baseline** (2026-09-26 → 10-03, deploy day excluded): lone-real-player
+>   share **11.8 %** (545 / 4 636; single days 7.6–13.6 %), ≈ 662 public matches with a real player per day;
+>   GameAnalytics `Game:Mode:Multiplayer` **4.57K entries/day** (entries, **not** matches; read by the lead through the
+>   owner's login — the brief says owner-read; a hidden "demo mode" element on the page means real data was judged,
+>   **not proven**). **OWNER RULING — "noticeably worse" = 7-day after share above 15 %** (*"Above 15 %
+>   (Recommended)"*), set before any after-data; crossing it puts a revert **on the table**, it is **not** an automatic
+>   revert. Day-4 snapshot due 2026-10-08; after window 2026-10-04 → 10-10. See [[tasks/public-lobby-one-minute]].
+> - **`0351` (rank 5) is now runnable** — the dev box got the new code in the same window.
+> - ⏳ **`0373` (rank 2) — its data clock has probably started, not confirmed.** ✔️ *Wiki check: `0372`'s commit
+>   (`0c9a620`) and `0366`'s (`e581824`) are both ancestors of `f712263`, the commit both the game
+>   (`0.0.156`) and profile (`0.0.156-profile.1`) deploys ran from.* ⚠️ The runbook does **not** mention `0366`,
+>   `0372` or `0373`, and nobody recorded seeing their events or brackets arrive — so "deployed" is by ancestry only,
+>   not observed. If it holds, the earliest useful read is after a weekend evening with 5–7 days of data
+>   (≈ 2026-10-10/11 UTC).
+> - Window record: [[systems/weekend-deploy-window]].
+>
+> *History —* **2026-10-02 (`0c9a620`): 6 rows — 6 `🔲 Backlog`; 6 OPEN; still NOT started.** ⚠️ Counted by me this
 > run. Task **`0373` — read the stale-login data and choose the fix** — was filed 2026-10-02 by a spawned
 > `fkit-producer` on owner rulings (filing *"a 'read the data and decide' task for the top of the next sprint"*; the
 > S2-exit threshold — *"Decide it with the data (Recommended)"*), appended at rank 6, then **moved to rank 2 by OWNER
@@ -120,3 +148,6 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/verified-login-live-check]] — task `0339`, the failed live check that started the `0373` chain
 - [[decisions/adr-116-verified-login]] — the verified-login decision; `0340` (S3a) waits on `0373`
 - [[systems/analytics]] — the `0372` events `0373` (rank 2) reads
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363` (rank 3): verify passed, closed 2026-10-03
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358` (rank 4): verify passed, closed 2026-10-03
+- [[systems/weekend-deploy-window]] — the 2026-10-03 window in which `0363`, `0358` and `0370`'s Steps 1–3 ran

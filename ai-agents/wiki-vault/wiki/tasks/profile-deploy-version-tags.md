@@ -9,6 +9,14 @@
 > owner-run after the weekend profile deploy (next slot 2026-10-03/04). The naming rule is recorded as
 > [[decisions/adr-117-server-deploy-version-names]].
 
+> 🆕 **2026-10-03 — DEPLOYED AND VERIFIED.** The first tagged profile deploy ran in the 2026-10-03 window as
+> **`0.0.156-profile.1`** (commit `f712263`, digest `sha256:b26113a8…df32`). Verify task `0358` passed every step and
+> closed the same day `(agent-closed — not owner-verified)`: name printed, `/health` reports it, annotated tag on
+> origin at `f712263`, registry name at the deployed digest, telemetry `service.version` switched from `1.0.0` to the
+> name at the recreate — [[tasks/profile-deploy-version-tags-production-check]]. The "Nothing deployed" lines below are
+> history. 🚨 The `0309` ordering rule still stands: **no second profile deploy and no profile box restart until
+> `0297` §1 has read `0309`'s log line.**
+
 ## Goal
 
 Owner request, 2026-09-30 (verbatim): *"we need to do tagging of profile and telemetry servers, similarly to the
@@ -70,6 +78,7 @@ rank 29 — **done 2026-10-01**, agent-closed, not deployed: [[tasks/telemetry-d
 - [[systems/project-operations]] — the game's `bump-version.js` flow this mirrors
 - [[systems/weekend-deploy-window]] — the slot the first tagged deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0358`
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, the production verify (passed, closed 2026-10-03)
 - [[decisions/sprint-backlog]] — the Backlog board, where `0357` (game-server version) and `0359` (registry retention) sit
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, the telemetry half, reusing the shared helper (done 2026-10-01)
 - [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): this task's new harness checks multiplied the stub writes that pushed the hardening harness past its 150 s deadline; fixed test-side

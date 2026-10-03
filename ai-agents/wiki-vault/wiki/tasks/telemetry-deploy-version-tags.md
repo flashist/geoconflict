@@ -9,6 +9,13 @@
 > ⚠️ **Until this change is committed, a real telemetry deploy refuses to run** — its own shipped files are dirty
 > (owner ruling Q1). *(This page does not record whether it has since been committed.)*
 
+> 🆕 **2026-10-03 — COMMITTED, DEPLOYED AND VERIFIED.** The first tagged telemetry deploy ran as the first step of
+> the 2026-10-03 window: **`0.0.155-telemetry.1`** at commit `204f931`. ✔️ *Wiki check: the telemetry deploy files
+> were last changed in `05c3cfa`, an ancestor of `204f931` — so the "not recorded whether committed" note above is
+> answered: committed.* Verify task `0363` passed every step and closed the same day `(agent-closed — not
+> owner-verified)`: tag on origin, box marker and local record all name the same version and commit, and the Uptrace
+> UI loads with post-deploy data — [[tasks/telemetry-deploy-version-tags-production-check]].
+
 ## Goal
 
 The telemetry half of the owner's request to version the profile and telemetry servers *"similarly to the way we
@@ -67,4 +74,5 @@ recorded it: no git read, no deploy record, no marker on the box.
 - [[tasks/profile-deploy-hardening]] — the shell harness this extends
 - [[systems/weekend-deploy-window]] — the slot the first tagged telemetry deploy rides
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0363`
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, the production verify (passed, closed 2026-10-03)
 - [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): this task's new harness checks multiplied the stub writes that pushed the hardening harness past its 150 s deadline; fixed test-side

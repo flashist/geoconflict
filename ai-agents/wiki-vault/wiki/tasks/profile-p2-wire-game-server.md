@@ -77,6 +77,9 @@ profile box a few minutes later showed no starvation (it rules out a sustained s
 retried) and `failed after retries` — **the latter must stay 0**, because its credit-batch form drops
 awards, which is **lost XP**. The watch stays in the runbook. See [[systems/weekend-deploy-window]].
 
+> 📌 **2026-10-03:** F-B recurred (three first-attempt timeouts ~10 min apart, all recovered) and is now filed as
+> investigation task `0375` — see [[tasks/profile-identity-s3-game-server-resolve-and-credit]].
+
 ## Related
 
 - [[systems/player-profile-store]] — the backend this task connected to players

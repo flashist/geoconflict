@@ -8,6 +8,15 @@
 > `fkit-architect`, who heard no ruling first-hand — every ruling arrived by relay. The source's code citations are
 > content anchors against the uncommitted tree of 2026-09-30; that code is now committed in `49a419d`.
 
+> 🆕 **2026-10-03 — FIRST REAL NAMES, BOTH VERIFIED IN PRODUCTION.** The 2026-10-03 window produced the first
+> real names under this rule: **`0.0.155-telemetry.1`** (at `204f931`) and **`0.0.156-profile.1`** (at `f712263`).
+> Both annotated tags are on origin at those commits (✔️ *wiki re-check: both are annotated tag objects locally,
+> pointing at those commits*). The two bases differ because the telemetry deploy ran before the game deploy bumped
+> `package.json` to `0.0.156` — the rule reads the base **at the deployed commit**, so this is correct. Verify tasks:
+> [[tasks/telemetry-deploy-version-tags-production-check]] (`0363`) and
+> [[tasks/profile-deploy-version-tags-production-check]] (`0358`), both passed and closed `(agent-closed — not
+> owner-verified)`. Canonical ADR unchanged in this window.
+
 ## Context
 
 The game server has a version story (`package.json` bumped by `scripts/bump-version.js`, committed, git-tagged
@@ -82,3 +91,5 @@ bumping or suffixing `package.json`; warn-and-deploy on uncommitted files (decli
 - [[systems/telemetry]] — `0356` / `0357` apply this to the telemetry box and the game server's `service.version`
 - [[tasks/telemetry-deploy-version-tags]] — task `0356` (done 2026-10-01), which applied it to the telemetry box
 - [[decisions/sprint-7]] — `0355`, `0356`; [[decisions/sprint-backlog]] — `0357`, `0359`
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, the profile name verified in production (2026-10-03)
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, the telemetry name verified in production (2026-10-03)

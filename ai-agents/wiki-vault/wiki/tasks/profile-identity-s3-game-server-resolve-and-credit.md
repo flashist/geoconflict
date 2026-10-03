@@ -65,6 +65,17 @@ container log. Per the code, `player resolve failed after retries` is retried at
 or at credit time; `credit batch failed after retries; N award(s) dropped` is **lost XP** — **must stay
 0**. See [[systems/weekend-deploy-window]].
 
+> 📌 **2026-10-03 — F-B RECURRED; filed as `0375`.** In the 2026-10-03 window three more first-attempt
+> `players/resolve … (attempt 1/3): TimeoutError` lines appeared at 09:40, 09:50 and 10:00 UTC — again ~10 min apart,
+> all **before** that day's profile deploy, each recovered on retry (none reached *"failed after retries"*). Owner
+> ruling *"Yes, file a backlog task (Recommended)"* → **`0375`** on the Backlog board: a **read-only investigation**
+> (map the path and its idle/keep-alive behaviour, test whether the stalls follow idle gaps, and answer whether the
+> same stall can hit a `credit` first attempt). A stale pooled keep-alive connection is the lead's **unverified
+> guess — not a finding.** Cost per hit: ~10 s extra wait for that player's profile; nothing lost. ⚠️ Separately, the
+> same window **did** log `credit batch failed after retries; 1 award(s) dropped` — but during the profile container
+> recreate (502s), a different cause and the standing lost-not-queued cost, **not** F-B. See
+> [[decisions/sprint-backlog]].
+
 ## Related
 
 - [[tasks/profile-identity-epic]] — epic `0266`, the parent
@@ -80,3 +91,4 @@ or at credit time; `credit batch failed after retries; N award(s) dropped` is **
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, the client half shipped in the same game deploy
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — S5, task `0274`, the monitoring and the creation switch (which S3's `game_server` source bypasses)
 - [[decisions/sprint-5]] — the board that tracked its close
+- [[decisions/sprint-backlog]] — task `0375` (filed 2026-10-03): investigate why F-B's first `resolve` attempt times out about every 10 minutes

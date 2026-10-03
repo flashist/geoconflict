@@ -8,6 +8,14 @@
 > 🚨 **Which construction Yandex really uses is STILL UNKNOWN.** Owner ruling *"Move it into 0297"*: the deploy
 > and the log read-back belong to `0297` §1. Committed in `26b85c0`; **not deployed**.
 
+> 🆕 **2026-10-03 — DEPLOYED. The line is now live on the profile box; the read-back is still owed.** The
+> 2026-10-03 profile deploy (`0.0.156-profile.1`, commit `f712263`) is the **first** profile deploy carrying this
+> task's code — ✔️ *wiki re-check: `26b85c0` is an ancestor of `f712263`*. 🚨 **Standing rule from that window: no
+> second profile deploy and no profile box restart until `0297` §1 has read this log line after a real purchase**
+> (container logs are lost on every recreate). Which construction Yandex uses is **still unknown**. See
+> [[systems/weekend-deploy-window]] and [[tasks/profile-deploy-version-tags-production-check]] (`0358`, whose Step 7
+> checks this ordering).
+
 ## Goal
 
 `src/profile-server/YandexSignature.ts` (`verifySignedPayload`) accepts an HMAC-SHA256 over **either** the
@@ -54,3 +62,4 @@ recorded which. This task **finds out**; `0310` then **removes** the other.
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0310`
 - [[tasks/verified-login-live-check]] — task `0339`; its follow-up `0366` may wait on this task's log line being read
 - [[tasks/stale-login-signature-age]] — task `0366`: its profile deploy rides Saturday's slot or waits on this task's log line being read
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358`: the 2026-10-03 deploy that first shipped this line; its Step 7 is the no-second-deploy ordering

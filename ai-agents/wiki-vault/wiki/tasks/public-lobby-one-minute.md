@@ -11,6 +11,28 @@
 > ruled **pre-existing** — the deploy-hardening shell harness overran its 150 s deadline, also on clean `HEAD`.
 > Fixed the same day by `0371`, see [[tasks/hardening-harness-speedup]].
 >
+> 🆕 **2026-10-03 — DEPLOYED to production in game release `0.0.156`** (commit `f712263`, live ~09:32 UTC,
+> [[systems/weekend-deploy-window]]). Live lobby countdown samples (40 s / 20 s / 58 s) fit a 60 s window; public
+> lobbies per hour went 30 → 40 (the switch hour) → ~1 a minute. The "Not deployed" line above is history.
+> **Verify `0370` ran Steps 1–3 on deploy day** (from its worklog; it is still `🔲 Backlog`):
+> - **Step 1, before baseline re-run** (2026-09-26 → 10-03, deploy day excluded): lone-real-player share **11.8 %**
+>   (545 / 4 636; ÷ all public lobbies 10.8 % — use the same form for both windows); ≈ 662 public matches with a real
+>   player per day; avg 7.41 / median 6 real players. The six days shared with the 2026-10-02 reference reproduce it
+>   row for row; the 12.4 % → 11.8 % move is only the window shift. ⚠️ **Day-to-day swing on the same 2-minute
+>   window: 7.6 %–13.6 %**, falling through the week.
+> - **Step 2, GameAnalytics** `Game:Mode:Multiplayer`, same 7 days: **31.98K entries, mean 4.57K/day** — entries
+>   (one per client per match, private lobbies included), **not matches**. ⚠️ Read by `fkit-lead` through the owner's
+>   own login at the owner's request, not by the owner as the brief says — recorded, not hidden. ⚠️ A hidden "demo
+>   mode" element was in the page; the lead judged the data real by scale — **not proven**. GameAnalytics' day
+>   boundary was not checked. Context signals (click-to-entry conversion, `Match:Spawned`, `Ad:Interstitial`) **not
+>   read**.
+> - **Step 3, OWNER RULING — "noticeably worse" means a 7-day after share above 15 %** (verbatim *"Above 15 %
+>   (Recommended)"*), set before any after-data. About 3 points over 11.8 % and above the worst single day seen.
+>   ⚠️ **Not an automatic revert** — crossing it puts going back to 2 minutes on the table; the owner still rules.
+>   The brief words the rule as a rise; the owner set an absolute level; the 15 % governs.
+> - **Next:** day-4 snapshot due **2026-10-08 00:00 UTC**; after window **2026-10-04 → 10-10**. Log retention is
+>   ≈ 14 days, so the before window would have aged out by the day-7 read — which is why Step 1 ran on deploy day.
+>
 > 🧪 **This is a test, not a settled change.** Whether to keep 1 minute is decided by verify task `0370` (top of
 > [[decisions/sprint-8]]), against the owner-ruled rule below.
 
@@ -88,3 +110,5 @@ map before the start.
 - [[decisions/sprint-7]] — the board (rank 31); closed 2026-10-02
 - [[decisions/sprint-8]] — verify task `0370`, at the top
 - [[tasks/hardening-harness-speedup]] — task `0371`, filed at this close to fix the red `npm test`
+- [[systems/weekend-deploy-window]] — the 2026-10-03 window whose game deploy (`0.0.156`) put this live
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`: the telemetry restart an hour before `0370`'s Step 1 query (no data gap)

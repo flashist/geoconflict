@@ -5,6 +5,58 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-10-03 — A WEEKEND WINDOW RAN (a Saturday): telemetry → dev → game prod → profile → watch
+>
+> **Provenance.** The runbook gained § *What happened 2026-10-03 — weekend window ran*, written by a spawned
+> `fkit-producer` on the OWNER RULING *"Yes, record it (Recommended)"* (live, relayed by `fkit-lead`). Facts are
+> marked as the lead's own checks, the owner's live reports, or the producer's read-only look-ups. ⛔ Relayed
+> evidence. The plan used was `fkit-architect`'s read-only plan **O0–O4**, which was **not written into the runbook**
+> — its steps are not recorded anywhere this wiki can read.
+>
+> - **Order — two owner rulings the same day, the later one governs:** *"Yes, deploy dev last (Recommended)"*
+>   (earlier, superseded) → **"Dev first, as a rehearsal (Recommended)"**. Run: **telemetry → dev → game prod →
+>   profile → watch.** The first window to deploy dev as a rehearsal of the prod build path.
+> - **Pre-flight:** tree clean at `204f931`; config parity `--enforce` exit 0, REQUIRED 0 on game / profile / client;
+>   lint exit 0; `npm test` first run **3457/3458** — one fail in `InternalPathCase.test.ts` (*"POST /v1/login is
+>   unchanged"*, got 401, expected 400), the supertest flake shape *"401 on a route with no auth middleware"*
+>   (**mechanism unknown**; no SIGSEGV); the file re-ran 27/27 and a full re-run passed **3458/3458, 188/188 suites —
+>   re-run stated, not hidden**. `test:integration` **not run** (no migrations this window). Owner confirmed nothing
+>   deployed since 2026-09-29.
+> - **Telemetry:** **`0.0.155-telemetry.1`** at `204f931` — tag pushed, box marker and local record agree, alert
+>   probe *"delivering"*. Verified by `0363` ([[tasks/telemetry-deploy-version-tags-production-check]]).
+> - **Dev (rehearsal):** bump commit `c60fd05`, tag `0.0.155-dev.1`; a public match started. ⚠️ Dev's guard output
+>   **not captured**.
+> - **Game prod:** bump commit `f712263`, release **`0.0.156`**, live ~09:32 UTC. Armed guards (`0298` Part B): name
+>   guard REQUIRED 0; secret boundary + per-layer byte scan passed; value guard REQUIRED 0, OPTIONAL 6 (blank by
+>   recorded decision), OK 18, UNCHECKED 6 — **no block**. Live `commit.txt` = `f712263`; lobby countdown samples fit
+>   a **60 s** window — `0367`'s 1-minute lobby is now live ([[tasks/public-lobby-one-minute]]); footer `0.0.156`; the
+>   owner played a public match. Rollback target `0.0.155` was pruned from the box — **registry only, needs a
+>   re-pull** (same shape as F-D below).
+> - **Profile:** **`0.0.156-profile.1`** at `f712263` — name guard REQUIRED 0; migrations all *"already applied"*;
+>   `/health` reports the name; `/ready` 200; dismiss route 401 without a session; tenure route 400 on an empty body;
+>   digest heartbeat arrived; **0 error lines** at 15 and 40 min; on-box value check (captured later that day) **13
+>   OK, 0 findings**. Verified by `0358` ([[tasks/profile-deploy-version-tags-production-check]]). New S2-or-later
+>   rollback target for `0340`: `sha256:b26113a8…df32` (was `sha256:75fd196a…28e0`).
+> - **Watch (60 min, owner-run greps on the game log):**
+>   - ⚠️ **F-B came back:** three `players/resolve … (attempt 1/3): TimeoutError` lines at **09:40, 09:50, 10:00 UTC**
+>     — ~10 min apart, all **before** the profile deploy, each recovered on retry. Same signature as the 2026-09-26
+>     F-B. **No cause known.** Filed as **`0375`** on the Backlog board (owner: *"Yes, file a backlog task
+>     (Recommended)"*) — a read-only investigation; the stale keep-alive idea is a **hypothesis, not a finding**. See
+>     [[tasks/profile-identity-s3-game-server-resolve-and-credit]].
+>   - 🚨 **One XP award LOST** during the profile recreate (`credit` 502 ×3 → *"1 award(s) dropped"* at 10:03:11) —
+>     the standing **lost-not-queued** cost ([[decisions/adr-101-fail-soft-xp-crediting]]), not a new defect.
+>     `resolve` also failed after retries at 10:03:57 (retried later). Crediting resumed by 10:04:44.
+> - ⛔ **STANDING after this window: no second profile deploy and no profile box restart until `0297` §1 has read
+>   `0309`'s log line after a real purchase** — this was the first profile deploy carrying `0309`
+>   ([[tasks/hmac-construction-log-label]]).
+> - **`0298`'s owner step 3 record now exists** for the game and profile deploys
+>   ([[tasks/config-parity-guard-arm-enforce]]); dev's guard output is still missing.
+> - **Still owed:** dev's guard output (lost) · `0370` (the 1-minute lobby verify — Steps 1–3 done, the 7-day read
+>   after) · `0351` (verify `0035` on dev — now runnable) · `0375`. Items owed from 2026-09-29 were not re-checked.
+>   ~~`0363` Step 4 · `0358` Step 4 · profile on-box value check~~ — all done later the same day.
+>
+> ---
+>
 > # 🆕 2026-09-29 — THE NEXT WINDOW RAN (a Tuesday): telemetry → game → profile
 >
 > **Provenance.** The runbook gained two appended sections on 2026-09-29: *Next window — plan* (the
@@ -682,3 +734,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/profile-os-baseline-hardening]] — task `0221`: its B1–B6 ran in the 2026-09-26 window (B4 read 2026-10-01); closed with two residuals
 - [[tasks/uptrace-channel-state-production-check]] — task `0341`: the 2026-09-29 deploy of `0285`, verified 2026-10-01
 - [[tasks/alert-delivery-after-idle]] — task `0289`: deferred from the window to a quiet day, then closed without a drill 2026-10-01
+- [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`: the 2026-10-03 telemetry deploy, verified (`0.0.155-telemetry.1`)
+- [[tasks/profile-deploy-version-tags-production-check]] — task `0358`: the 2026-10-03 profile deploy, verified (`0.0.156-profile.1`)
+- [[tasks/public-lobby-one-minute]] — task `0367`: went live in the 2026-10-03 game deploy (`0.0.156`); its verify `0370` ran Steps 1–3 that day
+- [[decisions/sprint-8]] — the verify tasks `0363`, `0358`, `0370`, `0351` for the 2026-10-03 window
