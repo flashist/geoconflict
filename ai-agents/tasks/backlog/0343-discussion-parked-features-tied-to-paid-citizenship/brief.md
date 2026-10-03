@@ -117,6 +117,8 @@ using the agenda below. For each item, record one outcome in `worklog.md` in thi
 
 ### Item A — Paid Campaign Map Packs
 
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. New-maps content is on hold with no restart date (the same day's ruling *"We wil postpone the new maps, don't know for how long …"*, which moved [`0027`](../0027-new-maps-community-demand/brief.md) to the Backlog board). This item stays in this brief and `0343` stays on Sprint 8 — row, rank and status unchanged — but item A is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+
 **In plain words.** Themed map packs to buy (WW2 first). 1–2 maps per pack free, the rest unlocked by buying.
 These are campaign maps (can be unfair / scripted on purpose), single-player or co-op — **not** part of normal
 multiplayer.
@@ -127,7 +129,7 @@ multiplayer.
 **Known dependencies / related work.** Meant to ship **after** free historical maps —
 [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (Backlog board). Needs
 the Yandex catalog (`0014`, done) and purchase flow (`0019`, done; `0303`, done). The demand tracker
-[`0027`](../0027-new-maps-community-demand/brief.md) (Sprint 7). The cosmetics chain on the
+[`0027`](../0027-new-maps-community-demand/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — new-maps content postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item A moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item A is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item A). The cosmetics chain on the
 [Backlog board](../../../sprints/backlog.md) § *The cosmetics monetization chain* lists paid map packs at its end.
 
 **To discuss:**
@@ -198,6 +200,8 @@ lobbies and their maps are scheduled by the server master process.
 
 ### Item D — Replay Access as a Premium Feature
 
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. Match archiving is on hold with no restart date (the same day's ruling *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, which moved [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) to the Backlog board). This item stays in this brief and `0343` stays on Sprint 8 — row, rank and status unchanged — but item D is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+
 **In plain words.** Free players keep their last 3 match replays; premium players keep 20+ and can share replay
 links.
 
@@ -205,7 +209,7 @@ links.
 [`done/plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md) § *13. Replay Access as Premium Feature*.
 
 **Known dependencies / related work.** Closely tied to S3 match archival, already citizen-gated:
-[`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (Sprint 7), and
+[`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — match archiving postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item D moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item D is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item D), and
 [`0292`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md). The prose makes it wait on "Task 11's
 premium tier" — Task 11 is the coin economy, **item G of this brief** (moved here from `0342` by owner ruling C).
 

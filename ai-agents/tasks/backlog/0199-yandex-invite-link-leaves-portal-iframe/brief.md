@@ -33,6 +33,10 @@ three reasons — stated so the owner can overrule in one edit:
 `ai-agents/knowledge-base/decisions/` holds only the `adr-1XX` series, so a relative link into it would
 not resolve.
 
+📌 *2026-10-03, OWNER RULING relayed by `fkit-lead` (⛔ not producer precedent; see* Context*): reasons 1 and 2 are
+overtaken. The owner calls this "a big one" and a Yandex rules violation, and "leave it as it is" is ruled out. The
+owner did **not** rule a rank or sprint, so the board and `Unscheduled` stay as they are until they do.*
+
 **If the owner disagrees on any of the three points above, the rank moves.** Point 1 is the load-bearing
 one: if the owner judges that invited players skipping the monetised portal is costing money *now*, this
 is a Sprint 4 candidate and the producer would not argue.
@@ -44,6 +48,53 @@ is a Sprint 4 candidate and the producer would not argue.
 fkit-producer
 
 ## Context
+
+### ✅ OWNER RULING 2026-10-03 — an invite that leaves Yandex Games is a rules violation and must NOT reach regular players
+
+**OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent.** Given 2026-10-03 in the owner's own words in the
+`fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037). Verbatim:
+
+> *"this is a big one, we need to make sure it doesn't work like that in prod (yandex.games doesn't allow it, it's a
+> violation of their rules). Ideally, we should generate an URL that leads to the Yandex.Games game, but we can't use a
+> hardcoded URL for that, because Yandex.Games consists of multiple different web-portals and URL can be different for
+> each of them. There is a chance that this can be correctly implemented by using one of their SDK methods:
+> https://yandex.ru/dev/games/doc/ru/sdk/sdk-other-games . The only problem I see is that we don't know if
+> yandex.Games passes GET parameters to the game and, especially, to iframe-games, we need to test it first, before
+> implementing all the things with their SDK. If there is no way we can make the invite-URLs work correctly, we will
+> have to remove it and do joining of private lobbies by invite codes. Actually, invite codes might be good thing to
+> have even if invite-URLs work properly."*
+
+**What this settles:**
+- **"Leave it" is ruled out.** An invite link that takes a player off Yandex Games breaks Yandex's rules. It must not
+  reach regular players in production.
+- **Direction, in order:**
+  1. **Test first** whether Yandex Games passes a URL parameter through to our iframe game. No SDK invite work is
+     built before this answer exists.
+  2. **If yes:** invite links point at the game's Yandex Games page **on the player's own portal**, built through the
+     SDK (the owner names the "other games" SDK page above as the likely route). **Never a hardcoded URL**, because
+     Yandex Games runs on several portals with different addresses.
+  3. **If no:** remove invite links. Players join private lobbies **by code only**.
+- **Invite codes — ✅ KEPT IN EVERY CASE.** OWNER RULING 2026-10-03, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: asked *"keep them in every case, even if Yandex invite
+  links end up working?"*, the owner chose **"Yes, always keep codes"**. *Superseded, kept:* ~~`fkit-lead`'s relay
+  reads this as *"invite codes stay in every case"*. ⚠️ The owner's own words are softer: *"invite codes might be good
+  thing to have even if invite-URLs work properly"*. Treat codes as kept unless the owner says otherwise, and confirm
+  when the follow-up briefs are scoped.~~ *Fact, checked 2026-10-03:* the
+  Join window already accepts a pasted lobby id (`JoinPrivateLobbyModal.ts`, `lobbyIdInput`), so code entry exists
+  today. Whether that is a good enough "invite code" for players (length, readability) is **still not decided**.
+- **Exposure today:** ✅ private lobbies are **CONFIRMED HIDDEN — OWNER-ATTESTED 2026-10-03, not agent-verified**
+  (owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*). So no one in
+  production can create a lobby or copy today's off-Yandex invite link.
+- **Release gate.** This is item 6 of the private-lobby release gate in
+  [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
+  the everyone-flag stays off until invite links either point at Yandex Games correctly or are removed.
+- **Not settled:** this task's rank and sprint (*"a big one"* is not a placement), and how the work splits into
+  briefs. `fkit-architect` is researching the Yandex SDK side in parallel (2026-10-03); briefs are filed from its
+  findings, not before. 📌 *Later 2026-10-03: the findings are in ([architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md)), and the owner ruled
+  "test first, then decide" — see* What to build*, step 0.*
+
+**What this changes below.** The text below is kept as written (true when written, 2026-08-28). Read it against this
+ruling: the *"leave it exactly as it is"* outcome and the *"Leave it"* option in step 4 are now **ruled out**, and
+step 1's research question is now the owner's step 1 above.
 
 ### 🚦 This is a PRODUCT question first and an implementation task second
 
@@ -164,6 +215,55 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 
 ## What to build
 
+### 0. ▶ NEXT STEP — the owner runs the live console probe, then decides (OWNER RULINGS 2026-10-03)
+
+**OWNER RULING 2026-10-03, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent.** Two rulings, both put after the [architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md) was read:
+
+- **How to handle invites** — asked *"How should we handle private-lobby invites on Yandex Games?"*, the owner picked
+  **"Test first, then decide"**: *"Change nothing yet. Run the test, then build the link (if it works) or codes (if
+  not). Lobbies stay hidden meanwhile, so no risk."* ⚠️ The architect recommended **"codes now + test now"** (ship
+  code-only B at once). **The owner did NOT pick that.** So **no build task is filed yet** — neither code-only nor
+  link.
+- **Who runs the test** — asked *"Who runs the 5-minute read-only test on the live game?"*, the owner picked **"You run
+  it yourself"**, i.e. **the OWNER runs it, not an agent.**
+
+**The probe.** The report's §5: a read-only DevTools console probe in the live game, in the game-iframe context —
+**P1–P8**, then the **round trip** (open the URL from P4 with a new `payload`, fresh incognito window, repeat P1).
+Portals: **`yandex.ru` first, then one other domain** (e.g. `yandex.com` or `yandex.kz`, same path). The key line is
+P1 — does `payload` reach our iframe game at all? P8 needs one match played and exited.
+
+- **No deploy.** The live `0.0.156` build already exposes everything the probe reads (report §3). So the weekend
+  deploy slot and the build/verify split **do not apply** to this step.
+- **Why a step here and not a new task:** it is this task's own research question (step 1 below) answered live, with
+  no build, no deploy and no source change. No project convention requires a separate task for it.
+- **Privacy:** record results as yes/no, `undefined`/`"probe1234"`, `isAvailable` true/false and the URL **shape**
+  (`yandex.<tld>/games/app/…`). Do not paste the app id, a full catalog URL with ids, or anything personal into any
+  artifact (report P3 says the same for the id).
+- **Record** the results in this folder's `worklog.md`: date, build version, each P1–P8 result per domain, the round
+  trip, and anything that could not be run (written as *not run*, never guessed).
+
+**After the result, the owner decides** (the report's §5 *Reading the result*):
+
+| Result | Meaning | Then |
+|---|---|---|
+| **YES** | P1 gives the payload on `yandex.ru` **and** the second domain, **and** P4 or P5 returns this game with a `yandex.<tld>/games/…` URL whose round trip also gives P1 | **Build A** — portal invite link via the SDK + `payload`, **plus** the code |
+| **NO** | P1 is `undefined` on `yandex.ru` | **Build B** — links removed, code-only joining (the report also suggests asking Yandex support before giving links up entirely) |
+| **PARTIAL** | P1 works but P4/P5 do not return this game (links would need the self-built fallback the owner objected to) | **Owner call** |
+
+- **Codes are kept in every case** (owner ruling, recorded in *Context*), so **B's code work is part of either path**:
+  A is additive on top of B.
+- Only after the owner's decision: the ADR (step 5) and the build brief(s), each with its own verify task per the
+  build/verify rule, since **those** builds do need a deploy.
+- ⛔ **Still open, not ruled** (report §8): **Q3** — if A is built, should a portal invite open the join window for
+  a friend outside the private-lobby flag cohort? **Q4** — keep the 8-character, case-sensitive code, or decide
+  separately on friendlier codes (touches `src/core` + the server)? *(Code friendliness was already recorded as
+  undecided.)*
+
+**How steps 1–4 below now read.** Kept as written (2026-08-28). Step 1's research is done in the report (§2.1
+documented, §2.2 needs the live test). Step 2's off-portal measurement is no longer needed to decide (the off-portal
+link is ruled out either way). Step 3 is partly answered by probe P2 and the report's `sdk`-parameter note. Step 4 is
+answered by the rulings above.
+
 ### 1. Establish what Yandex actually supports — research, before any opinion
 
 **No fix is scoped until this is answered.** The question is: *can a Yandex Games title hand a player a
@@ -214,7 +314,8 @@ implementation brief step 5 produces.
 Present the options that the research actually supports — **not a menu invented in advance.** Likely
 shapes, subject to what step 1 finds:
 
-- **Leave it.** Off-portal invites are acceptable; the reach is worth more than the portal context.
+- ~~**Leave it.** Off-portal invites are acceptable; the reach is worth more than the portal context.~~ ⛔ *Ruled out
+  2026-10-03 by OWNER RULING (relayed by `fkit-lead`; not producer precedent): it breaks Yandex's rules. See* Context.
 - **Portal-relative invite on the Yandex build.** The Yandex build copies a portal link carrying the
   lobby id; the standalone build keeps the current form. Costs a build-conditional invite path.
 - **Something narrower** — e.g. keep the current link but make the off-portal session behave correctly.
@@ -248,12 +349,19 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
    work follows), with a board row so it is not board-invisible.
 7. **No source file was changed by this task.** This is a decision task; a diff in `src/` means the
    scope was exceeded.
+8. *(Added 2026-10-03, step 0.)* **The owner-run probe is recorded** in `worklog.md` — P1–P8 and the round trip, on
+   `yandex.ru` and one other domain, with anything not run stated as such — **and the owner's YES / NO / PARTIAL
+   decision** (A, B, or the owner's call) is recorded with its date.
 
 ## Notes
 
 - **Depends on:** nothing.
 - **Blocks:** nothing today. It **gates** any change to the invite-link host — nobody should alter
   `copyToClipboard()`'s host or its `location.search` handling until this is ruled.
+- 🚦 *2026-10-03, OWNER RULING relayed by `fkit-lead`; ⛔ not producer precedent:* direction ruled (see *Context*).
+  It is now **item 6 of the private-lobby release gate** in
+  [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md): the everyone-flag
+  is not set until this is resolved per the ruling.
 - **Related:** `0198` — the source, and the task that fixed the **path** on this same line; **built but
   not yet deployed**, riding the deploy that also carries `0062` and `0063`. Its
   `review.md` holds the verbatim open-question and the `location.search` residual quoted above.

@@ -79,6 +79,34 @@ it the owner ruled `0325`'s S2 exit **not met** (2026-10-01, in
 3. **At least 5–7 days of data since the later of the two deploys, including at least one weekend evening (UTC
    20–23)** — the peak hours.
 
+> 📌 **2026-10-03 — precondition 1 (`0372` in a game deploy): the code is in the `0.0.156` tag.** Verified by
+> `fkit-lead` on 2026-10-03 from git, read-only, and recorded here by a spawned `fkit-producer` (no owner channel).
+> The last commit touching `src/client/SignatureAgeAnalytics.ts` (`0c9a620` "Sprint push") is an ancestor of
+> `f712263` (tag `0.0.156`, "DEPLOY prod: bump version to 0.0.156", dated 2026-10-03); the file and the
+> `PROFILE_LOGIN_SIGNATURE_REFETCH` enums exist at that commit.
+> ⚠️ **Caveat: this proves the code is in the `0.0.156` tag, NOT that the events are arriving in prod analytics.**
+> The first GameAnalytics read (Step 2) is what confirms arrival.
+> **Timing consequence:** `0372`'s client data should start arriving from the **2026-10-03** deploy, so the
+> fallback of a slip to the next weekend slot (2026-10-10/11) **does not apply** to `0372`. Counting 5–7 days with a
+> weekend evening from 2026-10-03, the earliest useful read stays **after the evening of Saturday 2026-10-10 (UTC)**.
+> ⚠️ **Not covered by this note:** precondition 2 (`0366` in a **profile** deploy). Precondition 3 counts from the
+> **later** of the two deploys, so if `0366`'s profile deploy landed later, the window starts then.
+
+> 📌 **2026-10-03 — precondition 2 (`0366` in a profile deploy): the code is in the `0.0.156-profile.1` tag.**
+> Verified by `fkit-lead` on 2026-10-03 from git, read-only (re-checked by the recording `fkit-producer` the same
+> day), and recorded here by a spawned `fkit-producer` (no owner channel). `0366`'s four profile-server files —
+> `src/profile-server/LoginVerification.ts`, `PlayerSignature.ts`, `Routes.ts`, `Telemetry.ts` — all have last
+> commit `e581824` ("Sprint push"), which is an ancestor of tag `0.0.156-profile.1` (commit `f712263`, 2026-10-03).
+> The [weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened
+> 2026-10-03 — weekend window ran* records that profile release as **deployed** — the *Profile — deploy* row
+> (~line 1747: *"Deploy version: 0.0.156-profile.1 … commit f712263"*, `validation_result=ok`) and the *Profile —
+> endpoints* row (~line 1750: `/health` reports `0.0.156-profile.1`).
+> ⚠️ **Caveat: code in the tag does not prove the events are arriving.** Step 1's first server reading is what
+> confirms arrival.
+> **Timing consequence:** both deploys landed on **2026-10-03** (game prod ~09:32 UTC, profile ~10:02 UTC), so the
+> precondition-3 data window counts from the **2026-10-03 deploys for both `0366` and `0372`**. The "not covered"
+> line in the note above is now answered.
+
 ## What to do
 
 ### Step 0 — freeze the prediction table BEFORE reading anything

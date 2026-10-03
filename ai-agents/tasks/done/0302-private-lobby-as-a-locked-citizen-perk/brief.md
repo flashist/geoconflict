@@ -65,7 +65,9 @@ precedent. Verbatim:
     locked tap at the full explainer.
   - 🚢 **This task and `0301` ship in the SAME deploy.** Build this first (it ranks above `0301`), but do
     **not** release it on its own. ⚠️ `0301` waits on `0248`, which waits on `0250`, so the shared release
-    waits on both. *(Note: the owner chose neither of the producer's options — the recommendation was the
+    waits on both. 🚨 *2026-10-03: this was broken — shipped alone in prod `0.0.155`, 2026-09-29. Disposition
+    (OWNER RULING 2026-10-03, relayed by `fkit-lead`; ⛔ not producer precedent): see Notes, "release coupling …
+    BROKEN".* *(Note: the owner chose neither of the producer's options — the recommendation was the
     existing citizenship card.)*
 - **Who may create private lobbies** (open question 6) → **"Earned or paid (Recommended)"**. The gate is
   `is_citizen` (earned via XP **or** paid). ⇒ **No dependency on
@@ -220,6 +222,22 @@ doesn't back).
 - 🚢 **Release coupling (owner ruling 2026-09-26):** ships in the **same deploy** as
   [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md). Not a build dependency —
   this task is built first — but it must not be released alone.
+- ⚠️ **2026-10-03 — the release coupling above was BROKEN, and is now replaced by a release gate.** OWNER RULING
+  relayed by `fkit-lead`; ⛔ not producer precedent. *(Recorded by a spawned `fkit-producer` with no owner channel,
+  ADR-021/037.)*
+  - **What happened:** this task's code (commit `390c4b4`) went out **alone** in prod `0.0.155` (deploy commit
+    `00825f0`, 2026-09-29) and is also in `0.0.156`, **without `0301`**. Nobody recorded it at the time. It is hidden
+    behind the Yandex flags `private_lobbies` + `citizenship_ui`, whose current console values ~~are **unknown**
+    (owner checking)~~ → ✅ CONFIRMED HIDDEN — OWNER-ATTESTED 2026-10-03, not agent-verified. Owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*.  An invite link (`#join=…`) opens the join window whatever the flags say.
+  - **Disposition — owner ruling 2026-10-03, "Hidden + test plan first":** keep it hidden. Players outside the
+    testers do not get it until `0354` is done, a production test passes (`0376`), `0228` and the 3-hour
+    leftover-lobby case (`0377`) are fixed, and `0301` ships. 📌 *Amended 2026-10-03 (OWNER RULING "Only if
+    it's proven", relayed by `fkit-lead`; ⛔ not producer precedent): `0228` is investigated and fixed only if
+    proven real; if not proven, it drops off the gate. A sixth item was added the same day (OWNER RULING 2026-10-03 on `0199`, owner's own words, relayed by `fkit-lead`; ⛔ not producer precedent): invite
+    links must point at Yandex Games correctly, or be removed so joining is by code only (`0199`).* Keeping it hidden until `0301` ships preserves this
+    ruling's intent (no non-tester sees the interim popup in place of the real one). Full gate:
+    [`0354`'s *Release gate*](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+  - This record is left in `done/`; the task is not reopened.
 - *History of the line above — updated 2026-09-26 by owner ruling, kept in its own bullet so no tool reads
   the old link as a live dependency:* it read *"`0301` (the popup and its analytics source shape); an
   owner decision (open question 1)"*. The owner decision is taken, and this task now ranks above `0301`.

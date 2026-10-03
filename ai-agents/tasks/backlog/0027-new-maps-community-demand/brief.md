@@ -4,7 +4,9 @@
 0027
 
 ## Sprint
-Sprint 7
+Backlog
+
+📌 **2026-10-03 — moved from [Sprint 7](../../../sprints/plan-sprint-7.md) to the [Backlog board](../../../sprints/backlog.md): NEW-MAPS CONTENT POSTPONED INDEFINITELY.** OWNER RULING given live on 2026-10-03 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Owner, verbatim: *"We wil postpone the new maps, don't know for how long, move the new maps content related tasks to the backglog sprint"*. A deliberate de-scope edit, **not** a mover — nothing marked done or cancelled, no folder moved. `## Status` stays `🔲 Backlog`; `## Priority` is now `Unscheduled`. *(Earlier value, kept as history — true 2026-09-27 to 2026-10-03:)* ~~Sprint 7~~
 
 📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-27** — OWNER RULING given live in the `fkit lead` session as the owner's own typed message, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*. [Sprint 7](../../../sprints/plan-sprint-7.md) is a new board, `🔲 Backlog` — **not started**. Record: the 2026-09-27 addendum under [Sprint 6](../../../sprints/done/plan-sprint-6.md)'s status table. `## Status` unchanged; no folder moved; no mover run. ⚠️ This brief feeds Tasks 1 and 2 (the map work), which **stay on Sprint 6** — flagged for the owner, not settled.
 
@@ -16,7 +18,9 @@ profile/citizenship launch has shipped** — Sprint 5 started 2026-09-26, and th
 the briefs. The text below is left as written; this note governs.
 
 ## Priority
-Tracker only — no implementation scope yet. Exists to ensure player demand is not lost.
+Unscheduled
+
+*(2026-10-03 — de-scoped to the unranked [Backlog board](../../../sprints/backlog.md) by the OWNER RULING in `## Sprint`; new-maps content is postponed indefinitely. Earlier value, kept as history:)* ~~Tracker only — no implementation scope yet. Exists to ensure player demand is not lost.~~ The purpose still holds: this brief stays so player demand is not lost.
 
 ## Status
 🔲 Backlog
@@ -46,6 +50,16 @@ Both briefs are intentionally deferred until Sprint 5 is underway.
 
 ~~When Sprint 5 begins~~ **After the profile/citizenship launch has shipped** *(owner ruling 2026-09-26 — see `## Sprint`)*, write proper implementation briefs for Sprint 6 Task 1 and Task 2 using the selection criteria and pricing notes already in `plan-sprint-6.md`.
 
+✅ **2026-10-03 — TIMING GATE MET.** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session (*"Yes, that was it"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. The paid-citizenship switch-on of **2026-09-26** (game
+0.0.154, `0065` §6) counts as **"the launch"** above. ⇒ ~~**Ready to scope whenever the owner chooses.**~~ ⛔ **NOT
+scheduled to start** — `## Status`, `## Priority` and `## Sprint` unchanged; no rank given.
+
+⛔ **2026-10-03, later the same day — POSTPONED INDEFINITELY by OWNER RULING** (struck text above kept, not
+deleted). Owner, verbatim: *"We wil postpone the new maps, don't know for how long, move the new maps content
+related tasks to the backglog sprint"* — live in the `fkit lead` session, relayed by `fkit-lead` (ADR-021/037);
+⛔ not producer precedent. The timing gate above is still met, but **no map briefs are to be written** until the
+owner lifts the postponement. There is no restart date. Moved to the Backlog board — see `## Sprint`.
+
 ## Notes
 
 - **Depends on:** a timing gate, not a task — the brief defers its own next step until Sprint 5 is
@@ -55,3 +69,8 @@ Both briefs are intentionally deferred until Sprint 5 is underway.
   "after the launch" — the profile/citizenship launch on Sprint 5 must have shipped; Sprint 5 merely being
   started is not enough. Still a timing gate, not a task. Full prose above; this bullet is the
   machine-readable form beside it.
+  ✅ 2026-10-03 (owner ruling, *"Yes, that was it"*, relayed by `fkit-lead`): **gate MET** — the
+  paid-citizenship switch-on of 2026-09-26 counts as the launch. ~~Ready to scope; not scheduled.~~
+  ⛔ 2026-10-03, later (owner ruling, *"We wil postpone the new maps, don't know for how long …"*, relayed by
+  `fkit-lead`): **postponed indefinitely**; moved to the Backlog board. The gate is met but no longer the
+  thing holding it — the owner's postponement is.

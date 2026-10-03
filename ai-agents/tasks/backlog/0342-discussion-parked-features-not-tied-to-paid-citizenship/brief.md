@@ -139,7 +139,7 @@ map packs.
 § *Player Demand Signal* and § *Notes*.
 
 **Known dependencies / related work.** The demand tracker
-[`0027`](../0027-new-maps-community-demand/brief.md) (on Sprint 7). The compact-map shore defect
+[`0027`](../0027-new-maps-community-demand/brief.md) (~~on Sprint 7~~ ➡️ on the Backlog board since 2026-10-03 — new-maps content postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent). The compact-map shore defect
 [`0026`](../0026-fix-compact-map-shore-generation/brief.md) (Backlog; the map generator). Maps are made with the
 Go tool in `map-generator/` (`npm run gen-maps`). **Paid map packs (`0343`, item A) are meant to ship after this
 one** — a cross-board ordering.
@@ -151,7 +151,7 @@ one** — a cross-board ordering.
 3. Balance: how will "fair for any player count" be tested before shipping?
 4. What counts as success (the "validates interest" goal)? Which numbers, over what window, decide whether paid
    packs go ahead?
-5. Should `0027` (the demand tracker) sit on the same board as this item?
+5. ~~Should `0027` (the demand tracker) sit on the same board as this item?~~ ✅ **Answered 2026-10-03 by OWNER RULING** (*"We wil postpone the new maps, don't know for how long, move the new maps content related tasks to the backglog sprint"*, relayed by `fkit-lead`; ⛔ not producer precedent): yes — `0027` is now on the Backlog board too, and **new-maps content, this item included, is postponed indefinitely.**
 
 ## Verification steps
 

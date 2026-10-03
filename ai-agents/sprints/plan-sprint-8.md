@@ -30,6 +30,8 @@ description, not a goal: one discussion brief (`0343`) covering eight parked ide
 premium replay access, custom uploaded flags) and three more placed here by owner ruling C (leaderboard rewards,
 coin economy, clans). The name (ruling D) is not a goal.
 
+⛔ **2026-10-03 — two of the eight are ON HOLD:** *paid campaign map packs* (item A) and *premium replay access* (item D) are **POSTPONED INDEFINITELY** (new maps and match archive are on hold). OWNER RULING given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent — verbatim *"Keep it, mark A and D on hold"*. `0343` stays on this board; its row, rank and status are unchanged. The sentence above is kept as written.
+
 ---
 
 ## Status

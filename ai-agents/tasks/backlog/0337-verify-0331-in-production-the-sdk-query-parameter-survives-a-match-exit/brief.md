@@ -56,6 +56,13 @@ change was **not committed and not deployed**.
 > run as soon as N2's smoke checks pass; it does not wait for the profile deploy. Step 1 below still records the
 > deploy as it actually ran.
 
+> ✅ **2026-10-03 — PRECONDITION MET.** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session (*"Yes, fix them"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. `0331` (`572d134`) went to production in the game deploy
+> of **2026-09-29** (0.0.155, game image `20260929-220550`), per the
+> [weekend-deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*
+> and § *What happened 2026-10-03*; 0.0.156 (live 2026-10-03) carries it too. The *"cannot start until deployed"*
+> line above is kept as history. ⛔ `## Status` and `## Priority` unchanged — startable is not started; Step 1
+> below is still the owner's to record.
+
 ⚠️ **This task does NOT block Sprint 6's deploy.** It runs *after* the deploy, by definition; nothing in Sprint 6
 waits on it, and Sprint 6's deploy must not be held for it.
 

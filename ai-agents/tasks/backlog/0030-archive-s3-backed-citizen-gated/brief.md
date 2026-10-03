@@ -4,7 +4,9 @@
 0030
 
 ## Sprint
-Sprint 7
+Backlog
+
+📌 **2026-10-03 — moved from [Sprint 7](../../../sprints/plan-sprint-7.md) to the [Backlog board](../../../sprints/backlog.md): MATCH ARCHIVING POSTPONED INDEFINITELY.** OWNER RULING given live on 2026-10-03 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Owner, verbatim: *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."* A deliberate de-scope edit, **not** a mover — nothing marked done or cancelled, no folder moved. `## Status` stays `🔲 Backlog`; `## Priority` is now `Unscheduled`. The same-day OWNER RULING that **discharged blocker 1** (*"Yes, it's done"* — see `## Dependencies (hard blockers)`) **still stands**: when the postponement is lifted, the only remaining gate is the new bucket + scoped key + `STORAGE_REGION`. *(Earlier value, kept as history — true 2026-09-27 to 2026-10-03:)* ~~Sprint 7~~
 
 📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-27** — OWNER RULING given live in the `fkit lead` session as the owner's own typed message, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*. [Sprint 7](../../../sprints/plan-sprint-7.md) is a new board, `🔲 Backlog` — **not started**. Record: the 2026-09-27 addendum under [Sprint 6](../../../sprints/done/plan-sprint-6.md)'s status table. `## Status` unchanged; no folder moved; no mover run.
 
@@ -12,7 +14,7 @@ Sprint 7
 
 📌 **Moved from Sprint 5 to Sprint 6 on 2026-09-26** — OWNER RULING given live in the `fkit lead` session via `AskUserQuestion` (*"Append to Sprint 6 (Recommended)"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. [Sprint 5](../../../sprints/done/plan-sprint-5.md) now carries only the profile/citizenship launch, and this task is not needed for it. Now rank 12 on [Sprint 6](../../../sprints/done/plan-sprint-6.md). `## Status` unchanged. *(Earlier value of this field: `Sprint 5`.)*
 
-⚠️ **The field above is the bare token `Sprint 7` (was ~~`Sprint 6`~~ until 2026-09-27, and `Sprint 5` until 2026-09-26) on purpose** — `dashboard.sh`'s drift rule compares
+⚠️ **The field above is the bare token `Backlog` (was ~~`Sprint 7`~~ until 2026-10-03, ~~`Sprint 6`~~ until 2026-09-27, and `Sprint 5` until 2026-09-26) on purpose** — `dashboard.sh`'s drift rule compares
 it against the board's identity, and a decorated value is reported as drift. **Do not decorate it.**
 📌 Side-effect worth knowing: the **old** multi-line value of this field is the exact truncation
 example cited by [`0050-reconcile-sprint-field-values`](../0050-reconcile-sprint-field-values/brief.md)
@@ -66,9 +68,15 @@ is the tail of the citizenship track, not a blocker for it."*~~ ⚠️ Its **seq
 holds; only its **board** is superseded. Note the consequence plainly: both hard blockers
 (`0017-citizenship-earned`, `0018-citizenship-paid`) **stay on Sprint 4** — so this task now sits a
 board *behind* its prerequisites, which is coherent, not drift.
+📌 *2026-10-03 — stale, kept not deleted (OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session (*"Yes, fix them"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent): both blockers are now `✅ Done (agent-closed — not
+owner-verified)`; `0018` moved to Sprint 5 on 2026-09-23 and closed 2026-09-26.*
 
 ## Priority
-**4** — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
+Unscheduled
+
+*(2026-10-03 — de-scoped to the unranked [Backlog board](../../../sprints/backlog.md) by the OWNER RULING in `## Sprint`; match archiving is postponed indefinitely. The rank is surrendered, not parked. Earlier value, kept as history:)*
+
+~~**4**~~ — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
 
 > 📌 **2026-09-29 — rank 2 → 4.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
@@ -119,10 +127,27 @@ Sources:
 1. **Citizenship feature must exist** — required to gate archival to citizen games.
    See the Sprint 4 citizenship briefs (`0017-citizenship-earned`,
    `0018-citizenship-paid`).
+   ✅ **2026-10-03 — BLOCKER 1 IS DISCHARGED, by OWNER RULING.** OWNER RULING given live on 2026-10-03
+   via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`
+   with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Asked *"does 'citizenship must
+   exist first' now count as done, so the only thing left blocking it is the new bucket + limited-access
+   key?"*, the owner answered, verbatim: *"Yes, it's done"*. ⇒ The earlier open *built-vs-live* question
+   is **settled by this ruling** (citizenship counts as existing). ⇒ **The ONLY remaining gate is
+   blocker 2: the new dedicated bucket + a key scoped to it — plus the `STORAGE_REGION` setting the
+   deploy check (the config-parity guard) needs.** ⛔ This ruling changed ~~`## Status` (`🔲 Backlog`), `## Priority` (rank 4)
+   and `## Sprint`~~ **none** of `## Status`, `## Priority` or `## Sprint`; no folder moved, no mover run.
+   *(Later the same day a separate OWNER RULING postponed match archiving indefinitely and moved this task to
+   the Backlog board — `## Sprint` and `## Priority` changed for **that** reason; see `## Sprint`. This
+   discharge still stands.)*
 2. **S3-compatible bucket + credentials provisioned** — populated into the existing
    config slots via the deploy config. Credentials must follow the post-incident secret
    handling rules — no secrets in git-tracked docs or briefs (see
    [[decisions/vps-credential-leak-response]]).
+   📌 **2026-10-03 — blocker 2 is now SHAPED by owner rulings, and still NOT discharged.** A **new
+   dedicated** bucket + a **new key scoped to it** (Put/Get/List/Delete), prod only. It also turned out
+   **not** to be plumbing-complete: a `STORAGE_REGION` slot has to be added. And because the parity
+   guard will **refuse** a prod deploy with blank values once `0030`'s code reads them, **the bucket and
+   key must exist before `0030` deploys.** See *"🗓️ OWNER RULINGS 2026-10-03"* below.
 
 ### 📐 MEASURED STATE OF BLOCKER 2, read 2026-09-22 — so nobody re-derives it
 
@@ -150,12 +175,73 @@ established by matching on the key lines alone. ⛔ **Keep it that way**: this f
 [[decisions/vps-credential-leak-response]]).
 
 ⇒ **What is left in blocker 2 is the infra half only:** provision the bucket, then populate the four
-existing slots through the deploy config. **No code plumbing needs writing** for the config path.
+existing slots through the deploy config. ~~**No code plumbing needs writing** for the config path.~~
+⚠️ **Superseded 2026-10-03 — struck, not deleted:** a `fkit-architect` consult found **there is no
+region slot**; `STORAGE_REGION` must be added (see *"🗓️ OWNER RULINGS 2026-10-03"* below). The four
+existing slots are still plumbed as described.
 
 ⚠️ **ADVICE, NOT A RULING — do NOT reuse the profile-backup bucket** (`0275`'s). It holds
 `age`-encrypted database backups with their own key custody and a proven restore drill; this archive
 is a different lifetime, a different access pattern, and a different blast radius. Stand up a
-separate bucket. *(The owner has not ruled on this; it is the producer's recommendation.)*
+separate bucket. ~~*(The owner has not ruled on this; it is the producer's recommendation.)*~~
+✅ **Now an OWNER RULING (2026-10-03)** — new dedicated bucket + new scoped key; see ruling 1 below.
+
+### 🗓️ OWNER RULINGS 2026-10-03 — bucket, retention, read path, dev
+
+**AUTHORITY.** OWNER RULINGS given **live on 2026-10-03 via `AskUserQuestion`** in the `fkit lead`
+session, relayed by `fkit-lead` to a spawned `fkit-producer` with **no owner channel of its own**
+(ADR-021/037). ⛔ **Not producer precedent.** Recorded here only; ⛔ `## Status`, `## Priority` and
+`## Sprint` are **unchanged**, no folder moved, no mover run.
+
+1. **Bucket — a NEW dedicated archive bucket, with a NEW access key scoped to that bucket only.** ⛔ Do
+   **not** reuse the profile-backup bucket (this settles the producer advice above).
+2. **Retention — 30 days, a fixed window.** Old records are **deleted by our own code**, because reg.ru
+   appears to have no lifecycle setting. ⚠️ Source: `0215`'s worklog (~lines 303-305) — **unconfirmed
+   for a new bucket.** ⇒ The key needs **Put / Get / List / Delete on this bucket only.**
+3. **Read path — players read archived matches THROUGH THE GAME SERVER.** The bucket stays **private**;
+   **no CORS** is needed. 📐 The architect flagged this as **ADR-worthy**. ⚠️ **No ADR is written yet.**
+   *(Bears on [`0292`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) below: the
+   client read goes to the game server, not to the bucket.)*
+4. **Dev — prod only for now.** Dev `STORAGE_*` **stays blank.** Allowed: the config-parity guard checks
+   values on **prod only**.
+
+#### Preparation notes — `fkit-architect` consult, 2026-10-03 (read-only)
+
+- **Nothing archive-related reaches any game box today.** All four `STORAGE_*` names are **blank** in
+  `.env` and **absent** from `.env.prod`, `.env.prod.secret` and `.env.dev*`.
+  ⚠️ **Ceiling: the live prod container was NOT checked.** `fkit-lead`'s read-only SSH check was blocked
+  by the session's permission guard; the owner has the set/empty command.
+- **There is no region slot.** The coder adds `STORAGE_REGION` to: `Config.ts`, `DefaultConfig.ts`, the
+  `deploy.sh` env block, **both** pipelines in `scripts/config-parity-allowlist.json`, and
+  `tests/util/TestServerConfig.ts`. **Also check whether reg.ru needs path-style addressing.**
+  *(Line drift, measured 2026-10-03 by the producer: `deploy.sh`'s `STORAGE_*` lines are now ~383-386,
+  not the 315-318 in the 2026-09-22 table above.)*
+- 🚨 **Deploy-order trap.** Once `0030`'s code reads the `STORAGE_*` vars, **remove** their *"optional,
+  blank allowed"* **game-server** entries in `scripts/config-parity-allowlist.json` (~lines 102-127).
+  From then on **a prod deploy with blank values is REFUSED** ⇒ **the bucket and key must exist before
+  `0030` deploys.** ⛔ The **client-side server-only** entries (~lines 186-211) **must stay.**
+- **Where values go:** `.env.prod` — endpoint, bucket, region. `.env.prod.secret` — both keys. **The
+  profile server needs nothing.** 🔒 Names only here, never values.
+
+#### Open owner facts — not yet answered
+
+- **Can a reg.ru key be scoped to a single bucket?** Not confirmed. (`0222` notes an old, never-revoked
+  key of **unchecked** scope.)
+- **Does any archive bucket or key already exist?**
+
+#### Next step — remaining owner prep before `0030`'s code can deploy
+
+⛔ **2026-10-03, later — ON HOLD: match archiving is POSTPONED INDEFINITELY by OWNER RULING** (*"we will
+pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, relayed by `fkit-lead`; ⛔ not
+producer precedent). Nothing below is to start until the owner lifts the postponement; it is kept as the
+ready-made next step for that day.
+
+**Create the bucket and the scoped key at reg.ru, then fill the values** (`.env.prod` /
+`.env.prod.secret`, as above). Coding can start before this; **deploying cannot** (deploy-order trap).
+~~Blocker 1 (citizenship) is unchanged by these rulings.~~ ✅ **Superseded later on 2026-10-03 — struck,
+not deleted:** blocker 1 is **DISCHARGED** by a separate OWNER RULING (*"Yes, it's done"*, relayed by
+`fkit-lead`; ⛔ not producer precedent) — see blocker 1 under `## Dependencies (hard blockers)`. The bucket +
+scoped key (and `STORAGE_REGION`) above are now the **only** remaining gate.
 
 ---
 
@@ -172,7 +258,9 @@ separate bucket. *(The owner has not ruled on this; it is the producer's recomme
 - Re-enable the archive path that `0159-reduce-archive-telemetry-noise` disabled
   (centralized flag → one-line change).
 - Add a bounded upload size limit (do not use an unbounded limit; size against real
-  compressed record sizes) and a basic retention policy.
+  compressed record sizes) and ~~a basic retention policy~~ a **30-day retention window, with old
+  records deleted by our own code** (reg.ru appears to have no lifecycle setting) — ✅ **OWNER RULING
+  2026-10-03**, ruling 2 in *"🗓️ OWNER RULINGS 2026-10-03"* above. *(Struck 2026-10-03, not deleted.)*
 
 ---
 
@@ -191,8 +279,10 @@ separate bucket. *(The owner has not ruled on this; it is the producer's recomme
   above (left unedited): (1) the citizenship feature must exist, to gate archival to citizen games only
   — see `0017-citizenship-earned` and `0018-citizenship-paid` (📌 *2026-09-23: `0017` closed as built +
   reviewed, owner ruling — its production checks moved to `0296`; citizenship goes live only at the
-  flip owned by `0065` §6; `0018` still open. Whether blocker (1) needs citizenship built or live is
-  this brief's own wording and was not re-ruled*); and (2) an S3-compatible bucket plus
+  flip owned by `0065` §6; ~~`0018` still open~~. Whether blocker (1) needs citizenship built or live is
+  this brief's own wording and was not re-ruled*) (📌 *2026-10-03 — OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session (*"Yes, fix them"*), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: `0018` is `✅ Done
+  (agent-closed — not owner-verified)`, closed 2026-09-26, and the `0065` §6 flip ran 2026-09-26 (game 0.0.154).
+  ~~The built-vs-live question is still not re-ruled~~* ✅ *Later on 2026-10-03 — **blocker (1) is DISCHARGED by OWNER RULING**, verbatim "Yes, it's done" (live via `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). The only remaining gate is (2), plus the `STORAGE_REGION` setting the deploy check needs*); and (2) an S3-compatible bucket plus
   credentials must be provisioned into the existing `storageEndpoint` / `storageBucket` /
   `storageAccessKey` / `storageSecretKey` config slots via the deploy config, following the
   post-incident secret-handling rules (variable names only, never values, in git-tracked files). The

@@ -119,7 +119,9 @@ as undetermined rather than guessing in either direction.
 >   not with a test that only proves a null was added (§4).
 > - **When it matters:** the private-lobby row is shown only when the `private_lobbies` switch is on,
 >   **assumed testers-only today — UNCONFIRMED: the owner did not confirm the current Yandex console
->   state** (2026-09-30). The report recommends raising this task before private lobbies open to all
+>   state** (2026-09-30). 📌 *2026-10-03:* ✅ **CONFIRMED HIDDEN — OWNER-ATTESTED 2026-10-03, not
+>   agent-verified.** Owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*.
+>   The report recommends raising this task before private lobbies open to all
 >   players — see [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
 >   which must not have its everyone-flag set before this case is revisited. *(Rank change is the
 >   owner's; none was ruled.)*
@@ -458,6 +460,25 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
    `ai-agents/knowledge-base/conventions/evidence-before-assertion.md` and against `CLAUDE.md`'s
    *"do not introduce speculative fixes"*. **No recommendation offered — this is a judgement about
    how much unproven risk the owner wants carried, not a technical call.**
+
+   ✅ **ANSWERED 2026-10-03 — OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent.** Given live
+   via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`
+   with no owner channel (ADR-021/037). Question as asked: *"0228 (join race): fix it even if the
+   investigation can't prove it actually happens?"* The owner picked **"Only if it's proven"**, verbatim:
+   *"Investigate first. Fix only if it's shown to really happen; otherwise it drops off the gate list."*
+   - **Investigate first; fix only if shown real.** If it is not shown, there is no fix, and this task
+     leaves the private-lobby release gate (item 3 in
+     [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md)).
+     The ruling does not close or cancel this task; that is a separate act at the end of phase 1.
+   - ⚠️ **Not settled by the ruling: what counts as "shown to really happen".** The only evidence so far
+     for the `0335` case 1 path (the 2026-09-30 block above) is **reasoned from code only**: no live
+     repro, no unit probe. Phase 1 must say plainly whether it reproduced the race (live, or with a test
+     against the real join/leave order) or only reasoned it. If the result is reasoning only, the owner
+     decides whether that counts as proven. The producer does not decide it.
+     ✅ **ANSWERED 2026-10-03 — OWNER RULING 2026-10-03, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent.** Question as asked: *"if the investigation only shows the race
+     from reading the code (never made to happen for real), does that count as proven?"* Owner: **"No, needs a
+     real repro"**. **Proven = actually reproduced, in a test or live.** Code reasoning alone is not enough;
+     without a repro, this task drops off the private-lobby release gate.
 
 ---
 
