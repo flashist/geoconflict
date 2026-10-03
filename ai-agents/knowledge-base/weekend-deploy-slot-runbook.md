@@ -1,5 +1,11 @@
 # Weekend deploy-slot runbook — one window, eleven tasks, four deploys
 
+> ## ✅ 2026-10-03 — A WEEKEND WINDOW RAN: telemetry → dev → game prod → profile → watch. Results: § *What happened 2026-10-03 — weekend window ran* at the end of this file.
+>
+> Owner-executed; facts from `fkit-lead`'s own checks and the owner's live reports; recorded by a spawned
+> `fkit-producer` (ADR-021). ⛔ **Standing after it: no second profile deploy and no profile box restart until
+> `0297` §1 has read `0309`'s log line after a real purchase.** Banners below are kept as written (ADR-035).
+
 > ## 📌 2026-09-29 — THE NEXT WINDOW IS PLANNED (undated): telemetry → game → profile. Plan: § *Next window — plan (written 2026-09-29)* at the end of this file.
 >
 > Owner rulings 2026-09-29, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021). Everything between
@@ -1696,3 +1702,123 @@ rollback target is now `sha256:75fd196a18223e546122b031239596b92f2987fc9bd1626a0
 **Still owed from this window:** N2's three checks (results) · quick check #3 · N3.2 · N3.3 by hand (or confirm the
 cron probe's result) · N3.4 · N4 · N5 · N6 · `0339`'s multi-day watch · `0298`'s guard-output record (lost for these
 three runs).
+
+## 📌 What happened 2026-10-03 — weekend window ran (appended; nothing above edited or renumbered, ADR-035)
+
+**PROVENANCE.** Recorded by a spawned `fkit-producer` (no owner channel, ADR-021) on an **OWNER RULING given live
+in the `fkit lead` session via `AskUserQuestion` on 2026-10-03, relayed by `fkit-lead`**: **"Yes, record it
+(Recommended)"** — option text: *"A producer writes the results into weekend-deploy-slot-runbook.md and the task
+files. No commit. This way the next window starts from correct facts."* ⛔ Not producer precedent. Every fact below
+is either **(lead)** — `fkit-lead`'s own check that day — or **(owner)** — the owner's live report to the lead.
+Where the producer checked something itself, it says **(producer)**. Times are **UTC**. No host, IP, URL, registry
+path or credential is recorded here on purpose — version names, commit hashes, image tags and digests only.
+
+**The plan used.** `fkit-architect`'s **read-only plan of 2026-10-03, steps O0–O4**. That plan was **not written
+into this file** and the producer did not see its text, so its steps are not reproduced or mapped here. (The § *Next
+window — plan* N-steps above belong to the 2026-09-29 window.)
+
+**The order — two owner rulings, the later one governs.** Both given live via `AskUserQuestion` on 2026-10-03,
+relayed by `fkit-lead`; ⛔ not producer precedent.
+
+| # | Owner's answer (verbatim) | Effect |
+|---|---|---|
+| 1 (earlier) | **"Yes, deploy dev last (Recommended)"** | Dev after prod. **Superseded by #2.** |
+| 2 (later — governs) | **"Dev first, as a rehearsal (Recommended)"** | Dev before game prod, as a rehearsal of the same build path. |
+
+**Final order run: telemetry → dev → game prod → profile → watch.**
+
+### Results
+
+| Step | Result | Source | Verdict |
+|---|---|---|---|
+| Pre-flight — tree | HEAD `204f931` = `origin/dev`, working tree clean. | lead | ✅ |
+| Pre-flight — config parity | `--enforce` exit 0; REQUIRED 0 on game / profile / client. | lead | ✅ |
+| Pre-flight — lint | `npm run lint` exit 0. | lead | ✅ |
+| Pre-flight — `npm test` | Run 1: **3457/3458** — 1 fail, `InternalPathCase.test.ts` *"POST /v1/login is unchanged"*, got **401**, expected 400. That is the supertest flake shape *"401 on a route with no auth middleware"* — **mechanism unknown** per CLAUDE.md § *Known flake*; **no SIGSEGV**. The file re-ran **27/27**; a full re-run **3458/3458**, **188/188** suites. Re-run stated, not hidden. | lead | ✅ (flake, re-ran) |
+| Pre-flight — `test:integration` | **NOT run** — no migrations this window; Docker not started. | lead | — not run |
+| Pre-flight — box state before | Profile-api image digest `sha256:75fd196a…28e0`; game image tag `20260929-220550`. Owner confirmed (via `AskUserQuestion`) **nothing deployed since 2026-09-29**. | owner | ✅ |
+| **Telemetry** | Tag `0.0.155-telemetry.1` pushed → `204f931` (lead). Local record `~/.geoconflict/telemetry-deploy.log` block at **09:04:37** — `validation_result=ok git_tag=pushed` (lead). Box marker `/opt/uptrace/deployed-version`: `version=0.0.155-telemetry.1`, `commit=204f931…` (owner). Alert-probe log **09:06:52**: *"accepted … channel state: delivering"* (owner). ⚠️ Telemetry has **no** config-parity guard — the lead first asked for its output by mistake and corrected that. | lead + owner | ✅ |
+| **Dev** (rehearsal) | Bump commit `c60fd05` *"DEPLOY dev: bump version to 0.0.155-dev.1"*, tag `0.0.155-dev.1` pushed (lead). Image tag `20261003-122424`; the box pruned the old dev image `prerelease-0925` (owner). A public match started on dev (owner). ⚠️ **Dev guard output NOT captured.** | lead + owner | ✅ (guard output missing) |
+| **Game prod** — deploy | Bump commit `f712263`, tag `0.0.156` pushed. Image tag `20261003-123251` (digest `sha256:5a85ad3f…b1b1`), live **~09:32**. | lead | ✅ |
+| Game prod — guards (`0298` Part B, armed) | **Name guard:** REQUIRED 0 (game / profile / client). **Docker secret boundary + per-layer byte scan:** passed. **Value guard** (deploy env prod): REQUIRED 0, **OPTIONAL 6** (`STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET`, `OTEL_AUTH_HEADER`, `FEEDBACK_WEBHOOK_URL` — blank by recorded decision), OK 18, UNCHECKED 6. | owner output, read by lead | ✅ |
+| Game prod — checks | Live `commit.txt` = `f712263` (lead). `public_lobbies` `msUntilStart` samples 40 s / 20 s / 58 s — consistent with a 60 s window (lead). Footer shows **0.0.156**; owner played one public match (owner). | lead + owner | ✅ |
+| Game prod — rollback target | Box pruned `20260929-220550`; a rollback **re-pulls it from the registry** (the architect verified it is in the registry the morning of 2026-10-03). | lead / architect | ✅ (needs re-pull) |
+| Game prod — warnings | `SENTRY_AUTH_TOKEN` ARG lint warning, deprecated password-SSH fallback warning, `npm audit` counts. **Pre-existing, not new** — `Dockerfile` and `deploy.sh` unchanged. | lead | — noted |
+| **Profile** — deploy | Name guard REQUIRED 0 (blocking: profile). *"Deploy version: 0.0.156-profile.1 (package.json 0.0.156, commit f712263)"*. Local record block at **10:02:38** — digest `sha256:b26113a8199e7796588e6dfb3b15fc19ab3056a9862a8c70a8bcc13a8430df32`, `validation_result=ok`, `git_tag=pushed`. Tag `0.0.156-profile.1` → `f712263`. | lead | ✅ |
+| Profile — migrations | 001–004, 006, 007 all *"skip (already applied)"*; *"migrations up to date"*; no 005. | owner output, read by lead | ✅ |
+| Profile — on-box value check | `report_config_values` output **NOT captured**. | — | ⚠️ not captured |
+| Profile — endpoints | `/health` → `{"status":"ok","version":"0.0.156-profile.1","commit":"f712263…"}`; `/ready` 200; `name-change-dismiss` with no session → **401**; `tenure-grant` with an empty body → **400**. | lead | ✅ |
+| Profile — digest heartbeat | Arrived in Telegram. | owner | ✅ |
+| Profile — error lines | **0** at 15 min and **0** at 40 min after the deploy. | owner | ✅ |
+| Profile — registry name | `:0.0.156-profile.1` present in the registry, resolving to `sha256:b26113a8…df32` — the deployed digest. Both version tags (`0.0.155-telemetry.1`, `0.0.156-profile.1`) confirmed **annotated** on origin, pointing at `204f931` / `f712263`. | producer (read-only look-ups, 2026-10-03) | ✅ |
+| **Watch** — game log, 60 min | See § *Watch findings* below. **`failed after retries` ≠ 0** (2 lines, both during the profile recreate). | owner-run greps | ⚠️ 1 XP award lost |
+
+### Watch findings (owner-run greps on the game log, 60 min)
+
+- **Three slow first resolve calls, before the profile deploy:** `profile /internal/v1/players/resolve request
+  failed (attempt 1/3): TimeoutError` at **09:40:04, 09:50:35, 10:00:53** — each recovered on a later attempt (no
+  *"failed after retries"* for them). Roughly **10 minutes apart**. ⚠️ **Not new:** the same signature was finding
+  **F-B** in the 2026-09-26 window (09:06:32 and 09:16:34 — also ~10 min apart; § *2026-09-26 — THE WINDOW RAN*)
+  *(producer, from the record)*. **No cause known.** → filed as
+  [`0375`](../tasks/backlog/0375-investigate-why-the-first-profile-resolve-call-times-out-about-every-10-minutes/brief.md)
+  (Backlog board) on **OWNER RULING 2026-10-03, relayed by `fkit-lead`: "Yes, file a backlog task (Recommended)"** —
+  option text: *"The producer files a small task: find out why the first try times out every 10 minutes. It goes to
+  the Backlog, not this sprint. Each timeout makes a player wait 10 extra seconds for their profile to load."* ⛔ Not
+  producer precedent.
+- **During the profile recreate:** `credit` returned **502 ×3** → *"credit batch failed after retries; 1 award(s)
+  dropped"* at **10:03:11** — **ONE XP award lost.** This is the standing cost recorded at N3 above (**lost, not
+  queued**), not a new defect. `resolve` returned **502 ×3** → *"player resolve failed after retries"* at
+  **10:03:57** (retried later, at the next identity event or at credit time).
+- **Crediting resumed:** *"match credit results: 1 credited, 0 duplicate, 0 no_profile, 0 error"* at 10:04:44,
+  10:04:44 and 10:05:42.
+
+### Rollback targets after this window
+
+- **Game prod:** `20260929-220550` (0.0.155) — **registry only**, re-pull needed.
+- **Profile:** previous image `sha256:75fd196a…28e0`. ⚠️ **Updates § *Never roll back to*, "after this slot":**
+  the **S2-or-later profile image** to keep as [`0340`](../tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)'s
+  future rollback target is now **`sha256:b26113a8…df32`** (`0.0.156-profile.1`); the previous one was
+  `sha256:75fd196a…28e0`.
+
+### ⛔ Standing after this window
+
+**No second profile deploy and no profile box restart until
+[`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has read
+[`0309`](../tasks/done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)'s log line after a
+real purchase.** This is the first profile deploy carrying `0309` (committed 2026-09-30, after the 2026-09-29 deploy)
+*(producer: `26b85c0` is an ancestor of `f712263`)*, and container logs are lost on every recreate.
+
+### Task records touched by this window
+
+- [`0363`](../tasks/done/0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md)
+  (telemetry tag) — evidence appended to its `worklog.md`. Steps 1–3 met; **Step 4 (Uptrace UI loads with
+  post-deploy data) not recorded.** Not closed.
+- [`0358`](../tasks/done/0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md)
+  (profile version) — evidence appended to its `worklog.md`. Steps 1–3 met; **Step 4 (`service.version` in
+  Uptrace) not recorded.** Not closed.
+- [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/worklog.md)
+  — its owner step 3 record (guard output, names only) now **exists** for the game and profile deploys of this
+  window (above); appended to its worklog. Still missing: dev's guard output and the profile on-box value check.
+- [`0370`](../tasks/backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md)
+  Step 1 — delegated to an `fkit-coder` on 2026-10-03; its result is in `0370`'s own worklog (not repeated here).
+- [`0351`](../tasks/backlog/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md)
+  (verify `0035` on dev) — **now runnable**: the dev box has the new code since this window.
+
+### Still owed from this window
+
+`0363` Step 4 · `0358` Step 4 · dev's guard output (lost) · profile on-box value check output (lost) · `0370` per its
+own worklog · `0351` · `0375` (the investigation). Items owed from the 2026-09-29 window are **not** re-checked
+here — see each task's own record.
+
+### 📌 2026-10-03, later — profile on-box value check: captured after all (appended; the section above is not edited, ADR-035)
+
+Same OWNER RULING R1 (**"Yes, record it (Recommended)"**, relayed by `fkit-lead`; ⛔ not producer precedent). Source:
+**owner-pasted** profile deploy output. The on-box **CONFIG VALUE PARITY** (report-only, `setup-profile.sh`
+`report_config_values`) printed **13 OK**: `PROFILE_DOMAIN`, `FEEDBACK_TELEGRAM_TOKEN` + `FEEDBACK_TELEGRAM_CHAT_ID`,
+`TELEGRAM_PROXY_URL`, `PROFILE_ALERT_WEBHOOK_TOKEN`, `TELEGRAM_TOPIC_ALERTS`, `TELEGRAM_TOPIC_NAME_CHANGES`,
+`YANDEX_PAYMENTS_SECRET`, `PROFILE_INTERNAL_TOKEN` (source: environment), `PROFILE_SESSION_SECRET`,
+`PROFILE_CHECKS_PING_URL`, `PROFILE_BACKUP_S3_ENDPOINT`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `PROFILE_LOGIN_CREATE_ENABLED`
+(login creation ENABLED — normal). Summary line: *"Value parity: 0 finding(s), 0 optional, 13 ok"*; also *"OTLP ingest
+reachable (HTTP 200)"*. Names only — no values recorded. ⇒ The **"Profile — on-box value check: NOT captured"** row and
+the *"profile on-box value check output (lost)"* item above are **now resolved** (left as written; this note supersedes
+them).

@@ -35,15 +35,15 @@ Sprint 8
 > independent owner checks on different boxes and do not compete.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** An owner-run check right after the weekend profile deploy. The
 deploy itself is the owner's; the checks after it are read-only.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
-[`0351`](../0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
+[`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
+[`0351`](../../backlog/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
 
 ## Context
 
@@ -85,7 +85,7 @@ real registry name, no real git tag, and no real deploy has ever happened.** Onl
 
 - **The first tagged profile deploy must be the same weekend-slot deploy that first ships `0309`'s log line**
   ([`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)).
-- **No second profile deploy before [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has
+- **No second profile deploy before [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has
   read that line.** Container logs are lost when the container is recreated, and every profile deploy recreates it.
 - **A tagging fault is fixed with a git command, never with a redeploy.** If the git tag step fails or warns, the
   deploy prints the exact `git tag -a … && git push origin refs/tags/…` line to run by hand. Redeploying to "fix" a
@@ -145,7 +145,7 @@ this step **"not observable"** — that is not a failure.
 - **Blocks:** nothing. ⚠️ In particular it does **not** block Sprint 7's deploy.
 - **Related:** `0309` (its log line ships in the same deploy) and `0297` §1 (reads that line — see Ordering).
   [`0356`](../../done/0356-tag-telemetry-server-deploys-with-a-version-like-the-game/brief.md) (telemetry tagging) reuses
-  0355's helper and will need its own verify. [`0357`](../0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md)
+  0355's helper and will need its own verify. [`0357`](../../backlog/0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md)
   (the game server's own fake `1.0.0`) is separate — a `1.0.0` on **game-server** telemetry is not a failure of this
   task.
 - **Known limits accepted by the owner at `0355` (not failures of this task):** the uncommitted-files check is not a

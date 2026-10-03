@@ -33,7 +33,7 @@ GameAnalytics access). The Uptrace query is read-only and may be run for the own
 access (standing rule: read-only checks are run, not handed over).
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0363`](../0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md).)*
+[`0363`](../../done/0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md).)*
 
 ## Context
 
@@ -187,7 +187,7 @@ lone-player share did not rise by more than the Step 3 number. Otherwise revert.
 - **Retention:** observed ~14 days (2026-10-02), not the configured 7 — see *Context*. Uptrace retention is **not**
   changed, by owner ruling (plan Q2, 2026-10-02).
 - **Related:** [`0263`](../0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) (Uptrace
-  retention); [`0363`](../0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md)
+  retention); [`0363`](../../done/0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md)
   (⚠️ a telemetry deploy restarts the Uptrace stack — do not run it in the middle of a Step 1/4/5 query; restart does
   not delete stored data).
 - **Privacy:** never paste a host, IP, full URL, token or credential into any artifact.

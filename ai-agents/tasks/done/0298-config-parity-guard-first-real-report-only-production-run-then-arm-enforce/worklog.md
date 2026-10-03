@@ -202,3 +202,38 @@ and the owner's live reports; the producer verified none. The task stays closed 
 - **Related rule, now filled:** the runbook's *"after this slot, keep an S2-or-later profile image"* (S3a's future
   rollback target) is now profile image `sha256:75fd196a18223e546122b031239596b92f2987fc9bd1626a0bb71e5e8eee28e0`.
 - Full record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*.
+
+## 📌 2026-10-03 — owner step 3 record: armed guard output captured (appended; nothing above edited, ADR-035)
+
+**Provenance.** Written by a spawned `fkit-producer` (no owner channel, ADR-021) on an **OWNER RULING given live in
+the `fkit lead` session via `AskUserQuestion` on 2026-10-03, relayed by `fkit-lead`: "Yes, record it
+(Recommended)"**. ⛔ Not producer precedent. The task stays closed as it was; **no status changed, no file moved.**
+Facts: the deploy output as the owner relayed it, read by `fkit-lead`. Names only.
+
+This is the record owner step 3 asked for (*"Record each first armed run's guard output here (names only)"*), which
+did not exist for the 2026-09-29 runs. Window order: telemetry → dev → game prod → profile.
+
+- **Game prod (0.0.156, commit `f712263`) — name guard:** REQUIRED **0** on game / profile / client. **Value guard**
+  (deploy env prod): REQUIRED **0**, OPTIONAL **6** — `STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`,
+  `STORAGE_BUCKET`, `OTEL_AUTH_HEADER`, `FEEDBACK_WEBHOOK_URL` (blank by recorded decision) — OK **18**, UNCHECKED
+  **6**. Docker secret boundary + per-layer byte scan: passed. **No block.**
+- **Profile (`0.0.156-profile.1`, commit `f712263`) — name guard:** REQUIRED **0** (blocking: profile). **No block.**
+  ⚠️ The on-box value check (`report_config_values`) output was **not captured**.
+- **Dev (`0.0.155-dev.1`):** guard output **not captured**.
+- **Telemetry:** has no config-parity guard — nothing to record.
+- Pre-flight `--enforce` over all pipelines: exit 0, REQUIRED 0 on game / profile / client (lead).
+
+Full window record: [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-10-03 —
+weekend window ran*.
+
+## 📌 2026-10-03, later — profile on-box value check captured (appended; nothing above edited, ADR-035)
+
+Same OWNER RULING (**"Yes, record it (Recommended)"**, relayed by `fkit-lead`; ⛔ not producer precedent). Source:
+**owner-pasted** profile deploy output. The on-box **CONFIG VALUE PARITY** (report-only, `setup-profile.sh`
+`report_config_values`) printed **13 OK**: `PROFILE_DOMAIN`, `FEEDBACK_TELEGRAM_TOKEN` + `FEEDBACK_TELEGRAM_CHAT_ID`,
+`TELEGRAM_PROXY_URL`, `PROFILE_ALERT_WEBHOOK_TOKEN`, `TELEGRAM_TOPIC_ALERTS`, `TELEGRAM_TOPIC_NAME_CHANGES`,
+`YANDEX_PAYMENTS_SECRET`, `PROFILE_INTERNAL_TOKEN` (source: environment), `PROFILE_SESSION_SECRET`,
+`PROFILE_CHECKS_PING_URL`, `PROFILE_BACKUP_S3_ENDPOINT`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `PROFILE_LOGIN_CREATE_ENABLED`
+(login creation ENABLED — normal). *"Value parity: 0 finding(s), 0 optional, 13 ok"*; *"OTLP ingest reachable (HTTP
+200)"*. Names only. ⇒ The *"on-box value check … not captured"* line above is **now resolved** (left as written). Still
+not captured: dev's guard output.

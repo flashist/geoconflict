@@ -236,7 +236,7 @@ all carried from Sprint 6 on 2026-09-27.
 > - 🚨 **Ordering:** the first tagged profile deploy must be the weekend-slot deploy that first ships `0309`'s log line;
 >   **no second profile deploy before `0297` §1 reads that line** (container logs are lost on recreate). A tagging fault
 >   is fixed with a git command, never a redeploy.
-> - Verify: [`0358`](../tasks/backlog/0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md),
+> - Verify: [`0358`](../tasks/done/0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md),
 >   Sprint 8 rank 1. **It does not block this sprint's deploy.**
 >
 > ⛔ **WHAT DID NOT HAPPEN.** No other row changed or was renumbered; the line-3 banner was not touched; nothing committed

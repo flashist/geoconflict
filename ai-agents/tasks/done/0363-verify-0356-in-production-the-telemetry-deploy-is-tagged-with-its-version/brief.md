@@ -31,7 +31,7 @@ Sprint 8
 > profile) and do not compete.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** An owner-run check right after the weekend telemetry deploy.
@@ -39,7 +39,7 @@ The deploy itself is the owner's; the checks after it are read-only.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
 [`0358`](../0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md) and
-[`0351`](../0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
+[`0351`](../../backlog/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
 
 ## Context
 
@@ -142,7 +142,7 @@ access may run it for the owner (standing rule: read-only checks are run, not ha
 - **Blocks:** nothing. ⚠️ In particular it does **not** block Sprint 7's deploy.
 - **Related:** [`0358`](../0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md) (the
   same check for the profile server; independent — the two can run in the same slot in either order).
-  [`0357`](../0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md) (the game server's own
+  [`0357`](../../backlog/0357-game-server-telemetry-reports-its-real-version-not-a-fake-1-0-0/brief.md) (the game server's own
   fake `1.0.0` in telemetry) is separate — a `1.0.0` seen in Uptrace is not a failure of this task.
 - **Known limits accepted by the owner at `0356` (not failures of this task):** the uncommitted-files check runs once
   and an edit after it ships unseen (`0355` R3); an unreachable remote only warns and numbering falls back to local
