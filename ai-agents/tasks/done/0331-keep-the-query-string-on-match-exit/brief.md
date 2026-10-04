@@ -106,4 +106,4 @@ console (not the portal page), run on a **first load**, and again **after exitin
   query).
 - **Privacy:** never paste query values, full URLs, ids, tokens or hosts into any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
-- 📌 **2026-09-29 — verification item 4 SPLIT OUT by OWNER RULING** (given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`): this task is the **build** task; the owner's post-release P1 repeat now lives in [`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (rank 1, Sprint 7). Closed on items 1–3 only — see `worklog.md` § *Closed*.
+- 📌 **2026-09-29 — verification item 4 SPLIT OUT by OWNER RULING** (given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead`): this task is the **build** task; the owner's post-release P1 repeat now lives in [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (rank 1, Sprint 7). Closed on items 1–3 only — see `worklog.md` § *Closed*.

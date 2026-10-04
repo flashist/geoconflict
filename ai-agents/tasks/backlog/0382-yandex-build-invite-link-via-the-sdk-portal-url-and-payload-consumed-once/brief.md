@@ -121,7 +121,7 @@ format.
   *Context* → *Rules*). Accepted grey area, not an open risk.
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task, probe in its
   worklog), [`0331`](../../done/0331-keep-the-query-string-on-match-exit/brief.md) /
-  [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (the `sdk` query
+  [`0337`](../../done/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (the `sdk` query
   parameter), [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md).
 - **Privacy:** no app id, catalog URL, player id, host or secret in any artifact, test fixture included (use a fake
   id).

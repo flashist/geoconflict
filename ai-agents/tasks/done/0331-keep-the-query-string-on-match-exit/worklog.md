@@ -134,7 +134,7 @@ id, host or IP is recorded here.
   touch (`0325`'s tracked `s0-hmac-check.mjs`); the two changed files lint clean. Real Yandex behaviour was **not**
   verified — the local frame has no platform `sdk` parameter.
 - **Brief verification item 4 (the owner's post-release P1 repeat) was SPLIT OUT**, by the ruling above, into
-  [`0337`](../../backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) —
+  [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) —
   rank 1 on the Sprint 7 board. If P1 still reads `false` after deploy, `0337` files a new defect; `0331` is not
   reopened silently.
 - ⚠️ **State at close: the change is NOT committed and NOT deployed.**

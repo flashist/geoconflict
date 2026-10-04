@@ -8,10 +8,24 @@
 > highest `## ID` on all three boards: `0371`. `0372` and `0373` allocated in this run, in dependency order.
 
 ## Sprint
-Sprint 8
+Sprint 7
+
+> 📌 **2026-10-04 — was ~~Sprint 8~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING given
+> live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+> `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Pull into
+> Sprint 7 (Recommended)"* — option text: *"Move 0373 onto Sprint 7 now. Sprint 7's goal includes citizenship, and 6
+> of its open tasks wait on this one task."* The [Sprint 8](../../../sprints/plan-sprint-8.md) row is kept as
+> `➡️ Moved`. Status unchanged (`🔲 Backlog`); no folder moved, no mover run.
 
 ## Priority
-2
+36
+
+> 📌 **2026-10-04 — was ~~2~~ (Sprint 8 rank); rank 36 is append rank on the Sprint 7 board — the PRODUCER's
+> placement, NOT owner-ruled.** The owner named the sprint, not a rank. **On merit this belongs directly above
+> `0340` (Sprint 7 rank 16)**, because `0340` waits on it; inserting it there would renumber ranks 16–35, most of them
+> closed rows, which ADR-035 forbids, so it was appended after that board's highest (35). **Read it as worked before
+> `0340`, whatever the number says.** The notes below describe the Sprint 8 rank and are kept as history. The ⏳ note
+> still holds: the rank does not let this task start early.
 
 > 📌 **2026-10-02 (later) — was 6, now 2. OWNER-RULED placement.** Moved to rank 2, directly below `0370`, on the
 > [Sprint 8 board](../../../sprints/plan-sprint-8.md), on the OWNER RULING given live via `AskUserQuestion`, verbatim

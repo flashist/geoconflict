@@ -45,7 +45,7 @@ fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** A live, read-only ch
 the dev box. No agent can run it.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).)*
+[`0337`](../../done/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).)*
 
 ## Context
 
