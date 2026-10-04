@@ -62,3 +62,4 @@ exists either.**
 - [[tasks/uptrace-retention-not-applied]] — task `0259`, the third sibling from the same finding
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board it was filed on, and where its revisit `0264` now sits
+- [[tasks/client-null-id-errors]] — task `0032`, whose "no symbolication for 0.0.140" residual led to this task

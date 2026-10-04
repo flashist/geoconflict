@@ -109,6 +109,14 @@ A 1-hour Uptrace review on 2026-05-07 (14:57-15:57 Moscow time) found the most a
 | 5 | Minified client null-id/null-object errors | 1.8/min | Medium | Medium-high | Needs source maps/context |
 | 6 | Mobile memory/WebGL rendering failures | 0.4/min | Medium-high for affected users | High | `src/client/graphics/**` |
 
+> 📌 **2026-10-04 — item 5 resolved at its origin (task `0032`, closed agent-closed — not owner-verified).** Its
+> clusters B–E were a shared terrain-map cache and a null `myPlayer` in the leaderboard; zero spans for them on
+> `0.0.154`–`0.0.156` over ~7 days (re-check run read-only by `fkit-lead`, not owner-verified). Left: a one-client
+> Lit burst, a 10-span `.split` group, and the alliance-request `.id` group (backlog `0261`). The same re-check
+> confirmed in live data that **`service_version` holds the short commit SHA** (as stated above), and saw three
+> large error groups **no task owns**: `reading 'M_ID'` (≈ 8.7 k spans on `0.0.155`), `reading 'addChild'`,
+> `reading 'bindFramebuffer'`. See [[tasks/client-null-id-errors]].
+
 Recommended order: fix cosmetics serving and `PrivilegeRefresher` failure handling first to remove the largest telemetry noise source; guard `LocalServer` hash assignment next because it is a direct client crash; then reduce archive noise by disabling or quieting the dead archive path. The archive cleanup is implemented through `archiveEnabled() === false`; after deploy, Uptrace should be checked to confirm the three archive error groups drop. Real S3-backed archival waits for citizenship because match history has no live consumer yet.
 
 ## Retention Control
@@ -284,3 +292,5 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[decisions/adr-117-server-deploy-version-names]] — ADR-117 (2026-09-30): `0356` will version telemetry deploys as `<base>-telemetry.<N>`; `0357` will replace the game server's hard-coded `service.version` `"1.0.0"`
 - [[tasks/telemetry-deploy-version-tags]] — task `0356` (done 2026-10-01, agent-closed, **not deployed**): telemetry deploys are named `<base>-telemetry.<N>`, refuse on uncommitted shipped files, write a `deployed-version` marker on the box and a local deploy record, and git-tag after success. The Uptrace UI does **not** show this version
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363` (closed 2026-10-03): the first tagged telemetry deploy, `0.0.155-telemetry.1` at `204f931` — tag, box marker and local record agree; the Uptrace UI loads with post-deploy data
+- [[tasks/client-null-id-errors]] — task `0032` (closed 2026-10-04): item 5 of the 2026-05-07 priority table, fixed at the origin; its re-check proved client ingest live with data and that `service_version` holds the commit SHA
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): all five outside images on this box are to be pinned by digest (`0386`/`0387`)

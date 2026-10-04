@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 📌 **2026-10-04 (`72a223d`) — three gate tasks moved onto [[decisions/sprint-7]]:** `0354` (rank 37), `0380` (38),
+> `0377` (39), plus the small fixes `0353` (40) and `0374` (41) — owner ruling *"Yes: all 5 ready ones"*; ranks are the
+> producer's order, not owner-ruled. **The release gate below is unchanged** and none of their open owner questions
+> was answered by the move. `0376`, `0381`, `0382`, `0383` stay on the Backlog board.
+>
 > ✅ Done (agent-closed — not owner-verified). Code committed in `390c4b4`. **Unit tests only:** no browser
 > check of the row, the lock or the popup, and no real citizen has created and started a private match.
 >
@@ -115,3 +120,4 @@ of the perks would depend on it."*
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322` (2026-09-28): the game server swaps a citizen's approved name in for other players, at ADR-103 trust
 - [[tasks/citizenship-card-newest-profile-read]] — task `0326` (2026-09-28): the citizenship card applies only the newest profile read
+- [[decisions/sprint-7]] — `0354`, `0380`, `0377` (gate items) moved onto this board 2026-10-04, ranks 37–39 (producer order)

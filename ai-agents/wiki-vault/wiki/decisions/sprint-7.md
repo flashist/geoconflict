@@ -5,7 +5,38 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-04 (latest, `b99c1f1`) — 37 ROWS, 11 OPEN: `0337` PASSED AND CLOSED; `0373` MOVED IN FROM SPRINT 8 AT RANK 36
+> # 🆕 2026-10-04 (latest, `72a223d`) — 42 ROWS, 15 OPEN: `0032` PASSED AND CLOSED; FIVE PRIVATE-LOBBY TASKS MOVED IN AT RANKS 37–41
+>
+> **Re-counted at `HEAD` = `72a223d`: 42 rows — 22 `✅ Done` · 13 `🔲 Backlog` · 2 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 15 OPEN** (was 37 / 11 — one closed, five added). ⚠️ Counted by me this run, by each row's leading
+> status glyph. Both edits are by spawned `fkit-producer`s with no owner channel, on facts / an OWNER RULING relayed by
+> `fkit-lead` (⛔ not producer precedent). The line-3 banner still reads `🔄 In progress — 2026-09-29`.
+>
+> - ✅ **`0032` (rank 5, client null-id errors) → `✅ Done (agent-closed — not owner-verified)`**, 2026-10-04. **Step 5
+>   re-check PASSED** — run read-only by `fkit-lead` in Uptrace at the owner's request (relayed agent measurement, not
+>   owner-verified): ingest live (≈ 38.5 k spans on the fixed versions), **zero spans** for clusters B / C / D / E on
+>   `0.0.154`–`0.0.156`; the 48 remaining `reading 'id'` spans are all cluster G (`0261`), not a regression. In Uptrace
+>   `service_version` is the commit SHA, not the semver. Optional preload-analytics check **not taken**; three
+>   out-of-scope error groups seen, **nothing filed**. Full record: [[tasks/client-null-id-errors]]. ⚠️ **Board text vs
+>   repo:** the row ends *"Not committed"*; the close **is** in `72a223d` (checked).
+> - ➡️ **Five tasks MOVED IN FROM [[decisions/sprint-backlog]], appended at ranks 37–41**, all `🔲 Backlog` (status copied
+>   verbatim): **37** `0354` (show private lobbies to testers + an "everyone" flag) · **38** `0380` (Yandex build: copy
+>   the lobby code, stop honouring `#join=` links — [[decisions/adr-119-yandex-invite-sdk-link-plus-code]]) · **39**
+>   `0377` (end abandoned unstarted private lobbies after a short idle time) · **40** `0353` (host window polls before a
+>   lobby exists) · **41** `0374` (lobby windows end their "joining" mark on close). OWNER RULING given live 2026-10-04
+>   via `AskUserQuestion`, verbatim: *"Yes: all 5 ready ones"* — option text: *"0354, 0377, 0380 plus the two small
+>   fixes 0353 (error every second) and 0374 (joining mark). More work this week."*
+>   - ⚠️ **The order is the PRODUCER's, NOT owner-ruled** — the owner named tasks, not ranks; open for owner confirmation.
+>     `0380` sits next to `0354` on merit (it unblocks `0381` and `0382`).
+>   - ⚠️ **`0353` and `0374` both edit `HostLobbyModal.ts`** — build them one after the other, not at once.
+>   - Moving them answered **none** of their open owner questions (`0354`: who counts as a tester; `0377`: grace time;
+>     `0380`: its list). The everyone-flag release gate is unchanged ([[tasks/private-lobby-citizen-perk]]); `0301`
+>     (gate item 5) and `0382` (half of item 6) are not on this list. Still on the Backlog board: `0376`, `0381`,
+>     `0382`, `0383`.
+>
+> ---
+>
+> # 🆕 2026-10-04 (`b99c1f1`) — 37 ROWS, 11 OPEN: `0337` PASSED AND CLOSED; `0373` MOVED IN FROM SPRINT 8 AT RANK 36
 >
 > **Re-counted at `HEAD` = `b99c1f1`: 37 rows — 21 `✅ Done` · 8 `🔲 Backlog` · 3 `🚧 Blocked` · 4 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 11 OPEN** (was 36 / 11 — one closed, one added). ⚠️ Counted by me this run, by each row's leading
@@ -519,3 +550,6 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it (moved here from Sprint 8 at rank 36 on 2026-10-04)
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, `0355`'s verify on Sprint 8: passed, closed 2026-10-03
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, `0356`'s verify on Sprint 8: passed, closed 2026-10-03
+- [[tasks/client-null-id-errors]] — task `0032`, rank 5, closed 2026-10-04 (agent-closed — not owner-verified): Step 5 Uptrace re-check passed
+- [[tasks/private-lobby-citizen-perk]] — the release gate behind `0354`, `0377`, `0380` (ranks 37–39, moved in 2026-10-04)
+- [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — the decision `0380` (rank 38) builds the code half of

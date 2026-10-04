@@ -45,3 +45,4 @@ This turns the Sprint 4c source-map task from backlog enablement into shipped in
 - [[decisions/sprint-4c]]
 - [[decisions/sprint-4]]
 - [[tasks/client-source-map-upload-verification]] — task `0260`, which refuted this pipeline and removed it
+- [[tasks/client-null-id-errors]] — task `0032`, the null-id investigation this was split out of (prerequisite 1); it placed its sites from kept method names, without maps

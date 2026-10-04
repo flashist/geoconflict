@@ -91,3 +91,4 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the weekly-copy half, proven separately
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, which required this re-proof before `PROFILE_INTERNAL_TOKEN` was set
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): every deliberate Postgres upgrade reuses this restore drill against the new image before the live switch

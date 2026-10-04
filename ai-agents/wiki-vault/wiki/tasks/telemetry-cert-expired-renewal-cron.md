@@ -98,6 +98,12 @@ renewal cron will fire. 🚨 **Name the box:** `2026-12-13` is **this (telemetry
 `2026-11-20` is the **profile** box's, a different certificate — a same-day proposal to move one date onto
 the other was refused before it was applied. See [[systems/weekend-deploy-window]].
 
+✅ **2026-10-04 — the "transport, not data" boundary is DISCHARGED.** `0032`'s Step 5 re-check (run read-only by
+`fkit-lead`, not owner-verified) found client spans arriving and queryable: ≈ 38.5 k spans on `0.0.154`–`0.0.156`
+over 2026-09-27 → 2026-10-04, 90 distinct users on `0.0.155` alone. Ingest is live **with data**, not just a valid
+handshake. The second boundary — **an expiry date is not a renewal test** — still stands. See
+[[tasks/client-null-id-errors]].
+
 ## Related
 
 - [[systems/telemetry]] — the stack this restored, and where the outage window belongs
@@ -108,3 +114,4 @@ the other was refused before it was applied. See [[systems/weekend-deploy-window
 - [[decisions/sprint-4]] — the sprint that owns it
 - [[decisions/sprint-backlog]] — the board it was filed on, then pulled off by an owner ruling that set **both** board and rank
 - [[systems/weekend-deploy-window]] — records both boxes' live cert readings of 2026-09-22 and the refused date swap
+- [[tasks/client-null-id-errors]] — task `0032`, whose Step 5 this outage blocked; its 2026-10-04 re-check proved ingest live with data

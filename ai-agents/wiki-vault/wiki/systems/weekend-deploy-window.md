@@ -5,6 +5,22 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 📌 2026-10-04 (later, `72a223d`) — W15's `0032` RE-CHECK IS DONE; F-C NOW HAS A DECIDED DIRECTION (NOT BUILT)
+>
+> - ✅ **W15 — `0032` step 5's Uptrace re-check: PASSED, 2026-10-04.** Run read-only by `fkit-lead` at the owner's request
+>   (relayed agent measurement, ⛔ not owner-verified); window 2026-09-27 09:00Z → 2026-10-04 12:00Z. Ingest live; zero
+>   spans for the fixed clusters on `0.0.154`–`0.0.156`. ⚠️ The instruction below to filter by `service.version`
+>   **`0.0.152` / `0.0.154`** was wrong in form: in Uptrace `service_version` holds the **commit SHA**. `0032` closed
+>   (agent-closed — not owner-verified). See [[tasks/client-null-id-errors]]. The F-B counts and the other W15 items in
+>   *"Still owed"* below are **not** covered by this — not re-checked here.
+> - 📝 **F-C (the unplanned Postgres 16.15 upgrade) — direction now decided, nothing built.** Owner rulings 2026-10-04
+>   pick option (b), **pin every third-party image by digest on both boxes**, with Postgres upgrades deliberate and
+>   backup-first: [[decisions/adr-120-third-party-images-digest-pinned]] — ⚠️ **ADR status `proposed`** (decision
+>   owner-ruled, wording not yet owner-signed). Tasks `0384`–`0388` filed on the Backlog board, unscheduled; each lock
+>   is a weekend-slot deploy. Until they ship, **F-C can recur** on any profile deploy.
+>
+> ---
+>
 > # 🆕 2026-10-04 — THE PROFILE FREEZE IS LIFTED: `0297` §1 HAS READ `0309`'S LOG LINE
 >
 > The runbook gained a top banner and an appended § *2026-10-04 — the profile freeze is LIFTED* (spawned
@@ -758,3 +774,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`: the 2026-10-03 profile deploy, verified (`0.0.156-profile.1`)
 - [[tasks/public-lobby-one-minute]] — task `0367`: went live in the 2026-10-03 game deploy (`0.0.156`); its verify `0370` ran Steps 1–3 that day
 - [[decisions/sprint-8]] — the verify tasks `0363`, `0358`, `0370`, `0351` for the 2026-10-03 window
+- [[tasks/client-null-id-errors]] — task `0032`: shipped in W12 (`0.0.152`); its W15 Uptrace re-check passed 2026-10-04
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): the decided direction for finding F-C (pin images by digest; deliberate, backup-first Postgres upgrades)

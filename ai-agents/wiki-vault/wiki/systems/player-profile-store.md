@@ -3,6 +3,14 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📝 **2026-10-04 (`72a223d`) — F-C (the unplanned Postgres 16.15 upgrade) now has a decided direction; nothing
+> built.** Owner rulings: pin this box's Postgres (and every third-party image on it and on the telemetry box) by
+> digest, and make each Postgres upgrade a deliberate, backup-first change with a restore drill against the new image
+> — [[decisions/adr-120-third-party-images-digest-pinned]], ⚠️ **status `proposed`** (decision owner-ruled, wording not
+> owner-signed). Tasks `0384` (lock) / `0385` (verify) / `0388` (quarterly bump) on the Backlog board, unscheduled.
+> ⚠️ Until `0384` deploys, a profile deploy can still upgrade Postgres unchosen; and even after it, **the automatic
+> rollback still does not cover Postgres**.
+>
 > 📌 **2026-10-02 (`957a56b`) — `0250` S1 deploy now on the board too.** The `0250` brief and its Sprint 7 row had
 > still said S1 was *"NOT deployed"*; both now carry a dated correction (owner ruling *"Yes, correct it
 > (Recommended)"*, from the 2026-10-02 deploy-readiness review): commit `68303d5` is in game tag `0.0.155`, and the
@@ -530,3 +538,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed)
 - [[tasks/profile-os-baseline-hardening]] — task `0221` (P6): OS baseline, `unless-stopped` + `init`, graceful shutdown; closed 2026-10-01 with two owner-accepted residuals
 - [[decisions/sprint-7]] — the board holding `0250` (rank 17; S1 deployed 2026-09-29, S3b waits on `0340`)
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): this box's Postgres is to be pinned by digest (`0384`/`0385`); upgrades become deliberate and backup-first (`0388`)

@@ -67,3 +67,4 @@ join the player already left.
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-8]] carries verify task `0351`
 - [[decisions/sprint-backlog]] — this task's old row on `sprint-backlog.md` (now a Moved pointer) and the new `0352`
 - [[systems/architecture-overview]] — its worker-init line now names the 15 s limit and this map hand-over
+- [[tasks/client-null-id-errors]] — task `0032`, which made the loader cache hold only the map source and build fresh maps per game — the source this task hands to the worker

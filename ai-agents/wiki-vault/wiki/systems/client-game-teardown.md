@@ -145,3 +145,4 @@ Every leaked `PerformanceMonitor` keeps emitting `Performance:*` events, which i
 - [[tasks/worker-reuses-page-map]] — task `0035`: leaving during the start stops the worker
 - [[tasks/rejoin-after-failed-match-start]] — task `0347`: the reconnect session is saved before site B can run
 - [[tasks/lobby-close-leftovers-investigation]] — task `0335`: `0228` (case 1) shown reachable through `0327`'s close routes; `0252` (case 2) measured at +24 listeners per join
+- [[tasks/client-null-id-errors]] — task `0032`: the shared terrain-map cache that made a second in-page game start with stale tile owners (fixed in `a953271`); the routes that reach it are `0252`'s

@@ -3,6 +3,10 @@
 **Date**: 2026-10-04
 **Status**: accepted
 
+> 📌 **2026-10-04 (`72a223d`) — build task `0380` (the code half) moved onto [[decisions/sprint-7]] at rank 38**
+> (owner ruling *"Yes: all 5 ready ones"*; rank is the producer's order). `0381` (its verify) and `0382` (the link
+> half) stay on the Backlog board. ADR-119's canonical file did not change in this window.
+>
 > Source: `ai-agents/knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md`. Accepted by owner
 > sign-off 2026-10-04 (asked *"ADR-119 (Yandex link + code, rules for the build): accept it as written?"* → **"Accept
 > as written"**, live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`), promoted from
@@ -139,3 +143,4 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[tasks/private-lobby-start-url]] — task `0198`'s close: the path fix whose host question this ADR answers
 - [[tasks/citizen-verified-icon]] — task `0068`, whose live check surfaced `0198` and, through it, `0199`
 - [[systems/networking]] — the worker route and entry-point behaviour behind the invite and the join
+- [[decisions/sprint-7]] — `0380` (the code half of this decision) moved onto this board 2026-10-04, rank 38 (producer order)

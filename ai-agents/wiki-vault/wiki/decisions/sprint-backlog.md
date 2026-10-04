@@ -3,7 +3,28 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 📌 **2026-10-04 (latest, `b99c1f1`): 129 rows, 99 open — UNCHANGED.** Re-counted by me at `HEAD` = `b99c1f1`
+> 🆕 **2026-10-04 (latest, `72a223d`): 134 rows, 99 open — FIVE FILED, FIVE MOVED TO SPRINT 7.** Re-counted by me at
+> `HEAD` = `72a223d`, by each row's leading status glyph: 96 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` ·
+> 2 `⛔ Cancelled` (was 129 / 99). All edits by spawned `fkit-producer`s on OWNER RULINGS relayed by `fkit-lead`
+> (⛔ not producer precedent).
+>
+> - ➡️ **Moved to [[decisions/sprint-7]] (ruling *"Yes: all 5 ready ones"*), rows kept as `➡️ Moved`:** `0354` → 37,
+>   `0380` → 38, `0377` → 39, `0353` → 40, `0374` → 41. ⚠️ Ranks are the **producer's order, not owner-ruled**.
+>   `0374`'s *"placement UNRULED"* note is marked resolved. **Still here:** `0376`, `0381`, `0382`, `0383`.
+> - 🆕 **Filed, all `🔲 Backlog`, unranked — the digest-pin work of [[decisions/adr-120-third-party-images-digest-pinned]]
+>   (ADR-120 is `proposed`: decision owner-ruled, wording not yet owner-signed):**
+>   - `0384` — profile box: lock Postgres to one exact image by digest (ruling *"Yes, file a task"*; fixes the unplanned
+>     16.15 upgrade recorded on `0219`; weekend-slot deploy). `0385` — its verify, after `0384` deploys.
+>   - `0386` — telemetry box: lock **all five** outside images (Postgres, Redis, ClickHouse, Uptrace, OTel collector),
+>     rulings *"Include telemetry too"* + *"Lock those 3 too"*. ⚠️ Its folder slug still says "Postgres and Redis" —
+>     it predates the widening; **the title is the scope.** `0387` — its verify.
+>   - `0388` — quarterly check for a new Postgres minor release on both boxes, backup first (ruling *"Quarterly backlog
+>     item"*); depends on `0384` + `0386`; next planned minor release given as 2026-11-12 *(the brief says "verify")*;
+>     **three owner questions open in the brief**.
+>   - The two verify tasks follow the build/verify rule: placed at the top of the next sprint once their build ships —
+>     **not placed now**.
+>
+> 📌 **2026-10-04 (`b99c1f1`): 129 rows, 99 open — UNCHANGED.** Re-counted by me at `HEAD` = `b99c1f1`
 > (now all committed): 96 `🔲 Backlog` · 23 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled` — the same
 > counts this page recorded from the working tree, so the frame warning below is **discharged**. One text fix in this
 > window (commit `52c3c42`): the `0376` and `0377` rows now read *"item 2 of ~~5~~ 6"* / *"item 4 of ~~5~~ 6"* (item 6,
@@ -819,3 +840,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/hardening-harness-speedup]] — task `0371`, filed here 2026-10-02 and moved to Sprint 7 the same day; done
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, whose popup gate `0374` (filed here 2026-10-02, open) fixes for a hung lobby request
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: its watch item F-B recurred 2026-10-03 and is now investigation task `0375` (filed here, open)
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): the decision behind `0384`–`0388`, filed on this board
