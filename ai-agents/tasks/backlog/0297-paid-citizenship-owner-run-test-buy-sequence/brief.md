@@ -55,7 +55,11 @@ verified and granted.~~ *(The producer's merit statement, struck because the own
 wrongly implied `0296` sits at the top of the board.)*
 
 ## Status
-🚧 Blocked — on the profile deploy + a real purchase: §1's open box *"Determine which of the two constructions matched"* can be closed only after `0309`'s log line (built and closed 2026-09-30 on local proof) is deployed to the profile box and read from the container log after a real signed payload — the three §1 steps added 2026-09-30. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need it — the owner may do them any time. *(Blocker changed 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"* — `0309` closes on local proof and its deploy → real purchase → log read-back steps move into this task's §1. Was blocked on `0309`, struck below.)*
+🔲 Backlog
+
+📌 **Set 2026-10-04 by a spawned `fkit-producer` (no owner channel, ADR-021), on facts relayed by `fkit-lead` — the block is resolved.** §1 is complete: the profile deploy ran 2026-10-03 and `fkit-lead`'s read-only read-back on 2026-10-04 found the label **`construction=decoded_json`** via `/complete` (n = 1, a real player's purchase; `/reconcile` not observed) — see `worklog.md` § *2026-10-04*. **Still open, all owner-run and not blocked by any deploy:** §2 first box (direct read of `'ready'` / `hasCatalogProduct`, or an owner waiver), **§4** (reconcile watch; suggested hand-test fallback ~2026-10-10, not owner-ruled), **§5** (catalog check). Why `🔲 Backlog` and not `🔄 In progress`: no session owns it — the owner runs the remaining checks by hand when they choose (same reasoning as the 2026-09-29 note below). ⛔ Not closed.
+
+~~🚧 Blocked — on the profile deploy + a real purchase: §1's open box *"Determine which of the two constructions matched"* can be closed only after `0309`'s log line (built and closed 2026-09-30 on local proof) is deployed to the profile box and read from the container log after a real signed payload — the three §1 steps added 2026-09-30. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need it — the owner may do them any time. *(Blocker changed 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"* — `0309` closes on local proof and its deploy → real purchase → log read-back steps move into this task's §1. Was blocked on `0309`, struck below.)*~~ *(Superseded 2026-10-04 — resolved, see above.)*
 
 ~~🚧 Blocked — on [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md): §1's open box *"Determine which of the two constructions matched"* cannot be observed until `0309`'s log line is built, deployed to the profile box, and read after a real signed payload. ⚠️ **The block is about CLOSING, not starting:** the other open items (§2 first box, §4 reconcile watch, §5 catalog check) do not need `0309` — the owner may do them any time. *(Set 2026-09-29 — OWNER RULING, relayed by `fkit-lead`: *"…make sure the 0297 has the correct status (blocked) by the corresponding task."* See `## Sprint`.)*~~
 
@@ -124,24 +128,33 @@ build and the second game deploy has run). Before that, the buy button does not 
       **This also settles the `0195` condition:** a 200 on a real signed payload means the secret on the
       box is the right value. A signature rejection means the secret, the construction, or both are
       wrong — stop and file it as a defect immediately, because real players are on the same path.
-- [ ] Determine which of the two constructions matched, and record how that was determined. *(Open — not observable from outside; `0309` adds the log line. Pointer only, not proof: `0325` S0 on 2026-09-29 found signed PLAYER data verifies via decoded JSON.)*
+- [x] Determine which of the two constructions matched, and record how that was determined. ~~*(Open — not observable from outside; `0309` adds the log line. Pointer only, not proof: `0325` S0 on 2026-09-29 found signed PLAYER data verifies via decoded JSON.)*~~ *(✅ 2026-10-04 — **`decoded_json`**, via `/complete`: `0309`'s label read from the profile container log by `fkit-lead` (read-only SSH), one real player's purchase at 2026-10-03T13:48:24Z. `worklog.md` § *2026-10-04*. ⚠️ **n = 1, `/complete` route only — `/reconcile` has not been observed.**)*
 - [x] Hand the result to the producer to file a small `fkit-coder` follow-up that drops the unused
-      construction. Filing it is part of this task's close condition. *(✅ 2026-09-26 — filed as `0309` + `0310`.)*
+      construction. Filing it is part of this task's close condition. *(✅ 2026-09-26 — filed as `0309` + `0310`.)* *(📌 2026-10-04 — `0310` **cancelled**, superseded by [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: wait for more samples, then re-ask keep-or-drop. Still filed: the follow-up now is `0379`.)*
 
 > 📌 **Added 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"*.** [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) is closed (`✅ Done (agent-closed — not owner-verified)`) on **local proof
 > only**: the profile server now logs one line on each verified purchase naming which construction matched
 > (`yandex purchase signature verified (complete)` / `(reconcile)`, label `construction=base64_payload` or
 > `construction=decoded_json`). ⚠️ **The answer — which construction Yandex actually uses for purchases — is
 > still NOT known.** It is not deployed. `0309`'s plan §6 steps live here now; they close box 2 above:
-- [ ] **Deploy.** The owner runs or approves `build-deploy-profile.sh` in a weekend slot (next: 2026-10-03/04).
+- [x] **Deploy.** The owner runs or approves `build-deploy-profile.sh` in a weekend slot (next: 2026-10-03/04).
       Then `/health` and `/ready` must both return 200. *(The script builds from the working tree and tags
-      the image `-dirty` if uncommitted — the owner was advised to commit first.)*
-- [ ] **Read back.** After the next real purchase or `/reconcile`: a **read-only** grep of the profile
+      the image `-dirty` if uncommitted — the owner was advised to commit first.)* *(✅ 2026-10-03 — profile
+      deployed as `0.0.156-profile.1` (commit `f712263`, which contains `0309`); `/health` and `/ready` both 200.
+      Record: [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What
+      happened 2026-10-03 — weekend window ran*.)*
+- [x] **Read back.** After the next real purchase or `/reconcile`: a **read-only** grep of the profile
       container's logs for `signature verified` (`fkit-lead` may run it if it has SSH; otherwise the owner).
       Record in this folder's `worklog.md`: **date, label, route, "observed via container log"** — the
-      label only, nothing else from the line. Then check box 2 above.
+      label only, nothing else from the line. Then check box 2 above. *(✅ 2026-10-04 — run by `fkit-lead`,
+      read-only SSH; container up ~21 h, not restarted since the deploy; exactly **1** match: 2026-10-03T13:48:24Z,
+      `construction=decoded_json`, `(complete)`, a real player's purchase (the owner made no test buy).
+      `worklog.md` § *2026-10-04*.)*
 - ⚠️ **`docker logs` is lost when the container is recreated.** Read the line **before the next profile
-  deploy — especially before any `0310` deploy.**
+  deploy — especially before any `0310` deploy.** *(📌 2026-10-04: `0310` is cancelled; the re-check and any later drop live in [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — the same "read before any profile deploy" rule applies there.)*
+- 📌 **2026-10-04 — answered (the "still NOT known" above is kept as written, ADR-035):** read before any
+  further profile deploy — **`construction=decoded_json`**, via `/complete`, n = 1 (a real player's purchase);
+  `/reconcile` not observed. `worklog.md` § *2026-10-04*.
 
 ### §2 — Live catalog fetch (ex-`0065` §2)
 - [ ] Open the game as an authenticated Yandex player. `getPaymentsCatalogStatus()` → `'ready'`;
@@ -213,7 +226,7 @@ The checklist above **is** the verification. This task closes only when:
 
 ## Notes
 
-- **Depends on:** `0065` (§6 only — the flip plus the second game deploy must be live in production; the buy button does not exist before it) · 📌 **Added 2026-09-29 (append-only; OWNER RULING relayed by `fkit-lead`, see `## Sprint`):** [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — **the live blocker**, hard for closing: §1's *"which construction matched"* box needs its log line deployed and read. ✅ `0065` §6 is **already satisfied** — per this brief's own 2026-09-26 records (§1 two real `/complete` 200s; §2 the buy button showed 249), the flip and deploy are live; `0065` is done. Not on `0310` (it depends on `0309`, not the other way round). 📌 **Updated 2026-09-30 (append-only; OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"*):** `0309` is closed on local proof, so it no longer blocks this task; ~~**the live blocker**~~ for closing §1 is now **the profile deploy + a real purchase** (§1's two new steps).
+- **Depends on:** `0065` (§6 only — the flip plus the second game deploy must be live in production; the buy button does not exist before it) · 📌 **Added 2026-09-29 (append-only; OWNER RULING relayed by `fkit-lead`, see `## Sprint`):** [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — **the live blocker**, hard for closing: §1's *"which construction matched"* box needs its log line deployed and read. ✅ `0065` §6 is **already satisfied** — per this brief's own 2026-09-26 records (§1 two real `/complete` 200s; §2 the buy button showed 249), the flip and deploy are live; `0065` is done. Not on `0310` (it depends on `0309`, not the other way round). 📌 **Updated 2026-09-30 (append-only; OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session (plan approval of `0309`, open question 1), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Move it into 0297"*):** `0309` is closed on local proof, so it no longer blocks this task; ~~**the live blocker**~~ for closing §1 is now **the profile deploy + a real purchase** (§1's two new steps). 📌 **2026-10-04 (append-only): resolved** — deployed 2026-10-03, read back 2026-10-04 (`decoded_json`, `/complete`, n = 1); §1 is complete and nothing blocks this task. See `## Status`.
 - **Blocks:** nothing. ⛔ In particular it does **not** block `0065` — owner ruling 2026-09-23 (`0065`
   Correction 7) — and it does **not** block `0018`: owner ruling 2026-09-23, *`0018` closes on `0065`
   (the launch) alone*. **The real-purchase proof lives only here.**

@@ -1,5 +1,9 @@
 # Weekend deploy-slot runbook — one window, eleven tasks, four deploys
 
+> ## ✅ 2026-10-04 — PROFILE FREEZE LIFTED: `0297` §1 has read `0309`'s log line (`decoded_json`, `/complete`, n = 1). Detail: § *2026-10-04 — the profile freeze is LIFTED* at the end of this file.
+>
+> The 2026-10-03 banner's "Standing after it" rule below is **met**; that banner is kept as written (ADR-035).
+
 > ## ✅ 2026-10-03 — A WEEKEND WINDOW RAN: telemetry → dev → game prod → profile → watch. Results: § *What happened 2026-10-03 — weekend window ran* at the end of this file.
 >
 > Owner-executed; facts from `fkit-lead`'s own checks and the owner's live reports; recorded by a spawned
@@ -1822,3 +1826,20 @@ Same OWNER RULING R1 (**"Yes, record it (Recommended)"**, relayed by `fkit-lead`
 reachable (HTTP 200)"*. Names only — no values recorded. ⇒ The **"Profile — on-box value check: NOT captured"** row and
 the *"profile on-box value check output (lost)"* item above are **now resolved** (left as written; this note supersedes
 them).
+
+### 📌 2026-10-04 — the profile freeze is LIFTED: `0297` §1 has read `0309`'s log line (appended; the sections above are not edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021) on facts relayed by `fkit-lead`. The standing rule
+in § *⛔ Standing after this window* above (and in this file's top banner) — **no second profile deploy and no
+profile box restart until [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1
+has read [`0309`](../tasks/done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)'s log line
+after a real purchase** — is **MET as of 2026-10-04.** ⇒ **The profile freeze is lifted.**
+
+- **How:** `fkit-lead` ran a **read-only** SSH check of the production profile box on 2026-10-04. The profile container
+  was up ~21 h, healthy — not restarted since the 2026-10-03 deploy (`0.0.156-profile.1`). `docker logs` grep for
+  `signature verified`: **exactly 1 match** — 2026-10-03T13:48:24Z, route `(complete)`, label
+  `construction=decoded_json`. A **real player's** purchase; the owner made no test buy.
+- **Recorded in** `0297`'s `worklog.md` § *2026-10-04* (the label, date and route only).
+- ⚠️ **n = 1, `/complete` only — `/reconcile` has not been observed.** Lifting the freeze is about the log line
+  having been read, not about that caveat. A recreate now loses only lines written after this read.
+- The banners and the § *Standing* text above are left as written; this note supersedes them on this one point.

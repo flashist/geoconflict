@@ -28,8 +28,8 @@ recorded here.
 - [x] **Follow-up filed** (close condition 2), 2026-09-26, on the Backlog board, as two briefs:
   - [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — log which
     construction matched, deploy, read it after the next real purchase; writes its result back here.
-  - [`0310`](../0310-drop-the-unused-yandex-hmac-construction/brief.md) — drop the unused one
-    (depends on `0309`).
+  - [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md) — drop the unused one
+    (depends on `0309`). *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
 
 ### §2 — Live catalog fetch
 
@@ -192,3 +192,60 @@ How observed: GameAnalytics → Explore → Design events → aggregation **Coun
    on 2026-09-26 but missing from that day's tracker). Close it by a direct read or an owner waiver.
 2. §1 follow-up filed — ✅ **done** (`0309`, `0310`).
 3. `0195` value-correctness recorded — ✅ **done** (proven by the 200s, 2026-09-26).
+
+## 2026-10-04 — §1 read-back: `construction=decoded_json`, via `/complete` (n=1, a real player's purchase)
+
+⛔ **Provenance.** Recorded by a spawned `fkit-producer` with **no owner channel** (ADR-021), from facts
+relayed by `fkit-lead`. **Observed by `fkit-lead`** on 2026-10-04, by a **read-only** SSH check of the
+production profile box (the brief's §1 *Read back* step allows it: *"`fkit-lead` may run it if it has SSH"*).
+The producer observed none of it directly. No host, IP, secret, signed payload or player id is recorded here.
+
+### Precondition — the log line was still there to read
+
+- Profile container `profile-profile-api-1`: up **~21 hours, healthy** — i.e. **not restarted** since the
+  2026-10-03 profile deploy (`0.0.156-profile.1`, the first profile deploy carrying `0309`'s log line; see
+  [`weekend-deploy-slot-runbook.md`](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened
+  2026-10-03*). So the container log covers every verified purchase since that deploy.
+
+### The read-back — in the brief's prescribed shape
+
+`docker logs` grep for `signature verified`: **exactly 1 match.**
+
+| Date (UTC) | Label | Route | How observed |
+|---|---|---|---|
+| 2026-10-03T13:48:24Z | `construction=decoded_json` | `(complete)` | observed via container log |
+
+- **Whose purchase:** a **real player's**, not an owner test buy. **The owner made no test purchase.**
+- ⇒ §1 box 2 (*"Determine which of the two constructions matched"*): **`decoded_json`**, determined from
+  `0309`'s label in the profile container log.
+
+### ⚠️ Caveats — kept with the answer
+
+- **n = 1.** One verified purchase since the deploy. It is consistent with `0325` S0's pointer (signed
+  *player* data verifies via decoded JSON, 2026-09-29), but it is still one sample.
+- **`/complete` route only.** **No `/reconcile` verification has been observed** with the label. Whether
+  `/reconcile` payloads verify the same way is not shown by this read-back (likely, not proven).
+- These caveats matter for [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md), which deletes
+  the other construction (`base64_payload`): if either caveat is wrong, real purchases would be rejected. *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
+
+### Close-condition tracker (from *Verification steps*) — as of 2026-10-04
+
+1. Every box checked or owner-waived — **not yet.** ✅ §1 now complete. Open: **§2 first box** (inferred,
+   never read directly), **§4** (reconcile watch — not re-checked in this read-back), **§5**. None of them
+   waits on a deploy.
+2. §1 follow-up filed — ✅ done (`0309`, `0310`). *(📌 2026-10-04: `0310` cancelled, superseded by `0379` — still done: the follow-up exists, now as `0379`.)*
+3. `0195` value-correctness recorded — ✅ done (2026-09-26).
+
+## 2026-10-04 (later) — `0310` cancelled, superseded by `0379`
+
+**OWNER RULING relayed by fkit-lead, ⛔ not producer precedent.** Given live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session; recorded by a spawned
+`fkit-producer` with no owner channel (ADR-021/037). Asked whether to start `0310` on this one sample or wait,
+the owner chose **wait for more samples** and asked for a backlog task to re-check.
+
+- **Both HMAC constructions stay in the code for now.** Nothing was built or deployed.
+- [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md) — **cancelled** (agent-closed —
+  not owner-verified): the keep-or-drop decision was the only thing keeping it open.
+- [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) (Backlog board) takes over: re-read the profile container log for more `signature
+  verified` lines (ideally one `(reconcile)`), then put keep-or-drop to the owner; a "drop" ruling carries `0310`'s
+  code change. Its reads overlap this task's §4 reconcile watch — the same read can serve both.
+- ⚠️ The container log is still lost on every profile redeploy — read it **before** any profile deploy.

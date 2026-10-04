@@ -1,4 +1,4 @@
-# Telegram notification when a player becomes a citizen (bought or earned by XP), in a new Citizenship topic
+# Telegram notification when a player earns citizenship by XP, in a new Citizenship topic
 
 ## ID
 0362
@@ -17,6 +17,20 @@ fkit-coder
 
 ## Context
 
+> ✂️ **NARROWED 2026-10-04 — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent.** Edited by a spawned
+> `fkit-producer` with no owner channel (ADR-021/037), on a ruling given live in the `fkit lead` session. The owner
+> asked for an alert on **every** in-app purchase in a **separate Telegram channel** (not a topic) and picked
+> *"File a new task: every purchase posts to a separate Telegram channel you create. 0362 keeps only the 'earned by
+> XP' message, in the Citizenship topic. Clean split: money in one place, game milestones in another."*
+> **This task now covers ONLY "earned citizenship by XP"** (match credit + tenure grant), sent to the new
+> Citizenship topic. **The PAID half moved to
+> [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md)**
+> (every completed purchase, any product, to a separate Purchases channel). The paid text below is **kept, struck
+> through**, so the history stays readable. Title was *"Telegram notification when a player becomes a citizen (bought
+> or earned by XP), in a new Citizenship topic"*; the folder name keeps the old slug on purpose (existing task
+> folders are not renamed — `/fkit-task-brief` §9; inbound links use the slug). No status change, no move. The owner's original 2026-10-01 request is quoted unchanged
+> below.
+
 **Filed 2026-10-01 by a spawned `fkit-producer` with no owner channel (ADR-021/037), on an OWNER REQUEST given live
 in the `fkit lead` session on 2026-10-01, relayed by `fkit-lead`.** ⛔ Not producer precedent. The owner's words,
 verbatim:
@@ -34,7 +48,8 @@ This brief is the **second** of the two. The first is [`0361`](../0361-telegram-
 to any existing topic (Alerts, Name Changes, Feedback).
 
 **Where a player becomes a citizen today — the hook points.** Both already send a "welcome" inbox message at exactly
-the right moment, after commit, never throwing. This task adds a Telegram message beside each.
+the right moment, after commit, never throwing. This task adds a Telegram message beside ~~each~~ the **earned** one
+(the paid one moved to 0378).
 
 - **Earned (XP)** — `src/profile-server/PlayerProfileRepository.ts`:
   - match credit: `creditMatchXp` (`CREDIT_SQL` ~:80, the "newly granted" decision ~:224–:236) sets
@@ -46,13 +61,15 @@ the right moment, after commit, never throwing. This task adds a Telegram messag
   - `citizenshipNewlyGranted` is `!wasCitizen`: a duplicate credit (`status: "duplicate"`) never sets it, and a
     **paid** citizen who later crosses the XP threshold gets their earned date stamped **without** it — so neither
     sends a welcome today.
-- **Paid** — `src/profile-server/PaymentsRepository.ts` `grantPaidPurchase` (~:126–:186): the purchase token is the
+- ~~**Paid** — `src/profile-server/PaymentsRepository.ts` `grantPaidPurchase` (~:126–:186): the purchase token is the
   ledger key in `processed_purchases`; a token seen before returns `already_processed` and **never** reaches the
   post-grant hook. After COMMIT on `granted`, `afterPaidPurchaseGranted` (~:197) sends `citizenship_paid`. Both payment
   routes go through it: `/v1/payments/yandex/complete` and `/v1/payments/yandex/reconcile` (`Routes.ts` ~:999, ~:1072),
-  so hooking here covers both, and a `/reconcile` re-grant cannot duplicate the message.
-  - ⚠️ `GRANT_FLAGS_SQL` (~:46) grants on a player who is **already** an earned citizen too, and the welcome fires
-    for them. The message should say so (see *What to build* and open question 3).
+  so hooking here covers both, and a `/reconcile` re-grant cannot duplicate the message.~~
+  - ~~⚠️ `GRANT_FLAGS_SQL` (~:46) grants on a player who is **already** an earned citizen too, and the welcome fires
+    for them. The message should say so (see *What to build* and open question 3).~~
+  - ✂️ **Moved to [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md)
+    (2026-10-04, OWNER RULING relayed by fkit-lead).** This task does not touch `PaymentsRepository`.
 
 **The Telegram side today.**
 - One bot, one operator forum group, the never-throw send `sendTelegramMessage`
@@ -87,13 +104,16 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
 2. **Earned message** — after COMMIT, wherever `afterCitizenshipEarned` fires (match credit **and** tenure grant): one
    message to the Citizenship topic saying a player **earned** citizenship by XP, with the internal player uuid, the
    XP total at the moment of crossing, and which path crossed it (match / tenure grant).
-3. **Paid message** — after COMMIT on `granted` in `grantPaidPurchase`: one message saying a player **bought**
+3. ~~**Paid message** — after COMMIT on `granted` in `grantPaidPurchase`: one message saying a player **bought**
    citizenship, with the internal player uuid, the product id, which route landed it (`complete` / `reconcile` —
-   the plan says whether that is cheaply knowable), and whether the player was **already an earned citizen**.
-4. **Never send:** on `already_processed`, on a `duplicate` credit, on a rolled-back transaction, or when
+   the plan says whether that is cheaply knowable), and whether the player was **already an earned citizen**.~~
+   ✂️ **Moved to [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md)
+   (2026-10-04, OWNER RULING relayed by fkit-lead)** — every purchase, to a separate Purchases channel, not this topic.
+4. **Never send:** ~~on `already_processed`,~~ on a `duplicate` credit, on a rolled-back transaction, or when
    `citizenshipNewlyGranted` is false.
-5. **Never include:** a Yandex id (ADR-113 / task `0270` — operator messages carry the internal uuid only), the
-   purchase token, the intent id, the raw payment payload, or any signature. Every field HTML-escaped.
+5. **Never include:** a Yandex id (ADR-113 / task `0270` — operator messages carry the internal uuid only)~~, the
+   purchase token, the intent id, the raw payment payload, or any signature~~. Every field HTML-escaped. *(The
+   payment fields are 0378's concern now; this path never sees them.)*
 6. **Telegram must never affect the grant.** Same contract as the inbox hooks it sits beside (0017 review residual
    R1, owner-ruled 2026-08-24): fire-and-forget after commit, never throws, never delays the HTTP answer, never turns
    a durable grant into an error. A failed send is one warning log line naming the result only (no token, no id).
@@ -104,7 +124,8 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
    gitignored profile deploy config (`.env.profile`, per `example.env.profile`). The value is persisted on the box on
    first deploy. **No topic id goes in any tracked file.**
 8. **Out of scope:** any player-facing change; the inbox templates; payment verification; a message for refunds or
-   revoked purchases (none exist today); the game server's feedback topic.
+   revoked purchases (none exist today); the game server's feedback topic; **any purchase message** — that is
+   [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md) (2026-10-04, OWNER RULING relayed by fkit-lead).
 
 ## Verification steps
 
@@ -117,13 +138,16 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
    - a tenure grant that crosses the threshold on top of match XP sends one message, labelled tenure;
    - concurrent credits that both see the crossing still send **one** (the locked-row decision guarantees this —
      prove it).
-2. **Paid path tests** (`tests/profile-server/PaymentsRepository.test.ts`, `PaymentsRoutes.test.ts`, and the
-   integration suite):
-   - `granted` sends exactly one paid message; the same token again (`already_processed`), via `/complete` **or**
-     `/reconcile`, sends **nothing**;
-   - a grant to an already-earned citizen sends one message that says so;
-   - the message text contains **none** of: the purchase token, the intent id, the raw payload, a Yandex id (assert
-     against fixture values).
+2. ~~**Paid path tests** (`tests/profile-server/PaymentsRepository.test.ts`, `PaymentsRoutes.test.ts`, and the
+   integration suite):~~
+   - ~~`granted` sends exactly one paid message; the same token again (`already_processed`), via `/complete` **or**
+     `/reconcile`, sends **nothing**;~~
+   - ~~a grant to an already-earned citizen sends one message that says so;~~
+   - ~~the message text contains **none** of: the purchase token, the intent id, the raw payload, a Yandex id (assert
+     against fixture values).~~
+   - ✂️ **Moved to [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md) (2026-10-04, OWNER RULING relayed by fkit-lead).** What stays here: a paid grant
+     sends **nothing** to the Citizenship topic (assert it — the earned message must not start firing for purchases),
+     and the earned message contains no Yandex id (assert against fixture values).
 3. **Grant unaffected by Telegram:** a send stub that fails, throws synchronously, or never resolves leaves every
    outcome and every database row exactly as without it, and the route answers promptly.
 4. **Topic behaviour** matches the owner's ruling on open question 1 (tested both ways: set ⇒ that topic; blank ⇒ the
@@ -132,11 +156,11 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
    now asserts the new var alongside the other two); `npm run check:config-parity` reports nothing for the new var.
 6. `npm run lint` passes.
 7. **Live check (after the owner's topic step and a weekend-slot profile deploy):** the next real new citizen —
-   earned or paid — appears once in the Citizenship topic and nowhere else. Per the build-vs-verify rule, this is a
+   earned ~~or paid~~ — appears once in the Citizenship topic and nowhere else. Per the build-vs-verify rule, this is a
    **separate verify task** filed at the top of the next sprint when the build closes; it must not block that
-   sprint's deploy. ⚠️ Earned citizens arrive on their own schedule and paid ones may not arrive for a while, so the
-   verify task should say how long to wait and what counts as proof if no paid purchase happens (see Notes on
-   `0297`).
+   sprint's deploy. ⚠️ Earned citizens arrive on their own schedule~~ and paid ones may not arrive for a while~~, so the
+   verify task should say how long to wait ~~and what counts as proof if no paid purchase happens (see Notes on
+   `0297`)~~.
 
 ## Open questions — for the owner, at the plan step (producer's recommendation marked)
 
@@ -149,15 +173,16 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
    happen (see Notes). The cost: if the owner forgets the topic step, nothing arrives and only a log line says why;
    the deploy's config report should also list it as `OPTIONAL … citizenship notifications off`.
 2. **Volume — one message per new citizen, no batching?** Earning takes 100 XP at 1 XP per qualifying match
-   (`Citizenship.ts`), so earned citizens are expected to be few; paid ones fewer. — **Recommend: one message per new
+   (`Citizenship.ts`), so earned citizens are expected to be few~~; paid ones fewer~~. — **Recommend: one message per new
    citizen, no daily digest, no rate limit**, with the plan step checking the real rate first (a read-only count of
    `citizenship_earned_at` per day on the box) and saying so if it is higher than "a few a day".
-3. **Paid by someone who already earned it?** The grant still happens and the welcome still fires today. —
+3. ~~**Paid by someone who already earned it?** The grant still happens and the welcome still fires today. —
    **Recommend: send the paid message, marked "already an earned citizen"** — it is still real revenue, which is the
-   point of hearing about it.
-4. **Any more detail?** e.g. the player's display name (a new citizen usually has none yet), or the price (the grant
-   does not store it). — **Recommend: no** — uuid, path, XP or product id is enough; the uuid is what every runbook
-   query keys on.
+   point of hearing about it.~~ ✂️ **Moved to [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md)** (its "already an earned citizen" flag, 2026-10-04, OWNER
+   RULING relayed by fkit-lead).
+4. **Any more detail?** e.g. the player's display name (a new citizen usually has none yet)~~, or the price (the grant
+   does not store it)~~. — **Recommend: no** — uuid, path~~,~~ **and** XP ~~or product id~~ is enough; the uuid is what
+   every runbook query keys on. *(Price / product id are 0378's question now.)*
 
 ## Notes
 
@@ -169,9 +194,14 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
 - **Sibling, not a dependency:** [`0361`](../0361-telegram-confirmation-when-a-name-change-is-decided/brief.md)
   (name-change confirmation). Both copy the same never-throw Telegram pattern; if one extracts a small shared
   "send operator message, never throw" helper, the other should reuse it.
-- **Relation to `0297`** (paid-citizenship owner-run test buy, Sprint 7, blocked): a real purchase would be the
+- **Sibling, not a dependency:** [`0378`](../0378-telegram-alert-in-a-separate-purchases-channel-for-every-completed-in-app-purchase/brief.md) (every completed purchase → a separate Purchases channel; took over this
+  task's paid half on 2026-10-04, OWNER RULING relayed by fkit-lead, ⛔ not producer precedent). No shared change
+  forces an order — this task hooks only `PlayerProfileRepository`, 0378 only `PaymentsRepository`. Both edit the same
+  deploy plumbing (`Server.ts`, `build-deploy-profile.sh`, `setup-profile.sh`, `example.env.profile`, the hardening
+  harness, the runbook table), often on adjacent lines: whichever lands second rebases onto the first.
+- ~~**Relation to `0297`** (paid-citizenship owner-run test buy, Sprint 7, blocked): a real purchase would be the
   **first live proof of the paid message**. Not a dependency either way — if this ships after `0297`'s buy, the
-  verify task needs another real or test purchase to prove the paid path.
+  verify task needs another real or test purchase to prove the paid path.~~ ✂️ Moved to 0378 with the paid message.
 - ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/plan-sprint-7.md) records that there is
   to be **no second profile deploy before `0297` §1 reads `0309`'s log line** (container logs are lost on recreate),
   and that `build-deploy-profile.sh` **refuses to run while any `src/` change is uncommitted**. So this task's code
@@ -180,7 +210,8 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
   tagging, closed in Sprint 7) changed and Backlog task `0346` (migrations before new code) will change — plan
   against whatever has landed by then.
 - Related: `0067` (name change / operator Telegram), `0277` (forum topics + alert relay), `0298` (config parity),
-  `0017` / `0018` / `0065` (earned and paid citizenship), `0253` (tenure grant), ADR-113 (internal player id).
+  `0017` / `0018` (earned citizenship), ~~`0065` (paid citizenship)~~ → 0378, `0253` (tenure grant), ADR-113 (internal player id).
 - No player id, topic id, chat id, host or IP is recorded here on purpose.
-- Size: small-to-medium — two hook sites (three call sites), one message builder, one env var carried through four
+- Size: small-to-medium — ~~two hook sites (three call sites)~~ one hook site (two call sites: match credit + tenure
+  grant), one message builder, one env var carried through four
   deploy files and the harness, tests, a runbook row.
