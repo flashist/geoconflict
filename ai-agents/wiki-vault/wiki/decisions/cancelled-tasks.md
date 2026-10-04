@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -187,6 +187,32 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 
 **If revisited:** do not re-file this as a separate task. Runtime fail-loudness elsewhere (the same disease in runtime code, including the 2026-08-22 outage pattern) is explicitly **not** in this scope — deploy-time only.
 
+## Payments — Drop the Unused Yandex HMAC Construction (task 0310)
+
+**Sprint:** Backlog
+**Status:** ⛔ Cancelled 2026-10-04 (agent-closed — not owner-verified) — superseded by `0379`
+
+**Why cancelled:** `src/profile-server/YandexSignature.ts` accepts an HMAC over **either** the base64 payload or the
+decoded JSON, because Yandex's docs do not say which (`0019`). `0309` added a log label; the first read on 2026-10-04
+found **`decoded_json`, via `/complete`, n = 1** (one real player's purchase; `/reconcile` never observed). Asked
+*"start now on 1 purchase sample, or wait for more?"*, the owner chose to **wait** (OWNER RULING, live via
+`AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent): *"#1, and add some
+task to the backglog about re-checking it. If this decision about removing or leaving the possibly unused code is the
+only thing that keeps 0310 from being closed, then close it…"*. Nothing had been built, so the task was cancelled.
+
+**What was learned:** one sample is not enough to delete a verification path that real paying players depend on — a
+wrong drop **rejects real purchases** (the grant does not happen until the change is reverted). The verifier is also
+**shared with player login** (`PlayerSignature.ts` reuses `verifyHmacEnvelope`, ADR-116), which logs no construction
+label at all.
+
+**Where the work lives now:** `0379` (Backlog board, owner `fkit-lead`) — read-only sample collection before every
+profile redeploy, then the keep-or-drop question at **≥ 5 purchases, all `decoded_json`, incl. ≥ 1 `(reconcile)`**, or
+at **~2026-11-01** regardless (both triggers owner-ruled 2026-10-04). `0310`'s code scope is carried there as Phase C,
+with the player-login caveat added. See [[tasks/hmac-construction-log-label]].
+
+**If revisited:** do not restart `0310`; work from `0379`. 🚨 A `base64_payload` line ever appearing means Yandex uses
+both (or the other on some path) — stop and ask; dropping either would then reject real purchases.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -213,3 +239,4 @@ The earlier HF-7 custom-dimension implementation has also been superseded by Gam
 - [[decisions/adr-105-compact-maps-out-of-rotation]] — the decision that records why the compact-map runtime workaround was cancelled
 - [[decisions/sprint-backlog]] — where `0064`, the surviving deploy-time config guard, sits, alongside the `0062`/`0063` findings that motivated it
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the config-drift sweep that surfaced `0062` and `0063`
+- [[tasks/hmac-construction-log-label]] — task `0309`, whose first label read (`decoded_json`, n = 1) led to `0310`'s cancellation in favour of `0379`

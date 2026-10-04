@@ -5,6 +5,39 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-04 (latest, `7324c1b`) — 36 ROWS, 11 OPEN: TWO TASKS POSTPONED OFF THE BOARD, `0297` UNBLOCKED, TWO STALE GATES STRUCK
+>
+> **Re-counted at `HEAD` = `7324c1b`: 36 rows — 20 `✅ Done` · 8 `🔲 Backlog` · 3 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 11 OPEN** (was 36 / 13). ⚠️ Counted by me this run, by each row's leading status glyph. All edits
+> below are by spawned `fkit-producer`s on OWNER RULINGS relayed by `fkit-lead` (⛔ not producer precedent). The
+> line-3 banner still reads `🔄 In progress — 2026-09-29`.
+>
+> - ➡️ **`0027` (New Maps — Community Demand) → Backlog board: NEW-MAPS CONTENT POSTPONED INDEFINITELY** (2026-10-03).
+>   Owner, verbatim: *"We wil postpone the new maps, don't know for how long, move the new maps content related tasks
+>   to the backglog sprint"*. Earlier the same day its timing gate had been ruled met (the 2026-09-26 paid-citizenship
+>   switch-on counts as "the launch", *"Yes, that was it"*) — superseded: **no map briefs are to be written** until
+>   the postponement lifts. A de-scope edit, **not** a mover — nothing closed, no folder moved; the row stays here as a
+>   pointer.
+> - ➡️ **`0030` (S3-Backed Match Archival) → Backlog board: MATCH ARCHIVING POSTPONED INDEFINITELY** (2026-10-03).
+>   Owner, verbatim: *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."* Rank 4
+>   surrendered. The same day's rulings still stand: blocker 1 discharged (*"Yes, it's done"*), new dedicated bucket +
+>   scoped key + a new `STORAGE_REGION` slot, 30-day retention by our own code, prod only, and reads **through the
+>   game server** — [[decisions/adr-118-archive-read-through-game-server]].
+> - 🔓 **`0297` (paid-citizenship test-buy sequence): `🚧 Blocked` → `🔲 Backlog` — block resolved** (2026-10-04, on
+>   facts relayed by `fkit-lead`). §1 is complete: the profile deploy ran 2026-10-03 and the read-only log read found
+>   **`construction=decoded_json`** via `/complete` — ⚠️ n = 1, `/reconcile` not observed. Still open, owner-run, no
+>   deploy needed: §2 first box, §4 (reconcile watch), §5 (catalog check). `Backlog` not `In progress` because no
+>   session owns it. ⇒ the profile freeze is lifted ([[systems/weekend-deploy-window]]); `0310` was cancelled and
+>   superseded by `0379` ([[tasks/hmac-construction-log-label]]).
+> - 📌 **`0032` (null-id errors) — stale gate struck** (*"Yes, fix them"*, 2026-10-03): the weekend-slot half is
+>   **done** — the fix shipped 2026-09-26 (game `0.0.152`, also `0.0.154`). **Only the owner's Uptrace re-check (W15)
+>   is left**; no re-check result is recorded in the repo. Still `🚧 Blocked`, rank unchanged.
+> - 📌 **`0337` (verify `0331` in production) — precondition MET** (*"Yes, fix them"*, 2026-10-03): `0331` (`572d134`)
+>   went to production in game `0.0.155` on 2026-09-29 and is in `0.0.156`. Startable, **not started** — status and
+>   rank unchanged. See [[tasks/match-exit-keeps-query-string]].
+>
+> ---
+>
 > # 🆕 2026-10-03 (latest, `bc39b82`) — 36 ROWS, 13 OPEN (UNCHANGED): ONE LINK REPOINT ONLY
 >
 > **Re-counted at `HEAD` = `bc39b82`: 36 rows — 20 `✅ Done` · 9 `🔲 Backlog` · 4 `🚧 Blocked` · 2 `➡️ Moved` ·

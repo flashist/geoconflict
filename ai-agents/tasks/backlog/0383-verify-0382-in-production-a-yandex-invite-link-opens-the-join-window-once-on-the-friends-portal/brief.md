@@ -29,7 +29,7 @@ Read-only checks an agent can do may be run by an agent session (standing rule).
 
 **OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent.** Filed 2026-10-04 by a spawned `fkit-producer`
 with no owner channel (ADR-021/037), on the owner's ruling **"Yandex link + code"** (live `AskUserQuestion`, `fkit
-lead` session; full text in [`0199/worklog.md`](../0199-yandex-invite-link-leaves-portal-iframe/worklog.md)) and the
+lead` session; full text in [`0199/worklog.md`](../../done/0199-yandex-invite-link-leaves-portal-iframe/worklog.md)) and the
 owner's build/verify split rule (2026-09-29).
 
 **This is the production check for `0382`.** The 2026-10-04 console probe proved the platform parts by hand
@@ -87,5 +87,5 @@ how the host saw the row.
 - **Can share a session with** [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
   and [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   if the builds ship together. Producer's suggestion, owner's call.
-- **Related:** [`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md).
+- **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

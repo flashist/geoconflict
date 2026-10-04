@@ -19,6 +19,21 @@
 > on the Backlog board. ⛔ **Nothing in the Decision below changed** — only this page's description of
 > its reach.
 
+> 🆕 **2026-10-03 — this ADR's exit task `0030` is POSTPONED INDEFINITELY, and its read path is now decided.**
+> - **Postponed:** OWNER RULING (live, relayed by `fkit-lead`; ⛔ not producer precedent) — *"we will pospone the
+>   Archive Matches tasks, move the tasks related to it to the backlog."* `0030` moved Sprint 7 → the Backlog board,
+>   unranked; nothing closed. ⇒ **This switch stays off with no restart date.**
+> - **Blocker 1 (citizenship must exist) DISCHARGED** the same day (*"Yes, it's done"*). When the postponement lifts,
+>   the only technical gate is a **new dedicated archive bucket + a key scoped to it (Put/Get/List/Delete), plus a
+>   new `STORAGE_REGION` slot** the config-parity guard needs — ⚠️ and **the bucket and key must exist before `0030`
+>   deploys**, or the guard refuses a prod deploy with blank values.
+> - **Other same-day owner rulings for `0030`:** not the profile-backup bucket; **30-day retention enforced by our own
+>   code** (the provider appears to have no lifecycle setting — unconfirmed for a new bucket); **prod only**, dev
+>   `STORAGE_*` stays blank.
+> - **Read path:** [[decisions/adr-118-archive-read-through-game-server]] (accepted) — players read archived matches
+>   **through the game server**; the bucket stays private, no presigned URLs, no CORS. That settles where `0292`'s
+>   ungated client read must be repointed (to a game-server route, not a bucket), though the route itself is open.
+
 ## Context
 
 The fork inherited OpenFront.io's archive **client** but never stood up a matching **endpoint**. The archive call POSTs the finished game record to a route the production host does not serve. Upstream had an external worker service for it; Geoconflict does not.
@@ -63,4 +78,5 @@ The follow-up is S3-backed archival gated to citizen games, scoped as a backlog 
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
 - [[decisions/sprint-backlog]] — where task `0292`, the ungated client archive read, is filed
 - [[decisions/sprint-4]] — the board the `0292` finding surfaced on
-- [[decisions/sprint-5]] — where `0030`, this ADR's expected exit, now sits
+- [[decisions/sprint-5]] — where `0030`, this ADR's expected exit, ~~now sits~~ sat (later Sprint 6 → Sprint 7 → **Backlog board, postponed indefinitely, 2026-10-03**)
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 the read path `0030` must build: through the game server, bucket private

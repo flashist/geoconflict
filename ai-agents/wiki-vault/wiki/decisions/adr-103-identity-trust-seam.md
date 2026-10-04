@@ -103,3 +103,4 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/player-name-path-security-review]] — task `0307` (2026-09-26/27): security review of every player-name path — no injection through the name; five fixes
 - [[decisions/adr-116-verified-login]] — the first verified identity (profile login); **amends, does not supersede** this ADR — the key-issued trigger fired, the exit moved to `0332`
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which built verification at the profile login, not in this seam
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: a citizen-gated archive read needs a trust level; this seam is one candidate (open point 1, an owner question)

@@ -75,10 +75,10 @@ The owner picked **"Yandex link + code"**, whose option text was, verbatim:
 
 | Task | What | Kind |
 |---|---|---|
-| [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) | Code path: on the Yandex build the invite copies the lobby code through the SDK clipboard; `#join=` stops working there | build |
-| [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md) | Owner checks `0380` in production | verify |
-| [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) | Yandex link: `getGameByID` + `payload`, read at startup and on late SDK recovery, consumed once | build |
-| [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) | Owner checks `0382` in production | verify |
+| [`0380`](../../backlog/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) | Code path: on the Yandex build the invite copies the lobby code through the SDK clipboard; `#join=` stops working there | build |
+| [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md) | Owner checks `0380` in production | verify |
+| [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) | Yandex link: `getGameByID` + `payload`, read at startup and on late SDK recovery, consumed once | build |
+| [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) | Owner checks `0382` in production | verify |
 
 **ADR:** [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md) — ✅ accepted, "Accept as written" (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). *(Was: "pending (architect, 2026-10-04)".)*
 
@@ -106,3 +106,22 @@ picked **"Yes, drop it"**.
 - **Accepted grey area:** 8.4.1 is worded for links to *other* games; a link to this same game is not named. The owner
   accepts that.
 - Recorded (struck/annotated, not deleted) in `0199` and `0382`. `0380`, `0383` and `0354` never mentioned it.
+- ⚠️ **Still a reopen trigger:** an **actual** Yandex moderation/support rejection of a payload self-link would reopen
+  this, per ADR-119's *Re-raise only if*. The absence of prior approval does not.
+- *Re-checked 2026-10-04 at close:* `0380`, `0381`, `0383` and `0354` carry no "ask Yandex support" step and no
+  moderation open question; `0382` and `0199` are struck/annotated.
+
+## 2026-10-04 — OWNER RULING: verification step 2 waived; close
+
+**OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not
+producer precedent.** Asked *"0199: skip the never-run test of the OLD invite link opened outside Yandex (it's being
+removed anyway), so 0199 can be closed?"*, the owner picked **"Yes, skip it and close 0199"**.
+
+- **Verification step 2 (off-portal measurement) — WAIVED, never run.** Moot: the off-portal link is ruled out and is
+  being replaced on the Yandex build (`0380`/`0382`). **Unknown, and stays unknown:** what the Yandex build does when
+  opened outside the portal.
+- **Step 5's wiki update** — a wiki ingest/sync is routed to `fkit-wiki` by `fkit-lead` right after this close.
+  **Follow-up, not a blocker.**
+- Steps 1, 3, 4, 5 (ADR), 6, 8 met — see the brief's *Verification steps* annotations. Step 7: no source change
+  recorded; not independently proven (shared bulk commits).
+- Closed via `/fkit-task-done` by a **spawned** `fkit-producer` — `✅ Done (agent-closed — not owner-verified)`.

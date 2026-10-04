@@ -1,9 +1,36 @@
 # The Yandex Invite Link Leaves the Portal — Open Product Question
 
 **Date**: 2026-08-28
-**Status**: proposed
+**Status**: superseded *(by [[decisions/adr-119-yandex-invite-sdk-link-plus-code]], accepted 2026-10-04; was `proposed`)*
 
-> ❓ **Nothing here is decided.** Task `0199` is filed on the **Backlog** board at **Unscheduled**
+> # ✅ DECIDED 2026-10-04 — SUPERSEDED BY [[decisions/adr-119-yandex-invite-sdk-link-plus-code]]
+>
+> **The open question on this page is closed.** Everything below is kept as written on 2026-08-28 (and its
+> 2026-08-30 update) — **true when written, now history**. Read it against these rulings (all live in the `fkit lead`
+> session, relayed by `fkit-lead`; ⛔ not producer precedent):
+>
+> - **2026-10-03 — "leave it exactly as it is" is RULED OUT.** An invite that takes a player off Yandex Games breaks
+>   Yandex's rules (8.4.2 / 8.4.4) and must never reach players. The banner's *"a legitimate outcome is 'leave the
+>   invite exactly as it is'"* and the framing *"NOT a defect page … invite links work"* no longer stand: the owner
+>   treats the host as a **rules violation**, not a business-model preference. **Invite codes are kept in every case.**
+> - **2026-10-04 — after the owner's live console probe said YES:** the Yandex build's invite becomes **an SDK-built
+>   Yandex Games link to this game (`GamesAPI.getGameByID`, with `payload=<lobby id>`) plus the code**; `#join=` stops
+>   being honoured on the Yandex build; fallback is **code only**, never an own-domain or self-built URL.
+> - **Off-portal measurement (`0199` step 2) — WAIVED, never run** (*"Yes, skip it and close 0199"*). ⚠️ So the 🔬
+>   box below stays exactly true: **what the Yandex build does when opened off-portal was never measured.**
+> - **The `location.search` sub-question — answered:** `sdk` and `payload` are both load-bearing on the Yandex path,
+>   and the invite there will no longer be built from `windowOrigin`, so `0198`'s re-raise residual is superseded on
+>   that build.
+> - **Task `0199` is done** `(agent-closed — not owner-verified)`, closed 2026-10-04; its brief moved to
+>   `tasks/done/0199-yandex-invite-link-leaves-portal-iframe/`. Task page: [[tasks/yandex-invite-link-decision]].
+>   Build `0380` → `0382`, verify `0381` / `0383`, on the Backlog board. **Private lobbies remain hidden in
+>   production** (owner-attested 2026-10-03, not agent-verified).
+> - The *Consequences* bullet *"The invite-link host is frozen pending this ruling"* is **discharged** — the ruling
+>   exists; changes now follow ADR-119.
+>
+> ---
+>
+> ❓ *(History, 2026-08-28:)* **Nothing here is decided.** Task `0199` is filed on the **Backlog** board at **Unscheduled**
 > producer rank — the owner approved *filing the brief* on 2026-08-28 and explicitly confirmed that
 > placement, but has **not** ruled on the question itself. A legitimate outcome is *"leave the invite
 > exactly as it is."*
@@ -83,6 +110,9 @@ question, which is why it is folded in rather than filed separately.
 
 ## Decision
 
+> 📌 **2026-10-04: decided — see [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] and the banner at the top.**
+> The paragraph below is the 2026-08-28 state, kept as history.
+
 **None yet — that is the point of this page.** What *is* ruled:
 
 - **Owner, 2026-08-28** (`AskUserQuestion`, lead session, relayed by the sprint ship-loop): the
@@ -120,6 +150,8 @@ implementation brief(s).
 
 ## Related
 
+- [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 the accepted ADR that supersedes this page (2026-10-04)
+- [[tasks/yandex-invite-link-decision]] — 🆕 task `0199`'s record: rulings, probe, waiver, close
 - [[decisions/windoworigin-url-join-defect]] — task `0198`, the source: it fixed the **path** on this
   same line and deliberately left the **host** question open
 - [[tasks/private-lobby-start-url]] — task `0198`'s close (2026-08-30): its production check was
@@ -127,7 +159,7 @@ implementation brief(s).
 - [[systems/flashist-init]] — `FlashistFacade`, `yaGamesAvailable`, and the platform-detection flag this
   question turns on
 - [[systems/networking]] — the worker-route and entry-point behaviour behind the invite URL
-- [[decisions/sprint-backlog]] — the unsprinted board `0199` is filed on
+- [[decisions/sprint-backlog]] — the unsprinted board `0199` was filed on and closed on (2026-10-04), and where `0380`–`0383` now sit
 - [[decisions/sprint-4]] — the board `0199` is explicitly **not** on
 - [[tasks/citizen-verified-icon]] — task `0068`, whose live check surfaced `0198` and, through it, this
 - `schema.md`, **Standing Owner Rulings** — the 2026-08-29 owner ruling that public hostnames may stay

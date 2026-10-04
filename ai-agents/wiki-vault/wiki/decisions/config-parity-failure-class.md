@@ -168,3 +168,4 @@ Three instances, all Sprint 4:
 - [[tasks/config-parity-guard-pre-arming-gate]] — task `0203`, the pre-arming items — closed 2026-09-24 `(agent-closed — not owner-verified)`; arming is `0298`'s
 - [[tasks/profile-secret-persistence-value-parity]] — task `0220`, the fourth-instance fix: persist-or-reuse for four profile secrets
 - [[systems/weekend-deploy-window]] — where the guards first ran against a real production deploy (W12)
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: the `STORAGE_*` names' game-pipeline `optional` entries must go once `0030` reads them — so the archive bucket and key must exist before that deploy, or the guard refuses it

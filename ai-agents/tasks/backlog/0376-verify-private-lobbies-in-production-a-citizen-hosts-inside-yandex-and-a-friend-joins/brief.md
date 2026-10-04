@@ -57,7 +57,7 @@ flags say. *(2026-10-03: but the friend must join inside Yandex Games — see be
 
 - 🚦 **The friend's join must happen INSIDE Yandex Games — by code, or by a fixed invite link. Never through a link
   to our own site.** (OWNER RULING 2026-10-03 on `0199`, owner's own words, relayed by `fkit-lead`; ⛔ not producer precedent.) Today's invite link opens our own site, outside the portal
-  ([`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md)); the owner ruled that a Yandex rules violation.
+  ([`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md)); the owner ruled that a Yandex rules violation.
   So the friend either types or pastes the **lobby code** into the Join window inside Yandex (this exists today:
   `JoinPrivateLobbyModal`'s lobby-id field), or uses a fixed invite link if `0199`'s follow-up work has shipped by
   then. *~~Earlier wording, superseded the same day: "The owner's ruling says the citizen hosts inside Yandex; it does
@@ -136,7 +136,7 @@ Nothing is built. This is a live test, run by the owner with one other person.
 - **Not a dependency on `0199`:** the code join exists today, so this test can run before `0199`'s follow-up ships.
   If it has shipped, test the fixed link as well.
 - **Related:** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) (the feature; its unrun
-  verification step 2), [`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md) (where the invite lands),
+  verification step 2), [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (where the invite lands),
   [`0335`](../../done/0335-investigate-four-known-lobby-close-leftovers-left-by-0327/brief.md) (known lobby-close
   leftovers), `0353`, `0374`, `0228`.
 - **Privacy:** describe accounts by role only. Never paste an id, host, IP, URL, token or credential.

@@ -152,3 +152,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check: FAILED 2026-10-01 (S2 exit not met); follow-up `0366`
 - [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics feeding `0373`, the reading task S3a (`0340`) now waits on (done 2026-10-02, not deployed)
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: signed identity is a candidate for the citizen-gated archive read (open point 1, an owner question)

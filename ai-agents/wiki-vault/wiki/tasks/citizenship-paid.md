@@ -17,7 +17,9 @@
 >   [[tasks/citizenship-go-live]] (`0065`) alone; **the real-purchase proof lives only in `0297`** (~~Sprint 5~~
 >   **Sprint 6** since 2026-09-26 — moved to the bottom of that board by owner ruling; run by the owner). Still open there: **live reconciliation** (an interrupted purchase — not run),
 >   **the funnel analytics seen live** (not yet checked), and **which HMAC construction matched** (filed
->   as backlog tasks `0309` → `0310`).
+>   as backlog tasks `0309` → `0310`). 📌 *2026-10-04: answered once — `decoded_json`, `/complete`, n = 1; `0310`
+>   cancelled, superseded by `0379` (wait for more samples). `0297` is `🔲 Backlog` again, block resolved; §2 first
+>   box, §4 (reconcile watch) and §5 (catalog check) still open, owner-run. See [[tasks/hmac-construction-log-label]].*
 
 ## Goal
 

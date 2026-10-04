@@ -72,4 +72,5 @@ For active/in-memory games: `GET /api/game/:id` (`Worker.ts:227`) — only works
 - [[decisions/archive-archival-strategy]] — deferred S3-backed citizen archival decision
 - [[decisions/adr-104-archiving-disabled]] — why no game records are retained today, and the client **read** its switch never covered
 - [[decisions/sprint-backlog]] — where task `0292`, the ungated client archive read, is filed
-- [[decisions/sprint-5]] — where `0030`, the archival task that would make match records retrievable, is now scheduled
+- [[decisions/sprint-5]] — where `0030`, the archival task that would make match records retrievable, ~~is now scheduled~~ was scheduled (📌 2026-10-03: **postponed indefinitely**, now on the Backlog board)
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 how archived records will be read once `0030` restarts: through the game server, bucket private

@@ -35,7 +35,7 @@ SDK copy, code shown, `#join=` off on Yandex). **ADR: [ADR-119](../../../knowled
 ### What the owner's live probe proved (2026-10-04)
 
 OWNER-REPORTED, relayed by `fkit-lead`; `fkit-lead` saw the console output for P1–P6. Full record, URL shapes only:
-[`0199/worklog.md`](../0199-yandex-invite-link-leaves-portal-iframe/worklog.md). Result per report §5: **YES**.
+[`0199/worklog.md`](../../done/0199-yandex-invite-link-leaves-portal-iframe/worklog.md). Result per report §5: **YES**.
 
 | Fact | What it means for the build |
 |---|---|
@@ -51,7 +51,8 @@ fits. ~~⚠️ **Moderation's view of a self-link with `payload`, shared by clip
 only Yandex support or a moderation pass can confirm. Not a blocker; a known risk.~~
 ✅ **Settled — OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent.** Owner's words: *"we don't need their approval, we're not violating anything with it"*. Asked *"Drop the 'ask Yandex support about the self-link' step?"*, the
 owner picked **"Yes, drop it"**: the owner judges the SDK link + `payload` within 8.4.1. The grey area (8.4.1 is
-worded for *other* games) is **accepted**. No support question, no release step.
+worded for *other* games) is **accepted**. No support question, no release step. ⚠️ An **actual** Yandex
+moderation/support rejection of a payload self-link would still reopen it, per ADR-119's *Re-raise only if*.
 
 ## What to build
 
@@ -118,7 +119,7 @@ format.
   Yandex support** (relayed by `fkit-lead` 2026-10-04 as still open; recorded, not yet asked). Not a build blocker.~~
   ✅ **Dropped 2026-10-04 — "Yes, drop it"** (OWNER RULING relayed by `fkit-lead`; ⛔ not producer precedent; see
   *Context* → *Rules*). Accepted grey area, not an open risk.
-- **Related:** [`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task, probe in its
+- **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task, probe in its
   worklog), [`0331`](../../done/0331-keep-the-query-string-on-match-exit/brief.md) /
   [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (the `sdk` query
   parameter), [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md).

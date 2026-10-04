@@ -30,7 +30,7 @@ handed over).
 
 **OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent.** Filed 2026-10-04 by a spawned `fkit-producer`
 with no owner channel (ADR-021/037), on the owner's ruling **"Yandex link + code"** (live `AskUserQuestion`, `fkit
-lead` session; full text in [`0199/worklog.md`](../0199-yandex-invite-link-leaves-portal-iframe/worklog.md)) and the
+lead` session; full text in [`0199/worklog.md`](../../done/0199-yandex-invite-link-leaves-portal-iframe/worklog.md)) and the
 owner's build/verify split rule (2026-09-29).
 
 **This is the production check for `0380`** (the code part). It proves three things only a live Yandex page can:
@@ -83,7 +83,7 @@ the private-lobby row (record how).
 - 🚦 Bears on release-gate item 6 in
   [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships
   ("Prod checks must pass too", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent).
-- **Related:** [`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md),
+- **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md),
   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
   (the link's verify task), `0376`.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

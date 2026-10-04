@@ -5,7 +5,22 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-03 (latest, `bc39b82`): 6 rows — 2 `✅ Done (agent-closed — not owner-verified)` · 4 `🔲 Backlog`;
+> 🆕 **2026-10-04 (latest, `7324c1b`): 6 rows — 2 `✅ Done` · 4 `🔲 Backlog`; 4 OPEN (unchanged).** ⚠️ Counted by me
+> this run. Ranks and the line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
+>
+> - ⛔ **`0343` (parked paid-citizenship features) — items A and D ON HOLD, postponed indefinitely** (2026-10-03):
+>   *paid campaign map packs* (A) and *premium replay access* (D), because new maps and match archiving are both
+>   postponed (see [[decisions/sprint-7]]). OWNER RULING, live via `AskUserQuestion`, relayed by `fkit-lead` (⛔ not
+>   producer precedent): *"Keep it, mark A and D on hold"*. `0343` **stays on this board**; its row, rank and status are
+>   unchanged; the other items are not affected.
+> - 📌 **`0373` (read the stale-login data, choose the fix) — both code preconditions confirmed by ancestry**
+>   (`fkit-lead`, read-only git, 2026-10-03): `0372`'s client code is in the `0.0.156` tag and `0366`'s profile code is in
+>   `0.0.156-profile.1`, both deployed 2026-10-03 (game ~09:32 UTC, profile ~10:02 UTC). So the data window counts from
+>   **2026-10-03 for both**; earliest useful read **after the evening of Saturday 2026-10-10 (UTC)**. ⚠️ **Code in a tag
+>   does not prove the events are arriving** — the first reads confirm arrival. See [[tasks/stale-login-client-diagnostics]],
+>   [[tasks/stale-login-signature-age]].
+>
+> > 🆕 **2026-10-03 (latest, `bc39b82`): 6 rows — 2 `✅ Done (agent-closed — not owner-verified)` · 4 `🔲 Backlog`;
 > 4 OPEN.** ⚠️ Counted by me this run. **Ranks unchanged:** `0370` 1 · `0373` 2 · `0363` 3 ✅ · `0358` 4 ✅ · `0351` 5 ·
 > `0343` 6. ⚠️ **The line-3 banner still reads `🔲 Backlog — 2026-09-29` (NOT started)** although two of its rows are
 > now closed — recorded as the board states it, not changed here; whether to start the sprint is the owner's call.

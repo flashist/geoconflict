@@ -26,7 +26,7 @@
 
 ## Context
 
-Task [`0199`](../../tasks/backlog/0199-yandex-invite-link-leaves-portal-iframe/brief.md). The host's
+Task [`0199`](../../tasks/done/0199-yandex-invite-link-leaves-portal-iframe/brief.md). The host's
 "copy invite" button copies `` `${FlashistFacade.instance.windowOrigin}#join=${this.lobbyId}` ``
 (`src/client/HostLobbyModal.ts`, `copyToClipboard()`). `windowOrigin` is our page's own origin + path
 (`src/client/flashist/FlashistFacade.ts`, `public windowOrigin`), so inside the Yandex iframe the copied link
@@ -172,7 +172,7 @@ Both are OWNER RULINGS given live via `AskUserQuestion` in the `fkit lead` sessi
 ## Related
 
 - Evaluation: [`reports/2026-10-03-eval-yandex-invite-links.md`](../reports/2026-10-03-eval-yandex-invite-links.md)
-- Task [`0199`](../../tasks/backlog/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (this ADR is its
+- Task [`0199`](../../tasks/done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (this ADR is its
   step 5; the implementation brief is filed from it).
 - The `sdk` query-parameter trap: [`0331`](../../tasks/done/0331-keep-the-query-string-on-match-exit/brief.md),
   [`0337`](../../tasks/backlog/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).

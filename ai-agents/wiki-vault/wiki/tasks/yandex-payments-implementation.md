@@ -15,6 +15,11 @@
 > the verifier now logs a fixed label (`base64_payload` / `decoded_json`) on success; nothing else changed in what
 > it accepts. **Which construction Yandex uses is still unknown** until the profile box is deployed and a real
 > purchase is logged — owner ruling *"Move it into 0297"*. `0310`'s gate now points at `0297`.
+>
+> 🆕 **2026-10-04 — first answer: `decoded_json`, via `/complete`, n = 1** (one real purchase on 2026-10-03, read
+> from the profile container log; `/reconcile` never observed). **Both constructions stay**: `0310` was **cancelled**
+> and superseded by `0379` (re-read samples; ask keep-or-drop at ≥ 5 purchases incl. ≥ 1 `(reconcile)`, or ~2026-11-01).
+> See [[tasks/hmac-construction-log-label]].
 
 > 🔴 **CORRECTED 2026-09-19 — THE PAYMENTS ROUTES ARE NOT 503ING ON THE BOX.** Verified **read-only**
 > by `fkit-lead` on an owner ruling that day: a `POST` to a deliberately **non-existent sub-path** under

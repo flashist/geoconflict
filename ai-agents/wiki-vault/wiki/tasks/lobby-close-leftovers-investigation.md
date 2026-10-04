@@ -47,6 +47,18 @@ case — is it real, how bad, how likely, how hard to fix, and a recommendation.
   open question 5). Read "testers only today" as an assumption.
 - **Follow-up filed the same day on a separate owner request:** **`0354`** — show private lobbies to testers by
   default and add an "everyone" flag, empty by default. Cases 1 and 3 must be revisited before that flag is set.
+- 📌 **2026-10-03 — the "revisit before private lobbies open to all players" came due, by OWNER RULING**
+  (*"Hidden + test plan first"*, live, relayed by `fkit-lead`; ⛔ not producer precedent). Cases 1 and 3 are now
+  items 3 and 4 of a six-item release gate (in `0354`'s brief; table on [[tasks/private-lobby-citizen-perk]]):
+  - **Case 3 → new task `0377`** (Backlog board): end an **unstarted private** lobby that has had **no connected
+    client for N minutes**, in `GameServer.phase()` — server-only, covers every abandoned private lobby, not just the
+    early-close path. Grace time (findings suggest 10–15 min) and the start of the count are **owner questions** for
+    the plan.
+  - **Case 1 (`0228`) → "Only if it's proven"**: investigate; fix only if the race is **actually reproduced** in a
+    test or live (*"No, needs a real repro"* — code reasoning alone is not enough); otherwise it drops off the gate.
+  - ✅ The unconfirmed console fact above is **partly answered**: private lobbies are **hidden** — owner-attested
+    2026-10-03, not agent-verified (*"the lobbies are switched off, nobody can use them"*). So not even testers use
+    them today; the exact flag values are still unrecorded.
 - Measuring cases 1 and 3 in production would need a new client event; only partial server signals exist today
   (the `game past max duration` warning counts every abandoned private lobby, not this path).
 

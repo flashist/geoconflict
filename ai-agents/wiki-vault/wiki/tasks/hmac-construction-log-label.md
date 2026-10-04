@@ -16,6 +16,25 @@
 > [[systems/weekend-deploy-window]] and [[tasks/profile-deploy-version-tags-production-check]] (`0358`, whose Step 7
 > checks this ordering).
 
+> 🆕 **2026-10-04 — THE LABEL HAS BEEN READ: `decoded_json`, via `/complete`, n = 1.** `fkit-lead` ran a
+> **read-only** SSH read of the profile container log on 2026-10-04 (container up ~21 h, **not restarted** since the
+> 2026-10-03 deploy): exactly **one** `signature verified` line — 2026-10-03 13:48:24 UTC, route `(complete)`,
+> `construction=decoded_json`, a **real player's** purchase (the owner made no test buy). Recorded in `0297`'s
+> `worklog.md` § *2026-10-04* and §1 is complete. ⚠️ **n = 1, `/complete` only — no `/reconcile` verification has
+> ever been observed**; if `/reconcile` payloads were signed the other way, dropping `base64_payload` would reject
+> them. ⇒ The profile freeze tied to this line is **lifted** ([[systems/weekend-deploy-window]]).
+>
+> ⛔ **`0310` (drop the unused construction) is CANCELLED, 2026-10-04 — superseded by `0379`.** OWNER RULING (live via
+> `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent): asked *"start now on 1 purchase sample, or wait
+> for more?"*, the owner chose **wait** — *"#1, and add some task to the backglog about re-checking it…"*. **Both
+> constructions stay for now.** `0379` (Backlog board, owner `fkit-lead`) re-reads the log, read-only, **before every
+> profile redeploy** (the log is lost on recreate), keeps a running tally (date, label, route only), and puts
+> keep-or-drop to the owner when **either** owner-ruled trigger fires: **≥ 5 verified purchases, all `decoded_json`,
+> including ≥ 1 `(reconcile)`** — or the **~4-week time-box, ~2026-11-01**, asking anyway. 🚨 **Stop and ask at once**
+> if any line shows `base64_payload`. ⚠️ **Shared check:** `src/profile-server/PlayerSignature.ts` (login, ADR-116)
+> reuses `verifyHmacEnvelope`, so a drop also changes **player login** — and login logs no construction label. A
+> "drop" ruling runs `0310`'s old scope as `0379` Phase C. See [[decisions/cancelled-tasks]].
+
 ## Goal
 
 `src/profile-server/YandexSignature.ts` (`verifySignedPayload`) accepts an HMAC-SHA256 over **either** the
@@ -59,7 +78,8 @@ recorded which. This task **finds out**; `0310` then **removes** the other.
 - [[tasks/yandex-payments-secret-forwarding]] — task `0195`, the secret value
 - [[tasks/profile-deploy-version-tags]] — task `0355`; its first deploy must carry this line, read before any redeploy
 - [[systems/weekend-deploy-window]] — the weekend slot the deploy rides
-- [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0310`
+- [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0310` (cancelled 2026-10-04) and `0379`
+- [[decisions/cancelled-tasks]] — 🆕 `0310`, cancelled and superseded by `0379`
 - [[tasks/verified-login-live-check]] — task `0339`; its follow-up `0366` may wait on this task's log line being read
 - [[tasks/stale-login-signature-age]] — task `0366`: its profile deploy rides Saturday's slot or waits on this task's log line being read
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`: the 2026-10-03 deploy that first shipped this line; its Step 7 is the no-second-deploy ordering

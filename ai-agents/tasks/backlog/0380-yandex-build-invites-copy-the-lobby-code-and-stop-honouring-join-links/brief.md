@@ -46,7 +46,7 @@ Yandex Games. The owner ruled on 2026-10-03 that this must not reach players (`0
 (~line 725) still opens the join window for any `#join=` link, whatever the flags say.
 
 **Facts from the owner's live probe, 2026-10-04** (OWNER-REPORTED, relayed by `fkit-lead`; full record in
-[`0199/worklog.md`](../0199-yandex-invite-link-leaves-portal-iframe/worklog.md)):
+[`0199/worklog.md`](../../done/0199-yandex-invite-link-leaves-portal-iframe/worklog.md)):
 
 - `ysdk.clipboard.writeText` **fails from the console** with *"Document is not focused"*, and **works from a real click
   handler** (pasted fine). ⇒ **The copy must run inside the user's click.**
@@ -118,7 +118,7 @@ can copy today's link, so this is not an outage fix.
     copying works without revealing it. Built in *What to build* step 2.
 - **Producer's note, not checked:** the Join window's paste button uses `navigator.clipboard.readText`, which may not
   work inside the iframe (the SDK has no clipboard read). Typing the code still works. `0381` records what happens.
-- **Related:** [`0199`](../0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task; probe in its
+- **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task; probe in its
   worklog), [`0198`](../../done/0198-private-lobby-start-url-double-slash/brief.md) (fixed the path on the same line),
   [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (the production lobby test — joins by code inside Yandex).

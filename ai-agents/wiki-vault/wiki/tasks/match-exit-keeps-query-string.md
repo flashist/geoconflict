@@ -50,9 +50,17 @@ confirmed (Recommended)"* — this task is B4, and it shipped **only because the
   `0337`'s post-release P1 repeat proves the production effect.
 - **Coordinated with `0199`:** at least one query parameter **is** load-bearing on the Yandex path; `0199`'s
   brief got a dated note. Invite links and `copyToClipboard()` were not touched.
+- 📌 **2026-10-04 — `0199` closed; this task's rule now binds the invite build too.** The owner's live probe found
+  the Yandex invite `payload` is **also forwarded into the iframe's own `location.search`**, next to `sdk`. ADR-119
+  therefore makes it binding on `0380` / `0382`: **dedupe the payload in `sessionStorage`, never strip or rewrite
+  `location.search`** — see [[decisions/adr-119-yandex-invite-sdk-link-plus-code]]. ✅ `0337`'s precondition (this
+  change in production) is **met** — `0331` shipped in game `0.0.155` on 2026-09-29 and is in `0.0.156` (board
+  correction 2026-10-03, owner ruling *"Yes, fix them"*); `0337` itself is still `🔲 Backlog`, not run.
 
 ## Related
 
+- [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 the invite build that must keep `location.search` intact (payload sits beside `sdk`)
+- [[tasks/yandex-invite-link-decision]] — 🆕 task `0199`, whose probe found the payload in `location.search`
 - [[tasks/citizenship-card-vanishes-investigation]] — task `0318`, trigger B and ruling D-2
 - [[systems/flashist-init]] — the 5 s boot deadline and the match-exit reload this changes
 - [[tasks/sdk-loader-download-retry]] — task `0330`, B3 of the same report

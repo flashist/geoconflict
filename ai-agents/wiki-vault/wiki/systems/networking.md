@@ -71,6 +71,7 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/worker-routing-dead-worker-investigation]] — task 0057, the investigation behind all four
 - [[decisions/windoworigin-url-join-defect]] — task 0198's URL-join defect that made two private-lobby routes 404 in production
 - [[tasks/private-lobby-start-url]] — task 0198's close: root-absolute worker paths shipped in `362a2f9`, never observed in production
-- [[decisions/yandex-invite-portal-boundary]] — task 0199's open question about which host the private-lobby invite should point at
+- [[decisions/yandex-invite-portal-boundary]] — task 0199's ~~open~~ question about which host the private-lobby invite should point at (📌 ruled 2026-10-04)
+- [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 the ruling: on the Yandex build the invite is an SDK-built Yandex Games link + the code, and `#join=` is no longer honoured there
 - [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload
 - [[systems/client-game-teardown]] — `ClientGameRunner.stop()` is not reached on a normal leave, so a surviving 1-second `connectionCheckInterval` keeps calling `transport.reconnect()` for an abandoned game (task `0231` — ⚠️ **reasoned from code, not observed**)

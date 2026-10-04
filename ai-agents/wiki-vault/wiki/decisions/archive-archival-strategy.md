@@ -3,6 +3,13 @@
 **Date**: 2026-06-01
 **Status**: accepted
 
+> 🆕 **2026-10-03 — phase 2 ("later, with citizenship") is POSTPONED INDEFINITELY, and its read path is decided.**
+> The owner moved `0030` to the Backlog board (*"we will pospone the Archive Matches tasks…"*), ruled the
+> citizenship precondition met (*"Yes, it's done"*), and ruled the shape for when it restarts: a **new dedicated
+> bucket + scoped key**, **30-day retention by our own code**, **prod only**, and reads **through the game server**
+> with the bucket private — [[decisions/adr-118-archive-read-through-game-server]]. This page's "disk-on-master
+> rejected" decision is unchanged. Detail: [[decisions/adr-104-archiving-disabled]].
+
 ## Context
 
 The inherited archive path is fully broken in production and generated about 26.6 logs/min in the 2026-05-07 Uptrace review. `src/server/Archive.ts` POSTs completed game records to `${config.jwtIssuer()}/game/:id`; in production this points at the game host, which has no `/game/:id` route. Singleplayer also attempts to upload compressed records from `src/client/LocalServer.ts`, where `keepalive: true` hits browser body-size limits and the worker route can still 413 after gzip decompression.
@@ -37,4 +44,5 @@ The disk-on-master alternative is rejected. It creates unbounded disk growth on 
 - [[systems/telemetry]]
 - [[decisions/adr-104-archiving-disabled]] — the ADR that formalizes this split
 - [[decisions/sprint-backlog]] — where task `0292`, the ungated client archive read, is filed
-- [[decisions/sprint-5]] — where `0030`, the deferred phase-2 archival task, was scheduled on 2026-09-22
+- [[decisions/sprint-5]] — where `0030`, the deferred phase-2 archival task, was scheduled on 2026-09-22 (now on the Backlog board, postponed indefinitely since 2026-10-03)
+- [[decisions/adr-118-archive-read-through-game-server]] — 🆕 phase 2's read path: through the game server, bucket private

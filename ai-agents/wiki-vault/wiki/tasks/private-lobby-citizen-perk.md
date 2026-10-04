@@ -7,8 +7,34 @@
 > ✅ Done (agent-closed — not owner-verified). Code committed in `390c4b4`. **Unit tests only:** no browser
 > check of the row, the lock or the popup, and no real citizen has created and started a private match.
 >
-> 🚢 **Release coupling, owner-ruled:** ships in the **same deploy** as `0301` (the citizenship explainer
-> popup), which waits on `0248` → `0250`. **Do not release it alone.**
+> 🚢 ~~**Release coupling, owner-ruled:** ships in the **same deploy** as `0301` (the citizenship explainer
+> popup), which waits on `0248` → `0250`. **Do not release it alone.**~~
+>
+> 🚨 **2026-10-03 — THAT COUPLING WAS BROKEN, AND IS NOW REPLACED BY A SIX-ITEM RELEASE GATE.** This task's code
+> (`390c4b4`) went to production **alone** in game `0.0.155` (deploy commit `00825f0`, 2026-09-29) and is also in
+> `0.0.156` — **without `0301`**, and nobody recorded it at the time. It sits behind the Yandex flags
+> `private_lobbies` + `citizenship_ui`; ✅ **hidden — OWNER-ATTESTED 2026-10-03, not agent-verified** (*"the lobbies
+> are switched off, nobody can use them"*); exact console values not yet recorded. ⚠️ An invite link (`#join=…`) opens
+> the join window **whatever the flags say**. The record stays in `done/`; the task is **not** reopened.
+>
+> **OWNER RULING 2026-10-03, "Hidden + test plan first"** (live, relayed by `fkit-lead`; ⛔ not producer precedent):
+> *"Keep it hidden. Do 0354 (testers see it by default, plus an 'everyone' switch that starts off), then a test where
+> a real citizen hosts inside Yandex and a friend joins. Fix the join race (0228) and the 3-hour leftover lobbies, and
+> ship the citizenship popup (0301), before turning it on for everyone."* The **everyone-flag stays OFF** until all six
+> hold (gate recorded in `0354`'s brief):
+>
+> | # | Condition | Task |
+> |---|---|---|
+> | 1 | Testers see the row by default; everyone-flag added, unset | `0354` |
+> | 2 | Production test passes: a real citizen hosts **inside the Yandex Games page**, a **non-citizen tester** friend joins (by code, inside Yandex), the match starts and ends | `0376` (owner + one other person) |
+> | 3 | The join race — **investigated; fixed only if PROVEN real**, i.e. actually reproduced in a test or live (*"Only if it's proven"*, *"No, needs a real repro"*); if not proven it **drops off** the gate | `0228` |
+> | 4 | Abandoned unstarted private lobbies no longer sit on the server for 3 hours (`0335` case 3) | `0377` |
+> | 5 | The citizenship popup ships — ⚠️ **the long pole**: `0301` → `0248` → `0250` (`🚧 Blocked`) | `0301` |
+> | 6 | Invites resolved per `0199`: SDK-built Yandex link + code ([[decisions/adr-119-yandex-invite-sdk-link-plus-code]]); **met only when built AND both production checks pass** (*"Prod checks must pass too"*) | `0380` + `0382`, verified by `0381` + `0383` |
+>
+> **Not decided:** the order of items 2–6 among themselves and their sprint placement. All of `0354`, `0376`, `0377`,
+> `0380`–`0383` sit on the Backlog board, unscheduled. ⚠️ The Backlog board's own rows for `0376` / `0377` still say
+> *"item … of 5"* — stale against the six-item gate in `0354`'s brief.
 
 ## Goal
 
@@ -70,6 +96,9 @@ of the perks would depend on it."*
 
 ## Related
 
+- [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 release-gate item 6: how the invite works on the Yandex build
+- [[tasks/yandex-invite-link-decision]] — 🆕 task `0199`, the ruling behind gate item 6
+- [[decisions/sprint-backlog]] — 🆕 where every release-gate task (`0354`, `0376`, `0377`, `0228`, `0380`–`0383`) sits
 - [[tasks/private-lobby-start-url]] — task `0198`, which fixed the private-lobby start URL on Yandex
 - [[tasks/citizen-verified-icon]] — task `0068`: its cosmetic-only residuals are void for this path (a permission)
 - [[decisions/adr-103-identity-trust-seam]] — the funnel; this gate is its second user

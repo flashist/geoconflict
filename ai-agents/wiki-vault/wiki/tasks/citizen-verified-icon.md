@@ -85,7 +85,7 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[tasks/private-lobby-start-url]] — task `0198`'s close: local proof only, production check waived as unsatisfiable
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, the other defect routed out of this one; it found the upstream V8 cause and corrected this task's five-vs-four segfault count
 - [[tasks/prod-api-env-https-apex]] — task `0063`, whose close-out carries the `362a2f9` production-deploy evidence this page now cites
-- [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open
+- [[decisions/yandex-invite-portal-boundary]] — task `0199`, the product question `0198` surfaced and left open (📌 decided 2026-10-04 by [[decisions/adr-119-yandex-invite-sdk-link-plus-code]])
 - [[tasks/hide-citizenship-card-flag]] — task `0054`, the flag hiding the wider citizenship surface
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[tasks/supertest-profile-server-flake]] — task `0200`, the flake this task's `review.md` misrecorded as a `SIGSEGV`; that misrecording is the cost `0200` exists to stop repeating

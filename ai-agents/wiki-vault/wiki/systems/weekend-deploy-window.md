@@ -5,6 +5,25 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-10-04 — THE PROFILE FREEZE IS LIFTED: `0297` §1 HAS READ `0309`'S LOG LINE
+>
+> The runbook gained a top banner and an appended § *2026-10-04 — the profile freeze is LIFTED* (spawned
+> `fkit-producer`, no owner channel, on facts relayed by `fkit-lead`; the 2026-10-03 sections are left as written).
+> The standing rule from the 2026-10-03 window — **no second profile deploy and no profile box restart until `0297` §1
+> has read `0309`'s log line after a real purchase** — is **MET**.
+>
+> - **How:** `fkit-lead`'s **read-only** SSH check of the production profile box, 2026-10-04. Container up ~21 h,
+>   healthy, **not restarted** since the 2026-10-03 deploy (`0.0.156-profile.1`). `docker logs` grep for
+>   `signature verified`: **exactly 1 match** — 2026-10-03 13:48:24 UTC, `(complete)`, `construction=decoded_json`; a
+>   **real player's** purchase (no owner test buy). Recorded in `0297`'s worklog (label, date, route only).
+> - ⚠️ **n = 1, `/complete` only — `/reconcile` never observed.** Lifting the freeze is about the line having been
+>   **read**, not about that caveat. A recreate now loses only lines written after this read.
+> - 🔁 **A softer successor rule replaces it:** `0379` (which superseded the cancelled `0310`) asks for a read-only log
+>   read **before every profile redeploy**, because each recreate wipes the container log — a practice for collecting
+>   samples, **not** a freeze. See [[tasks/hmac-construction-log-label]].
+>
+> ---
+>
 > # 🆕 2026-10-03 — A WEEKEND WINDOW RAN (a Saturday): telemetry → dev → game prod → profile → watch
 >
 > **Provenance.** The runbook gained § *What happened 2026-10-03 — weekend window ran*, written by a spawned

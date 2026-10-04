@@ -85,7 +85,9 @@ trimmable to the minimal join fix if the owner ever wants it that way. Never rul
 - [[decisions/windoworigin-url-join-defect]] — the mechanism, the measurements, and the durable rule
   (*anything built by concatenating onto `windowOrigin` is suspect in production*)
 - [[decisions/yandex-invite-portal-boundary]] — task `0199`: `0198` fixed the **path** on the invite
-  line; the **host** question is still open and unruled
+  line; the **host** question ~~is still open and unruled~~ 📌 **was ruled 2026-10-04** —
+  [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] (Yandex build: SDK-built Yandex Games link + code;
+  `#join=` off there). Task record: [[tasks/yandex-invite-link-decision]]
 - [[tasks/prod-api-env-https-apex]] — task `0063`, shipped in the same owner-ruled deploy
 - [[decisions/config-parity-failure-class]] — `0062` / `0063` / `0195`, the track this task was ruled to ship ahead of and alongside
 - [[tasks/licensing-remediation]] — task `0066`, whose "expect a 404" check is wrong for the same

@@ -3,7 +3,61 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-03 (latest) at `HEAD` = `bc39b82` — ONE ROW ADDED (`0375`)
+> # 📊 RE-COUNTED 2026-10-04 (latest) at `HEAD` = `7324c1b` + the uncommitted working tree — TEN ROWS ADDED, ONE CLOSED, ONE CANCELLED
+>
+> **`backlog.md`: 129 rows — 96 `🔲 Backlog` · 23 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled`;
+> 99 OPEN** (was 119 / 91). Counted by me this run, by each row's leading status glyph. ⚠️ **Frame:** part of this
+> board's change is **uncommitted** at the time of this sync (the `0199` close, the `0362` narrowing) — counted from the
+> working tree of 2026-10-04. Every edit below is by a spawned `fkit-producer` on an OWNER RULING relayed by `fkit-lead`
+> (⛔ not producer precedent).
+>
+> **Two moved in from [[decisions/sprint-7]] (2026-10-03, postponed indefinitely, unranked here):**
+> - **`0027`** New Maps — Community Demand (*"We wil postpone the new maps, don't know for how long…"*). A tracker so
+>   player demand (most-requested: Russia, WW2 theatre maps) is not lost; **no map briefs until the postponement
+>   lifts**. Related: `0342` item C (free maps, here) and `0343` item A (paid map packs, **on hold** on
+>   [[decisions/sprint-8]]).
+> - **`0030`** S3-Backed Match Archival (*"we will pospone the Archive Matches tasks…"*). Blocker 1 discharged; the
+>   only technical gate left is a new bucket + scoped key + `STORAGE_REGION`. Read path:
+>   [[decisions/adr-118-archive-read-through-game-server]].
+>
+> **Private lobbies — the release gate (OWNER RULING 2026-10-03, *"Hidden + test plan first"*):** the everyone-flag
+> added by `0354` stays **off** until six items hold — table on [[tasks/private-lobby-citizen-perk]]. Private lobbies are
+> **hidden** in production (owner-attested 2026-10-03, not agent-verified). New gate rows:
+> - **`0376`** — owner-run production test: a real citizen hosts **inside the Yandex Games page**, a **non-citizen
+>   tester** friend joins **by code inside Yandex** (owner: *"Yes, a tester friend is fine"*), match starts and ends.
+>   Depends on `0354` deployed. ⚠️ Its board row still says *"item 2 of 5"* — the gate has **six** items since the same
+>   day's `0199` ruling.
+> - **`0377`** — end abandoned, unstarted private lobbies after a short idle time (`0335` case 3); server-only, in
+>   `GameServer.phase()`; grace time (10–15 min suggested) and count start are owner questions. ⚠️ Row says *"item 4
+>   of 5"* — same staleness.
+> - **`0228`** (existing row) — gate item 3 amended: investigate; **fix only if the race is actually reproduced**
+>   (*"Only if it's proven"*, *"No, needs a real repro"*), otherwise it drops off the gate.
+>
+> **Yandex invites — task `0199` CLOSED and its build filed (2026-10-04):**
+> - ✅ **`0199`** → `✅ Done (agent-closed — not owner-verified)`; link repointed to `tasks/done/`. Ruling and probe:
+>   [[decisions/adr-119-yandex-invite-sdk-link-plus-code]], [[tasks/yandex-invite-link-decision]].
+> - **`0380`** (code via the SDK clipboard; `#join=` off on Yandex; code masked with the toggle) → **`0381`** verify;
+>   **`0382`** (SDK-built Yandex Games link + `payload`, consume-once; a non-tester friend gets Join) → **`0383`** verify.
+>   Gate item 6 is met only when both builds ship **and** both verifies pass (*"Prod checks must pass too"*).
+>
+> **Payments and operator alerts (2026-10-04):**
+> - ⛔ **`0310`** (drop the unused HMAC construction) → **Cancelled, superseded by `0379`** — the owner chose to wait
+>   for more samples rather than drop on n = 1. **`0379`** (owner `fkit-lead`): read-only sample collection before
+>   every profile redeploy; ask keep-or-drop at **≥ 5 purchases, all `decoded_json`, incl. ≥ 1 `(reconcile)`** or at
+>   **~2026-11-01**. See [[tasks/hmac-construction-log-label]], [[decisions/cancelled-tasks]].
+> - ✂️ **`0362` narrowed** to the **earned-by-XP** citizenship message only (Citizenship forum topic); its paid half
+>   moved to **`0378`** — a Telegram alert for **every completed in-app purchase, any product**, in a separate
+>   **Purchases channel** (a channel, not a forum topic: own chat id via a new env var — working name
+>   `TELEGRAM_PURCHASES_CHAT_ID` — carried through the profile deploy, harness and config-parity check; same bot, which
+>   must be a channel **admin**). Owner: *"…money in one place, game milestones in another."* Fires once per `granted`
+>   purchase after commit, never on a replay; Telegram failure never touches the grant; no Yandex id, purchase token,
+>   signature or payload. ⚠️ **Owner step:** create the channel, add the bot as admin, put the chat id in the local
+>   gitignored profile config. Default content: product id, internal player uuid, already-earned yes/no, route if
+>   cheap — **no price** (the server is never told it). Siblings, not dependencies.
+>
+> ---
+>
+> # 📊 RE-COUNTED 2026-10-03 at `HEAD` = `bc39b82` — ONE ROW ADDED (`0375`) *(history — superseded above)*
 >
 > **`backlog.md`: 119 rows — 88 `🔲 Backlog` · 23 `➡️ Moved` · 4 `✅ Done` · 3 `🚧 Blocked` · 1 `⛔ Cancelled`;
 > 91 OPEN** (was 118 / 90). Counted by me this run, by each row's leading status glyph.

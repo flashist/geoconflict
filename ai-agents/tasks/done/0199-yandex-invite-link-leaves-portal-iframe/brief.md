@@ -42,7 +42,7 @@ one: if the owner judges that invited players skipping the monetised portal is c
 is a Sprint 4 candidate and the producer would not argue.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer
@@ -85,7 +85,7 @@ fkit-producer
   (owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*). So no one in
   production can create a lobby or copy today's off-Yandex invite link.
 - **Release gate.** This is item 6 of the private-lobby release gate in
-  [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
+  [`0354`'s *Release gate*](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
   the everyone-flag stays off until invite links either point at Yandex Games correctly or are removed.
 - **Not settled:** this task's rank and sprint (*"a big one"* is not a placement), and how the work splits into
   briefs. `fkit-architect` is researching the Yandex SDK side in parallel (2026-10-03); briefs are filed from its
@@ -233,11 +233,11 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 >   should we build for private-lobby invites?"*, the owner picked **"Yandex link + code"**: *"Invite button copies a
 >   proper Yandex Games link (via the SDK, works on every portal) AND the code is still shown. ~150–250 lines + the code
 >   part. Fixes the rule problem; easiest for friends."*
-> - **Filed (Backlog board, unscheduled):** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
->   (code part) → [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+> - **Filed (Backlog board, unscheduled):** [`0380`](../../backlog/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
+>   (code part) → [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 >   (link part), each with an owner-run production verify task —
->   [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
->   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
+>   [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
+>   [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
 > - **ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md)** — step 5. ✅ *(accepted — "Accept as written", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent)*. Written and promoted by `fkit-architect`, not the producer.
 >   *(Was: "ADR pending (architect, 2026-10-04)".)*
 > - ✅ **Q3 (flag cohort) RULED 2026-10-04: "Yes, link always lets them in"** — recorded in `0382` (a) and `0383`.
@@ -247,7 +247,8 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 >   by `fkit-lead` 2026-10-04, recorded, not yet done).~~
 >   OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: *"we don't need their approval, we're not violating anything with it"* — asked *"Drop the 'ask Yandex support about the self-link' step?"*, the owner picked **"Yes, drop
 >   it"**. The owner judges the SDK link + `payload` within rule 8.4.1; the grey area (8.4.1 is worded for *other*
->   games) is accepted.
+>   games) is accepted. ⚠️ An **actual** Yandex moderation/support rejection of a payload self-link would still
+>   reopen this, per ADR-119's *Re-raise only if* — the absence of prior approval does not.
 
 *The text below is kept as written on 2026-10-03.*
 
@@ -282,7 +283,7 @@ P1 — does `payload` reach our iframe game at all? P8 needs one match played an
 | Result | Meaning | Then |
 |---|---|---|
 | **YES** | P1 gives the payload on `yandex.ru` **and** the second domain, **and** P4 or P5 returns this game with a `yandex.<tld>/games/…` URL whose round trip also gives P1 | **Build A** — portal invite link via the SDK + `payload`, **plus** the code |
-| **NO** | P1 is `undefined` on `yandex.ru` | **Build B** — links removed, code-only joining (the report also suggests asking Yandex support before giving links up entirely) |
+| **NO** | P1 is `undefined` on `yandex.ru` | **Build B** — links removed, code-only joining (the report also suggests asking Yandex support before giving links up entirely) *(moot — the result was YES, 2026-10-04; and no Yandex support question is asked, OWNER RULING 2026-10-04 "Yes, drop it", see step 0)* |
 | **PARTIAL** | P1 works but P4/P5 do not return this game (links would need the self-built fallback the owner objected to) | **Owner call** |
 
 - **Codes are kept in every case** (owner ruling, recorded in *Context*), so **B's code work is part of either path**:
@@ -361,6 +362,8 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
 
 > ✅ **Done 2026-10-04.** ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md), accepted — "Accept as written" (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). Briefs filed: `0380`–`0383`.
 > ⚠️ The `/fkit-wiki-sync` routing in the last bullet below is **not done yet** — it is `fkit-wiki`'s to run.
+> 📌 *2026-10-04, at close: a wiki ingest/sync is being routed to `fkit-wiki` by `fkit-lead` right after this close —
+> a **follow-up, not a blocker** to closing `0199`.*
 
 
 - Write the decision up as an **ADR** in `ai-agents/knowledge-base/decisions/` (the project's `adr-1XX`
@@ -375,12 +378,25 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
 
 1. **The platform findings exist and are sourced.** A written answer to step 1 naming what Yandex
    supports, where that was established, and — explicitly listed — what could not be established.
+   📌 *2026-10-04: met (producer's reading) — the [architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md)
+   (§2.1 documented, §2.2 unknowns listed) plus the live probe in `worklog.md`, whose "Not tested" list names what
+   could not be established.*
 2. **The off-portal measurement is recorded**, covering: join success, SDK behaviour with
    `flashist_isYandexPlatform === true` outside the portal, and the ads / auth / payments / leaderboard
    surfaces. Observations, with what was actually run — not inference.
+   ⛔ **WAIVED 2026-10-04 — never run.** OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead`
+   session, relayed by `fkit-lead`; ⛔ not producer precedent. Asked *"0199: skip the never-run test of the OLD
+   invite link opened outside Yandex (it's being removed anyway), so 0199 can be closed?"*, the owner picked
+   **"Yes, skip it and close 0199"**. Why it is moot: the off-portal link is ruled out (2026-10-03) and is being
+   replaced on the Yandex build by `0380`/`0382`. **What stays unknown:** how the Yandex build behaves when opened
+   outside the portal (SDK init, ads, auth, payments, leaderboards) — never measured.
 3. **The `location.search` question is answered with evidence** — a named parameter that matters, or a
    statement that none does and how that was checked. The `AccountModal.viewGame()` disagreement is
    noted either way.
+   📌 *2026-10-04: met (producer's reading) — named parameters that matter: `sdk` (`0331` probe P1, see* Context*)
+   and `payload` (probe P2, `worklog.md`); the `AccountModal.viewGame()` disagreement is noted in* Context*. The
+   `copyToClipboard()` re-raise is superseded on the Yandex build: the invite there is no longer built from
+   `windowOrigin` (`0380`/`0382`).*
 4. **The owner has ruled**, and the ruling is recorded with its date and the channel it came through.
 5. **An ADR exists** in `ai-agents/knowledge-base/decisions/` capturing the ruling, its reasoning, and
    the options rejected — including for a *"leave it"* ruling.
@@ -390,6 +406,8 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
    📌 *2026-10-04: met — `0380`, `0382` (+ verify `0381`, `0383`), all on the Backlog board.*
 7. **No source file was changed by this task.** This is a decision task; a diff in `src/` means the
    scope was exceeded.
+   📌 *2026-10-04: no source change is recorded for `0199` (probe was read-only console, no deploy). Not
+   independently proven — this task's commits are bulk "Sprint push" commits shared with other tasks.*
 8. *(Added 2026-10-03, step 0.)* **The owner-run probe is recorded** in `worklog.md` — P1–P8 and the round trip, on
    `yandex.ru` and one other domain, with anything not run stated as such — **and the owner's YES / NO / PARTIAL
    decision** (A, B, or the owner's call) is recorded with its date.
@@ -402,7 +420,7 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
   `copyToClipboard()`'s host or its `location.search` handling until this is ruled.
 - 🚦 *2026-10-03, OWNER RULING relayed by `fkit-lead`; ⛔ not producer precedent:* direction ruled (see *Context*).
   It is now **item 6 of the private-lobby release gate** in
-  [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md): the everyone-flag
+  [`0354`](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md): the everyone-flag
   is not set until this is resolved per the ruling.
 - **Related:** `0198` — the source, and the task that fixed the **path** on this same line; **built but
   not yet deployed**, riding the deploy that also carries `0062` and `0063`. Its
