@@ -147,7 +147,7 @@ All numbers from 0231's worklog, one browser instrument, same-page repeated game
   `joinLobby`'s handlers and **built a new runner every ~5 s**, each failing the same way. Two of those
   cascade runners stayed unreachable (2 game workers, 1 interval, reconnects 2 → 4). **The in-page leave
   is an unsupported route today, not merely a leaky one.**
-  - 📌 **Observed by [`0032`](../0032-investigate-null-id-errors/brief.md) (2026-09-14) — the cause of
+  - 📌 **Observed by [`0032`](../../done/0032-investigate-null-id-errors/brief.md) (2026-09-14) — the cause of
     this failure is NOT stale renderer state; it is the terrain-map cache, and `0032` has fixed it
     (uncommitted, undeployed at the time of this note).** `TerrainMapLoader` cached the *built*
     `GameMapImpl`, whose `state: Uint16Array` carries tile ownership, and handed the same mutable object
@@ -278,7 +278,7 @@ interval cleared?).
 - **Open to the owner at plan time** (the coder must put these, not decide them): (1) A or B; (2) is
   Back-button-leaves-the-game a behaviour we want at all inside the Yandex iframe; (3) if B, confirm
   the split above.
-- **Hand-off from [`0032`](../0032-investigate-null-id-errors/brief.md)'s review R1 (2026-09-14) —
+- **Hand-off from [`0032`](../../done/0032-investigate-null-id-errors/brief.md)'s review R1 (2026-09-14) —
   applies under option B only.** `0032`'s fix means **each game now allocates its own `GameMapImpl`s**
   (`state` + the `refToX`/`refToY` lookup tables, map + minimap): **≈85–180 MB per build on
   `Giant_World_Map`, ≈50–130 MB on the 4–6 M-tile maps.** On the shipped full-navigation exits this is

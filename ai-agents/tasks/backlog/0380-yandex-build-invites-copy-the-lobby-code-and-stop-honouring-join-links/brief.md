@@ -7,12 +7,24 @@
 > `cancelled/`: `0379`. `0380`–`0383` allocated in this run, in dependency order.
 
 ## Sprint
-Backlog
+Sprint 7
+
+> 📌 **2026-10-04 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING given
+> live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+> `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Yes: all 5
+> ready ones"* — option text: *"0354, 0377, 0380 plus the two small fixes 0353 (error every second) and 0374 (joining
+> mark). More work this week."* The [Backlog board](../../../sprints/backlog.md) row is kept as `➡️ Moved`. Status unchanged
+> (`🔲 Backlog`); no folder moved, no mover run.
 
 ## Priority
-Unscheduled
+38
 
-> 📌 No sprint was named, so this is on the Backlog board. Placing it in a sprint is the owner's call.
+> 📌 **2026-10-04 — was ~~Unscheduled~~; rank 38 on the Sprint 7 board is the PRODUCER's order, NOT owner-ruled.**
+> The owner named the five tasks, not ranks. Appended after that board's highest (36, `0373`), never inserted
+> (ADR-035). Order `0354` → `0380` → `0377` → `0353` → `0374`; open for owner confirmation.
+
+> ~~📌 No sprint was named, so this is on the Backlog board. Placing it in a sprint is the owner's call.~~
+> ✅ **Resolved 2026-10-04** — the owner placed it on Sprint 7 (ruling *"Yes: all 5 ready ones"*, see `## Sprint`).
 
 ## Status
 🔲 Backlog

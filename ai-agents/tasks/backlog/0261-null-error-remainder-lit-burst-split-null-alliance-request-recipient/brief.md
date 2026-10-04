@@ -37,7 +37,7 @@ fkit-coder
 ## Context
 
 **Filed 2026-09-14 by a spawned `fkit-producer` on the `/fkit-sprint-ship-loop` driver's instruction**,
-from [`0032`](../0032-investigate-null-id-errors/brief.md)'s worklog, "Follow-up brief text" item (2).
+from [`0032`](../../done/0032-investigate-null-id-errors/brief.md)'s worklog, "Follow-up brief text" item (2).
 **Not an owner ruling — the producer had no owner channel.** Filed while `0032` is still open
 (`🚧 Blocked` on its owner-side Step 5, itself gated on `0257`) so the remainder is not lost when `0032`
 closes.
@@ -144,14 +144,14 @@ follow-up brief text. 🔒 No credentials, no Uptrace session material, no DSNs.
 
 - **Depends on:** [`0257`](../../done/0257-telemetry-cert-expired-renew-now-and-fix-renewal-cron/brief.md)
   (hard — nothing is measurable until ingest resumes) and
-  [`0032`](../0032-investigate-null-id-errors/brief.md) (hard — its fix must be deployed before the
+  [`0032`](../../done/0032-investigate-null-id-errors/brief.md) (hard — its fix must be deployed before the
   re-measure, or the fixed clusters pollute the numbers; `0032` is `🚧 Blocked` on its Step 5 at
   filing).
 - **Blocks:** nothing.
 - **Effort: ~0.5 day** if A and one of F/G close by observation; up to ~1 day if both F and G trace to
   real fixes. **Risk: low** — read-only until a fix is chosen; any fix is a localized null-origin guard
   with a test.
-- **Source:** `ai-agents/tasks/backlog/0032-investigate-null-id-errors/worklog.md` — Step 2 cluster
+- **Source:** `ai-agents/tasks/done/0032-investigate-null-id-errors/worklog.md` — Step 2 cluster
   table (rates), Step 3 "A" paragraph, Residuals bullet 3, and "Follow-up brief text" item (2).
 - **Split trigger:** if step 3 yields a fix for F or G whose shape is not a one-site guard with a test,
   **stop and return to the producer** — one fix brief per traced cause.

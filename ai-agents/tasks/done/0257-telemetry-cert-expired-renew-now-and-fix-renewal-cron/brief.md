@@ -28,7 +28,7 @@ Unlike most rows on the Sprint 4 board, the rank here is **the owner's, not the 
 producer had recommended High as time-sensitive and the owner **took that recommendation as a ruling**:
 **monitoring is blind today.** Every client error since 2026-09-04 06:03 UTC has been dropped; the
 current prod build (`0.0.151`) has **never been observed** in telemetry; and
-[`0032`](../../backlog/0032-investigate-null-id-errors/brief.md)'s owner-side verification (its Step 5) **cannot
+[`0032`](../0032-investigate-null-id-errors/brief.md)'s owner-side verification (its Step 5) **cannot
 run** until this lands. Each day it stays open is a day of unrecoverable data (the exporters do not
 queue durably) and a day nothing shipped to prod can be checked. It is the cheapest High on the
 board: the fix is a few lines and one renewal.
@@ -186,7 +186,7 @@ edit.
   production write is the renewal itself, and the LE production rate limit (5 duplicate certs/week)
   means a botched `--force-renewal` loop can lock renewal out for a week: use `--dry-run` (staging)
   for every rehearsal, exactly as `0216` did.
-- **Source:** `ai-agents/tasks/backlog/0032-investigate-null-id-errors/worklog.md` (Findings bullet 1;
+- **Source:** `ai-agents/tasks/done/0032-investigate-null-id-errors/worklog.md` (Findings bullet 1;
   "Follow-up brief text" item 1; Residuals).
 - **Rulings record (2026-09-14, owner, live in the lead session, relayed by `fkit-lead`):** (1) Sprint 4,
   rank High; (2) the renewal is the owner's production write, coder prepares and verifies read-only;

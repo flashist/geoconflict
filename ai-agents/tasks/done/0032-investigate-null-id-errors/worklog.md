@@ -267,3 +267,81 @@ Then, ≥24 h later, re-run against the **new** `service.version`:
   only** — the old version's residue keeps appearing until clients refresh.
 - Sanity: `MATCH_PRELOAD_HIT_LOADED` / `HIT_NOT_LOADED` analytics unchanged in proportion (the
   preload contract is intact).
+
+## Step 5 — re-check, 2026-10-04
+
+**PROVENANCE.** The owner asked `fkit-lead` on 2026-10-04 *"Can you do it yourself via Chrome?"*.
+`fkit-lead` ran the re-check **read-only on 2026-10-04** in the owner's already-logged-in Chrome session
+against the telemetry Uptrace, using the same internal-API query shapes recorded in *Step 1* above
+(project 1, `system=funcs`, `group by _name, exception_message, service_version | count() |
+uniq(enduser_id)`, plus a span-sample pull with stack traces). Results relayed by `fkit-lead` and
+recorded here by a spawned `fkit-producer` with no owner channel (ADR-021). Counts only — no hostname,
+URL, user id or credential recorded. ⚠️ **Relayed agent measurement, not owner-verified.**
+
+**Window:** 2026-09-27T09:00Z → 2026-10-04T12:00Z (~7 d 3 h). Starts ≥ 24 h after W12 (the 2026-09-26
+deploy), as the brief requires.
+
+### `service_version` is the git commit SHA, not the semver
+
+⚠️ **Corrects the brief's *"confirm the exact `service.version` value in Uptrace first"* note:** in
+Uptrace `service_version` holds the **short commit SHA** of the deployed build. Mapped via git tags
+(re-checked by the producer in this repo on 2026-10-04: `git tag --points-at` + `git merge-base
+--is-ancestor e646362 <sha>`, where `e646362` = 0.0.152, the first build carrying this fix):
+
+| `service_version` | Release | Carries the fix? |
+|---|---|---|
+| `5b3e6ec` | 0.0.154 | yes (descends from `e646362`) |
+| `00825f0` | 0.0.155 | yes |
+| `f712263` | 0.0.156 | yes |
+| `b349210` | 0.0.151 | **no** (pre-fix) |
+
+0.0.152 (`e646362`) had no spans in the window.
+
+### Ingest is live — the cert-valid ≠ ingest-live boundary is discharged
+
+Spans in the window: 0.0.155 **34,391** · 0.0.154 **3,639** · 0.0.156 **539** · (pre-fix 0.0.151:
+1,774). 0.0.155 alone shows **90 distinct `enduser.id`**. Client data is arriving and queryable, so an
+empty result for the fixed clusters below is a real result, not a dark pipe.
+
+### Success criterion (from *Step 5 — owner side*) — MET
+
+On the fixed versions (0.0.154 / 0.0.155 / 0.0.156), **zero spans** for:
+
+- **B** — `reading 'id'` / `a.id` / `"id", a is null` from `TerritoryLayer.paintTerritory`
+- **C** — `reading 'data'` / `e.data` from `isOnSameTeam`
+- **D** — `reading 'smallID'`
+- **E** — `reading 'territoryColor'`
+
+**Scale check:** on 0.0.140, cluster B alone ran ≈ 550 spans / 24 h (≈ 0.38/min). Zero over ~7 days on
+versions with ~38.5 k spans of traffic is a meaningful result, not an empty dataset.
+
+### The remaining `reading 'id'` spans are cluster G — not a regression
+
+The only `Cannot read properties of null (reading 'id')` spans on fixed versions: **48**
+(`unhandled_error`; 0.0.154: 27 · 0.0.155: 17 · 0.0.156: 4). A pull of **all 48** with stack traces
+shows **every one** from `onSendAllianceRequest ← … ← handleAllianceRequest` — **cluster G**, which this
+task explicitly did not fix (see *Residuals*) and which is owned by backlog task `0261` (null-error
+remainder). Not a regression of this fix.
+
+### Not taken
+
+- The optional sanity check (`MATCH_PRELOAD_HIT_LOADED` / `HIT_NOT_LOADED` proportions in analytics)
+  — **not taken**. The preload contract's integrity after this fix is therefore unmeasured in
+  production.
+
+### Observed, out of scope — nothing filed
+
+Recorded as observation only; none is one of this task's clusters, and no task was filed for them:
+
+- `Cannot read properties of undefined (reading 'M_ID')` — `unhandled_rejection`, 0.0.155: 8,687 spans,
+  0.0.154: 2,585; no `enduser.id` on those spans. A large new null-family group.
+- `reading 'addChild'` — 0.0.155: 1,639 spans, 1 user.
+- `reading 'bindFramebuffer'` — ~235 spans across 0.0.154 + 0.0.155.
+
+### Verdict
+
+Verification item 1 (*"the specific null-access location is identified and fixed, and the error group
+disappears from Uptrace"*) is **met for the fixed clusters (B, C, D, E)**. Clusters A, F, G remain as
+recorded in *Residuals* (G → `0261`). Close posture: not degraded — review had full Codex coverage;
+verification green. Closed 2026-10-04 via `/fkit-task-done` by a spawned producer:
+`✅ Done (agent-closed — not owner-verified)`.

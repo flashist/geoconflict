@@ -74,7 +74,7 @@ the owner's call.
   `0219` is a **precedent to mirror, not a dependency** — if it has not landed, do not wait for it.
 - **Blocks:** nothing.
 - **Effort: ~0.5 day.** **Risk: Low.**
-- **Source:** `ai-agents/tasks/backlog/0032-investigate-null-id-errors/worklog.md` ("Follow-up brief
+- **Source:** `ai-agents/tasks/done/0032-investigate-null-id-errors/worklog.md` ("Follow-up brief
   text" item 1) plus the `0219` cross-reference the driver supplied.
 - **Do not invoke the mover skills.** Producer-only since ADR-033.
 - **Never touch `ai-agents/wiki-vault/`.**

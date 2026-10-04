@@ -1,6 +1,6 @@
 # Review — 0032
 
-Task: ai-agents/tasks/backlog/0032-investigate-null-id-errors/brief.md
+Task: ai-agents/tasks/done/0032-investigate-null-id-errors/brief.md
 File(s) under review: src/core/game/TerrainMapLoader.ts (working tree vs HEAD `6822210`, +61/−18) · src/client/graphics/layers/Leaderboard.ts (+5/−1) · tests/core/game/TerrainMapLoader.test.ts (+37/−4) · tests/client/graphics/Leaderboard.test.ts (new, untracked, 78 lines)
 Status: closed-out
 

@@ -105,7 +105,7 @@ record it if so.
   the box itself over SSH; `0257` is not required to investigate.)
 - **Blocks:** nothing.
 - **Effort: ~0.25 day.** **Risk: none** — read-only until a fix is approved.
-- **Source:** `ai-agents/tasks/backlog/0032-investigate-null-id-errors/worklog.md` (Findings bullet 1,
+- **Source:** `ai-agents/tasks/done/0032-investigate-null-id-errors/worklog.md` (Findings bullet 1,
   "Retention is also not 7 d in practice"; "Follow-up brief text" item 1).
 - **Do not invoke the mover skills.** Producer-only since ADR-033.
 - **Never touch `ai-agents/wiki-vault/`.**

@@ -96,7 +96,7 @@ Stack frames for build `362a2f9` (`0.0.140`, deployed 2026-08-29) are **raw mini
   — for verification step 3 only; steps 1–2 and the build-side investigation can start now.
 - **Blocks:** nothing.
 - **Effort: ~0.5 day.** **Risk: Low** — a build without a deploy changes nothing in prod.
-- **Source:** `ai-agents/tasks/backlog/0032-investigate-null-id-errors/worklog.md` (Findings bullet 2;
+- **Source:** `ai-agents/tasks/done/0032-investigate-null-id-errors/worklog.md` (Findings bullet 2;
   "Follow-up brief text" item 4; Residuals). Parent enablement:
   [`0164`](../../done/0164-enable-client-source-maps/brief.md).
 - **Do not invoke the mover skills.** Producer-only since ADR-033.
