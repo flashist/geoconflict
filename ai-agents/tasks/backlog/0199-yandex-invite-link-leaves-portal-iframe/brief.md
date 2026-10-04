@@ -215,7 +215,42 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 
 ## What to build
 
-### 0. ▶ NEXT STEP — the owner runs the live console probe, then decides (OWNER RULINGS 2026-10-03)
+### 0. ✅ DONE 2026-10-04 — the owner ran the live console probe, then decided (OWNER RULINGS 2026-10-03, 2026-10-04)
+*(Heading was: "▶ NEXT STEP — the owner runs the live console probe, then decides (OWNER RULINGS 2026-10-03)".)*
+
+> 📌 **2026-10-04 — PROBE RESULT: YES, and the owner ruled the build. OWNER-REPORTED / OWNER RULING, relayed by
+> `fkit-lead`; ⛔ not producer precedent.** Recorded by a spawned `fkit-producer` with no owner channel (ADR-021/037).
+>
+> - **Probe** (owner-run in production, 2026-10-04, desktop Chrome; `fkit-lead` saw the console output for P1–P6; full
+>   record, URL shapes only, in [`worklog.md`](worklog.md)): P1 payload arrives on `yandex.ru` **and** `yandex.com`;
+>   P4 `getGameByID(app.id)` returns this game's URL **on the current portal** (`yandex.<tld>/games/app/<id>`) — nothing
+>   needs hardcoding; the round trip gives P1. P2: the payload is **also** in our iframe's `location.search` — never
+>   strip or rewrite it (`0331`/`0337` trap). P6/P7: the SDK copy works only inside a real click. **P8: the payload
+>   comes back after a match — consume-once is mandatory.** P5 (`getAllGames`) lists only the developer's other games —
+>   irrelevant. **Not tested:** mobile, other domains, native clipboard.
+> - **Decision table outcome: YES → Build A** (portal link via the SDK + `payload`) **plus the code.**
+> - **OWNER RULING 2026-10-04**, live via `AskUserQuestion` in the `fkit lead` session. Asked *"The test passed. What
+>   should we build for private-lobby invites?"*, the owner picked **"Yandex link + code"**: *"Invite button copies a
+>   proper Yandex Games link (via the SDK, works on every portal) AND the code is still shown. ~150–250 lines + the code
+>   part. Fixes the rule problem; easiest for friends."*
+> - **Filed (Backlog board, unscheduled):** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
+>   (code part) → [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+>   (link part), each with an owner-run production verify task —
+>   [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
+>   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
+> - **ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md)** — step 5. ✅ *(accepted — "Accept as written", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent)*. Written and promoted by `fkit-architect`, not the producer.
+>   *(Was: "ADR pending (architect, 2026-10-04)".)*
+> - ✅ **Q3 (flag cohort) RULED 2026-10-04: "Yes, link always lets them in"** — recorded in `0382` (a) and `0383`.
+> - **Still open:** Q4 (code friendliness), carried in `0380` as (b).
+> - ✅ **Moderation / self-link — SETTLED, no support question.** ~~Moderation's view of a self-link is undocumented;
+>   rule 8.4.1 allows SDK-built links to our games — **owner action: ask Yandex support before release** (relayed
+>   by `fkit-lead` 2026-10-04, recorded, not yet done).~~
+>   OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: *"we don't need their approval, we're not violating anything with it"* — asked *"Drop the 'ask Yandex support about the self-link' step?"*, the owner picked **"Yes, drop
+>   it"**. The owner judges the SDK link + `payload` within rule 8.4.1; the grey area (8.4.1 is worded for *other*
+>   games) is accepted.
+
+*The text below is kept as written on 2026-10-03.*
+
 
 **OWNER RULING 2026-10-03, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent.** Two rulings, both put after the [architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md) was read:
 
@@ -324,6 +359,10 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
 
 ### 5. Record the ruling, and file the implementation task from it
 
+> ✅ **Done 2026-10-04.** ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md), accepted — "Accept as written" (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). Briefs filed: `0380`–`0383`.
+> ⚠️ The `/fkit-wiki-sync` routing in the last bullet below is **not done yet** — it is `fkit-wiki`'s to run.
+
+
 - Write the decision up as an **ADR** in `ai-agents/knowledge-base/decisions/` (the project's `adr-1XX`
   series) via `/fkit-record-decision` — including if the ruling is *"leave it as it is"*, which is the
   outcome most likely to be silently re-litigated later.
@@ -345,18 +384,21 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
 4. **The owner has ruled**, and the ruling is recorded with its date and the channel it came through.
 5. **An ADR exists** in `ai-agents/knowledge-base/decisions/` capturing the ruling, its reasoning, and
    the options rejected — including for a *"leave it"* ruling.
+   📌 *2026-10-04: met — [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md), accepted (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent).*
 6. **The follow-up implementation brief exists** (or the ADR states explicitly that no implementation
    work follows), with a board row so it is not board-invisible.
+   📌 *2026-10-04: met — `0380`, `0382` (+ verify `0381`, `0383`), all on the Backlog board.*
 7. **No source file was changed by this task.** This is a decision task; a diff in `src/` means the
    scope was exceeded.
 8. *(Added 2026-10-03, step 0.)* **The owner-run probe is recorded** in `worklog.md` — P1–P8 and the round trip, on
    `yandex.ru` and one other domain, with anything not run stated as such — **and the owner's YES / NO / PARTIAL
    decision** (A, B, or the owner's call) is recorded with its date.
+   📌 *2026-10-04: met — probe and ruling ("Yandex link + code") recorded in `worklog.md`.*
 
 ## Notes
 
 - **Depends on:** nothing.
-- **Blocks:** nothing today. It **gates** any change to the invite-link host — nobody should alter
+- **Blocks:** nothing today. *(2026-10-04: the build it gated is now filed — `0380` → `0382`; see step 0.)* It **gates** any change to the invite-link host — nobody should alter
   `copyToClipboard()`'s host or its `location.search` handling until this is ruled.
 - 🚦 *2026-10-03, OWNER RULING relayed by `fkit-lead`; ⛔ not producer precedent:* direction ruled (see *Context*).
   It is now **item 6 of the private-lobby release gate** in
