@@ -133,6 +133,7 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[decisions/windoworigin-url-join-defect]] — task `0198`: fixed the **path** on the same invite line
 - [[tasks/private-lobby-citizen-perk]] — task `0302`, the feature; release gate item 6
 - [[tasks/match-exit-keeps-query-string]] — the `sdk` query-parameter trap (`0331` / `0337`)
+- [[tasks/match-exit-query-string-production-check]] — `0337`: `sdk` proven to survive a match exit in production (2026-10-04)
 - [[systems/flashist-init]] — `FlashistFacade`, `windowOrigin`, platform flag, late SDK recovery
 - [[decisions/sprint-backlog]] — where `0380`–`0383` are filed
 - [[tasks/private-lobby-start-url]] — task `0198`'s close: the path fix whose host question this ADR answers

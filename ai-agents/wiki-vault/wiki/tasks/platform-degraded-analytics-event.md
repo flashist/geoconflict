@@ -42,6 +42,12 @@ match exit ([[tasks/citizenship-card-vanishes-investigation]]).
   `Session:PlatformDegraded:ScriptFailed` value `0`, then value `1` after a match exit.
 - **Owner, after release (informational):** pull a GameAnalytics baseline (M1–M7 in the brief) and again a week
   later with the new event.
+- 📌 **2026-10-04 — first production read of this event** (by `fkit-lead`, for `0337`;
+  [[tasks/match-exit-query-string-production-check]]): `Session:PlatformDegraded:InitTimeout` **335** boots over
+  Sep 30–Oct 3 (4 days), of which **79 ≈ 23.6 % after a match exit** (sum of value). ⚠️ **No before side** — this
+  event shipped in the same `0.0.155` deploy as `0331`. ⚠️ The pull is **unfiltered** (the brief's dimension-02 =
+  `yandex` filter returned nothing) and a GameAnalytics *"Demo mode"* banner was **not checked**. So the event is
+  **arriving in production**; the brief's own M1–M7 before/after pull is still not recorded.
 
 ## Related
 
@@ -53,4 +59,5 @@ match exit ([[tasks/citizenship-card-vanishes-investigation]]).
 - [[tasks/degraded-mode-ux-treatment]] — task `0049`, the original degraded-mode events
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, whose effect this task's after-match `InitTimeout` share measures
+- [[tasks/match-exit-query-string-production-check]] — task `0337`, the first production read of this event (2026-10-04)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, which reuses `bootFollowsMatchExit` to split signature age by boot kind

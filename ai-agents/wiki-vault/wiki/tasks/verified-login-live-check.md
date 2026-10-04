@@ -20,7 +20,7 @@
 > logins since 2026-09-29 20:05 UTC (~21–26 % at 02–06 UTC, ~40–43 % at 20–23 UTC) — as recorded in `0372`'s brief.
 > **Follow-ups filed the same day:** `0372` — client diagnostics, done (agent-closed — not owner-verified), committed,
 > **not deployed** ([[tasks/stale-login-client-diagnostics]]); and `0373` — read the data and choose the fix, owner-placed
-> at rank 2 on [[decisions/sprint-8]]. `0340` now waits on `0373`.
+> at rank 2 on [[decisions/sprint-8]]. `0340` now waits on `0373`. *(📌 2026-10-04: `0373` moved to [[decisions/sprint-7]], appended at rank 36 — owner ruling *"Pull into Sprint 7 (Recommended)"*; the rank is the producer's placement, on merit before `0340`.)*
 
 ## Goal
 
@@ -102,4 +102,4 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line must be read before a second profile deploy
 - [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, client-side follow-up filed 2026-10-02 (age by boot kind, second-call check, held time); `0373` reads it
-- [[decisions/sprint-8]] — where `0373`, the reading task, sits at rank 2
+- [[decisions/sprint-8]] — where `0373`, the reading task, sat at rank 2 (moved to Sprint 7 rank 36 on 2026-10-04)

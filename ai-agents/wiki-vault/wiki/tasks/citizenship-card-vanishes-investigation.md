@@ -51,7 +51,8 @@ overstated what players see stays **unknown**. `citizenship_ui` is served to **1
 ([[tasks/citizenship-card-late-recovery-recheck]]), B3 `0330` ([[tasks/sdk-loader-download-retry]]) — all
 done 2026-09-28; B4 `0331` keep the query on match exit — ~~**🚧 Blocked on the owner's read-only probe P1**~~ **P1 confirmed
 trigger B on 2026-09-29; built and closed the same day** ([[tasks/match-exit-keeps-query-string]]; its live check is
-`0337`) (report §5); `0326` pulled into Sprint 6 first. **Still owed:** ~~probe P1;~~ the optional GameAnalytics baseline
+`0337` — ✅ **PASSED 2026-10-04**, `sdk` survives a match exit in production:
+[[tasks/match-exit-query-string-production-check]]) (report §5); `0326` pulled into Sprint 6 first. **Still owed:** ~~probe P1;~~ the optional GameAnalytics baseline
 pull M1–M7 (report §3.2).
 
 ## Related
@@ -65,3 +66,4 @@ pull M1–M7 (report §3.2).
 - [[decisions/sprint-6]] — the board carrying this task
 - [[systems/analytics]] — the analytics system page; this task's events are listed there
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, B4: probe P1 confirmed trigger B; the match exit now keeps the query string
+- [[tasks/match-exit-query-string-production-check]] — task `0337`, B4's production check: P1 passed 2026-10-04; the after-match GameAnalytics read (unfiltered, caveated) is there

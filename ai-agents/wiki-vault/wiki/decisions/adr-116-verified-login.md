@@ -30,7 +30,7 @@
 > window).** `0372` (client diagnostics: signature age by boot kind, a second-call check, held ms) is built — done
 > (agent-closed — not owner-verified), committed, **not deployed** — and `0373` (read the data, choose the fix; the
 > owner sets the S2-exit threshold there, *"Decide it with the data (Recommended)"*) sits at rank 2 on
-> [[decisions/sprint-8]]. **`0340`'s dependency now points at `0373`.** Still no decision changed; S3a still needs the
+> [[decisions/sprint-8]]. **`0340`'s dependency now points at `0373`.** *(📌 2026-10-04: `0373` moved to [[decisions/sprint-7]], appended at rank 36 — owner ruling *"Pull into Sprint 7 (Recommended)"*; the rank is the producer's placement, on merit before `0340`.)* Still no decision changed; S3a still needs the
 > S2 exit met **and** a separate owner approval. See [[tasks/stale-login-client-diagnostics]].
 
 ## Context

@@ -110,5 +110,5 @@ tables: [[systems/analytics]] § *Profile Login Signature Age Events*.
 - [[systems/flashist-init]] — the facade whose `takeYandexPlayerSignature()` fires them
 - [[tasks/platform-degraded-analytics-event]] — task `0328`, source of `bootFollowsMatchExit`
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, the same-tab reload behind the leading hypothesis
-- [[decisions/sprint-7]] — the board (rank 35)
-- [[decisions/sprint-8]] — where `0373`, the reading task, sits at rank 2
+- [[decisions/sprint-7]] — the board (rank 35); `0373`, the reading task, moved here at rank 36 on 2026-10-04
+- [[decisions/sprint-8]] — where `0373`, the reading task, sat at rank 2 until 2026-10-04 (moved to Sprint 7, rank 36)

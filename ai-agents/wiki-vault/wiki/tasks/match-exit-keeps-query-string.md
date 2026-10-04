@@ -4,14 +4,21 @@
 **Status**: done (agent-closed — not owner-verified) — **the build task only**
 **Sprint/Tag**: Sprint 6, rank 44 (append rank) / task `0331` (brief B4 of the `0318` report)
 
+> ✅ **2026-10-04 — PROVEN IN PRODUCTION by `0337`** ([[tasks/match-exit-query-string-production-check]]), closed
+> `(agent-closed — not owner-verified)`. Owner-run probe P1: after a match exit, in the game iframe (re-picked after
+> the reload), `has("sdk")` **true**, query length **138** (fresh load true / 138; pre-`0331` baseline **false / 0**).
+> No defect filed; `0331` not reopened. ⚠️ The informational GameAnalytics read shows **no visible drop** in the
+> boot-timeout rate (≈ 6.6 % → ≈ 6.85 %, small samples, unfiltered pull, an unchecked *"Demo mode"* banner) — read
+> as "no visible change", not as evidence either way.
+>
 > ✅ **Closed 2026-09-29** `(agent-closed — not owner-verified)` on verification items 1–3. The owner's
 > post-release check (repeat probe P1 after a match exit) was **split out by owner ruling into `0337`**,
 > rank 1 on [[decisions/sprint-7]]. If P1 still reads `false` after deploy, `0337` files a new defect;
 > `0331` is not reopened silently.
 >
 > 🆕 **Shipped in the 2026-09-29 game deploy** (listed in the runbook's "ships in this deploy" set; see
-> [[systems/weekend-deploy-window]]). ⚠️ **The owner's `0337` check had not been reported** as of the
-> sources read this sync.
+> [[systems/weekend-deploy-window]]). ~~⚠️ **The owner's `0337` check had not been reported** as of the
+> sources read this sync.~~ *(Superseded 2026-10-04 — `0337` passed; banner above.)*
 
 ## Goal
 
@@ -55,7 +62,7 @@ confirmed (Recommended)"* — this task is B4, and it shipped **only because the
   therefore makes it binding on `0380` / `0382`: **dedupe the payload in `sessionStorage`, never strip or rewrite
   `location.search`** — see [[decisions/adr-119-yandex-invite-sdk-link-plus-code]]. ✅ `0337`'s precondition (this
   change in production) is **met** — `0331` shipped in game `0.0.155` on 2026-09-29 and is in `0.0.156` (board
-  correction 2026-10-03, owner ruling *"Yes, fix them"*); `0337` itself is still `🔲 Backlog`, not run.
+  correction 2026-10-03, owner ruling *"Yes, fix them"*); ~~`0337` itself is still `🔲 Backlog`, not run.~~ *(2026-10-04: `0337` ran and **passed**.)*
 
 ## Related
 
@@ -69,4 +76,5 @@ confirmed (Recommended)"* — this task is B4, and it shipped **only because the
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy that shipped it
 - [[decisions/sprint-6]] — the board that closed it
 - [[decisions/sprint-7]] — where `0337`, the verify task, sits
+- [[tasks/match-exit-query-string-production-check]] — task `0337`, this task's production check: PASSED 2026-10-04
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: the same-tab reload on match exit is its leading (unproven) cause of `stale` logins

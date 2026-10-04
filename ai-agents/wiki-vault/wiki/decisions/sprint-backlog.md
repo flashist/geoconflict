@@ -3,7 +3,13 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> # 📊 RE-COUNTED 2026-10-04 (latest) at `HEAD` = `7324c1b` + the uncommitted working tree — TEN ROWS ADDED, ONE CLOSED, ONE CANCELLED
+> 📌 **2026-10-04 (latest, `b99c1f1`): 129 rows, 99 open — UNCHANGED.** Re-counted by me at `HEAD` = `b99c1f1`
+> (now all committed): 96 `🔲 Backlog` · 23 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled` — the same
+> counts this page recorded from the working tree, so the frame warning below is **discharged**. One text fix in this
+> window (commit `52c3c42`): the `0376` and `0377` rows now read *"item 2 of ~~5~~ 6"* / *"item 4 of ~~5~~ 6"* (item 6,
+> `0199`, added 2026-10-03) — **the "of 5" staleness flagged below is resolved** on the board.
+>
+> # 📊 RE-COUNTED 2026-10-04 at `HEAD` = `7324c1b` + the uncommitted working tree — TEN ROWS ADDED, ONE CLOSED, ONE CANCELLED
 >
 > **`backlog.md`: 129 rows — 96 `🔲 Backlog` · 23 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled`;
 > 99 OPEN** (was 119 / 91). Counted by me this run, by each row's leading status glyph. ⚠️ **Frame:** part of this
@@ -25,11 +31,11 @@
 > **hidden** in production (owner-attested 2026-10-03, not agent-verified). New gate rows:
 > - **`0376`** — owner-run production test: a real citizen hosts **inside the Yandex Games page**, a **non-citizen
 >   tester** friend joins **by code inside Yandex** (owner: *"Yes, a tester friend is fine"*), match starts and ends.
->   Depends on `0354` deployed. ⚠️ Its board row still says *"item 2 of 5"* — the gate has **six** items since the same
->   day's `0199` ruling.
+>   Depends on `0354` deployed. ~~⚠️ Its board row still says *"item 2 of 5"* — the gate has **six** items since the same
+>   day's `0199` ruling.~~ *(Fixed on the board 2026-10-04, `52c3c42`: now "of 6".)*
 > - **`0377`** — end abandoned, unstarted private lobbies after a short idle time (`0335` case 3); server-only, in
->   `GameServer.phase()`; grace time (10–15 min suggested) and count start are owner questions. ⚠️ Row says *"item 4
->   of 5"* — same staleness.
+>   `GameServer.phase()`; grace time (10–15 min suggested) and count start are owner questions. ~~⚠️ Row says *"item 4
+>   of 5"* — same staleness.~~ *(Fixed 2026-10-04, `52c3c42`: now "of 6".)*
 > - **`0228`** (existing row) — gate item 3 amended: investigate; **fix only if the race is actually reproduced**
 >   (*"Only if it's proven"*, *"No, needs a real repro"*), otherwise it drops off the gate.
 >

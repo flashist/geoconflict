@@ -33,8 +33,9 @@
 > | 6 | Invites resolved per `0199`: SDK-built Yandex link + code ([[decisions/adr-119-yandex-invite-sdk-link-plus-code]]); **met only when built AND both production checks pass** (*"Prod checks must pass too"*) | `0380` + `0382`, verified by `0381` + `0383` |
 >
 > **Not decided:** the order of items 2–6 among themselves and their sprint placement. All of `0354`, `0376`, `0377`,
-> `0380`–`0383` sit on the Backlog board, unscheduled. ⚠️ The Backlog board's own rows for `0376` / `0377` still say
-> *"item … of 5"* — stale against the six-item gate in `0354`'s brief.
+> `0380`–`0383` sit on the Backlog board, unscheduled. ~~⚠️ The Backlog board's own rows for `0376` / `0377` still say
+> *"item … of 5"* — stale against the six-item gate in `0354`'s brief.~~ *(📌 2026-10-04: fixed on the board in
+> `52c3c42` — both rows now say "of 6".)*
 
 ## Goal
 

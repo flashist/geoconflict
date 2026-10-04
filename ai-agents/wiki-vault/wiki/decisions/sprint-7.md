@@ -5,7 +5,37 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-04 (latest, `7324c1b`) — 36 ROWS, 11 OPEN: TWO TASKS POSTPONED OFF THE BOARD, `0297` UNBLOCKED, TWO STALE GATES STRUCK
+> # 🆕 2026-10-04 (latest, `b99c1f1`) — 37 ROWS, 11 OPEN: `0337` PASSED AND CLOSED; `0373` MOVED IN FROM SPRINT 8 AT RANK 36
+>
+> **Re-counted at `HEAD` = `b99c1f1`: 37 rows — 21 `✅ Done` · 8 `🔲 Backlog` · 3 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 11 OPEN** (was 36 / 11 — one closed, one added). ⚠️ Counted by me this run, by each row's leading
+> status glyph. Both edits are by spawned `fkit-producer`s with no owner channel, on facts / OWNER RULINGS relayed by
+> `fkit-lead` (⛔ not producer precedent). The line-3 banner still reads `🔄 In progress — 2026-09-29`.
+>
+> - ✅ **`0337` (rank 1, verify `0331` in production) → `✅ Done (agent-closed — not owner-verified)`**, 2026-10-04.
+>   **Verification PASSED:** owner-run probe P1 after a match exit, in the game iframe re-picked after the reload —
+>   `has("sdk")` **true**, length **138** (pre-`0331`: false / 0). The informational GameAnalytics read (by
+>   `fkit-lead`) shows **no visible drop** in the boot-timeout rate and carries caveats (unfiltered pull, an
+>   unchecked *"Demo mode"* banner, three excluded `Session:Start` spike days, nothing filed). Full record:
+>   [[tasks/match-exit-query-string-production-check]]. ⚠️ **Board text vs repo:** the row ends *"Not committed"*;
+>   the close **is** in `b99c1f1` (checked).
+> - ➡️ **`0373` (read the stale-login data, choose the fix) MOVED IN FROM [[decisions/sprint-8]], APPENDED AT RANK 36**,
+>   `🔲 Backlog` (status copied verbatim). OWNER RULING given live 2026-10-04 via `AskUserQuestion`, verbatim:
+>   *"Pull into Sprint 7 (Recommended)"* — option text: *"Move 0373 onto Sprint 7 now. Sprint 7's goal includes
+>   citizenship, and 6 of its open tasks wait on this one task."*
+>   - ⚠️ **Rank 36 is the PRODUCER's placement, NOT owner-ruled** — the owner named the sprint only. **On merit it sits
+>     directly above `0340` (rank 16)**: chain `0373` → stale-signature fix (not yet filed) → S2-exit re-check → `0340`
+>     → `0332`, `0323`, `0250` S3b, `0248`, `0301`. Inserting at 16 would renumber ranks 16–35, which ADR-035 forbids,
+>     so it was appended. **Read it as worked before `0340`.** Exact rank is **open for owner confirmation**.
+>   - ⏳ **Being here does not let it start early:** it still needs 5–7 days of data since the 2026-10-03 deploys,
+>     including a weekend evening (UTC 20–23) — earliest useful read **after the evening of Saturday 2026-10-10 (UTC)**.
+>     See [[tasks/stale-login-signature-age]], [[tasks/stale-login-client-diagnostics]].
+> - 📌 Link repoints only: `0337` → `tasks/done/` on this board, on Sprint 6's closed board, on ADR-119 and in the
+>   briefs that cite it.
+>
+> ---
+>
+> # 🆕 2026-10-04 (`7324c1b`) — 36 ROWS, 11 OPEN: TWO TASKS POSTPONED OFF THE BOARD, `0297` UNBLOCKED, TWO STALE GATES STRUCK
 >
 > **Re-counted at `HEAD` = `7324c1b`: 36 rows — 20 `✅ Done` · 8 `🔲 Backlog` · 3 `🚧 Blocked` · 4 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 11 OPEN** (was 36 / 13). ⚠️ Counted by me this run, by each row's leading status glyph. All edits
@@ -457,6 +487,7 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/verified-login-shadow-mode]] — task `0325`; its S3a (`0340`) and live check (`0339`) sit here
 - [[decisions/adr-116-verified-login]] — the verified-login decision `0339` / `0340` carry out
 - [[tasks/match-exit-keeps-query-string]] — task `0331`; its live check `0337` is rank 1 here
+- [[tasks/match-exit-query-string-production-check]] — task `0337`, rank 1, closed 2026-10-04 (agent-closed — not owner-verified): P1 passed
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy that `0337`, `0339` and `0341` verify
 - [[decisions/sprint-backlog]] — `0309` and `0035` moved here from the Backlog boards 2026-09-29
 - [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; this board's line-3 banner makes it the active sprint
@@ -485,6 +516,6 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)
 - [[systems/player-profile-store]] — where `0250` S1 (rank 17, deployed 2026-09-29) lives
-- [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it on Sprint 8
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it (moved here from Sprint 8 at rank 36 on 2026-10-04)
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, `0355`'s verify on Sprint 8: passed, closed 2026-10-03
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, `0356`'s verify on Sprint 8: passed, closed 2026-10-03

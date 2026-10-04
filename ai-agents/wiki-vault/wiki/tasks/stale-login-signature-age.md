@@ -100,10 +100,10 @@ board to Sprint 7 the same day.
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S2 shadow-mode check this measures
 - [[decisions/adr-116-verified-login]] — the verified-login decision; S3a (`0340`) waits on this measurement
 - [[systems/player-profile-store]] — the profile server, its login route and counters
-- [[decisions/sprint-7]] — the board (rank 30)
+- [[decisions/sprint-7]] — the board (rank 30); `0373`, the reading task, moved here at rank 36 on 2026-10-04
 - [[decisions/sprint-backlog]] — where it was filed before the move
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line gates a second profile deploy
 - [[systems/weekend-deploy-window]] — the weekend deploy slot this targets
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, the client-side labels that mirror these brackets (same edges, a parity test)
-- [[decisions/sprint-8]] — where `0373` reads these brackets (rank 2)
+- [[decisions/sprint-8]] — where `0373` reads these brackets (rank 2 until 2026-10-04; then moved to Sprint 7, rank 36)
 - [[systems/analytics]] — the client mirror of these brackets (`0372`'s `Profile:Login:SignatureAge:*` events)

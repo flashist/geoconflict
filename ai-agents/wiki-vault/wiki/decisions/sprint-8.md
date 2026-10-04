@@ -5,7 +5,18 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-04 (latest, `7324c1b`): 6 rows — 2 `✅ Done` · 4 `🔲 Backlog`; 4 OPEN (unchanged).** ⚠️ Counted by me
+> 🆕 **2026-10-04 (latest, `b99c1f1`): 6 rows — 2 `✅ Done` · 3 `🔲 Backlog` · 1 `➡️ Moved`; 3 OPEN** (was 6 / 4). ⚠️
+> Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
+>
+> - ➡️ **`0373` (rank 2) MOVED OUT TO [[decisions/sprint-7]]** — row now reads `➡️ Moved to Sprint 7 — priority 36`.
+>   OWNER RULING given live 2026-10-04 via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (⛔ not
+>   producer precedent), verbatim: *"Pull into Sprint 7 (Recommended)"*. **No row renumbered here** (ADR-035): open
+>   rows stay at 1 (`0370`), 5 (`0351`), 6 (`0343`); closed / moved rows at 2, 3, 4. ⚠️ Sprint 7's rank 36 is the
+>   producer's append placement, **not owner-ruled** — on merit it is worked before `0340`. The ⏳ data clock below is
+>   unchanged: earliest useful read after the evening of Saturday 2026-10-10 (UTC).
+> - 📌 `0351`'s brief: one link repoint (`0337` → `tasks/done/`); nothing else.
+>
+> 🆕 **2026-10-04 (`7324c1b`): 6 rows — 2 `✅ Done` · 4 `🔲 Backlog`; 4 OPEN (unchanged).** ⚠️ Counted by me
 > this run. Ranks and the line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
 >
 > - ⛔ **`0343` (parked paid-citizenship features) — items A and D ON HOLD, postponed indefinitely** (2026-10-03):
@@ -158,11 +169,11 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/worker-reuses-page-map]] — task `0035`, verified by `0351` (rank 2)
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, verified by `0363` (rank 1)
 - [[tasks/public-lobby-one-minute]] — task `0367`, verified by `0370` (rank 1, filed 2026-10-02)
-- [[tasks/stale-login-client-diagnostics]] — task `0372`, the client events `0373` (rank 2) reads
-- [[tasks/stale-login-signature-age]] — task `0366`, the server brackets `0373` (rank 2) reads
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, the client events `0373` (rank 2 here until 2026-10-04; now Sprint 7, rank 36) reads
+- [[tasks/stale-login-signature-age]] — task `0366`, the server brackets `0373` (rank 2 here until 2026-10-04; now Sprint 7, rank 36) reads
 - [[tasks/verified-login-live-check]] — task `0339`, the failed live check that started the `0373` chain
 - [[decisions/adr-116-verified-login]] — the verified-login decision; `0340` (S3a) waits on `0373`
-- [[systems/analytics]] — the `0372` events `0373` (rank 2) reads
+- [[systems/analytics]] — the `0372` events `0373` (rank 2 here until 2026-10-04; now Sprint 7, rank 36) reads
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363` (rank 3): verify passed, closed 2026-10-03
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358` (rank 4): verify passed, closed 2026-10-03
 - [[systems/weekend-deploy-window]] — the 2026-10-03 window in which `0363`, `0358` and `0370`'s Steps 1–3 ran

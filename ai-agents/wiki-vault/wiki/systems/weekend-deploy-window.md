@@ -741,6 +741,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[decisions/sprint-6]] — where `0286`, `0298` and the other deploy-coupled leftovers now wait, by owner ruling
 - [[tasks/verified-login-shadow-mode]] — task `0325`: S2 shipped in the 2026-09-29 window
 - [[tasks/match-exit-keeps-query-string]] — task `0331`: shipped in the 2026-09-29 game deploy
+- [[tasks/match-exit-query-string-production-check]] — task `0337`: `0331`'s production check after the 2026-09-29 game deploy — PASSED 2026-10-04
 - [[tasks/deploy-apt-noninteractive]] — task `0286`: step 8 ran in the 2026-09-26 window; closed 2026-09-29
 - [[decisions/adr-116-verified-login]] — its deploy-order clarification set the 2026-09-29 order
 - [[decisions/sprint-7]] — the verify tasks `0337`, `0339`, `0341` for this window

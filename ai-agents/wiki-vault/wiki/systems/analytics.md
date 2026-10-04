@@ -365,7 +365,7 @@ reads as real; noted, not proven.
 ## Profile Login Signature Age Events (task `0372` — built 2026-10-02, committed `0c9a620`, NOT deployed)
 
 Client diagnostics for the ~1 in 3 profile logins the server calls `stale` ([[tasks/stale-login-client-diagnostics]];
-the reading is task `0373` on [[decisions/sprint-8]]). **Analytics only: login sends exactly the signature it sent
+the reading is task `0373` on [[decisions/sprint-8]] — 📌 moved to Sprint 7, rank 36, on 2026-10-04). **Analytics only: login sends exactly the signature it sent
 before, at the same moment.** Fired from `takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`;
 pure helpers in `src/client/SignatureAgeAnalytics.ts`. ⚠️ Targets the 2026-10-03/04 game deploy; **not yet seen
 arriving**.
