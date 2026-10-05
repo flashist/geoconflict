@@ -104,7 +104,7 @@ Save the report under `ai-agents/knowledge-base/reports/` (dated, task ID in the
 - **Blocks:** nothing. A fix task, if any, is filed after the findings are reviewed with the owner.
 - **Related:** [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md) /
   [`0272`](../../done/0272-profile-identity-s3-game-server-resolve-and-credit-by-player-id/brief.md) (F-B, the first
-  sighting) · [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (the standing no-restart
+  sighting) · [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (the standing no-restart
   rule) · [`0346`](../0346-profile-deploy-applies-migrations-before-new-code-serves-requests/brief.md) (a different
   profile-deploy gap; not the same cause).
 - **Effort:** small — a read of the client, the profile server's HTTP settings and the logs; more only if a local

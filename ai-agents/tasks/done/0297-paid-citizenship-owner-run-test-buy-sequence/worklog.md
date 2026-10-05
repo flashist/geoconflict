@@ -29,7 +29,7 @@ recorded here.
   - [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) — log which
     construction matched, deploy, read it after the next real purchase; writes its result back here.
   - [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md) — drop the unused one
-    (depends on `0309`). *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
+    (depends on `0309`). *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../../backlog/0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
 
 ### §2 — Live catalog fetch
 
@@ -226,7 +226,7 @@ The producer observed none of it directly. No host, IP, secret, signed payload o
 - **`/complete` route only.** **No `/reconcile` verification has been observed** with the label. Whether
   `/reconcile` payloads verify the same way is not shown by this read-back (likely, not proven).
 - These caveats matter for [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md), which deletes
-  the other construction (`base64_payload`): if either caveat is wrong, real purchases would be rejected. *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
+  the other construction (`base64_payload`): if either caveat is wrong, real purchases would be rejected. *(📌 2026-10-04 — `0310` **cancelled** (agent-closed — not owner-verified), superseded by [`0379`](../../backlog/0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) — OWNER RULING relayed by fkit-lead, ⛔ not producer precedent: keep both constructions for now, re-read the log for more samples, then re-ask keep-or-drop.)*
 
 ### Close-condition tracker (from *Verification steps*) — as of 2026-10-04
 
@@ -245,7 +245,45 @@ the owner chose **wait for more samples** and asked for a backlog task to re-che
 - **Both HMAC constructions stay in the code for now.** Nothing was built or deployed.
 - [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md) — **cancelled** (agent-closed —
   not owner-verified): the keep-or-drop decision was the only thing keeping it open.
-- [`0379`](../0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) (Backlog board) takes over: re-read the profile container log for more `signature
+- [`0379`](../../backlog/0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md) (Backlog board) takes over: re-read the profile container log for more `signature
   verified` lines (ideally one `(reconcile)`), then put keep-or-drop to the owner; a "drop" ruling carries `0310`'s
   code change. Its reads overlap this task's §4 reconcile watch — the same read can serve both.
 - ⚠️ The container log is still lost on every profile redeploy — read it **before** any profile deploy.
+
+## 2026-10-05 — owner waives the remaining checks; task closed
+
+⛔ **Authority.** An **OWNER RULING given 2026-10-05 in the `fkit lead` session** — the owner's own typed
+message (not an `AskUserQuestion` answer), written after `fkit-lead` walked them through this task's open
+items. Relayed by `fkit-lead` to a spawned `fkit-producer` with **no owner channel** (ADR-021/037).
+⛔ **Not producer precedent.** The producer observed nothing new; no check was run for this entry.
+
+**Owner, verbatim:**
+
+> "I think we're fine to close the tasks, the user scenarios that described as still need to be verified, are rather rare cases. The interrupted case should be ok already, if somebody in the future reports a problem about it, I will get back to it. The 5th poin sounds weird and unclear to me."
+
+**What it waives — `fkit-lead`'s reading of the ruling, recorded as relayed:**
+
+| Box | State before | Now |
+|---|---|---|
+| §2 first box — direct read of `getPaymentsCatalogStatus()` = `'ready'` / `hasCatalogProduct('citizenship')` = `true` | Inferred only (Buy button showed 249 on 2026-09-26), never read directly | ⛔ **WAIVED, not verified.** Covered by *"fine to close the tasks"*; the owner did not name this box separately. |
+| §4 first box — interrupted purchase → `/reconcile` grants, token consumed, State 3 | Not run. Reconcile watch: **zero** `/reconcile` calls as of 2026-09-29 ~08:15 UTC (not re-checked since) | ⛔ **WAIVED, not verified.** Owner: *"The interrupted case should be ok already"*. |
+| §4 second box — a second restart makes no network call once consumed | Not run | ⛔ **WAIVED, not verified** (follows the first). |
+| §5 — does the `citizenship` product ever disappear from `getCatalog()` | Not observed; present on both accounts 2026-09-26 | ⛔ **WAIVED, not verified.** Owner: *"The 5th poin sounds weird and unclear to me."* ⚠️ The owner waived it as unclear; they did not rule on the question itself. |
+
+**Revisit condition (§4), owner's words:** *"if somebody in the future reports a problem about it, I will get
+back to it."* ⇒ A player report of a paid-but-not-granted purchase (an interrupted buy that never became a
+citizen) reopens the reconciliation question. No scheduled watch remains; the suggested ~2026-10-10 hand-test
+fallback is dropped with this waiver. ⚠️ [`0379`](../../backlog/0379-re-check-real-purchase-hmac-samples-then-ask-the-owner-keep-or-drop-the-unused-construction/brief.md)
+still re-reads the profile container log for `signature verified` lines and hopes for a `(reconcile)` one — if it
+sees one, that is the first live evidence for §4. It does not reopen this task.
+
+### Close-condition tracker (from *Verification steps*) — as of 2026-10-05
+
+1. Every box checked or owner-waived — ✅ **met**: §1 and §3 complete; §2 first box, §4 (both boxes) and §5
+   **waived by the owner, not verified** (above).
+2. §1 follow-up filed — ✅ done (`0309`, `0310`; `0310` cancelled 2026-10-04, superseded by `0379`, which is filed
+   and open on the Backlog board).
+3. `0195` value-correctness recorded — ✅ done (proven by the real `/complete` 200s, 2026-09-26).
+
+⇒ Closed 2026-10-05 via `/fkit-task-done` as **`✅ Done (agent-closed — not owner-verified)`**. The remaining
+checks were **waived by the owner, not verified**.

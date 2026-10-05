@@ -8,7 +8,7 @@ Sprint 7
 
 ~~Backlog~~
 
-📌 **Moved from the Backlog board to Sprint 7 on 2026-09-29** — OWNER RULING given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0297 and the task that it depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."* **This task is "the task that it depends on"**: [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)'s open §1 item *"Determine which of the two constructions matched"* cannot be observed until this task's log line is built, deployed, and read after a real signed payload (identified by `fkit-lead`, checked against both briefs by the producer). `0310` (depends on this task) was **not** moved — `0297` does not wait on it; it stays on the [Backlog board](../../../sprints/backlog.md). *(Earlier value of this field: `Backlog`.)*
+📌 **Moved from the Backlog board to Sprint 7 on 2026-09-29** — OWNER RULING given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0297 and the task that it depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."* **This task is "the task that it depends on"**: [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)'s open §1 item *"Determine which of the two constructions matched"* cannot be observed until this task's log line is built, deployed, and read after a real signed payload (identified by `fkit-lead`, checked against both briefs by the producer). `0310` (depends on this task) was **not** moved — `0297` does not wait on it; it stays on the [Backlog board](../../../sprints/backlog.md). *(Earlier value of this field: `Backlog`.)*
 
 ## Priority
 **20** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), after that board's highest (19, `0301`). ⚠️ **The owner gave no rank** — a position, not a merit rank and not owner-ruled; placed directly above `0297` (21) because `0297` waits on it. *(Earlier value, struck:* ~~Unscheduled~~ *— Backlog board.)*
@@ -22,7 +22,7 @@ fkit-coder
 ## Context
 
 **Filed 2026-09-26 by a spawned `fkit-producer` with no owner channel (ADR-021)**, as the follow-up that
-[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 requires (*"Hand the result to
+[`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 requires (*"Hand the result to
 the producer to file a small `fkit-coder` follow-up that drops the unused construction. Filing it is part
 of this task's close condition."*). Split into two briefs: this one **finds out**, `0310` **removes**.
 
@@ -82,8 +82,8 @@ HMAC can be checked. Checked in the code 2026-09-26 (`YandexSignature.ts`, `Paym
 ## Notes
 
 - **Depends on:** nothing — can start now. (Its **result** needs one real signed payload after deploy.)
-- **Blocks:** `0310` · [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) — *added 2026-09-29 (owner ruling above, `## Sprint`):* `0297` is now `🚧 Blocked` on this task, because its §1 box *"Determine which of the two constructions matched"* stays open until this task's step 4 records the answer. ⚠️ This refines the *Related* line below: `0297`'s close condition 2 needed this follow-up only **filed** (done 2026-09-26), but its close condition 1 (every box checked or waived) needs this task's **result** — unless the owner waives that box.
-- **Related:** [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (source; its
+- **Blocks:** `0310` · [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) — *added 2026-09-29 (owner ruling above, `## Sprint`):* `0297` is now `🚧 Blocked` on this task, because its §1 box *"Determine which of the two constructions matched"* stays open until this task's step 4 records the answer. ⚠️ This refines the *Related* line below: `0297`'s close condition 2 needed this follow-up only **filed** (done 2026-09-26), but its close condition 1 (every box checked or waived) needs this task's **result** — unless the owner waives that box.
+- **Related:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (source; its
   close condition is that this follow-up is **filed**, not done), [`0195`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md)
   (secret value — settled by the two 200s), `0019` (the two-construction decision),
   [`0294`](../../backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md)

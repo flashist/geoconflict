@@ -39,7 +39,7 @@ dead-man's switch page and the Telegram arrival are the owner's. No agent has bo
 record a page or an arrival it did not see.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23),
+[`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (owner-confirmed 2026-09-23),
 [`0337`](../0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) and
 [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md).)*
 

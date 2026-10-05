@@ -85,7 +85,7 @@ real registry name, no real git tag, and no real deploy has ever happened.** Onl
 
 - **The first tagged profile deploy must be the same weekend-slot deploy that first ships `0309`'s log line**
   ([`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)).
-- **No second profile deploy before [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has
+- **No second profile deploy before [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has
   read that line.** Container logs are lost when the container is recreated, and every profile deploy recreates it.
 - **A tagging fault is fixed with a git command, never with a redeploy.** If the git tag step fails or warns, the
   deploy prints the exact `git tag -a … && git push origin refs/tags/…` line to run by hand. Redeploying to "fix" a

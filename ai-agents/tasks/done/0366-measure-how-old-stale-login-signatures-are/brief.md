@@ -63,7 +63,7 @@ a fresh `getPlayer({signed:true})` call.
 
 **Timing — the deploy constraint.** The owner's aim: ship in **Saturday's (2026-10-03/04) profile deploy** if it
 is built, reviewed and committed in time. ⚠️ **After Saturday's profile deploy, no second profile deploy may run
-until [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has read `0309`'s log line**
+until [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has read `0309`'s log line**
 from the profile container (a recreate loses `docker logs` — see `0297`'s `## Status` and its Sprint 7 row). So
 this task **rides Saturday's deploy, or waits until after that read** — there is no mid-week profile deploy for
 it. Missing Saturday is allowed; it only delays the answer.

@@ -124,7 +124,7 @@ re-verification.
 ⛔ **Provenance.** Relayed by `fkit-lead` (ADR-021, no owner channel): the lead's **read-only** nginx and
 DB checks on the profile box, plus the owner's screenshots. The producer observed none of it. Accounts are
 named by an 8-character profile-id prefix only. Full detail:
-[`0297`'s worklog](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md).
+[`0297`'s worklog](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md).
 
 This task's flow (built and verified mocked) ran for real, in production build 0.0.154:
 - **Real player purchase** (account `2de1ba8c`): `/v1/payments/yandex/complete` → **200**, 13:52:34 UTC.
@@ -141,7 +141,7 @@ This task's flow (built and verified mocked) ran for real, in production build 0
 ### What closing this task does NOT waive
 
 ⛔ The remaining live-proof items belong to
-[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) and **stay tracked there**:
+[`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) and **stay tracked there**:
 **§4 live reconciliation** (interrupted purchase — not run, owner decision pending), **funnel analytics**
 seen live (`UI:Tap:PurchaseCitizenship`, `Purchase:Started:Citizenship`, `Purchase:Completed:Citizenship`
 — not yet checked), and the **HMAC-construction follow-up** (filed 2026-09-26 as `0309` → `0310`).

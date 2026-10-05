@@ -148,7 +148,7 @@ step-0 table in hand:
   and [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) should plug into this task's
   mechanism rather than each inventing their own; if either ships first, it adds its own listener and
   this task folds it in.
-- **Related, linked not merged:** [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
+- **Related, linked not merged:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   (first real purchase — will show the live behaviour),
   [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (explainer popup; its buy
   button must update too), [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md),

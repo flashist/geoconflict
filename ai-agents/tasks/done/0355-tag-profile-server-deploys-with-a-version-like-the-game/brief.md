@@ -77,7 +77,7 @@ naming scheme is decided **once**, at this task's plan step, and `0356` reuses i
 
 ### Dependencies, conflicts and hazards
 
-- 🚨 **Do not add an extra profile redeploy before [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
+- 🚨 **Do not add an extra profile redeploy before [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   §1 reads `0309`'s HMAC log line.** `docker logs` is lost when the container is recreated, and `0297` says to read
   that line **before the next profile deploy**. This task's change must **ride the regular weekend profile deploy**
   (next slot 2026-10-03/04), not cause an extra one.

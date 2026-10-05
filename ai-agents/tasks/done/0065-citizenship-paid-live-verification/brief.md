@@ -22,7 +22,7 @@ High — the go-live gate for the monetization milestone. Everything buildable w
 timing, and NO task condition remains.** 📌 **2026-09-23, owner ruling — Correction 7:** *"Launch, and
 leave the test task for the Sprint 5. The test-buy sequence will be run by me (human)"*. §6 no longer
 waits on §1–§4; §1–§5 and the `0195` value-correctness condition moved to
-[`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). 🚨 **Accepted,
+[`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). 🚨 **Accepted,
 owner-ruled tradeoff: paid citizenship goes live to real players before any real purchase has been
 proven: HMAC construction unconfirmed, secret value unconfirmed, reconciliation unexercised. Real
 players' first purchases may be the first real test.** *(Reason text updated 2026-09-23; the marker is
@@ -278,7 +278,7 @@ chose to launch and move the testing out.**
 1. **This task is now the go-live: §6 only** — flip `CITIZENSHIP_CARD_ENABLED` to `true` plus the
    second game deploy. ✅ **The §3-vs-§6 ordering problem (runbook C1) is RESOLVED by this ruling:** §6
    no longer waits on §1–§4.
-2. **§1–§5 moved to [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)**
+2. **§1–§5 moved to [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)**
    (Sprint 5), **run by the owner by hand**, after §6 is live. They are kept below as the record, marked
    moved. `0297` flagged one step that did not move cleanly: §5 (moderation), whose premise may be moot
    since the 2026-09-19 *"no approval any more"* ruling. 📌 *Answered later on 2026-09-23 (owner ruling): §5 narrowed to "does the product ever disappear from `getCatalog()`"; the before-vs-after-moderation comparison dropped.*
@@ -426,7 +426,7 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
   container and a credit call lands end to end. Struck, not deleted.
 - 🚨 **`0195`** — [`0195-forward-yandex-payments-secret-in-profile-deploy`](../../done/0195-forward-yandex-payments-secret-in-profile-deploy/brief.md).
   📌 **2026-09-23 (owner ruling, Correction 7): NO LONGER A DEPENDENCY of this task.** Its open
-  value-correctness question moved to [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
+  value-correctness question moved to [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   §1 — **not cleared**. The text below is the record up to that ruling.
   ✅ **Shipped 2026-09-01** — closed `Done (agent-closed — not owner-verified)`, built with its own live
   verification deferred. ⚠️ **Owner ruling 2026-09-01 — do NOT read that ship as a blocker clearing.**
@@ -469,7 +469,7 @@ checklist**: running it is part of this scope, so it is not left stranded in a `
 ## What to Do
 
 > 📌 **2026-09-23 — owner ruling, Correction 7: §1–§5 below MOVED to
-> [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by the owner by
+> [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by the owner by
 > hand after §6 is live). ⛔ Their boxes are NOT this task's to check any more.** They stay here as the
 > record, marked moved, so cross-references still land. **This task's remaining scope is §6 only.**
 

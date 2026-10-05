@@ -33,7 +33,7 @@ So: **keep both HMAC constructions for now**, collect more real samples, then pu
 owner again. This task **supersedes** [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md),
 which was cancelled the same day on this ruling; 0310's code-change scope moves here (Phase C below) so it is not lost.
 
-**What is known today** (from [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md) § *2026-10-04*):
+**What is known today** (from [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md) § *2026-10-04*):
 the profile server logs one line per verified purchase — `yandex purchase signature verified (complete)` or
 `(reconcile)` — with a label `construction=base64_payload` or `construction=decoded_json` (added by
 [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md), deployed 2026-10-03).
@@ -135,7 +135,7 @@ cleaner; until then it lives here.
 - **Blocks:** nothing
 - **Supersedes:** [`0310`](../../cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md) — cancelled
   2026-10-04 on the owner ruling above; its drop scope is Phase C here.
-- **Related:** [`0297`](../0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (first sample) and §4
+- **Related:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 (first sample) and §4
   (reconcile watch — read both together),
   [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md) (the log label),
   `0325` / ADR-116 (player signatures share the check), `0019` (why both constructions were accepted).

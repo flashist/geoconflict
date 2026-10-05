@@ -18,7 +18,7 @@ fkit-coder
 ## Context
 
 **Filed 2026-09-26 by a spawned `fkit-producer` with no owner channel (ADR-021)** — the second half of the
-follow-up that [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 requires
+follow-up that [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 requires
 (*"a small `fkit-coder` follow-up that drops the unused construction"*). The first half,
 [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md), finds out which
 construction Yandex actually uses.
@@ -28,7 +28,7 @@ the decoded JSON, because the docs did not say which (`0019` decision). Once `03
 real purchases match, the other branch is dead code and should go, so the verifier states exactly what
 Yandex does.
 
-📌 **GATE RE-POINTED 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Re-point to 0297 (Recommended)"*.** `0309` closed 2026-09-30 on local proof with **NO result** — its log line is built but not deployed, so its `worklog.md` will never hold the answer. **This task's gate is now the recorded label in [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)'s `worklog.md` for §1 (box 2)**, observed via the profile container log after the profile deploy + a real purchase. ⚠️ **Starting `0310` before that label is recorded could delete the construction real purchases need and reject paid purchases.**
+📌 **GATE RE-POINTED 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Re-point to 0297 (Recommended)"*.** `0309` closed 2026-09-30 on local proof with **NO result** — its log line is built but not deployed, so its `worklog.md` will never hold the answer. **This task's gate is now the recorded label in [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)'s `worklog.md` for §1 (box 2)**, observed via the profile container log after the profile deploy + a real purchase. ⚠️ **Starting `0310` before that label is recorded could delete the construction real purchases need and reject paid purchases.**
 
 📌 **2026-10-04 — the gate's label IS NOW RECORDED** (spawned `fkit-producer`, no owner channel, ADR-021; facts relayed by `fkit-lead`). `0297`'s `worklog.md` § *2026-10-04*: `fkit-lead`'s read-only read of the profile container log found **`construction=decoded_json`**, via `/complete` (a real player's purchase, 2026-10-03). ⇒ **The construction to KEEP is `decoded_json`; the one to DROP is `base64_payload`.** ⚠️ **Same caveat as `0297`: n = 1, `/complete` route only — no `/reconcile` verification has been observed.** If `/reconcile` payloads were signed the other way, dropping `base64_payload` would reject them. Whether one sample is enough to start is an **open owner question** (recorded here, not ruled). `## Status` and schedule unchanged.
 
@@ -59,8 +59,8 @@ the purchase is not granted (reconciliation can recover it only once the fix is 
 
 ## Notes
 
-- **Depends on:** ~~`0309`~~ → [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 box 2 — the construction label recorded in `0297`'s `worklog.md` *(📌 re-pointed 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Re-point to 0297 (Recommended)"*. `0309` closed on local proof with NO result; the label arrives only after the profile deploy + a real purchase. ⚠️ Starting before it is recorded could reject paid purchases.)*
+- **Depends on:** ~~`0309`~~ → [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 box 2 — the construction label recorded in `0297`'s `worklog.md` *(📌 re-pointed 2026-09-30 — OWNER RULING given live 2026-09-30 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Re-point to 0297 (Recommended)"*. `0309` closed on local proof with NO result; the label arrives only after the profile deploy + a real purchase. ⚠️ Starting before it is recorded could reject paid purchases.)*
 - **Blocks:** nothing
-- **Related:** [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1,
+- **Related:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1,
   [`0309`](../../done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md), `0019`.
 - **No secrets in any artifact.**

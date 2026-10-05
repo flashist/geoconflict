@@ -75,7 +75,7 @@ producer observed none of it. `## Status` not changed, no mover invoked.
 ⛔ **Provenance.** Relayed by `fkit-lead` (ADR-021, no owner channel): the lead's **read-only** nginx and
 DB checks on the profile box, plus the owner's screenshots. The producer observed none of it. Accounts are
 named by an 8-character profile-id prefix only. Full detail lives in
-[`0297`'s worklog](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md) — this task does
+[`0297`'s worklog](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/worklog.md) — this task does
 not own those checks; this entry only records that the go-live carried real money successfully.
 
 - **Real player purchase** (account `2de1ba8c`): `POST /v1/payments/yandex/complete` → **200** at

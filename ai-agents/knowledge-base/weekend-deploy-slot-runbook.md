@@ -919,7 +919,7 @@ silent barrier.**
   touched and no mover skill was invoked.**
   📌 **2026-09-23 — C1's circularity RESOLVED by owner ruling** (see ***Conflicts*, C1**): step 3 and
   the rest of the test-buy sequence moved to
-  [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by
+  [`0297`](../tasks/done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5, run by
   the owner after go-live). Still **not in this window** — nothing about the window changed.
 - [ ] 🚨 **DELETE THE W0 PRE-WINDOW SNAPSHOT — BY HAND, AND *ONLY ONCE THE OWNER JUDGES THE WINDOW
       GOOD*.** ✅ **OWNER RULING 2026-09-22** (live in the `fkit lead` session via `AskUserQuestion`,
@@ -1004,7 +1004,7 @@ matters is **before `0065`'s flip** (rescope Q1 = (a)), not this window.
 | Arming `--enforce` on the parity guard | ~~`0064`'s~~ [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/brief.md)'s (split 2026-09-23), after all ten `0203` items. *"Arming this guard early correctly fails every deploy on known gaps."* |
 | `0221`'s non-root deploy user | Split out by owner ruling Q8. This window lands `PermitRootLogin prohibit-password`, not `no`. |
 | `0054` — flipping `CITIZENSHIP_CARD_ENABLED` | ✅ **RULED OUT 2026-09-22** (C1). It is a source change **plus a second game deploy** — *a decision about launching citizenship, not a verification step*, and it must not ride in on a deploy slot. |
-| `0065` **step 3** — the real test purchase | ✅ **RULED OUT 2026-09-22** (C1) — it cannot happen without the flip above. ⛔ `0065` stays `🚧 Blocked`. 📌 *2026-09-23: moved to [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3 by owner ruling (C1 addendum); still out of this window.* |
+| `0065` **step 3** — the real test purchase | ✅ **RULED OUT 2026-09-22** (C1) — it cannot happen without the flip above. ⛔ `0065` stays `🚧 Blocked`. 📌 *2026-09-23: moved to [`0297`](../tasks/done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §3 by owner ruling (C1 addendum); still out of this window.* |
 | `0220` **§8 step 3** — the rotation proof (**W8**) | ✅ **RULED OUT 2026-09-22** (C2) — filed as [`0294`](../tasks/backlog/0294-prove-a-rotated-value-overwrites-the-persisted-one-on-the-live-profile-box/brief.md). ⚠️ **`0220` closes with a recorded, deliberate gap** — say so at its close. |
 | A written **abort / rollback procedure** | ✅ **RULED OUT 2026-09-22** (G1) — *"Skip it — I know the boxes."* 🚨 **W12 therefore has zero prior production evidence AND no written way back.** |
 
@@ -1101,7 +1101,7 @@ must resolve that, not route around it.
 >
 > **OUTCOME.** `0065` is now **the go-live only** (§6: flip + second game deploy); §6 no longer waits
 > on §1–§4. `0065` §1–§5 and `0195`'s open value-correctness condition moved to
-> [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5), run
+> [`0297`](../tasks/done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5), run
 > by the owner by hand after go-live. **`RUNBOOK-A` above still stands** — the flip does **not** ride
 > this or any deploy slot. **Launch timing is the owner's call**; this runbook does not schedule it.
 >
@@ -1787,7 +1787,7 @@ relayed by `fkit-lead`; ⛔ not producer precedent.
 ### ⛔ Standing after this window
 
 **No second profile deploy and no profile box restart until
-[`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has read
+[`0297`](../tasks/done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1 has read
 [`0309`](../tasks/done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)'s log line after a
 real purchase.** This is the first profile deploy carrying `0309` (committed 2026-09-30, after the 2026-09-29 deploy)
 *(producer: `26b85c0` is an ancestor of `f712263`)*, and container logs are lost on every recreate.
@@ -1831,7 +1831,7 @@ them).
 
 Recorded by a spawned `fkit-producer` (no owner channel, ADR-021) on facts relayed by `fkit-lead`. The standing rule
 in § *⛔ Standing after this window* above (and in this file's top banner) — **no second profile deploy and no
-profile box restart until [`0297`](../tasks/backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1
+profile box restart until [`0297`](../tasks/done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) §1
 has read [`0309`](../tasks/done/0309-record-which-yandex-hmac-construction-matches-real-purchases/brief.md)'s log line
 after a real purchase** — is **MET as of 2026-10-04.** ⇒ **The profile freeze is lifted.**
 

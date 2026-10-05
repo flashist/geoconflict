@@ -446,7 +446,7 @@ record. ⚠️ Deployed nginx is **1.28.3**.
   forwarding as well; those are untouched here. **Do not report `0065` as unblocked.**~~ 📌 **Superseded
   2026-09-23:** `0014` is closed, and by owner ruling (`0065` Correction 7) `0065` is now the go-live
   only, with **no task condition** — `0195` and the test-buy sequence moved to
-  [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). This task never
+  [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). This task never
   gated `0065` and still does not; what holds `0065` now is the owner's launch timing.
 - **Open questions this task owns:** **Q4** — what is the current game-prod egress IP for
   `PROFILE_INTERNAL_ALLOW_IPS`? · 🆕 **Q9** — was `0067`'s profile-server half ever deployed, i.e. is

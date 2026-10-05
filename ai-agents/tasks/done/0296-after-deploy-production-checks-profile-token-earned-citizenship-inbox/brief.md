@@ -220,7 +220,7 @@ build with `CITIZENSHIP_CARD_ENABLED = true` is live.
   the launch decision resolves that — this task does not.~~ ✅ **RESOLVED 2026-09-23 by owner ruling
   (`0065` Correction 7):** *"Launch, and leave the test task for the Sprint 5. The test-buy sequence
   will be run by me (human)"*. `0065` is now the go-live (§6) only; its §1–§5 moved to
-  [`0297`](../../backlog/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). **Section B's
+  [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md) (Sprint 5). **Section B's
   dependency on `0065` §6 is unchanged** — it still runs after the flip, as does `0297`.
 - **No secrets in any artifact.** `PROFILE_INTERNAL_TOKEN` is a credential. It must never appear in
   this brief, the worklog, a log line, a commit, or deploy output — presence/absence and verdicts only.
