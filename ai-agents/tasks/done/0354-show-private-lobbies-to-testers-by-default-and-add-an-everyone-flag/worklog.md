@@ -16,6 +16,8 @@ approved by the owner live on 2026-10-04 via `AskUserQuestion` in the `fkit lead
   record here.
 - Why it still matters under Q2 "stop reading it": it does not change what this build shows (the old flag is no
   longer read), but `citizenship_ui` must be `enabled` for testers to see the row at all.
+- **Update 2026-10-05:** both values now given by the owner — see "2026-10-05 — Console values (Q5) — given by the
+  owner" at the end of this worklog.
 
 ### What changed
 
@@ -115,3 +117,16 @@ owner-approved `plan.md`. Ledger: [review.md](./review.md) — one finding, R1. 
   flake (CLAUDE.md), not certain. **Re-ran:** the suite alone 51/51 passed; full `npm test` run 2 **188/188 suites,
   3467/3467 tests**, exit 0.
 - `git diff --stat src/server/`: empty.
+
+## 2026-10-05 — Console values (Q5) — given by the owner
+
+**Provenance.** Owner's own typed message in the `fkit lead` session, 2026-10-05, relayed to a spawned
+`fkit-producer`, which recorded it here. The values are owner-stated; nobody checked the console itself.
+
+Owner, verbatim: *"private_lobbies - has never been set up, citizenship_ui - enabled"*
+
+- `private_lobbies`: **never set** in the Yandex Games console. So the old flag had no effect in production, and the
+  run-sheet's **Cleanup** step ("Delete the old `private_lobbies` flag from the console") has **nothing to delete**.
+- `citizenship_ui`: **`enabled`**. So once `0354` is deployed, **testers** (the `geoconflict_tester` marker set) see
+  the private-lobby row, and non-testers do not, because `private_lobbies_all` is unset.
+- This closes Step 0's "needed before deploy" item for Q5. `## Status` is unchanged.
