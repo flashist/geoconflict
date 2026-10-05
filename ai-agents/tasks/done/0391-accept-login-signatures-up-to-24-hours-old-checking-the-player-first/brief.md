@@ -22,7 +22,7 @@ Sprint 7
 > append rank 36 and is read as "worked before `0340`" — read this one the same way, whatever the number says.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -41,7 +41,7 @@ fkit-coder
   player switches Yandex accounts.
 
 Other rulings the same day: the S2-exit "good enough" threshold is **"At most 5% (Recommended)"** — stale share on
-the server, over 7 days after this fix ships (checked by [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md));
+the server, over 7 days after this fix ships (checked by [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md));
 placement **"Fix: Sprint 7, check: Sprint 8 (Recommended)"**.
 
 **The problem, in plain terms.** About 1 login in 3 (≈34% on the server, 3–5 Oct) fails the freshness part of the
@@ -61,7 +61,7 @@ works up to ~48 h*) is closeout of that ADR, not a new defect, if a reviewer rai
 
 **Still shadow mode.** This task changes only how logins are *classified and counted*. Every session stays
 `vfy:false`; login never refuses because of the signature (ADR-116's fail-open rule). Minting `vfy:true` is
-[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on this fix, its re-check `0392`, and a
+[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on this fix, its re-check `0392`, and a
 separate owner approval to enforce.
 
 ### ⚠️ Not purely server-only — flagged, not decided
@@ -113,7 +113,7 @@ The coder's plan may re-ground line numbers (they are from 2026-10-05) but not w
 ### Out of scope
 - Minting `vfy:true` (`0340`). Any route reading `verified` (`0250` S3b, `0319`, `0332`, `0323`).
 - Any player-facing message for notes over 24 h old — that is the watch task
-  [`0393`](../0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md),
+  [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md),
   and the owner ruled **no forced popup**.
 - Storing the session token across reloads (fix (b) in `0373`) — not chosen.
 
@@ -144,7 +144,7 @@ The coder's plan may re-ground line numbers (they are from 2026-10-05) but not w
 9. Deploy recorded in the worklog (date, first post-deploy UTC time, rollback note).
 10. No secret, key, real player id, signature, token, host or IP in any artifact; fixtures use synthetic keys.
 
-**This task's production proof is [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md)**
+**This task's production proof is [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md)**
 (the owner's build/verify rule, 2026-09-29): this task closes when built, reviewed and deployed; the 7-day share is
 read there.
 
@@ -153,9 +153,9 @@ read there.
 - **Depends on:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — the owner's choice
   of fix and threshold). The design record, [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md),
   is already accepted (2026-10-05).
-- **Blocks:** [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (the S2-exit
-  re-check) → [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md). Also feeds
-  [`0393`](../0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md)
+- **Blocks:** [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (the S2-exit
+  re-check) → [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md). Also feeds
+  [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md)
   (the watch task starts after this ships).
 - **Expected stale share after the fix: ~2.5%** — only `past_over_24h` stays stale: 417 of ~16.6K server logins,
   3 Oct 10:04Z → 5 Oct ~14:00Z (`0373` worklog). Threshold: **≤5%**. `id_mismatch` was 6 of ~16.6K (~0.04%), so moving
@@ -164,7 +164,7 @@ read there.
   over 24 h stay stale — that residue is the ~2.5% and the subject of `0393`.
 - **Related:** [ADR-116](../../../knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)
   (superseded in part by ADR-121), `0366` (the brackets), `0372` (the client diagnostics),
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (its *Freshness window* bullet is answered by this
+  [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (its *Freshness window* bullet is answered by this
   task).
 - **Effort:** ~1 day server (the owner's option text); the client part, if included, is extra. Estimates, not
   measurements.

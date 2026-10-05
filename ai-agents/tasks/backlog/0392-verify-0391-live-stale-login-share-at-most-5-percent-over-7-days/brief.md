@@ -49,7 +49,7 @@ Verbatim:
 - Placement: **"Fix: Sprint 7, check: Sprint 8 (Recommended)"** — this is the check: the 7-day S2-exit re-check after
   deploy, at the top of Sprint 8 per the 2026-09-29 build/verify rule.
 
-**What this verifies.** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+**What this verifies.** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
 widens the login-signature freshness window from 15 min to 24 h and checks the player id before the age. `0373`
 predicts the server stale share falls from ≈34% to **~2.5%** (only notes over 24 h old stay stale). This task reads
 the real share over 7 days and compares it with the owner's threshold.
@@ -95,7 +95,7 @@ Nothing — this is a check. Same method as `0373`'s Step 1 (its worklog, *INTER
 
 ## Notes
 
-- **Depends on:** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+- **Depends on:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   (hard — committed, shipped in a profile deploy, plus 7 days of data).
 - **Blocks:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — its S2 exit; plus the owner's
   separate OK to enforce).

@@ -6,6 +6,11 @@
 //
 // The fail rule, for every outcome but `ok`: an UNVERIFIED session, never a refused
 // login. ⛔ Never log the signature (see PlayerSignature.ts).
+//
+// ADR-121 (task 0391): the id is checked BEFORE the age, so `stale` means "the right
+// player, too old" and a genuine signature for someone else is `id_mismatch`
+// whatever its age. The signed id stays inside this function: `LoginVerification`
+// has no field for it, so it cannot reach the route, a metric or a response.
 
 import { verifySignedPlayer } from "./PlayerSignature";
 import type {
@@ -31,19 +36,20 @@ export function classifyLoginSignature(
     return { outcome: "absent", verified: false };
   }
   const result = verifySignedPlayer(signature, secret, nowMs);
+  if (result.status !== "ok" && result.status !== "stale") {
+    return { outcome: result.status, verified: false };
+  }
+  // ADR-121 Decision 2: id first, then age — `stale` means "right player, too old".
+  // A genuine signature for someone else is not proof of THIS login's id.
+  if (result.platformUserId !== assertedPlatformUserId) {
+    return { outcome: "id_mismatch", verified: false };
+  }
   if (result.status === "stale") {
     return {
       outcome: "stale",
       verified: false,
       staleAgeBracket: result.ageBracket,
     };
-  }
-  if (result.status !== "ok") {
-    return { outcome: result.status, verified: false };
-  }
-  // A genuine signature for someone else is not proof of THIS login's id.
-  if (result.platformUserId !== assertedPlatformUserId) {
-    return { outcome: "id_mismatch", verified: false };
   }
   return { outcome: "ok", verified: true };
 }

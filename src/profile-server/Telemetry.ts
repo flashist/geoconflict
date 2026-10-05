@@ -91,7 +91,8 @@ export type SessionRejectedReason = "expired" | "invalid" | "absent";
 
 /**
  * What the login's signed-player-data check found (task 0325, S2 — shadow mode:
- * counted, and used for nothing else yet). Seven bounded values, in check order:
+ * counted, and used for nothing else yet). Seven bounded values, in check order
+ * (id before age since ADR-121, task 0391):
  *  - `absent`        — no signature in the body: an old client bundle, or the
  *                      client's signed call failed / hung past its 60 s safety net.
  *  - `no_secret`     — the box has no YANDEX_PAYMENTS_SECRET, so nothing can verify.
@@ -99,8 +100,10 @@ export type SessionRejectedReason = "expired" | "invalid" | "absent";
  *                      forgery — or Yandex changed its algorithm or key.
  *  - `bad_payload`   — the HMAC passed but `data.uniqueID` or `issuedAt` is missing:
  *                      the "Yandex changed the payload" signal.
- *  - `stale`         — outside the 900 s old / 300 s future window.
- *  - `id_mismatch`   — a genuine signature for a DIFFERENT id than the one asserted.
+ *  - `id_mismatch`   — a genuine signature for a DIFFERENT id than the one asserted,
+ *                      whatever its age.
+ *  - `stale`         — the right player, but outside the 86 400 s old / 300 s ahead
+ *                      window (ADR-121; was 900 s old under ADR-116).
  *  - `ok`            — would verify (S3a mints `vfy:true` for exactly these).
  */
 export type LoginVerificationOutcome =
@@ -113,28 +116,29 @@ export type LoginVerificationOutcome =
   | "ok";
 
 /**
- * How far a `stale` login signature's `issuedAt` was from now (task 0366). Eight
- * bounded values — computed from the age by fixed edges, never from player data,
- * and never the raw age. Each range is open below and closed above, so the window's
- * own limits (exactly 900 s old / 300 s ahead) are `ok` and get no bracket:
+ * How far a `stale` login signature's `issuedAt` was from now (task 0366; past side
+ * re-cut by ADR-121, task 0391). Five bounded values — computed from the age by
+ * fixed edges, never from player data, and never the raw age. Each range is open
+ * below and closed above, so the window's own limits (exactly 86 400 s old /
+ * 300 s ahead) are `ok` and get no bracket:
  *  - `future_5m_15m`   — 300 s < ahead ≤ 900 s: a small clock difference.
  *  - `future_over_15m` — ahead > 900 s: a gross error (seconds/ms mix-up, hours off).
- *  - `past_15m_20m`    — 900 s < age ≤ 1 200 s: just past the window.
- *  - `past_20m_30m`    — ≤ 1 800 s.
- *  - `past_30m_1h`     — ≤ 3 600 s.
- *  - `past_1h_6h`      — ≤ 21 600 s.
- *  - `past_6h_24h`     — ≤ 86 400 s.
- *  - `past_over_24h`   — > 86 400 s.
+ *  - `past_24h_48h`    — 86 400 s < age ≤ 172 800 s: just past the window.
+ *  - `past_48h_7d`     — ≤ 604 800 s.
+ *  - `past_over_7d`    — > 604 800 s.
+ *
+ * 0366's five past brackets under 24 h (`past_15m_20m` … `past_6h_24h`) were retired
+ * by ADR-121: inside the 24 h window they can no longer occur. The three past
+ * brackets above add up to 0366's old `past_over_24h`, so `0373`'s figure for it
+ * stays comparable with their sum — for the right player's notes only: a wrong
+ * player's note over 24 h, once counted there, is now `id_mismatch` (negligible).
  */
 export type StaleSignatureAgeBracket =
   | "future_5m_15m"
   | "future_over_15m"
-  | "past_15m_20m"
-  | "past_20m_30m"
-  | "past_30m_1h"
-  | "past_1h_6h"
-  | "past_6h_24h"
-  | "past_over_24h";
+  | "past_24h_48h"
+  | "past_48h_7d"
+  | "past_over_7d";
 
 /** 2xx…5xx. Bounded on purpose — the raw status code would be a wider label. */
 export type StatusClass = "1xx" | "2xx" | "3xx" | "4xx" | "5xx";

@@ -219,39 +219,37 @@ describe("createProfileMetrics", () => {
   });
 
   // Task 0366. A separate counter, so the `outcome` counter above stays unchanged.
-  test("stale signature age: one counter, label `bracket`, exactly the eight bounded values", async () => {
+  // Task 0391 / ADR-121: the past side is re-cut to three brackets past 24 h.
+  test("stale signature age: one counter, label `bracket`, exactly the five bounded values", async () => {
     handle = makeHandle(harness);
     const brackets: StaleSignatureAgeBracket[] = [
       "future_5m_15m",
       "future_over_15m",
-      "past_15m_20m",
-      "past_20m_30m",
-      "past_30m_1h",
-      "past_1h_6h",
-      "past_6h_24h",
-      "past_over_24h",
+      "past_24h_48h",
+      "past_48h_7d",
+      "past_over_7d",
     ];
     for (const bracket of brackets) {
       handle.metrics.loginStaleSignatureAge(bracket);
     }
-    handle.metrics.loginStaleSignatureAge("past_1h_6h");
+    handle.metrics.loginStaleSignatureAge("past_48h_7d");
 
     const collected = await harness.collect();
     const staleAge = find(
       collected,
       "geoconflict.profile.login.verification.stale_age",
     );
-    expect(staleAge.dataPoints).toHaveLength(8);
+    expect(staleAge.dataPoints).toHaveLength(5);
     expect(
       staleAge.dataPoints.map((point) => point.attributes.bracket).sort(),
     ).toEqual([...brackets].sort());
     for (const point of staleAge.dataPoints) {
       expect(Object.keys(point.attributes)).toEqual(["bracket"]);
     }
-    const pastHours = staleAge.dataPoints.find(
-      (point) => point.attributes.bracket === "past_1h_6h",
+    const pastDays = staleAge.dataPoints.find(
+      (point) => point.attributes.bracket === "past_48h_7d",
     );
-    expect(pastHours?.value).toBe(2);
+    expect(pastDays?.value).toBe(2);
   });
 
   test("no instrument carries an attribute key outside its allowlist", async () => {
@@ -260,7 +258,7 @@ describe("createProfileMetrics", () => {
     handle.metrics.playerCreated("unknown", "login");
     handle.metrics.sessionRejected("invalid");
     handle.metrics.loginVerification("bad_signature");
-    handle.metrics.loginStaleSignatureAge("past_over_24h");
+    handle.metrics.loginStaleSignatureAge("past_over_7d");
     handle.metrics.tenureClaim("below_minimum");
     handle.metrics.alertRelay("malformed", "unkeyed");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);

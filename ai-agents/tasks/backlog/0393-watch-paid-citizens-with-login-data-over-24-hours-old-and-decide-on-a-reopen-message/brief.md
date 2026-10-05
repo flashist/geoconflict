@@ -31,7 +31,7 @@ board:
 - the owner asks Yandex support whether re-opening the game gives a fresh signed note;
 - only then decide on a gentle, paid-citizen-only "reopen the game to restore perks" message. **No forced popup.**
 
-**Why it matters.** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+**Why it matters.** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
 accepts Yandex's signed player data ("the note") up to 24 h old. `0373` expects ~2.5% of logins (~50 players/day) to
 still carry an older note. Today that changes nothing a player sees. Once
 [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) enforces verified sessions and later tasks (such as
@@ -66,7 +66,7 @@ Nothing up front — three steps, in order.
 
 ## Notes
 
-- **Depends on:** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+- **Depends on:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   (hard — shipped; the >24 h case only exists in its current form after it).
 - **Blocks:** nothing. Any "reopen the game" message is filed later as its own task, if the owner decides to build one.
 - **Related:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (the decision),

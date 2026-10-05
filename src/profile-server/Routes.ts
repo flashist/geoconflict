@@ -689,6 +689,8 @@ export function createApp(
   // Task 0366: a `stale` outcome also counts its age bracket
   // (`geoconflict.profile.login.verification.stale_age`) — fixed values, never the
   // raw age, and its own try/catch so it can never cost a login.
+  // ADR-121 (task 0391): the window is 24 h old / 5 min ahead, and the id is checked
+  // before the age, so `stale` is always the asserted player's own signature.
   app.use("/v1/login", publicCors("POST"));
   app.post("/v1/login", async (req, res) => {
     // The order below is load-bearing and asserted by tests: unavailable, then

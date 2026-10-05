@@ -7,8 +7,10 @@ import {
   type SignatureAgeLabel,
 } from "../../src/client/SignatureAgeAnalytics";
 import { SIGNATURE_MAX } from "../../src/core/profile/LoginContract";
+// Task 0391 / ADR-121: the server's max-age constant is no longer imported — the
+// server's window is 24 h, while these client labels stay frozen on 0366's 900 s
+// edges. Only the future side is still shared, and checked against the server.
 import {
-  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
   LOGIN_SIGNATURE_MAX_FUTURE_SECONDS,
   staleSignatureAgeBracket,
 } from "../../src/profile-server/PlayerSignature";
@@ -184,22 +186,19 @@ describe("signatureAgeLabel", () => {
     expect(labelAt(ageMs)).toBe(expected);
   });
 
-  test("server parity: every edge ±1 ms and interior points match 0366's brackets", () => {
-    const edgesSeconds = [
-      0, 300, 900, 1_200, 1_800, 3_600, 21_600, 86_400, 1_000_000,
-    ];
+  // Task 0391 / ADR-121: narrowed to the FUTURE side. The past side is no longer
+  // shared — the server's window is 24 h with its own past brackets, while these
+  // labels keep 0366's edges (the per-edge table above pins them).
+  test("server parity (future side): every edge ±1 ms and interior points match the server's brackets", () => {
+    const edgesSeconds = [0, 300, 900, 86_400, 1_000_000];
     const ages: number[] = [];
     for (const edge of edgesSeconds) {
-      for (const sign of [1, -1]) {
-        const centre = sign * edge * S;
-        ages.push(centre - 1, centre, centre + 1, centre + 0.5 * S);
-      }
+      const centre = -edge * S;
+      ages.push(centre - 1, centre, centre + 1, centre - 0.5 * S);
     }
-    for (const ageMs of ages) {
+    for (const ageMs of ages.filter((age) => age < 0)) {
       const label = labelAt(ageMs);
-      const serverFresh =
-        ageMs <= LOGIN_SIGNATURE_MAX_AGE_SECONDS * S &&
-        -ageMs <= LOGIN_SIGNATURE_MAX_FUTURE_SECONDS * S;
+      const serverFresh = -ageMs <= LOGIN_SIGNATURE_MAX_FUTURE_SECONDS * S;
       if (serverFresh) {
         expect([ageMs, label]).toEqual([ageMs, "Fresh"]);
       } else {
@@ -215,7 +214,7 @@ describe("signatureAgeLabel", () => {
     }
   });
 
-  test("the mapping table covers all eight server brackets, one to one", () => {
+  test("the mapping table covers all eight 0366 server brackets, one to one", () => {
     const serverLabels = Object.values(SIGNATURE_AGE_TO_SERVER_BRACKET);
     expect(new Set(serverLabels).size).toBe(8);
     expect(serverLabels.sort()).toEqual(

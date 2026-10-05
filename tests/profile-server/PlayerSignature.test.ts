@@ -229,16 +229,20 @@ describe("verifySignedPlayer", () => {
     });
   });
 
-  describe("freshness: 900 s old / 300 s future, both limits inclusive", () => {
-    test("the window is the approved one", () => {
-      expect(LOGIN_SIGNATURE_MAX_AGE_SECONDS).toBe(900);
+  // Task 0391 / ADR-121: the old limit moved from 900 s (ADR-116) to 86 400 s;
+  // the future limit is unchanged.
+  describe("freshness: 86 400 s old / 300 s future, both limits inclusive", () => {
+    test("the window is the approved one (ADR-121)", () => {
+      expect(LOGIN_SIGNATURE_MAX_AGE_SECONDS).toBe(86_400);
       expect(LOGIN_SIGNATURE_MAX_FUTURE_SECONDS).toBe(300);
     });
 
     test.each<[string, number, string]>([
-      ["exactly 900 s old", NOW_SEC - 900, "ok"],
-      ["901 s old", NOW_SEC - 901, "stale"],
-      ["an old signature (1 day)", NOW_SEC - 86_400, "stale"],
+      ["901 s old (stale under ADR-116, ok now)", NOW_SEC - 901, "ok"],
+      ["23 h 59 m old", NOW_SEC - (86_400 - 60), "ok"],
+      ["exactly 86 400 s old", NOW_SEC - 86_400, "ok"],
+      ["86 401 s old", NOW_SEC - 86_401, "stale"],
+      ["3 days old", NOW_SEC - 3 * 86_400, "stale"],
       ["exactly 300 s ahead", NOW_SEC + 300, "ok"],
       ["301 s ahead", NOW_SEC + 301, "stale"],
       ["far future", NOW_SEC + 86_400, "stale"],
@@ -256,9 +260,11 @@ describe("verifySignedPlayer", () => {
   });
 
   // Task 0366: a stale result carries a fixed age bracket — and nothing else does.
+  // Task 0391 / ADR-121: the past brackets are re-cut past the 24 h edge, and a
+  // stale result also carries the signed id, so the caller can check it first.
   describe("stale age bracket", () => {
     test.each<[string, number]>([
-      ["exactly 900 s old", NOW_SEC - 900],
+      ["exactly 86 400 s old", NOW_SEC - 86_400],
       ["exactly 300 s ahead", NOW_SEC + 300],
     ])("%s → ok, with no ageBracket", (_label, issuedAt) => {
       expect(verifySignedPlayer(signed({ issuedAt }), SECRET, NOW_MS)).toEqual({
@@ -269,29 +275,39 @@ describe("verifySignedPlayer", () => {
     });
 
     test.each<[string, number, StaleSignatureAgeBracket]>([
-      ["901 s old (just past the window)", NOW_SEC - 901, "past_15m_20m"],
+      ["86 401 s old (just past the window)", NOW_SEC - 86_401, "past_24h_48h"],
       ["301 s ahead (just past the window)", NOW_SEC + 301, "future_5m_15m"],
-      ["25 min old", NOW_SEC - 25 * 60, "past_20m_30m"],
-      ["45 min old", NOW_SEC - 45 * 60, "past_30m_1h"],
-      ["3 h old", NOW_SEC - 3 * 3600, "past_1h_6h"],
-      ["12 h old", NOW_SEC - 12 * 3600, "past_6h_24h"],
-      ["30 days old", NOW_SEC - 30 * 86_400, "past_over_24h"],
+      ["36 h old", NOW_SEC - 36 * 3600, "past_24h_48h"],
+      ["3 days old", NOW_SEC - 3 * 86_400, "past_48h_7d"],
+      ["30 days old", NOW_SEC - 30 * 86_400, "past_over_7d"],
       ["10 min ahead", NOW_SEC + 10 * 60, "future_5m_15m"],
       ["1 h ahead", NOW_SEC + 3600, "future_over_15m"],
       ["a milliseconds issuedAt", NOW_MS, "future_over_15m"],
     ])("%s → %s", (_label, issuedAt, bracket) => {
       expect(verifySignedPlayer(signed({ issuedAt }), SECRET, NOW_MS)).toEqual({
         status: "stale",
+        platformUserId: UNIQUE_ID,
         ageBracket: bracket,
       });
     });
 
+    test("a stale result carries only status, the signed id and the bracket — no name or avatar", () => {
+      const result = verifySignedPlayer(
+        signed({ issuedAt: NOW_SEC - 3 * 86_400 }),
+        SECRET,
+        NOW_MS,
+      );
+      expect(Object.keys(result).sort()).toEqual(
+        ["ageBracket", "platformUserId", "status"].sort(),
+      );
+      const text = JSON.stringify(result);
+      expect(text).not.toContain(NAME_CANARY);
+      expect(text).not.toContain(AVATAR_CANARY);
+    });
+
     test.each<[number, StaleSignatureAgeBracket, StaleSignatureAgeBracket]>([
-      [1_200, "past_15m_20m", "past_20m_30m"],
-      [1_800, "past_20m_30m", "past_30m_1h"],
-      [3_600, "past_30m_1h", "past_1h_6h"],
-      [21_600, "past_1h_6h", "past_6h_24h"],
-      [86_400, "past_6h_24h", "past_over_24h"],
+      [172_800, "past_24h_48h", "past_48h_7d"],
+      [604_800, "past_48h_7d", "past_over_7d"],
     ])(
       "exactly %i s old → %s; 1 ms more → %s",
       (edgeSeconds, atEdge, pastEdge) => {
@@ -303,6 +319,30 @@ describe("verifySignedPlayer", () => {
     test("exactly 900 s ahead → future_5m_15m; 1 ms more → future_over_15m", () => {
       expect(staleSignatureAgeBracket(-900_000)).toBe("future_5m_15m");
       expect(staleSignatureAgeBracket(-900_001)).toBe("future_over_15m");
+    });
+
+    test("every stale age, past or future, maps to one of the five fixed values — never the age", () => {
+      const fixed: readonly StaleSignatureAgeBracket[] = [
+        "future_5m_15m",
+        "future_over_15m",
+        "past_24h_48h",
+        "past_48h_7d",
+        "past_over_7d",
+      ];
+      const seen = new Set<StaleSignatureAgeBracket>();
+      const edgesSeconds = [300, 900, 86_400, 172_800, 604_800, 31_536_000];
+      for (const edge of edgesSeconds) {
+        for (const sign of [1, -1]) {
+          for (const deltaMs of [1, 500, 60_000]) {
+            const ageMs = sign * (edge * 1000 + deltaMs);
+            const bracket = staleSignatureAgeBracket(ageMs);
+            expect(fixed).toContain(bracket);
+            expect(bracket).not.toContain(String(Math.abs(ageMs)));
+            seen.add(bracket);
+          }
+        }
+      }
+      expect([...seen].sort()).toEqual([...fixed].sort());
     });
   });
 

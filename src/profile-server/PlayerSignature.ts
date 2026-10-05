@@ -21,33 +21,36 @@
 // `algorithm` is never read or pinned (owner ruling D3): the check hardcodes
 // HMAC-SHA256 and the field cannot choose it. `requestPayload` is never read.
 //
-// ⛔ The signature is a CREDENTIAL — a captured one logs in as its owner until it
-// goes stale. Never log it, never persist it, never put it in a metric or an error
-// message. (Unlike a purchase, whose decoded payload IS stored as `rawPayload`.) The
-// public name and avatar pass through here and are dropped: never returned, stored
-// or logged (152-ФЗ).
+// ⛔ The signature is a CREDENTIAL — a captured one logs in as its owner for up to
+// 24 h after `issuedAt` (+5 min skew); see ADR-121 R1. Never log it, never persist
+// it, never put it in a metric or an error message. (Unlike a purchase, whose
+// decoded payload IS stored as `rawPayload`.) The public name and avatar pass
+// through here and are dropped: never returned, stored or logged (152-ФЗ).
 //
 // A `stale` result carries how far `issuedAt` was from now as one of a FIXED set of
-// brackets (task 0366) — never the raw age, which does not leave this module.
+// brackets (task 0366; re-cut by ADR-121, task 0391) — never the raw age, which does
+// not leave this module. It also carries the signed id (ADR-121 Decision 2), ONLY so
+// the caller can compare it with the asserted id: never logged, never a label, never
+// returned to a client.
 //
 // Never throws.
 
 import type { StaleSignatureAgeBracket } from "./Telemetry";
 import { verifyHmacEnvelope } from "./YandexSignature";
 
-/** A signature older than this (by its own `issuedAt`) is `stale`. 15 min. */
-export const LOGIN_SIGNATURE_MAX_AGE_SECONDS = 900;
+/**
+ * A signature older than this (by its own `issuedAt`) is `stale`. 24 h (ADR-121;
+ * was 900 s under ADR-116).
+ */
+export const LOGIN_SIGNATURE_MAX_AGE_SECONDS = 86_400;
 /** A signature dated further ahead than this (clock skew) is `stale`. 5 min. */
 export const LOGIN_SIGNATURE_MAX_FUTURE_SECONDS = 300;
 
-// Upper edges of the stale-age brackets (task 0366), inclusive. The lower edges
-// are the window's own limits above.
+// Upper edges of the stale-age brackets (task 0366; past side re-cut by ADR-121,
+// task 0391), inclusive. The lower edges are the window's own limits above.
 const STALE_FUTURE_SMALL_MAX_SECONDS = 900;
-const STALE_PAST_20M_SECONDS = 1_200;
-const STALE_PAST_30M_SECONDS = 1_800;
-const STALE_PAST_1H_SECONDS = 3_600;
-const STALE_PAST_6H_SECONDS = 21_600;
-const STALE_PAST_24H_SECONDS = 86_400;
+const STALE_PAST_48H_SECONDS = 172_800;
+const STALE_PAST_7D_SECONDS = 604_800;
 
 export type PlayerSignatureResult =
   | { status: "ok"; platformUserId: string; issuedAtMs: number }
@@ -57,8 +60,15 @@ export type PlayerSignatureResult =
   | { status: "bad_signature" }
   /** The HMAC passed, but the payload is not JSON, or lacks `data.uniqueID` / `issuedAt`. */
   | { status: "bad_payload" }
-  /** Outside the freshness window (too old, or too far in the future). */
-  | { status: "stale"; ageBracket: StaleSignatureAgeBracket };
+  /**
+   * Outside the freshness window (too old, or too far in the future). Carries the
+   * signed id ONLY so the caller can check it before the age (ADR-121 Decision 2).
+   */
+  | {
+      status: "stale";
+      platformUserId: string;
+      ageBracket: StaleSignatureAgeBracket;
+    };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -67,10 +77,11 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
- * Which fixed bracket a signature's age falls in (task 0366). `ageMs` is
- * `now - issuedAt`: positive is past, negative is future. Only meaningful for an
- * age OUTSIDE the freshness window — that is the only place it is called. Pure
- * number comparisons; never throws.
+ * Which fixed bracket a signature's age falls in (task 0366; past side re-cut by
+ * ADR-121, task 0391). `ageMs` is `now - issuedAt`: positive is past, negative is
+ * future. Only meaningful for an age OUTSIDE the freshness window (> 86 400 s old
+ * or > 300 s ahead) — that is the only place it is called. Pure number
+ * comparisons; never throws.
  */
 export function staleSignatureAgeBracket(
   ageMs: number,
@@ -80,22 +91,13 @@ export function staleSignatureAgeBracket(
       ? "future_5m_15m"
       : "future_over_15m";
   }
-  if (ageMs <= STALE_PAST_20M_SECONDS * 1000) {
-    return "past_15m_20m";
+  if (ageMs <= STALE_PAST_48H_SECONDS * 1000) {
+    return "past_24h_48h";
   }
-  if (ageMs <= STALE_PAST_30M_SECONDS * 1000) {
-    return "past_20m_30m";
+  if (ageMs <= STALE_PAST_7D_SECONDS * 1000) {
+    return "past_48h_7d";
   }
-  if (ageMs <= STALE_PAST_1H_SECONDS * 1000) {
-    return "past_30m_1h";
-  }
-  if (ageMs <= STALE_PAST_6H_SECONDS * 1000) {
-    return "past_1h_6h";
-  }
-  if (ageMs <= STALE_PAST_24H_SECONDS * 1000) {
-    return "past_6h_24h";
-  }
-  return "past_over_24h";
+  return "past_over_7d";
 }
 
 export function verifySignedPlayer(
@@ -136,7 +138,11 @@ export function verifySignedPlayer(
       ageMs > LOGIN_SIGNATURE_MAX_AGE_SECONDS * 1000 ||
       -ageMs > LOGIN_SIGNATURE_MAX_FUTURE_SECONDS * 1000
     ) {
-      return { status: "stale", ageBracket: staleSignatureAgeBracket(ageMs) };
+      return {
+        status: "stale",
+        platformUserId: uniqueId,
+        ageBracket: staleSignatureAgeBracket(ageMs),
+      };
     }
     return { status: "ok", platformUserId: uniqueId, issuedAtMs };
   } catch {

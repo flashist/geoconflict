@@ -491,40 +491,45 @@ it with `POST /v1/login`. The server only **counts** what it proves for now (ser
 
 ### Profile Login Signature Age Events
 
-Client diagnostics for the ~1 in 3 profile logins the server calls `stale` (task `0372`; the reading
-is task `0373`). **Analytics only: login sends exactly the signature it sent before, at the same
-moment.** Fired from `takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`; the
-pure helpers are in `src/client/SignatureAgeAnalytics.ts`.
+Client diagnostics for the ~1 in 3 profile logins the server called `stale` before task `0391`
+(task `0372`; the reading is task `0373`). Since `0391` (ADR-121, 24 h window) the server's `stale`
+share is expected to drop to ≈ 2.5 %. **Analytics only: login sends exactly the signature it sent
+before, at the same moment.** Fired from `takeYandexPlayerSignature()` in
+`src/client/flashist/FlashistFacade.ts`; the pure helpers are in `src/client/SignatureAgeAnalytics.ts`.
 
 #### A1 — `Profile:Login:SignatureAge:<BootKind>:<Label>`
 
 - **Fires once on every take that returns a signature** — the `Ready` and `Waited` paths, so the boot
   login **and every relogin**. Never on `Timeout` / `Failed`, never for a guest or with no SDK. Counting
-  relogins too keeps it comparable with the server's ~32 % `stale` share, which also counts them.
+  relogins too kept it comparable with the server's ~32 % `stale` share before the `0391` deploy, which
+  also counts them.
 - **No value.** The label is the bracket; the raw age never leaves the client.
 - **`<BootKind>`**: `AfterMatch` when this page load follows a match exit (`bootFollowsMatchExit`, the
   same flag as `Session:PlatformDegraded`, task `0328`), else `FirstBoot`.
 - **`<Label>`**: the age of the signature's own `issuedAt` against the **device clock**, bracketed with
-  **exactly the edges the server uses** (task `0366`, `src/profile-server/PlayerSignature.ts`). A test
-  sweeps every edge against the server's function, so the two cannot drift apart silently.
+  **the edges the server used under task `0366`** (900 s window). ⚠️ **Since task `0391` (ADR-121) the
+  server's window is 24 h and its past brackets are re-cut; these client labels stay frozen on `0366`'s
+  edges** so the series stay comparable over time. Only the future side (300 s limit, 900 s split) still
+  matches the server, and a test checks that side against the server's function.
 - ⚠️ **Device-clock caveat.** A wrong device clock shows up in the far `Future*` / `Past*` labels and
   can label as stale a signature the server finds fresh. Before reading anything else, check that the
-  client's non-`Fresh` share is close to the server's ~32 %.
+  client's non-`Fresh` share is close to the server's ~32 % — **for data before the `0391` deploy
+  only**; after it, the server's `stale` counts only notes over 24 h old, so the two no longer match.
 - Five colon parts — the GameAnalytics maximum (each part ≤ 64 chars), already used by
   `Profile:Login:Restart:Suppressed:InMatch`.
 
-| Client label    | Server (`0366`)   | Meaning (age = device now − `issuedAt`)                                                                                                              |
-| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Fresh`         | server `ok`       | at most 900 s old **and** at most 300 s ahead (both inclusive)                                                                                       |
-| `Future5m15m`   | `future_5m_15m`   | 300 s < ahead ≤ 900 s                                                                                                                                |
-| `FutureOver15m` | `future_over_15m` | ahead > 900 s                                                                                                                                        |
-| `Past15m20m`    | `past_15m_20m`    | 900 s < age ≤ 1 200 s                                                                                                                                |
-| `Past20m30m`    | `past_20m_30m`    | ≤ 1 800 s                                                                                                                                            |
-| `Past30m1h`     | `past_30m_1h`     | ≤ 3 600 s                                                                                                                                            |
-| `Past1h6h`      | `past_1h_6h`      | ≤ 21 600 s                                                                                                                                           |
-| `Past6h24h`     | `past_6h_24h`     | ≤ 86 400 s                                                                                                                                           |
-| `PastOver24h`   | `past_over_24h`   | > 86 400 s                                                                                                                                           |
-| `Unreadable`    | — (client-only)   | `issuedAt` could not be read: no dot, bad base64, not JSON, not an object, `issuedAt` missing or not a finite number, or longer than `SIGNATURE_MAX` |
+| Client label    | Server bracket under `0366` (retired by ADR-121 for ages < 24 h) | Meaning (age = device now − `issuedAt`)                                                                                                              |
+| --------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Fresh`         | the pre-ADR-121 15-min window, not the server's `ok`             | at most 900 s old **and** at most 300 s ahead (both inclusive)                                                                                       |
+| `Future5m15m`   | `future_5m_15m`                                                  | 300 s < ahead ≤ 900 s                                                                                                                                |
+| `FutureOver15m` | `future_over_15m`                                                | ahead > 900 s                                                                                                                                        |
+| `Past15m20m`    | `past_15m_20m`                                                   | 900 s < age ≤ 1 200 s                                                                                                                                |
+| `Past20m30m`    | `past_20m_30m`                                                   | ≤ 1 800 s                                                                                                                                            |
+| `Past30m1h`     | `past_30m_1h`                                                    | ≤ 3 600 s                                                                                                                                            |
+| `Past1h6h`      | `past_1h_6h`                                                     | ≤ 21 600 s                                                                                                                                           |
+| `Past6h24h`     | `past_6h_24h`                                                    | ≤ 86 400 s                                                                                                                                           |
+| `PastOver24h`   | `past_over_24h` (split by ADR-121 into three)                    | > 86 400 s                                                                                                                                           |
+| `Unreadable`    | — (client-only)                                                  | `issuedAt` could not be read: no dot, bad base64, not JSON, not an object, `issuedAt` missing or not a finite number, or longer than `SIGNATURE_MAX` |
 
 | Enum Key                                                  | Event String                                          |
 | --------------------------------------------------------- | ----------------------------------------------------- |

@@ -78,12 +78,20 @@ describe("classifyLoginSignature", () => {
       undefined,
     ],
     [
-      "a genuine but stale signature",
-      () => signFor(ID_A, NOW_SEC - 901),
+      "a genuine but stale signature (ADR-121: just past 24 h)",
+      () => signFor(ID_A, NOW_SEC - 86_401),
       SECRET,
       "stale",
       false,
-      "past_15m_20m",
+      "past_24h_48h",
+    ],
+    [
+      "a genuine signature for the asserted id, 23 h 59 m old (inside the 24 h window)",
+      () => signFor(ID_A, NOW_SEC - (86_400 - 60)),
+      SECRET,
+      "ok",
+      true,
+      undefined,
     ],
     [
       "a valid signature for A while the login asserts B",
@@ -109,22 +117,61 @@ describe("classifyLoginSignature", () => {
     );
   });
 
-  // Task 0366. The stale check runs BEFORE the id check, so a stale signature for
-  // someone else is `stale`, not `id_mismatch`. This pins today's order; it does
-  // not change it.
-  test("a 1-day-old signature for ANOTHER id is stale, bracket past_6h_24h", () => {
-    expect(
-      classifyLoginSignature(
-        signFor(ID_B, NOW_SEC - 86_400),
+  // Task 0391 / ADR-121 Decision 2: the id is checked BEFORE the age, so a genuine
+  // signature for someone else is `id_mismatch` whatever its age — never `stale`.
+  // (Replaces 0366's test that pinned the old age-first order.)
+  test.each<[string, number]>([
+    ["1 min old", NOW_SEC - 60],
+    ["3 days old", NOW_SEC - 3 * 86_400],
+    ["10 min ahead (future-stale)", NOW_SEC + 10 * 60],
+  ])(
+    "a genuine signature for ANOTHER id, %s → id_mismatch, no bracket",
+    (_label, issuedAt) => {
+      const result = classifyLoginSignature(
+        signFor(ID_B, issuedAt),
         ID_A,
         SECRET,
         NOW_MS,
-      ),
-    ).toEqual({
-      outcome: "stale",
-      verified: false,
-      staleAgeBracket: "past_6h_24h",
-    });
+      );
+      expect(result).toEqual({ outcome: "id_mismatch", verified: false });
+      expect(Object.keys(result)).not.toContain("staleAgeBracket");
+    },
+  );
+
+  test("the result never carries the signed id, for any outcome", () => {
+    const allowedKeys = ["outcome", "verified", "staleAgeBracket"];
+    const cases: Array<[string | undefined, string]> = [
+      [undefined, SECRET],
+      [signFor(ID_B), ""],
+      [signFor(ID_B, NOW_SEC, "wrong-key"), SECRET],
+      [signFor(undefined), SECRET],
+      [signFor(ID_B), SECRET],
+      [signFor(ID_B, NOW_SEC - 3 * 86_400), SECRET],
+      [signFor(ID_B, NOW_SEC + 10 * 60), SECRET],
+      [signFor(ID_A, NOW_SEC - 3 * 86_400), SECRET],
+      [signFor(ID_A, NOW_SEC + 10 * 60), SECRET],
+      [signFor(ID_A), SECRET],
+    ];
+    const outcomes = new Set<string>();
+    for (const [signature, secret] of cases) {
+      const result = classifyLoginSignature(signature, ID_A, secret, NOW_MS);
+      outcomes.add(result.outcome);
+      for (const key of Object.keys(result)) {
+        expect(allowedKeys).toContain(key);
+      }
+      expect(JSON.stringify(result)).not.toContain(ID_B);
+    }
+    expect([...outcomes].sort()).toEqual(
+      [
+        "absent",
+        "bad_payload",
+        "bad_signature",
+        "id_mismatch",
+        "no_secret",
+        "ok",
+        "stale",
+      ].sort(),
+    );
   });
 
   test("only a stale outcome carries a staleAgeBracket key", () => {

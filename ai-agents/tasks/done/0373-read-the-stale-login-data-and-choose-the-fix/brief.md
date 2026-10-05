@@ -228,7 +228,7 @@ Recorded by a spawned `fkit-producer` with no owner channel (ADR-021/037), on OW
 five Output items: the [worklog](worklog.md), *2026-10-05 — Step 4: owner's choice*.
 
 - **Fix:** *"24 hours (Recommended)"* →
-  [`0391`](../../backlog/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) (Sprint 7).
+  [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) (Sprint 7).
 - **Threshold:** *"At most 5% (Recommended)"* → the S2-exit re-check
   [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (Sprint 8).
 - **Watch task:** *"File it (Recommended)"* →

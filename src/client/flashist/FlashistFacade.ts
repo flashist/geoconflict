@@ -554,8 +554,9 @@ const PLATFORM_INIT_DEADLINE_MS = 5000;
 export const SIGNED_PLAYER_HANG_MS = 60_000;
 /**
  * A pre-fetched signature held longer than this (timed from when it was fetched)
- * is discarded and a fresh call made — well inside the server's 900 s freshness
- * window, so a login that could only start minutes after boot is not `stale`.
+ * is discarded and a fresh call made (ADR-116 B4). Kept after ADR-121 widened the
+ * server's freshness window from 900 s to 24 h (task 0391); no longer needed for
+ * freshness, but it still makes a login send a recently fetched signature.
  */
 export const SIGNED_PLAYER_HELD_MAX_AGE_MS = 300_000;
 const analyticEvents = flashistConstants.analyticEvents;
@@ -1913,7 +1914,8 @@ export class FlashistFacade {
         return null;
       }
       if (askedAtMs - held.fetchedAtMs > SIGNED_PLAYER_HELD_MAX_AGE_MS) {
-        // Held too long to arrive fresh at the server — fetch a new one.
+        // Held past B4's limit — fetch a new one (kept so login sends a recently
+        // fetched signature; not needed for freshness since ADR-121, task 0391).
         return await this.awaitSignedPlayer(
           this.fetchSignedPlayer(),
           askedAtMs,

@@ -58,17 +58,17 @@ const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
 const PLATFORM_USER_ID = "zz0325-login-synthetic";
 const OTHER_PLATFORM_USER_ID = "zz0325-someone-else";
 
-/** Task 0366: the only values the stale-age label may ever take. */
+/** Task 0366, re-cut by ADR-121 (task 0391): the only values the stale-age label may ever take. */
 const STALE_AGE_BRACKETS: readonly StaleSignatureAgeBracket[] = [
   "future_5m_15m",
   "future_over_15m",
-  "past_15m_20m",
-  "past_20m_30m",
-  "past_30m_1h",
-  "past_1h_6h",
-  "past_6h_24h",
-  "past_over_24h",
+  "past_24h_48h",
+  "past_48h_7d",
+  "past_over_7d",
 ];
+
+/** Task 0391: well past the 24 h window, and hours from any bracket edge. */
+const THREE_DAYS_SEC = 3 * 86_400;
 
 function fullProfile(): PlayerProfile {
   return {
@@ -191,7 +191,7 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
       () => ({
         signature: signFor(
           PLATFORM_USER_ID,
-          Math.floor(Date.now() / 1000) - 3600,
+          Math.floor(Date.now() / 1000) - THREE_DAYS_SEC,
         ),
       }),
       "stale",
@@ -199,6 +199,17 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     [
       "a valid signature for someone else",
       () => ({ signature: signFor(OTHER_PLATFORM_USER_ID) }),
+      "id_mismatch",
+    ],
+    [
+      // Task 0391 / ADR-121: id first — an old note for someone else is NOT stale.
+      "a 3-day-old valid signature for someone else",
+      () => ({
+        signature: signFor(
+          OTHER_PLATFORM_USER_ID,
+          Math.floor(Date.now() / 1000) - THREE_DAYS_SEC,
+        ),
+      }),
       "id_mismatch",
     ],
     ["no signature", () => ({}), "absent"],
@@ -230,10 +241,8 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
 
       expect(verifications).toEqual([expectedOutcome]);
       // Task 0366: a bracket exactly once on the stale row, never on any other.
-      // (This row sits on the 1 h edge, so which side of it is not asserted here.)
       if (expectedOutcome === "stale") {
-        expect(staleAges).toHaveLength(1);
-        expect(STALE_AGE_BRACKETS).toContain(staleAges[0]);
+        expect(staleAges).toEqual(["past_48h_7d"]);
       } else {
         expect(staleAges).toEqual([]);
       }
@@ -275,9 +284,11 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
   });
 
   // Task 0366. Ages well away from any edge, so the gap between the test reading
-  // the clock and the server reading it cannot move the bracket.
+  // the clock and the server reading it cannot move the bracket. (Task 0391: the
+  // past rows are hours from the 24 h / 48 h / 7 d edges.)
   test.each<[string, number, StaleSignatureAgeBracket]>([
-    ["45 min old", -45 * 60, "past_30m_1h"],
+    ["30 h old", -30 * 3600, "past_24h_48h"],
+    ["3 days old", -THREE_DAYS_SEC, "past_48h_7d"],
     ["10 min ahead", 10 * 60, "future_5m_15m"],
   ])(
     "a stale signature %s → its bracket recorded once",
@@ -316,7 +327,7 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
         ...BASE,
         signature: signFor(
           PLATFORM_USER_ID,
-          Math.floor(Date.now() / 1000) - 45 * 60,
+          Math.floor(Date.now() / 1000) - THREE_DAYS_SEC,
         ),
       });
 
@@ -375,44 +386,61 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
   });
 
   test("no leak: the signature never reaches a log line or any repository call", async () => {
+    const nowSec = () => Math.floor(Date.now() / 1000);
     const signature = signFor(PLATFORM_USER_ID);
-    const [macPart, payloadPart] = signature.split(".");
     // Task 0366: a stale one too, so the stale-age path is covered.
-    const staleSignature = signFor(
-      PLATFORM_USER_ID,
-      Math.floor(Date.now() / 1000) - 45 * 60,
+    const staleSignature = signFor(PLATFORM_USER_ID, nowSec() - THREE_DAYS_SEC);
+    // Task 0391 / ADR-121: a stale result now carries the SIGNED id inside the
+    // server. For the right player it equals the asserted id (which legitimately
+    // reaches the repository), so notes signed for SOMEONE ELSE are the real leak
+    // check: their id must never surface anywhere.
+    const otherFreshSignature = signFor(OTHER_PLATFORM_USER_ID);
+    const otherStaleSignature = signFor(
+      OTHER_PLATFORM_USER_ID,
+      nowSec() - THREE_DAYS_SEC,
     );
-    const [staleMacPart, stalePayloadPart] = staleSignature.split(".");
-    // A repository failure forces the one log line this path writes.
-    const failing = mockRepo({
-      resolveOrCreatePlayer: jest
-        .fn()
-        .mockRejectedValue(new Error("synthetic db failure")),
-    });
-    const ok = mockRepo();
-    const failingStale = mockRepo({
-      resolveOrCreatePlayer: jest
-        .fn()
-        .mockRejectedValue(new Error("synthetic db failure")),
-    });
-    const okStale = mockRepo();
-    const { metrics, staleAges } = recordingMetrics();
-    const failed = await request(appWith(failing, metrics))
-      .post("/v1/login")
-      .send({ ...BASE, signature });
-    expect(failed.status).toBe(500);
-    await request(appWith(ok, metrics))
-      .post("/v1/login")
-      .send({ ...BASE, signature });
-    const failedStale = await request(appWith(failingStale, metrics))
-      .post("/v1/login")
-      .send({ ...BASE, signature: staleSignature });
-    expect(failedStale.status).toBe(500);
-    await request(appWith(okStale, metrics))
-      .post("/v1/login")
-      .send({ ...BASE, signature: staleSignature });
+    const signatures = [
+      signature,
+      staleSignature,
+      otherFreshSignature,
+      otherStaleSignature,
+    ];
 
+    const { metrics, verifications, staleAges } = recordingMetrics();
+    const repos: ProfileRepo[] = [];
+    const bodies: unknown[] = [];
+    for (const sent of signatures) {
+      // A repository failure forces the one log line this path writes.
+      const failing = mockRepo({
+        resolveOrCreatePlayer: jest
+          .fn()
+          .mockRejectedValue(new Error("synthetic db failure")),
+      });
+      const ok = mockRepo();
+      repos.push(failing, ok);
+      const failed = await request(appWith(failing, metrics))
+        .post("/v1/login")
+        .send({ ...BASE, signature: sent });
+      expect(failed.status).toBe(500);
+      const succeeded = await request(appWith(ok, metrics))
+        .post("/v1/login")
+        .send({ ...BASE, signature: sent });
+      expect(succeeded.status).toBe(200);
+      bodies.push(failed.body, succeeded.body);
+    }
+
+    expect(verifications).toEqual([
+      "ok",
+      "ok",
+      "stale",
+      "stale",
+      "id_mismatch",
+      "id_mismatch",
+      "id_mismatch",
+      "id_mismatch",
+    ]);
     // Every recorded bracket is one of the fixed values — nothing from the request.
+    // Only the right player's stale note records one (id first, ADR-121).
     expect(staleAges).toHaveLength(2);
     for (const bracket of staleAges) {
       expect(STALE_AGE_BRACKETS).toContain(bracket);
@@ -421,17 +449,20 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     expect(logLines.length).toBeGreaterThan(0); // the capture really works
     const logged = logLines.join("\n");
     const repoCalls = JSON.stringify(
-      [failing, ok, failingStale, okStale].flatMap((repo) =>
+      repos.flatMap((repo) =>
         Object.values(repo).map((fn) => (fn as jest.Mock).mock?.calls ?? []),
       ),
     );
-    for (const text of [logged, repoCalls]) {
-      expect(text).not.toContain(signature);
-      expect(text).not.toContain(macPart);
-      expect(text).not.toContain(payloadPart);
-      expect(text).not.toContain(staleSignature);
-      expect(text).not.toContain(staleMacPart);
-      expect(text).not.toContain(stalePayloadPart);
+    const metricValues = JSON.stringify([verifications, staleAges]);
+    const responses = JSON.stringify(bodies);
+    for (const text of [logged, repoCalls, metricValues, responses]) {
+      expect(text).not.toContain(OTHER_PLATFORM_USER_ID);
+      for (const sent of signatures) {
+        const [macPart, payloadPart] = sent.split(".");
+        expect(text).not.toContain(sent);
+        expect(text).not.toContain(macPart);
+        expect(text).not.toContain(payloadPart);
+      }
     }
   });
 });

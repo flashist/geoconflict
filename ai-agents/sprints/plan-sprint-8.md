@@ -65,7 +65,7 @@ coin economy, clans). The name (ruling D) is not a goal.
 >   **On merit this belongs directly below `0370`**, because the owner ruled it to the top and it has the most work
 >   waiting behind it (`0340`, then `0250` S3b, `0332`, `0323`, `0319`, `0248`, `0301`). **Owner decision:** keep 8, or
 >   rule a placement that renumbers no closed row.
-> - Depends on [`0391`](../tasks/backlog/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+> - Depends on [`0391`](../tasks/done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
 >   ([Sprint 7](plan-sprint-7.md), rank 43) shipped in a profile deploy plus 7 days of data — earliest read 17/18 Oct if
 >   it ships 10/11 Oct. **Blocks `0340`**, whose `Depends on` now names this task. **Does not block Sprint 7's deploy.**
 >

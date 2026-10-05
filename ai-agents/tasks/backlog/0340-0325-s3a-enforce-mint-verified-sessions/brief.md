@@ -162,7 +162,7 @@ deploy. This task does not close until that note is applied or the owner rules o
 ## Notes
 
 - **Depends on:** [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (hard — the
-  S2-exit re-check: server stale share ≤5% over 7 days after the fix [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+  S2-exit re-check: server stale share ≤5% over 7 days after the fix [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   ships) plus an explicit owner approval to enforce. *Repointed 2026-10-05 (see the dated note at the end), kept as
   written:* ~~[`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — read the stale-login data and
   choose the fix; then the fix and an S2-exit re-check, not yet filed) plus an explicit owner approval to enforce.~~
@@ -222,7 +222,7 @@ how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's 
 **"24 hours (Recommended)"**; good-enough threshold **"At most 5% (Recommended)"** (server stale share over 7 days after
 the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, check: Sprint 8 (Recommended)"**.
 
-- **The gate's chain is now:** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+- **The gate's chain is now:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/plan-sprint-7.md)) →
   [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (the S2-exit re-check, pass =
   ≤5% over 7 days; [Sprint 8](../../../sprints/plan-sprint-8.md)) → this task. `0373` produced the decision and stays
