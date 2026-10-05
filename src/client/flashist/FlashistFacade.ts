@@ -351,17 +351,20 @@ export const flashistConstants = {
     VK_LINK_ENABLED_VALUE: "enabled",
     CITIZENSHIP_UI_FLAG_NAME: "citizenship_ui",
     CITIZENSHIP_UI_ENABLED_VALUE: "enabled",
-    // Remote on/off switch for the private-lobby row (task 0302). Separate from
-    // citizenship_ui. It only decides whether the row is VISIBLE — the server
-    // never sees Yandex flags, so security is the server's citizens-only start
-    // check, which runs whether this is on or off.
-    PRIVATE_LOBBIES_FLAG_NAME: "private_lobbies",
-    PRIVATE_LOBBIES_ENABLED_VALUE: "enabled",
+    // Shows the private-lobby row to NON-testers (task 0354); testers see it by
+    // the tester marker below, with no flag. Starts unset: the owner sets it in
+    // the console only once the release gate in 0354's brief is met. Visibility
+    // only — the server never sees Yandex flags, so security is the server's
+    // citizens-only start check, which runs whether this is on or off. Replaces
+    // 0302's `private_lobbies` flag, which is no longer read.
+    PRIVATE_LOBBIES_ALL_FLAG_NAME: "private_lobbies_all",
+    PRIVATE_LOBBIES_ALL_ENABLED_VALUE: "enabled",
   },
 
   // Tester marker (task 0302). When this localStorage key equals "1", getFlags()
   // is sent the client feature tester=1, so a Yandex console condition can turn
   // a flag on for testers only. Not a secret and carries no id or personal data.
+  // Since task 0354 it also shows the private-lobby row directly.
   testerMarker: {
     STORAGE_KEY: "geoconflict_tester",
     STORAGE_VALUE: "1",
@@ -390,23 +393,32 @@ export const flashistConstants = {
 };
 
 /**
- * The client features to send with getFlags(), or null to call it with no
- * parameters exactly as before (task 0302). Only the tester marker is ever sent.
+ * True only when the tester marker is set to exactly "1" (tasks 0302, 0354).
  * Never throws: storage that is blocked or throws (private mode, iframe policy)
  * just means "not a tester".
+ */
+export function isTesterMarkerSet(): boolean {
+  const marker = flashistConstants.testerMarker;
+  try {
+    return localStorage.getItem(marker.STORAGE_KEY) === marker.STORAGE_VALUE;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The client features to send with getFlags(), or null to call it with no
+ * parameters exactly as before (task 0302). Only the tester marker is ever sent.
+ * Never throws (see isTesterMarkerSet).
  */
 export function readTesterClientFeatures(): Array<{
   name: string;
   value: string;
 }> | null {
-  const marker = flashistConstants.testerMarker;
-  try {
-    if (localStorage.getItem(marker.STORAGE_KEY) !== marker.STORAGE_VALUE) {
-      return null;
-    }
-  } catch {
+  if (!isTesterMarkerSet()) {
     return null;
   }
+  const marker = flashistConstants.testerMarker;
   return [
     { name: marker.CLIENT_FEATURE_NAME, value: marker.CLIENT_FEATURE_VALUE },
   ];
@@ -1458,10 +1470,10 @@ export class FlashistFacade {
     );
   }
 
-  public async isPrivateLobbiesEnabled(): Promise<boolean> {
+  public async isPrivateLobbiesForEveryoneEnabled(): Promise<boolean> {
     return this.checkExperimentFlag(
-      flashistConstants.experiments.PRIVATE_LOBBIES_FLAG_NAME,
-      flashistConstants.experiments.PRIVATE_LOBBIES_ENABLED_VALUE,
+      flashistConstants.experiments.PRIVATE_LOBBIES_ALL_FLAG_NAME,
+      flashistConstants.experiments.PRIVATE_LOBBIES_ALL_ENABLED_VALUE,
     );
   }
 
@@ -1729,6 +1741,48 @@ export class FlashistFacade {
     // yandexGamesSDK.getPlayer() (every call site requires the SDK), so this
     // check also subsumes the SDK-init-failure case (!yandexGamesSDK).
     return this.yaGamesAvailable && !this.yandexSdkPlayerObject;
+  }
+
+  /**
+   * Copies text to the clipboard (task 0380): the Yandex SDK clipboard first,
+   * then the browser's own. Resolves true if either copied, false if both
+   * failed; never throws.
+   *
+   * MUST be called from inside the user's click, with nothing awaited before
+   * it: `ysdk.clipboard.writeText` fails with "Document is not focused" outside
+   * a real click (owner's probe, 0199 worklog). The SDK call is made
+   * synchronously, before this method's first await.
+   */
+  public async copyText(text: string): Promise<boolean> {
+    const sdkWriteText = this.yandexGamesSDK?.clipboard?.writeText;
+    if (typeof sdkWriteText === "function") {
+      let sdkCopy: Promise<unknown>;
+      try {
+        // Wrapped: the SDK may return a promise or nothing.
+        sdkCopy = Promise.resolve(
+          sdkWriteText.call(this.yandexGamesSDK.clipboard, text),
+        );
+      } catch (error) {
+        sdkCopy = Promise.reject(error);
+      }
+      try {
+        await sdkCopy;
+        console.log("FlashistFacade | copyText | copied via the Yandex SDK");
+        return true;
+      } catch (error) {
+        console.warn(
+          `FlashistFacade | copyText | Yandex SDK copy failed: ${error}`,
+        );
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log("FlashistFacade | copyText | copied via navigator.clipboard");
+      return true;
+    } catch (error) {
+      console.error(`FlashistFacade | copyText | copy failed: ${error}`);
+      return false;
+    }
   }
 
   public logExperimentEvent(name: string, value: string): void {

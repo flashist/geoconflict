@@ -39,7 +39,7 @@ first"**, verbatim:
 > the citizenship popup (0301), before turning it on for everyone."*
 
 **This task is that test.** It is item 2 of the ~~five~~ six-item release gate recorded in
-[`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) (item 6,
+[`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) (item 6,
 `0199`, added 2026-10-03). The everyone-flag stays off until all ~~five~~ six pass.
 
 **Why it is needed.** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) (private lobbies as a
@@ -70,9 +70,9 @@ flags say. *(2026-10-03: but the friend must join inside Yandex Games — see be
   tester friend is fine"**. The friend is a **non-citizen tester**. Whether **a normal player can find Join** is
   **not** checked here; it is checked when the everyone-flag goes on.
 - **Known glitches that may show up — note them, do not fail the test on them alone:** the host window's early polling
-  error ([`0353`](../0353-the-host-window-polls-for-players-before-a-lobby-exists-and-throws-every-second/brief.md),
+  error ([`0353`](../../done/0353-the-host-window-polls-for-players-before-a-lobby-exists-and-throws-every-second/brief.md),
   console noise only); a closed lobby window that keeps its "joining" mark
-  ([`0374`](../0374-lobby-windows-end-their-joining-mark-on-close-not-only-when-the-request-settles/brief.md)); the
+  ([`0374`](../../done/0374-lobby-windows-end-their-joining-mark-on-close-not-only-when-the-request-settles/brief.md)); the
   close-during-join race ([`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)). If one of them breaks the
   flow, say so plainly — that is a finding, not a pass.
 - **Console state.** ✅ **Hidden is CONFIRMED — OWNER-ATTESTED 2026-10-03, not agent-verified.** Owner's words,
@@ -85,7 +85,7 @@ flags say. *(2026-10-03: but the friend must join inside Yandex Games — see be
 Nothing is built. This is a live test, run by the owner with one other person.
 
 **Preconditions:**
-1. [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) is done, committed and
+1. [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) is done, committed and
    deployed to production (weekend slot). Record the version.
 2. The everyone-flag is **unset** in the console. Record `private_lobbies`, `citizenship_ui` and the everyone-flag values.
 3. Host: a real citizen account (earned or paid), marked as a tester by `0354`'s rule. Friend: a second account,
@@ -98,9 +98,35 @@ Nothing is built. This is a live test, run by the owner with one other person.
 1. **Visibility.** Inside the Yandex Games page, the tester-citizen sees the private-lobby row with Create unlocked. A
    browser **without** the tester marker does not see the row. *(This is `0354`'s verification step 4.)*
 2. **Create.** The host opens Create inside the Yandex page. A lobby id (code) appears.
+   ✅ *(Added 2026-10-05.)* **Host-window check — this is the live check for
+   [`0353`](../../done/0353-the-host-window-polls-for-players-before-a-lobby-exists-and-throws-every-second/brief.md).**
+   With the browser DevTools console open while the lobby is being created: there must be **no repeating
+   `Uncaught (in promise)` errors** (before the fix it was one per second while the create was pending). Once the lobby
+   exists, the host window's player list fills and refreshes. Record pass or fail; a repeat of the errors is a `0353`
+   regression, not a pass. **OWNER RULING 2026-10-05**, given live via `AskUserQuestion` in the `fkit lead` session,
+   relayed by `fkit-lead`; ⛔ not producer precedent. Asked whether `0353` needs its own live check after deploy (the
+   2026-09-29 build/verify rule), the owner chose **"Covered by 0376"**: this test already opens the host window on
+   the real site, so one check line here replaces a separate verify task. *(The "known glitches" bullet in Context
+   predates the fix; for `0353`, this check now applies.)*
 3. **Join — inside Yandex Games.** The host sends the code; the friend, inside the Yandex Games page, enters it in the
    Join window and joins. *(Or, only if `0199`'s follow-up has shipped: the friend opens the fixed invite link and
    lands inside Yandex Games.)* **The current off-Yandex invite link is not used.** The host's window lists the friend.
+   ⚠️ *(Added 2026-10-04.)* **How the friend becomes a tester:** before this step, the friend runs
+   `localStorage.setItem("geoconflict_tester","1")` in the **game iframe** context (not the outer Yandex page) and
+   reloads — otherwise they do not see the Join Lobby button and cannot enter the code. **Interim limit, accepted —
+   OWNER RULING 2026-10-04**, given live via `AskUserQuestion` in the `fkit lead` session during `0380` review
+   (finding R3), relayed by `fkit-lead`; ⛔ not producer precedent. Lifted when
+   [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
+   `private_lobbies_all` console flag is turned on.
+   ✅ *(Added 2026-10-05.)* **Lobby-code check, steps 2–3 — this is the live check for
+   [`0389`](../../done/0389-make-the-private-lobby-code-easier-to-read-and-type/brief.md).**
+   (a) In step 2, the host window shows the code as **two groups, `XXXX XXXX`** — 8 characters, none of
+   `0 O 1 I L U`. (b) In this step, the friend joins by typing the code in **lowercase** (a space in the middle is
+   fine). Record pass or fail for each. **Known accepted limit, not a failure:** a hand-typed website `#join=` link
+   with a space in the code is ignored. **OWNER RULING 2026-10-05**, given live via `AskUserQuestion` in the
+   `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent. Asked how `0389`'s live check after deploy
+   should be covered (it passed a local browser check only), the owner chose **"Add to 0376"** — one check here
+   instead of a separate verify task.
 4. **Start.** The host starts the match. Both players are in the same match.
 5. **End.** Play to a normal end (a win, a loss, or a leave). Both players get the normal end-of-match screen and can
    return to the start screen.
@@ -124,7 +150,7 @@ Nothing is built. This is a live test, run by the owner with one other person.
 
 ## Notes
 
-- **Depends on:** [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) (done and deployed to production)
+- **Depends on:** [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) (done and deployed to production)
 - **Blocks:** nothing directly. 🚦 It is item 2 of the release gate in `0354` — the everyone-flag is not set until it
   passes (OWNER RULING 2026-10-03, relayed by `fkit-lead`; ⛔ not producer precedent).
 - **Not a dependency, by reading of the ruling:** `0228`, `0377` and `0301`. The ruling lists them as gate items, not

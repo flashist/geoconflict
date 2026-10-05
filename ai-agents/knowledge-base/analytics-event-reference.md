@@ -420,7 +420,7 @@ A citizen perk shown **locked** to a non-citizen (task `0302`). One event per ta
 
 | Enum Key / Id                                                   | Event String                   | When Fired                                                                                                                                                                                                                                                                                                                                          |
 | --------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LOCKED_FEATURE_TAP_FIRST_PART` + `lockedFeatureIds.privateLobby` | `LockedFeature:Tap:PrivateLobby` | Player taps the **locked** "Create Lobby" button on the Multiplayer tab. The button is locked for anything but a confirmed citizen — guest, non-citizen, profile still loading or unreadable. Fires before the "citizens only" popup opens (the popup itself does nothing while the citizenship kill switch is off). Never fires for a citizen, and never while the row is hidden (the `private_lobbies` switch off, or citizenship surfaces off) |
+| `LOCKED_FEATURE_TAP_FIRST_PART` + `lockedFeatureIds.privateLobby` | `LockedFeature:Tap:PrivateLobby` | Player taps the **locked** "Create Lobby" button on the Multiplayer tab. The button is locked for anything but a confirmed citizen — guest, non-citizen, profile still loading or unreadable. Fires before the "citizens only" popup opens (the popup itself does nothing while the citizenship kill switch is off). Never fires for a citizen, and never while the row is hidden — citizenship surfaces off (testers included, and on a degraded boot), or a non-tester while the `private_lobbies_all` flag is not `enabled` (task `0354`) |
 
 > **Convention:** `LockedFeature:Tap:{FeatureId}`. Prefix `flashistConstants.analyticEvents.LOCKED_FEATURE_TAP_FIRST_PART`; ids in
 > `flashistConstants.lockedFeatureIds` (PascalCase). Fire only through `onLockedFeatureTap(featureId)` in
@@ -693,10 +693,13 @@ The event string is built at runtime from the raw Yandex flag key and value. No 
 **Firing point:** inside `FlashistFacade.initExperimentFlags()` in `src/client/flashist/FlashistFacade.ts`, immediately after `this.yandexExperimentFlags` is populated. No manual call sites required — adding a new flag in the Yandex dashboard is sufficient.
 
 **Flags in use that gate a feature (not an A/B test):** `citizenship_ui` (citizenship kill switch, task `0236`) and
-`private_lobbies` (task `0302` — shows the private-lobby row; value `enabled` → `Experiment:private_lobbies:enabled`). The raw flag
-name carries an underscore; that is the Yandex key, not an event-naming exception. `private_lobbies` may be enabled only for
-testers via the Yandex **client feature** `tester=1`, which the page sends to `getFlags()` only when `localStorage`
-`geoconflict_tester` is `"1"` — so its cohort event can be tester-only.
+`private_lobbies_all` (task `0354` — shows the private-lobby row to non-testers; value `enabled` →
+`Experiment:private_lobbies_all:enabled`). The raw flag names carry an underscore; that is the Yandex key, not an
+event-naming exception. Testers see the row by the `localStorage` marker `geoconflict_tester` = `"1"` itself, not by any
+flag. `private_lobbies_all` is meant to be set with no condition, so once the owner sets it the cohort event fires for
+everyone. The page still sends the Yandex **client feature** `tester=1` to `getFlags()` when the marker is set, so a
+console condition on another flag can still be tester-only. 0302's old `private_lobbies` flag is no longer read (task
+`0354`); a leftover value still produces an `Experiment:private_lobbies:*` event, which now gates nothing.
 
 **Example funnels enabled by experiment events:**
 

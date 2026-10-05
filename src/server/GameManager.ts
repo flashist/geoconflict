@@ -74,6 +74,21 @@ export class GameManager {
     return game;
   }
 
+  // Task 0389: create_game refuses an id already in use instead of silently
+  // replacing that lobby. Synchronous, so nothing can slip in between the
+  // check and the create: the caller must not await between this and using
+  // the result.
+  createGameIfAbsent(
+    id: GameID,
+    gameConfig: GameConfig | undefined,
+    creatorClientID?: string,
+  ): GameServer | null {
+    if (this.games.has(id)) {
+      return null;
+    }
+    return this.createGame(id, gameConfig, creatorClientID);
+  }
+
   activeGames(): number {
     return this.games.size;
   }

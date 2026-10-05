@@ -1,7 +1,13 @@
 import { LitElement, html } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { translateText } from "../client/Utils";
-import { ClientInfo, GameInfo, GameRecordSchema } from "../core/Schemas";
+import { cleanLobbyCode } from "../core/PrivateLobbyCode";
+import {
+  ClientInfo,
+  GameInfo,
+  GameRecordSchema,
+  PrivateLobbyCodeSchema,
+} from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { renderCitizenBadge } from "./CitizenBadge";
@@ -28,6 +34,10 @@ export class JoinPrivateLobbyModal extends LitElement {
   // Task 0327: bumped by every close. A lobby check still awaiting its fetch
   // when the window closes must not go on to join with the window gone.
   private closeGeneration = 0;
+  // Task 0374: joining marks this window still holds, so a close ends them
+  // instead of leaving them to a request that may hang. A set, because the
+  // Join button stays enabled during a lookup and two lookups can overlap.
+  private joiningMarkEnds = new Set<() => void>();
 
   connectedCallback() {
     super.connectedCallback();
@@ -171,9 +181,30 @@ export class JoinPrivateLobbyModal extends LitElement {
     this.message = "";
     this.players = [];
     this.closeGeneration++;
+    // Task 0374: a closed window no longer counts as joining, even if its
+    // lookup is still running. Safe to run twice (o-modal's close() fires
+    // modal-close after a programmatic close).
+    this.endJoiningMarks();
     // Explicit, as in HostLobbyModal: the decorator transform does not reliably
     // schedule updates under the test build.
     this.requestUpdate();
+  }
+
+  // Task 0374: begin a joining mark this window can also end on close. The
+  // returned end function is one-shot, so a late settle after a close does
+  // nothing.
+  private beginJoiningMark(): () => void {
+    const end = beginJoiningLobby();
+    const endThisMark = () => {
+      this.joiningMarkEnds.delete(endThisMark);
+      end(); // already one-shot in StartScreenPresence
+    };
+    this.joiningMarkEnds.add(endThisMark);
+    return endThisMark;
+  }
+
+  private endJoiningMarks(): void {
+    for (const end of [...this.joiningMarkEnds]) end();
   }
 
   private isClosedSince(generation: number): boolean {
@@ -214,14 +245,29 @@ export class JoinPrivateLobbyModal extends LitElement {
   }
 
   private async joinLobby(): Promise<void> {
-    const lobbyId = this.lobbyIdInput.value;
+    // Task 0389: whatever was typed or pasted becomes the code — spaces and
+    // dashes dropped, any case — before the worker path is worked out from it
+    // (ADR-109: the path is a case-sensitive hash of the id).
+    const lobbyId = cleanLobbyCode(
+      this.extractLobbyIdFromUrl(this.lobbyIdInput.value.trim()),
+    );
+    if (!PrivateLobbyCodeSchema.safeParse(lobbyId).success) {
+      this.message = `${translateText("private_lobby.not_found")}`;
+      this.requestUpdate();
+      return;
+    }
+    // The player poll and the leave event read the box, so it must hold the
+    // same code that joins.
+    this.lobbyIdInput.value = lobbyId;
     const generation = this.closeGeneration;
     console.log(`Joining lobby with ID: ${lobbyId}`);
     this.message = `${translateText("private_lobby.checking")}`;
     // Task 0336: the lookup counts as joining, so a waiting tenure popup does
     // not open over this window. On success Main's join handler begins its own
     // marker as `join-lobby` is sent, before this one ends.
-    const endJoining = beginJoiningLobby();
+    // Task 0374: the mark ends when the lookup settles or when the window
+    // closes, whichever comes first.
+    const endJoining = this.beginJoiningMark();
 
     try {
       // First, check if the game exists in active lobbies

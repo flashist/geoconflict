@@ -12,7 +12,7 @@ Unscheduled
 > 📌 **Placement note.** No sprint was named, so this is on the Backlog board for now. The owner's standing
 > build/verify rule (2026-09-29) puts a verify task **at the top of the next sprint after its build ships**, and it
 > must not block the build's own sprint deploy. When
-> [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) closes, that
+> [`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) closes, that
 > placement is the producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
@@ -39,7 +39,7 @@ off-Yandex `#join=` link no longer pulls anyone into a join window on the Yandex
 
 **Precondition the producer cannot settle:** the host must be able to see the private-lobby row in production. Today
 lobbies are hidden (OWNER-ATTESTED 2026-10-03). That needs either
-[`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) deployed (testers see
+[`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) deployed (testers see
 the row by default) or the owner's own console setup for a tester. **Not declared as a dependency** because the owner
 may have the second route; say which was used.
 
@@ -59,6 +59,13 @@ the private-lobby row (record how).
 2. **Code shown.** The code is visible to the host (masked or not, per `0380`'s ruled answer to question (c)).
 3. **Code join.** A friend, inside the Yandex Games page, opens Join and enters the code (try the paste button too,
    and record whether it works). The host's window lists the friend.
+   ⚠️ *(Added 2026-10-04.)* **The friend must be a tester too.** Before this step, the friend runs
+   `localStorage.setItem("geoconflict_tester","1")` in the **game iframe** context (not the outer Yandex page) and
+   reloads — otherwise they do not see the Join Lobby button and cannot enter the code. **Interim limit, accepted —
+   OWNER RULING 2026-10-04**, given live via `AskUserQuestion` in the `fkit lead` session during `0380` review
+   (finding R3), relayed by `fkit-lead`; ⛔ not producer precedent. Lifted when
+   [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
+   `private_lobbies_all` console flag is turned on.
 4. **Old link ignored.** Open an old-form link (`…/yandex-games_iframe.html#join=<code>`) in a plain browser tab. The
    join window does **not** open.
 5. **Standalone unchanged** (if the standalone build is reachable): its invite still copies a link, and `#join=` still
@@ -78,10 +85,10 @@ the private-lobby row (record how).
 
 ## Notes
 
-- **Depends on:** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) (done and deployed to production)
+- **Depends on:** [`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) (done and deployed to production)
 - **Blocks:** nothing
 - 🚦 Bears on release-gate item 6 in
-  [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships
+  [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships
   ("Prod checks must pass too", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent).
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md),
   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)

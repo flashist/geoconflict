@@ -85,7 +85,7 @@ fkit-producer
   (owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*). So no one in
   production can create a lobby or copy today's off-Yandex invite link.
 - **Release gate.** This is item 6 of the private-lobby release gate in
-  [`0354`'s *Release gate*](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
+  [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
   the everyone-flag stays off until invite links either point at Yandex Games correctly or are removed.
 - **Not settled:** this task's rank and sprint (*"a big one"* is not a placement), and how the work splits into
   briefs. `fkit-architect` is researching the Yandex SDK side in parallel (2026-10-03); briefs are filed from its
@@ -233,7 +233,7 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 >   should we build for private-lobby invites?"*, the owner picked **"Yandex link + code"**: *"Invite button copies a
 >   proper Yandex Games link (via the SDK, works on every portal) AND the code is still shown. ~150–250 lines + the code
 >   part. Fixes the rule problem; easiest for friends."*
-> - **Filed (Backlog board, unscheduled):** [`0380`](../../backlog/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
+> - **Filed (Backlog board, unscheduled):** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
 >   (code part) → [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 >   (link part), each with an owner-run production verify task —
 >   [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
@@ -420,7 +420,7 @@ Give **one recommendation with its main tradeoff**, and state clearly what is st
   `copyToClipboard()`'s host or its `location.search` handling until this is ruled.
 - 🚦 *2026-10-03, OWNER RULING relayed by `fkit-lead`; ⛔ not producer precedent:* direction ruled (see *Context*).
   It is now **item 6 of the private-lobby release gate** in
-  [`0354`](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md): the everyone-flag
+  [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md): the everyone-flag
   is not set until this is resolved per the ruling.
 - **Related:** `0198` — the source, and the task that fixed the **path** on this same line; **built but
   not yet deployed**, riding the deploy that also carries `0062` and `0063`. Its

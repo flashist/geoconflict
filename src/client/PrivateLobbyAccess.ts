@@ -6,6 +6,7 @@ import {
   FlashistFacade,
   flashist_waitGameInitComplete,
   flashistConstants,
+  isTesterMarkerSet,
 } from "./flashist/FlashistFacade";
 import { onLockedFeatureTap } from "./LockedFeature";
 
@@ -17,18 +18,20 @@ export const HOST_LOBBY_BUTTON_ID = "host-lobby-button";
  * lobby is a citizen perk; joining one stays free for everyone (owner rulings
  * 2026-09-26 / 2026-09-27).
  *
- * - The row stays HIDDEN — exactly as it has been on Yandex since 2025 — unless
- *   BOTH the `private_lobbies` remote switch AND the citizenship surfaces are
- *   on. Either off (including a degraded boot, where flags are absent) means
- *   hidden, whatever the player's citizenship. It never falls back to
- *   "unlocked for everyone".
+ * - The row is shown only when the citizenship surfaces are on AND (the player
+ *   is a tester — the `geoconflict_tester` marker — OR the
+ *   `private_lobbies_all` remote flag is on) (task 0354). Surfaces off,
+ *   including a degraded boot where flags are absent, means hidden for
+ *   everyone, testers too (owner ruling 2026-10-04, Q3). It never falls back
+ *   to "unlocked for everyone".
  * - When shown, Create is locked for anything but a confirmed citizen: unknown,
  *   guest, non-citizen and an unreadable profile all show locked (Q2 ruling),
  *   and it unlocks live when the citizenship card publishes `citizen`.
  * - Join is never locked (Q4 ruling).
  *
- * The switch only hides the row. It secures nothing: the server refuses to
- * start a private match whose creator is not a citizen, switch on or off.
+ * The marker and the flag only hide the row. They secure nothing: the server
+ * refuses to start a private match whose creator is not a citizen, whatever
+ * they say.
  */
 export class PrivateLobbyAccess {
   private isRowVisible = false;
@@ -55,8 +58,9 @@ export class PrivateLobbyAccess {
       await flashist_waitGameInitComplete();
       const facade = FlashistFacade.instance;
       const isEnabled =
-        (await facade.isPrivateLobbiesEnabled()) &&
-        (await facade.isCitizenshipSurfacesEnabled());
+        (await facade.isCitizenshipSurfacesEnabled()) &&
+        (isTesterMarkerSet() ||
+          (await facade.isPrivateLobbiesForEveryoneEnabled()));
       if (!isEnabled) {
         return;
       }

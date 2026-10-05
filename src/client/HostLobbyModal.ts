@@ -22,12 +22,17 @@ import {
   GameInfo,
   TeamCountConfig,
 } from "../core/Schemas";
+import {
+  formatLobbyCodeForDisplay,
+  generatePrivateLobbyCode,
+} from "../core/PrivateLobbyCode";
 import { generateID } from "../core/Util";
 import { renderCitizenBadge } from "./CitizenBadge";
 import "./components/baseComponents/Modal";
 import "./components/Difficulties";
 import "./components/Maps";
 import { JoinLobbyEvent } from "./Main";
+import { inviteCopyText } from "./PrivateLobbyInvite";
 import { beginJoiningLobby } from "./StartScreenPresence";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
 import { FlashistFacade } from "./flashist/FlashistFacade";
@@ -55,6 +60,8 @@ export class HostLobbyModal extends LitElement {
   @state() private compactMap: boolean = false;
   @state() private lobbyId = "";
   @state() private copySuccess = false;
+  // Task 0380: both the Yandex SDK copy and the browser copy failed.
+  @state() private copyFailed = false;
   @state() private clients: ClientInfo[] = [];
   @state() private useRandomMap: boolean = false;
   @state() private disabledUnits: UnitType[] = [];
@@ -75,6 +82,9 @@ export class HostLobbyModal extends LitElement {
   // Task 0327: this opening has dispatched `join-lobby`, so a close the host
   // makes must leave the lobby.
   private hasJoinedLobby = false;
+  // Task 0374: joining marks this window still holds, so a close ends them
+  // instead of leaving them to a request that may hang.
+  private joiningMarkEnds = new Set<() => void>();
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Add a new timer for debouncing bot changes
@@ -164,7 +174,13 @@ export class HostLobbyModal extends LitElement {
             }
             <!-- Lobby ID (conditionally shown) -->
             <span class="lobby-id" @click=${this.copyToClipboard} style="cursor: pointer;">
-              ${this.lobbyIdVisible ? this.lobbyId : "••••••••"}
+              ${
+                this.lobbyIdVisible
+                  ? // Task 0389: `?? ""` — the create answer is not validated,
+                    // and a missing gameID must not throw in render.
+                    formatLobbyCodeForDisplay(this.lobbyId ?? "")
+                  : "••••••••"
+              }
             </span>
 
             <!-- Copy icon/success indicator -->
@@ -192,6 +208,28 @@ export class HostLobbyModal extends LitElement {
             </div>
           </button>
         </div>
+        ${
+          FlashistFacade.instance.yaGamesAvailable
+            ? html`<div
+                id="host-lobby-invite-code-hint"
+                class="text-sm text-center mt-2 opacity-80"
+              >
+                ${translateText("host_modal.invite_code_hint")}
+              </div>`
+            : ""
+        }
+        ${
+          this.copyFailed
+            ? html`<div
+                id="host-lobby-copy-failed"
+                class="text-red-400 text-sm text-center mt-2"
+              >
+                ${this.lobbyIdVisible
+                  ? translateText("host_modal.copy_failed")
+                  : translateText("host_modal.copy_failed_hidden")}
+              </div>`
+            : ""
+        }
         <div class="options-layout">
           <!-- Map Selection -->
           <div class="options-section">
@@ -625,6 +663,10 @@ export class HostLobbyModal extends LitElement {
     // Review R7: a Start left hanging in an earlier opening must not keep this
     // one's Start disabled until a page reload.
     this.isStarting = false;
+    // Task 0353 review R1: the poll waits for this opening's lobby, so an
+    // earlier opening's players would otherwise stay listed (and Start enabled)
+    // until it exists — for good, if the create fails.
+    this.clients = [];
     this.openGeneration++;
     const generation = this.openGeneration;
     this.requestUpdate();
@@ -637,7 +679,9 @@ export class HostLobbyModal extends LitElement {
     // Task 0336: creating the private lobby counts as joining one, so a waiting
     // tenure popup does not open over this window (0333's Create-tap leave wakes
     // it). Main's join-lobby handler begins its own mark before this one ends.
-    const endJoining = beginJoiningLobby();
+    // Task 0374: the mark ends when create settles or when the window closes,
+    // whichever comes first.
+    const endJoining = this.beginJoiningMark();
     const joined = createLobby(this.lobbyCreatorClientID).then((lobby) => {
       // Task 0327: the window closed (or reopened) while the lobby was being
       // created — do not join a lobby nobody is looking at.
@@ -660,7 +704,8 @@ export class HostLobbyModal extends LitElement {
     });
     // Task 0333: a failed create is already logged in createLobby(); nothing
     // else waits on this chain, so stop the rejection going unhandled.
-    // Task 0336: however create settles, this window's join mark ends.
+    // Task 0336: however create settles, this window's join mark ends (a no-op
+    // if a close already ended it, task 0374).
     joined.catch(() => {}).finally(endJoining);
     this.modalEl?.open();
     this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
@@ -696,7 +741,12 @@ export class HostLobbyModal extends LitElement {
   private reset() {
     this.hasJoinedLobby = false;
     this.openGeneration++;
+    // Task 0374: a closed window no longer counts as joining, even if its
+    // create request is still running. Safe to run twice (o-modal's close()
+    // fires modal-close after a programmatic close).
+    this.endJoiningMarks();
     this.copySuccess = false;
+    this.copyFailed = false;
     if (this.playersInterval) {
       clearInterval(this.playersInterval);
       this.playersInterval = null;
@@ -707,6 +757,23 @@ export class HostLobbyModal extends LitElement {
       this.botsUpdateTimer = null;
     }
     this.requestUpdate();
+  }
+
+  // Task 0374: begin a joining mark this window can also end on close. The
+  // returned end function is one-shot, so a late settle after a close does
+  // nothing.
+  private beginJoiningMark(): () => void {
+    const end = beginJoiningLobby();
+    const endThisMark = () => {
+      this.joiningMarkEnds.delete(endThisMark);
+      end(); // already one-shot in StartScreenPresence
+    };
+    this.joiningMarkEnds.add(endThisMark);
+    return endThisMark;
+  }
+
+  private endJoiningMarks(): void {
+    for (const end of [...this.joiningMarkEnds]) end();
   }
 
   private async handleRandomMapToggle() {
@@ -987,39 +1054,76 @@ export class HostLobbyModal extends LitElement {
     this.requestUpdate();
   }
 
+  // Task 0380: on the Yandex build this copies the bare lobby code, never a
+  // link; standalone keeps today's `#join=` link (see PrivateLobbyInvite.ts).
+  // copyText() is the first call, with nothing awaited before it: the Yandex
+  // SDK clipboard only works inside the click. Copying never changes
+  // lobbyIdVisible — a hidden code stays hidden.
   private async copyToClipboard() {
-    try {
-      //TODO: Convert id to url and copy
-      await navigator.clipboard.writeText(
-        // Flashist Adaptation: windowOrigin is correct here — the invite should keep the
-        // current document (…/yandex-games_iframe.html). No separator: a trailing "/"
-        // makes the path stop matching nginx's `\.html$` and serves index.html instead.
-        // `${location.origin}/#join=${this.lobbyId}`,
-        `${FlashistFacade.instance.windowOrigin}#join=${this.lobbyId}`,
-      );
-      this.copySuccess = true;
-      setTimeout(() => {
-        this.copySuccess = false;
-      }, 2000);
-    } catch (err) {
-      console.error(`Failed to copy text: ${err}`);
+    const facade = FlashistFacade.instance;
+    const generation = this.openGeneration;
+    const copied = await facade.copyText(
+      inviteCopyText(
+        this.lobbyId,
+        facade.yaGamesAvailable,
+        facade.windowOrigin,
+      ),
+    );
+    // Review R1: the window closed (or reopened) while the copy settled — its
+    // tick or failure line belongs to that earlier opening, not this one.
+    if (generation !== this.openGeneration) {
+      return;
     }
+    if (!copied) {
+      this.copySuccess = false;
+      this.copyFailed = true;
+      this.requestUpdate();
+      return;
+    }
+    this.copyFailed = false;
+    this.copySuccess = true;
+    this.requestUpdate();
+    setTimeout(() => {
+      if (generation !== this.openGeneration) {
+        return;
+      }
+      this.copySuccess = false;
+      this.requestUpdate();
+    }, 2000);
   }
 
   private async pollPlayers() {
-    const config = await getServerConfigFromClient();
-    fetch(`/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data: GameInfo) => {
-        console.log(`got game info response: ${JSON.stringify(data)}`);
+    // Task 0353: no lobby for this opening yet (create pending or failed, or
+    // `lobbyId` still holds an earlier opening's) — nothing to ask about.
+    if (!this.hasJoinedLobby) {
+      return;
+    }
+    const lobbyId = this.lobbyId;
+    const generation = this.openGeneration;
+    try {
+      const config = await getServerConfigFromClient();
+      const response = await fetch(
+        `/${config.workerPath(lobbyId)}/api/game/${lobbyId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const data: GameInfo = await response.json();
+      // The window closed (or reopened) while this poll was in flight.
+      if (generation !== this.openGeneration) {
+        return;
+      }
+      console.log(`got game info response: ${JSON.stringify(data)}`);
 
-        this.clients = data.clients ?? [];
-      });
+      this.clients = data.clients ?? [];
+    } catch (error) {
+      // console.warn, not console.error: OtelBrowserInit forwards every
+      // console.error to telemetry, and this can fail once a second.
+      console.warn("Failed to poll lobby players:", error);
+    }
   }
 
   private kickPlayer(clientID: string) {
@@ -1039,7 +1143,8 @@ async function createLobby(creatorClientID: string): Promise<GameInfo> {
     // Task 0333 review R1: inside the try, so a config failure is logged too
     // — open() swallows this function's rejection.
     const config = await getServerConfigFromClient();
-    const id = generateID();
+    // Task 0389: a private-lobby code, not generateID() — easy to read and type.
+    const id = generatePrivateLobbyCode();
     const response = await fetch(
       `/${config.workerPath(id)}/api/create_game/${id}?creatorClientID=${encodeURIComponent(creatorClientID)}`,
       {

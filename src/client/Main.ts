@@ -2,7 +2,7 @@ import "./OtelBrowserInit"; // Must be first — initializes OTEL error tracking
 import { translateText } from "../client/Utils";
 import { UserMeResponse } from "../core/ApiSchemas";
 import { EventBus } from "../core/EventBus";
-import { GameRecord, GameStartInfo, ID } from "../core/Schemas";
+import { GameRecord, GameStartInfo } from "../core/Schemas";
 import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
@@ -56,6 +56,7 @@ import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
 import { PrivateLobbyAccess } from "./PrivateLobbyAccess";
+import { lobbyIdFromJoinHash } from "./PrivateLobbyInvite";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { startProfileSession } from "./ProfileSession";
 import { closePreStartModals } from "./PreStartModals";
@@ -527,8 +528,8 @@ class Client {
     }
     const hostLobbyButton = document.getElementById("host-lobby-button");
     if (hostLobbyButton === null) throw new Error("Missing host-lobby-button");
-    // Task 0302: the row is hidden unless the private_lobbies switch and the
-    // citizenship surfaces are both on; Create is a citizen perk (locked for
+    // Tasks 0302/0354: the row is shown only when citizenship surfaces are on
+    // AND (tester OR private_lobbies_all); Create is a citizen perk (locked for
     // everyone else), Join stays free.
     const privateLobbyAccess = new PrivateLobbyAccess();
     void privateLobbyAccess.start();
@@ -723,8 +724,13 @@ class Client {
     }
 
     if (decodedHash.startsWith("#join=")) {
-      const lobbyId = decodedHash.substring(6); // Remove "#join="
-      if (lobbyId && ID.safeParse(lobbyId).success) {
+      // Task 0380: ignored on the Yandex build (links off the portal are not
+      // allowed there); standalone opens the join window exactly as before.
+      const lobbyId = lobbyIdFromJoinHash(
+        decodedHash,
+        FlashistFacade.instance.yaGamesAvailable,
+      );
+      if (lobbyId !== null) {
         this.joinModal.open(lobbyId);
         console.log(`joining lobby ${lobbyId}`);
       }

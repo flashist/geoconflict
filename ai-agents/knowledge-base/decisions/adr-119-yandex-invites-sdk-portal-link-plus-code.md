@@ -176,7 +176,7 @@ Both are OWNER RULINGS given live via `AskUserQuestion` in the `fkit lead` sessi
   step 5; the implementation brief is filed from it).
 - The `sdk` query-parameter trap: [`0331`](../../tasks/done/0331-keep-the-query-string-on-match-exit/brief.md),
   [`0337`](../../tasks/done/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md).
-- Flag cohort: [`0354`](../../tasks/backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
+- Flag cohort: [`0354`](../../tasks/done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
   [`0376`](../../tasks/backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md).
 - Code: `src/client/HostLobbyModal.ts` (`copyToClipboard()`), `src/client/Main.ts` (`handleHash()`),
   `src/client/flashist/FlashistFacade.ts` (`windowOrigin`, `yandexSdkInit` late recovery),

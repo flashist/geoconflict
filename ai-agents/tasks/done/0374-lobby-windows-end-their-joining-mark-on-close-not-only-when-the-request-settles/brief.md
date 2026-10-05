@@ -32,7 +32,7 @@ Sprint 7
 > The rank (41) is still the producer's, not owner-ruled.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

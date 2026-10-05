@@ -24,7 +24,7 @@ Sprint 7
 > (ADR-035). Order `0354` → `0380` → `0377` → `0353` → `0374`; open for owner confirmation.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -41,7 +41,7 @@ first"**, verbatim:
 > the citizenship popup (0301), before turning it on for everyone."*
 
 **This task is "fix the 3-hour leftover lobbies".** It is item 4 of the ~~five~~ six-item release gate recorded in
-[`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+[`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
 
 **History.** This is `0335` **case 3**. On 2026-09-30 the owner ruled *"Accept, revisit later"* — *"revisit before
 private lobbies open to all players"* ([`0335` close record](../../done/0335-investigate-four-known-lobby-close-leftovers-left-by-0327/brief.md)).

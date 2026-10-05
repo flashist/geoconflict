@@ -31,6 +31,12 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     },
   },
 }));
+// Task 0380: HostLobbyModal now imports PrivateLobbyInvite, whose ID check
+// pulls in Schemas → jose, which needs a TextEncoder jsdom lacks; nothing here
+// decodes patterns. Same stub as tests/client/JoinPrivateLobbyModalLeave.test.ts.
+jest.mock("jose", () => ({
+  base64url: { decode: jest.fn() },
+}));
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
   getServerConfigFromClient: jest
     .fn()

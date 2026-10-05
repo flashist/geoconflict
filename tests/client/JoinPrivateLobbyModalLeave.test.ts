@@ -37,6 +37,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 }));
 
 import { createCitizenshipRestartOffer } from "../../src/client/CitizenshipRestartOffer";
+import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
+import { prodConfig } from "../../src/core/configuration/ProdConfig";
 import "../../src/client/components/baseComponents/Modal";
 import { JoinPrivateLobbyModal } from "../../src/client/JoinPrivateLobbyModal";
 import {
@@ -48,7 +50,8 @@ import {
 } from "../../src/client/StartScreenPresence";
 import { exposeLitAccessors } from "./support/litAccessors";
 
-const LOBBY_ID = "LOBBY123";
+// Task 0389: the Join window only looks up private-lobby codes.
+const LOBBY_ID = "K7M4PCRX";
 
 type OModalElement = HTMLElement & {
   isModalOpen: boolean;
@@ -417,18 +420,113 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
       expect(await isSettled(waiting)).toBe(true);
     });
 
-    it("J4. ✕ during the lookup: the waiter resolves once the lookup settles", async () => {
+    // Task 0374: the count is back at exactly zero — a fresh waiter resolves
+    // at once (not stuck above zero), and one more mark still holds it (not
+    // driven below zero by a double end).
+    async function expectJoiningCountIsZero(): Promise<void> {
+      expect(await isSettled(whenOnStartScreen())).toBe(true);
+      const endProbe = beginJoiningLobby();
+      expect(await isSettled(whenOnStartScreen())).toBe(false);
+      endProbe();
+    }
+
+    // Task 0374 (R2): the mark ends at the close, not when a lookup that may
+    // hang finally settles.
+    it("J4. ✕ during the lookup: the waiter resolves at the close; a late found lookup joins nothing", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      await clickClose();
+      expect(await isSettled(waiting)).toBe(true);
+
+      answerExists[0](existsAnswer(true));
+      await flush();
+      expect(joins).toHaveLength(0);
+      await expectJoiningCountIsZero();
+    });
+
+    it("J6a. ✕ during the lookup, then not found: no join, count back at zero", async () => {
       modal.open(LOBBY_ID);
       await flush();
       const waiting = whenOnStartScreen();
 
       await clickClose();
+      expect(await isSettled(waiting)).toBe(true);
+
+      answerExists[0](existsAnswer(false));
+      await flush();
+      await render();
+      expect(joins).toHaveLength(0);
+      await expectJoiningCountIsZero();
+    });
+
+    it("J6b. ✕ during the lookup, then the lookup throws: no join, count back at zero", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+
+      await clickClose();
+      expect(await isSettled(waiting)).toBe(true);
+
+      answerExists[0]({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error("bad json");
+        },
+      });
+      await flush();
+      expect(joins).toHaveLength(0);
+      await expectJoiningCountIsZero();
+    });
+
+    it("J7. window stays open while the lookup hangs: the waiter keeps waiting", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      await flush();
       expect(await isSettled(waiting)).toBe(false);
+      expect(joins).toHaveLength(0);
+    });
+
+    it("J8. two Join taps, then ✕ while both hang: the close ends both marks", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      await render();
+      (joinButton() as HTMLElement).click();
+      await flush();
+      expect(answerExists).toHaveLength(2);
+
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+      await clickClose();
+      expect(await isSettled(waiting)).toBe(true);
+
+      answerExists[0](existsAnswer(true));
+      answerExists[1](existsAnswer(false));
+      await flush();
+      expect(joins).toHaveLength(0);
+      await expectJoiningCountIsZero();
+    });
+
+    it("J9. a programmatic close while the lookup hangs ends the mark like ✕", async () => {
+      modal.open(LOBBY_ID);
+      await flush();
+      const waiting = whenOnStartScreen();
+
+      modal.close();
+      await flush();
+      await render();
+      expect(await isSettled(waiting)).toBe(true);
 
       answerExists[0](existsAnswer(true));
       await flush();
       expect(joins).toHaveLength(0);
-      expect(await isSettled(waiting)).toBe(true);
+      await expectJoiningCountIsZero();
     });
 
     it("J5. two Join taps: waits until both lookups have ended", async () => {
@@ -447,6 +545,97 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
       answerExists[1](existsAnswer(false));
       await flush();
       expect(await isSettled(waiting)).toBe(true);
+    });
+  });
+  // Task 0389: whatever is typed or pasted is cleaned into a code (spaces and
+  // dashes dropped, any case) before the worker path is worked out from it;
+  // anything that is not a private-lobby code says "not found" and asks no
+  // server. The real prod worker hash, so a wrong-case path would differ.
+  describe("typed and pasted codes (task 0389)", () => {
+    const workerPathOf = (id: string) => prodConfig.workerPath(id);
+    const input = () =>
+      modal.querySelector("#lobbyIdInput") as HTMLInputElement;
+    const messageText = () =>
+      modal.querySelector(".message-area")!.textContent!.trim();
+
+    beforeEach(() => {
+      (getServerConfigFromClient as jest.Mock).mockResolvedValue({
+        workerPath: workerPathOf,
+      });
+    });
+
+    afterEach(() => {
+      (getServerConfigFromClient as jest.Mock).mockResolvedValue({
+        workerPath: () => "w1",
+      });
+    });
+
+    async function typeAndJoin(text: string): Promise<void> {
+      modal.open();
+      await render();
+      input().value = text;
+      input().dispatchEvent(new KeyboardEvent("keyup"));
+      (joinButton() as HTMLElement).click();
+      await flush();
+      await render();
+    }
+
+    const existsUrl = `/${workerPathOf(LOBBY_ID)}/api/game/${LOBBY_ID}/exists`;
+
+    it("the code's worker differs from the lowercase text's, so the test can tell", () => {
+      expect(workerPathOf("k7m4pcrx")).not.toBe(workerPathOf(LOBBY_ID));
+    });
+
+    it("typed in lowercase with a space: asks the code's worker, joins and leaves with the code", async () => {
+      await typeAndJoin(" k7m4 pcrx ");
+
+      expect(fetchMock.mock.calls[0][0]).toBe(existsUrl);
+      expect(input().value).toBe(LOBBY_ID);
+      expect(joins).toHaveLength(1);
+      expect(joins[0].detail.gameID).toBe(LOBBY_ID);
+
+      jest.advanceTimersByTime(1000);
+      await flush();
+      expect(fetchMock.mock.calls.map((c) => c[0])).toContain(
+        `/${workerPathOf(LOBBY_ID)}/api/game/${LOBBY_ID}`,
+      );
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      expect(leaves[0].detail).toEqual({ lobby: LOBBY_ID });
+    });
+
+    it("typed with a dash: the same code", async () => {
+      await typeAndJoin("k7m4-PCRX");
+
+      expect(fetchMock.mock.calls[0][0]).toBe(existsUrl);
+      expect(joins).toHaveLength(1);
+    });
+
+    it.each([
+      ["a #join= link", "https://example.test/index.html#join=k7m4pcrx"],
+      ["a join/ link", "https://example.test/join/K7M4PCRX"],
+    ])("pasted %s: asks the code's worker and joins", async (_label, link) => {
+      modal.open(link);
+      await flush();
+      await render();
+
+      expect(fetchMock.mock.calls[0][0]).toBe(existsUrl);
+      expect(joins).toHaveLength(1);
+      expect(joins[0].detail.gameID).toBe(LOBBY_ID);
+    });
+
+    it.each([
+      ["a mixed-case generateID() id", "AbC12345"],
+      ["garbage", "hello world"],
+      ["a Cyrillic look-alike", "К7М4РСРХ"],
+      ["7 characters", "K7M4PCR"],
+    ])("%s: not found, and no request at all", async (_label, text) => {
+      await typeAndJoin(text);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(joins).toHaveLength(0);
+      expect(messageText()).toBe("private_lobby.not_found");
     });
   });
 });

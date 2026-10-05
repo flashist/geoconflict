@@ -26,8 +26,22 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       // The real value at a non-root document, e.g. /yandex-games_iframe.html
       windowOrigin: "https://geoconflict.ru/yandex-games_iframe.html",
       showInterstitial: jest.fn().mockResolvedValue(undefined),
+      // Task 0380: delegates to navigator.clipboard so the 0198 link test below
+      // stays as it was; the 0380 suite replaces it per test.
+      copyText: jest.fn((text: string) =>
+        navigator.clipboard.writeText(text).then(
+          () => true,
+          () => false,
+        ),
+      ),
     },
   },
+}));
+// Task 0380: HostLobbyModal now imports PrivateLobbyInvite, whose ID check
+// pulls in Schemas → jose, which needs a TextEncoder jsdom lacks; nothing here
+// decodes patterns. Same stub as tests/client/JoinPrivateLobbyModalLeave.test.ts.
+jest.mock("jose", () => ({
+  base64url: { decode: jest.fn() },
 }));
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
   getServerConfigFromClient: jest
@@ -312,6 +326,9 @@ describe("HostLobbyModal start result (task 0302)", () => {
     clearInterval(
       (modal as unknown as { playersInterval: NodeJS.Timeout }).playersInterval,
     );
+    // Task 0353 review R1: open() empties the earlier opening's list; these are
+    // the new lobby's players, as its poll would fill them.
+    (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
     await modal.updateComplete;
     expect(startButton().disabled).toBe(false);
 
@@ -370,6 +387,8 @@ describe("HostLobbyModal start result (task 0302)", () => {
     clearInterval(
       (modal as unknown as { playersInterval: NodeJS.Timeout }).playersInterval,
     );
+    // Task 0353 review R1: the new lobby's players (open() empties the list).
+    (modal as unknown as { clients: unknown[] }).clients = [{}, {}];
     const fresh = startGame();
     await flush();
     expect(startButton().disabled).toBe(true);
@@ -452,5 +471,157 @@ describe("HostLobbyModal start result (task 0302)", () => {
 
       expect(timerValue()).toBeUndefined();
     });
+  });
+});
+
+// Task 0380 (ADR-119): on the Yandex build the invite copies the bare code,
+// inside the click, without revealing a hidden code; a failed copy says so.
+describe("HostLobbyModal invite copy (task 0380)", () => {
+  type FacadeMock = {
+    yaGamesAvailable?: boolean;
+    copyText: jest.Mock;
+  };
+  const facade = FlashistFacade.instance as unknown as FacadeMock;
+  const originalCopyText = facade.copyText;
+  let modal: HostLobbyModal;
+
+  const copy = () =>
+    (
+      modal as unknown as { copyToClipboard: () => Promise<void> }
+    ).copyToClipboard();
+  const copyFailedLine = () => modal.querySelector("#host-lobby-copy-failed");
+  const hintLine = () => modal.querySelector("#host-lobby-invite-code-hint");
+  const tick = () => modal.querySelector(".copy-success-icon");
+  const setVisible = (visible: boolean) => {
+    (modal as unknown as { lobbyIdVisible: boolean }).lobbyIdVisible = visible;
+    modal.requestUpdate();
+  };
+  const isVisible = () =>
+    (modal as unknown as { lobbyIdVisible: boolean }).lobbyIdVisible;
+
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    facade.yaGamesAvailable = true;
+    facade.copyText = jest.fn().mockResolvedValue(true);
+    modal = new HostLobbyModal();
+    (modal as unknown as { lobbyId: string }).lobbyId = "AbC12345";
+    document.body.appendChild(modal);
+  });
+
+  afterEach(() => {
+    delete facade.yaGamesAvailable;
+    facade.copyText = originalCopyText;
+  });
+
+  it("on Yandex copies the bare code, never a URL", async () => {
+    await copy();
+
+    expect(facade.copyText).toHaveBeenCalledWith("AbC12345");
+  });
+
+  it("calls copyText synchronously, inside the click", async () => {
+    const pending = copy();
+    // Checked before awaiting: nothing was awaited ahead of the copy.
+    expect(facade.copyText).toHaveBeenCalledTimes(1);
+    await pending;
+  });
+
+  it("on Yandex, copying a hidden code leaves it hidden", async () => {
+    setVisible(false);
+
+    await copy();
+    await modal.updateComplete;
+
+    expect(isVisible()).toBe(false);
+    expect(modal.querySelector(".lobby-id")!.textContent).not.toContain(
+      "AbC12345",
+    );
+    expect(tick()).not.toBeNull();
+  });
+
+  it("a failed copy of a hidden code points to the eye button, with no tick and no reveal", async () => {
+    facade.copyText.mockResolvedValue(false);
+    setVisible(false);
+
+    await copy();
+    await modal.updateComplete;
+
+    expect(copyFailedLine()).not.toBeNull();
+    expect(copyFailedLine()!.textContent).toContain(
+      "host_modal.copy_failed_hidden",
+    );
+    expect(tick()).toBeNull();
+    expect(isVisible()).toBe(false);
+  });
+
+  it("a failed copy of a visible code just says to copy it by hand", async () => {
+    facade.copyText.mockResolvedValue(false);
+    setVisible(true);
+
+    await copy();
+    await modal.updateComplete;
+
+    expect(copyFailedLine()!.textContent!.trim()).toBe(
+      "host_modal.copy_failed",
+    );
+  });
+
+  it("a later successful copy clears the failure line", async () => {
+    facade.copyText.mockResolvedValueOnce(false);
+    await copy();
+    await modal.updateComplete;
+    expect(copyFailedLine()).not.toBeNull();
+
+    await copy();
+    await modal.updateComplete;
+
+    expect(copyFailedLine()).toBeNull();
+    expect(tick()).not.toBeNull();
+  });
+
+  // Review R1: a copy still settling when the window closes must not put its
+  // tick or failure line on the next opening.
+  it.each([
+    ["failure line", false],
+    ["tick", true],
+  ])(
+    "a copy that settles after the window closed shows no %s",
+    async (_label, result) => {
+      let settle: (copied: boolean) => void = () => {};
+      facade.copyText.mockReturnValue(
+        new Promise<boolean>((resolve) => {
+          settle = resolve;
+        }),
+      );
+
+      const pending = copy();
+      modal.close();
+      settle(result);
+      await pending;
+      await modal.updateComplete;
+
+      expect(copyFailedLine()).toBeNull();
+      expect(tick()).toBeNull();
+    },
+  );
+
+  it("shows the code hint on Yandex only", async () => {
+    await modal.updateComplete;
+    expect(hintLine()!.textContent).toContain("host_modal.invite_code_hint");
+
+    facade.yaGamesAvailable = false;
+    modal.requestUpdate();
+    await modal.updateComplete;
+    expect(hintLine()).toBeNull();
+  });
+
+  it("on standalone still copies today's link", async () => {
+    facade.yaGamesAvailable = false;
+
+    await copy();
+
+    expect(facade.copyText).toHaveBeenCalledWith(
+      "https://geoconflict.ru/yandex-games_iframe.html#join=AbC12345",
+    );
   });
 });

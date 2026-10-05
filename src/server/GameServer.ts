@@ -59,6 +59,10 @@ export class GameServer {
 
   private maxGameDuration = 3 * 60 * 60 * 1000; // 3 hours
 
+  // Task 0377: an unstarted private lobby with no connected client for this long is
+  // ended, instead of living out the full 3 h maxGameDuration.
+  private privateLobbyIdleTimeout = 30 * 60 * 1000; // 30 minutes
+
   private disconnectedTimeout = 1 * 60 * 1000; // 60 seconds
 
   private turns: Turn[] = [];
@@ -74,6 +78,10 @@ export class GameServer {
   private endTurnIntervalID: ReturnType<typeof setInterval> | undefined;
 
   private lastPingUpdate = 0;
+
+  // Task 0377: the last moment a client was connected (creation time if none ever
+  // was). The idle clock for an unstarted private lobby counts from here.
+  private lastClientSeenAt: number;
 
   private winner: ClientSendWinnerMessage | null = null;
 
@@ -142,6 +150,7 @@ export class GameServer {
   ) {
     this.log = log_.child({ gameID: id });
     this.LobbyCreatorID = lobbyCreatorID ?? undefined;
+    this.lastClientSeenAt = createdAt;
     const aiConfig = this.config.aiPlayersConfig();
     if (this.gameConfig.gameType === GameType.Public && aiConfig.enabled) {
       this.aiLobbyIntervalID = setInterval(
@@ -298,6 +307,7 @@ export class GameServer {
 
     // Client connection accepted
     this.activeClients.push(client);
+    this.lastClientSeenAt = Date.now();
 
     if (
       existing === undefined &&
@@ -467,7 +477,14 @@ export class GameServer {
       // close arriving after that must not evict the new, live client — otherwise a
       // legitimately reconnected player drops out of activeClients and the match-end
       // credit gate denies them their XP.
+      const wasActive = this.activeClients.includes(client);
       this.activeClients = this.activeClients.filter((c) => c !== client);
+      // Task 0377: the idle clock starts from the moment a player actually left.
+      // A socket whose client was already gone (replaced by a reconnect, kicked, or
+      // dropped for missed pings) is not a player leaving, so it does not move it.
+      if (wasActive) {
+        this.lastClientSeenAt = Date.now();
+      }
     });
     client.ws.on("error", (error: Error) => {
       if ((error as any).code === "WS_ERR_UNEXPECTED_RSV_1") {
@@ -990,6 +1007,9 @@ export class GameServer {
       }
     }
     this.activeClients = alive;
+    if (this.activeClients.length > 0) {
+      this.lastClientSeenAt = now;
+    }
     if (now > this.createdAt + this.maxGameDuration) {
       this.log.warn("game past max duration", {
         gameID: this.id,
@@ -1011,6 +1031,18 @@ export class GameServer {
           return GamePhase.Active;
         }
       } else {
+        // Task 0377: end an abandoned, unstarted private lobby after a short idle
+        // time, not at the 3 h max duration. Counted from the last moment a client
+        // was connected (or from creation, if nobody ever joined).
+        const idleMs = now - this.lastClientSeenAt;
+        if (noActive && idleMs > this.privateLobbyIdleTimeout) {
+          this.log.info("private lobby ended, no client connected", {
+            gameID: this.id,
+            idleMs,
+            anyClientJoined: this.allClients.size > 0,
+          });
+          return GamePhase.Finished;
+        }
         return GamePhase.Lobby;
       }
     }

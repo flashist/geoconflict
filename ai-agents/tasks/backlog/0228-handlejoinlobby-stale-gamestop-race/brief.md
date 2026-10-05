@@ -122,7 +122,7 @@ as undetermined rather than guessing in either direction.
 >   state** (2026-09-30). 📌 *2026-10-03:* ✅ **CONFIRMED HIDDEN — OWNER-ATTESTED 2026-10-03, not
 >   agent-verified.** Owner's words, relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*.
 >   The report recommends raising this task before private lobbies open to all
->   players — see [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
+>   players — see [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md),
 >   which must not have its everyone-flag set before this case is revisited. *(Rank change is the
 >   owner's; none was ruled.)*
 
@@ -468,7 +468,7 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
    *"Investigate first. Fix only if it's shown to really happen; otherwise it drops off the gate list."*
    - **Investigate first; fix only if shown real.** If it is not shown, there is no fix, and this task
      leaves the private-lobby release gate (item 3 in
-     [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md)).
+     [`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md)).
      The ruling does not close or cancel this task; that is a separate act at the end of phase 1.
    - ⚠️ **Not settled by the ruling: what counts as "shown to really happen".** The only evidence so far
      for the `0335` case 1 path (the 2026-09-30 block above) is **reasoned from code only**: no live

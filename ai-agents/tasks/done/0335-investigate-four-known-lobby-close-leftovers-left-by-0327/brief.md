@@ -160,7 +160,7 @@ current console state** (report open question 5, not answered). Until someone ch
 "testers only today" as an assumption, not a fact.
 
 **Follow-up filed on a separate owner request the same day:** the testers-by-default + everyone-flag
-brief — see the Backlog board row for [`0354`](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+brief — see the Backlog board row for [`0354`](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
 Cases 1 and 3 must be revisited before that everyone-flag is set.
 
 **Wiki:** the report is not yet in the wiki — `fkit-wiki` should run `/fkit-wiki-ingest` on it.

@@ -19,6 +19,10 @@ import {
   Trios,
   UnitType,
 } from "./game/Game";
+import {
+  PRIVATE_LOBBY_CODE_ALPHABET,
+  PRIVATE_LOBBY_CODE_LENGTH,
+} from "./PrivateLobbyCode";
 import { PlayerStatsSchema } from "./StatsSchemas";
 import { flattenedEmojiTable } from "./Util";
 import { checkUsernameRules } from "./validations/usernameRules";
@@ -229,6 +233,16 @@ export const ID = z
   .string()
   .regex(/^[a-zA-Z0-9]+$/)
   .length(8);
+
+// Task 0389: a private-lobby code, exactly as generatePrivateLobbyCode() makes
+// it (clean typed text with cleanLobbyCode() first). Checked only where a code
+// must be a private lobby's: the Join window, the website's `#join=`, and a
+// private create_game. Every new code also passes `ID`, so the shared game-id
+// fields stay on `ID`.
+export const PrivateLobbyCodeSchema = z
+  .string()
+  .regex(new RegExp(`^[${PRIVATE_LOBBY_CODE_ALPHABET}]+$`))
+  .length(PRIVATE_LOBBY_CODE_LENGTH);
 
 export const AllPlayersStatsSchema = z.record(ID, PlayerStatsSchema);
 

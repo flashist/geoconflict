@@ -5,9 +5,11 @@ import {
   GameMode,
   GameType,
 } from "../src/core/game/Game";
+import { generatePrivateLobbyCode } from "../src/core/PrivateLobbyCode";
 import {
   ClientJoinMessageSchema,
   GameStartInfoSchema,
+  ID,
 } from "../src/core/Schemas";
 
 // A minimal join message whose other fields satisfy their schemas:
@@ -166,5 +168,28 @@ describe("ClientJoinMessageSchema username (task 0307)", () => {
     });
     expect(result.success).toBe(true);
     expect(withName("Côte d'Ivoire").success).toBe(false);
+  });
+});
+
+// Task 0389: private-lobby codes are a subset of the shared `ID`, so the join
+// message, the game start and every other game-id field take them unchanged —
+// no wider game-id schema was needed, and `ID` itself did not change.
+describe("ID and private-lobby codes (task 0389)", () => {
+  test("ID is unchanged: 8 characters of [a-zA-Z0-9]", () => {
+    expect(ID.safeParse("abcd1234").success).toBe(true);
+    expect(ID.safeParse("AbC12345").success).toBe(true);
+    expect(ID.safeParse("abcd123").success).toBe(false);
+    expect(ID.safeParse("abcd12345").success).toBe(false);
+    expect(ID.safeParse("abcd-123").success).toBe(false);
+  });
+
+  test("a join message carries a new private-lobby code as its gameID", () => {
+    const code = generatePrivateLobbyCode();
+    const result = ClientJoinMessageSchema.safeParse({
+      ...baseJoinMessage(),
+      gameID: code,
+    });
+    expect(result.success).toBe(true);
+    expect(ID.safeParse("K7M4PCRX").success).toBe(true);
   });
 });

@@ -14,6 +14,7 @@ import {
   GameID,
   ID,
   PartialGameRecordSchema,
+  PrivateLobbyCodeSchema,
   ServerErrorMessage,
 } from "../core/Schemas";
 import { generateID, replacer } from "../core/Util";
@@ -216,6 +217,18 @@ export async function startWorker() {
       return res.status(401).send("Unauthorized");
     }
 
+    // Task 0389: a public create (admin token checked just above) keeps the
+    // shared id format; anything else is a private lobby and must carry a
+    // private-lobby code.
+    const idSchema =
+      gc?.gameType === GameType.Public ? ID : PrivateLobbyCodeSchema;
+    if (!idSchema.safeParse(id).success) {
+      log.warn(
+        `cannot create game ${id}, ip ${ipAnonymize(clientIP)} invalid game id`,
+      );
+      return res.status(400).json({ error: "Invalid game ID" });
+    }
+
     // Double-check this worker should host this game
     const expectedWorkerId = config.workerIndex(id);
     if (expectedWorkerId !== workerId) {
@@ -245,8 +258,15 @@ export async function startWorker() {
       return res.status(503).json({ error: "Requester gone" });
     }
 
-    // Pass creatorClientID to createGame
-    const game = gm.createGame(id, gc, creatorClientID);
+    // Task 0389: refuse an id already in use rather than silently replacing
+    // that lobby. No await between this check and the create.
+    const game = gm.createGameIfAbsent(id, gc, creatorClientID);
+    if (game === null) {
+      log.warn(
+        `cannot create game ${id}, ip ${ipAnonymize(clientIP)} id already in use`,
+      );
+      return res.status(409).json({ error: "game_id_taken" });
+    }
 
     log.info(
       `Worker ${workerId}: IP ${ipAnonymize(clientIP)} creating ${game.isPublic() ? "Public" : "Private"}${gc?.gameMode ? ` ${gc.gameMode}` : ""} game with id ${id}${creatorClientID ? `, creator: ${creatorClientID}` : ""}`,

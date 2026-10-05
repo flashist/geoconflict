@@ -4,6 +4,7 @@
 import {
   FlashistFacade,
   flashistConstants,
+  isTesterMarkerSet,
 } from "../../src/client/flashist/FlashistFacade";
 
 // The facade constructor runs platform detection and analytics wiring, so the
@@ -445,8 +446,8 @@ describe("FlashistFacade citizenship kill switch (task 0236)", () => {
   });
 });
 
-// Task 0302: the private_lobbies switch and the tester marker.
-describe("FlashistFacade private_lobbies switch + tester marker (task 0302)", () => {
+// Tasks 0302/0354: the private_lobbies_all everyone-flag and the tester marker.
+describe("FlashistFacade private_lobbies_all flag + tester marker (tasks 0302/0354)", () => {
   const TESTER_KEY = "geoconflict_tester";
 
   function makeFlagsFacade(getFlags: jest.Mock): FlashistFacade {
@@ -534,27 +535,59 @@ describe("FlashistFacade private_lobbies switch + tester marker (task 0302)", ()
     }) as FlashistFacade;
   }
 
-  it("isPrivateLobbiesEnabled is true only for exactly private_lobbies=enabled", async () => {
-    await expect(
-      makeCheckFacade({ private_lobbies: "enabled" }).isPrivateLobbiesEnabled(),
-    ).resolves.toBe(true);
+  it('isTesterMarkerSet is true only when the marker is exactly "1"', () => {
+    expect(isTesterMarkerSet()).toBe(false);
+    localStorage.setItem(TESTER_KEY, "1");
+    expect(isTesterMarkerSet()).toBe(true);
+    localStorage.setItem(TESTER_KEY, "true");
+    expect(isTesterMarkerSet()).toBe(false);
+    localStorage.setItem(TESTER_KEY, "0");
+    expect(isTesterMarkerSet()).toBe(false);
+  });
+
+  it("isTesterMarkerSet is false (never throws) when localStorage throws", () => {
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("SecurityError");
+    });
+
+    expect(isTesterMarkerSet()).toBe(false);
+  });
+
+  it("isPrivateLobbiesForEveryoneEnabled is true only for exactly private_lobbies_all=enabled", async () => {
     await expect(
       makeCheckFacade({
-        private_lobbies: "disabled",
-      }).isPrivateLobbiesEnabled(),
+        private_lobbies_all: "enabled",
+      }).isPrivateLobbiesForEveryoneEnabled(),
+    ).resolves.toBe(true);
+    for (const value of ["", "disabled", "Enabled"]) {
+      await expect(
+        makeCheckFacade({
+          private_lobbies_all: value,
+        }).isPrivateLobbiesForEveryoneEnabled(),
+      ).resolves.toBe(false);
+    }
+    // Missing, or a different flag being on, never turns this one on.
+    await expect(
+      makeCheckFacade({}).isPrivateLobbiesForEveryoneEnabled(),
     ).resolves.toBe(false);
     await expect(
-      makeCheckFacade({ private_lobbies: "Enabled" }).isPrivateLobbiesEnabled(),
-    ).resolves.toBe(false);
-    // A different flag being on never turns this one on.
-    await expect(
-      makeCheckFacade({ citizenship_ui: "enabled" }).isPrivateLobbiesEnabled(),
+      makeCheckFacade({
+        citizenship_ui: "enabled",
+      }).isPrivateLobbiesForEveryoneEnabled(),
     ).resolves.toBe(false);
   });
 
-  it("isPrivateLobbiesEnabled is false when the flags are missing (degraded boot / non-Yandex page)", async () => {
+  it("the old private_lobbies flag no longer counts (a leftover console value shows nothing)", async () => {
     await expect(
-      makeCheckFacade(undefined).isPrivateLobbiesEnabled(),
+      makeCheckFacade({
+        private_lobbies: "enabled",
+      }).isPrivateLobbiesForEveryoneEnabled(),
+    ).resolves.toBe(false);
+  });
+
+  it("isPrivateLobbiesForEveryoneEnabled is false when the flags are missing (degraded boot / non-Yandex page)", async () => {
+    await expect(
+      makeCheckFacade(undefined).isPrivateLobbiesForEveryoneEnabled(),
     ).resolves.toBe(false);
   });
 
@@ -741,5 +774,109 @@ describe("FlashistFacade.whenPlatformRecoveredLate (task 0329)", () => {
 
     expect(waiter.settled()).toBe(true);
     expect(getFlags).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Task 0380: the copy wrapper. The Yandex SDK clipboard is tried first and
+// called synchronously (it only works inside the user's click); the browser
+// clipboard is the fallback; a double failure resolves false and never throws.
+describe("FlashistFacade.copyText (task 0380)", () => {
+  let nativeWriteText: jest.Mock;
+
+  function setNativeClipboard(writeText: jest.Mock | undefined): void {
+    Object.defineProperty(navigator, "clipboard", {
+      value: writeText ? { writeText } : undefined,
+      configurable: true,
+    });
+  }
+
+  beforeEach(() => {
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    nativeWriteText = jest.fn().mockResolvedValue(undefined);
+    setNativeClipboard(nativeWriteText);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("calls the SDK clipboard first, synchronously, and not the native one when it succeeds", async () => {
+    const sdkWriteText = jest.fn().mockResolvedValue(undefined);
+    const facade = makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { clipboard: { writeText: sdkWriteText } },
+    });
+
+    const result = facade.copyText("AbC12345");
+    // Before any await: the SDK call happened inside the "click".
+    expect(sdkWriteText).toHaveBeenCalledWith("AbC12345");
+
+    await expect(result).resolves.toBe(true);
+    expect(nativeWriteText).not.toHaveBeenCalled();
+  });
+
+  it("accepts an SDK writeText that returns nothing", async () => {
+    const sdkWriteText = jest.fn().mockReturnValue(undefined);
+    const facade = makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { clipboard: { writeText: sdkWriteText } },
+    });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(true);
+    expect(nativeWriteText).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the native clipboard when the SDK rejects", async () => {
+    const sdkWriteText = jest
+      .fn()
+      .mockRejectedValue(new Error("Document is not focused"));
+    const facade = makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { clipboard: { writeText: sdkWriteText } },
+    });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(true);
+    expect(sdkWriteText).toHaveBeenCalledTimes(1);
+    expect(nativeWriteText).toHaveBeenCalledWith("AbC12345");
+  });
+
+  it("falls back to the native clipboard when the SDK throws synchronously", async () => {
+    const sdkWriteText = jest.fn(() => {
+      throw new Error("boom");
+    });
+    const facade = makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { clipboard: { writeText: sdkWriteText } },
+    });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(true);
+    expect(nativeWriteText).toHaveBeenCalledWith("AbC12345");
+  });
+
+  it("uses the native clipboard when there is no SDK (degraded Yandex boot)", async () => {
+    const facade = makeFacade({ yaGamesAvailable: true });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(true);
+    expect(nativeWriteText).toHaveBeenCalledWith("AbC12345");
+  });
+
+  it("resolves false and does not throw when both fail", async () => {
+    const sdkWriteText = jest.fn().mockRejectedValue(new Error("sdk"));
+    nativeWriteText.mockRejectedValue(new Error("native"));
+    const facade = makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { clipboard: { writeText: sdkWriteText } },
+    });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(false);
+  });
+
+  it("resolves false when there is no SDK and no native clipboard", async () => {
+    setNativeClipboard(undefined);
+    const facade = makeFacade({ yaGamesAvailable: false });
+
+    await expect(facade.copyText("AbC12345")).resolves.toBe(false);
   });
 });

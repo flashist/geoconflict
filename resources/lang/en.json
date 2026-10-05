@@ -377,7 +377,10 @@
     "waiting": "Waiting for players...",
     "start": "Start Game",
     "host_badge": "Host",
-    "start_failed": "Couldn't start the game. Please try again."
+    "start_failed": "Couldn't start the game. Please try again.",
+    "invite_code_hint": "Send this code to a friend — they enter it under “Join Lobby”.",
+    "copy_failed": "Couldn't copy. Copy the code by hand.",
+    "copy_failed_hidden": "Couldn't copy. Show the code with the eye button and copy it by hand."
   },
   "team_colors": {
     "red": "Red",

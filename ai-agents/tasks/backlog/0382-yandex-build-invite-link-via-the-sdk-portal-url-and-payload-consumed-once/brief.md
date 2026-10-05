@@ -29,7 +29,7 @@ code"**, verbatim:
 
 **This task is the link** — option A of the
 [architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md) §4. It builds on
-[`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) (the code part:
+[`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) (the code part:
 SDK copy, code shown, `#join=` off on Yandex). **ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md)** *(accepted — "Accept as written", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent)*. *(Was: "ADR pending (architect, 2026-10-04)".)*
 
 ### What the owner's live probe proved (2026-10-04)
@@ -100,10 +100,17 @@ format.
 
 ## Notes
 
-- **Depends on:** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
+- **Depends on:** [`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
 - **Blocks:** [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+- 🔗 **Dependency note — 2026-10-05 (added by a spawned `fkit-producer` at the close of `0389`; a dependency fact, not an
+  owner ruling).** [`0389`](../../done/0389-make-the-private-lobby-code-easier-to-read-and-type/brief.md) changed
+  private-lobby codes to **8 characters from `23456789ABCDEFGHJKMNPQRSTVWXYZ`** (any case typed; shown as `K7M4 PCRX`;
+  new format only). So this task's link/payload must **clean the code with `cleanLobbyCode` and validate it with
+  `PrivateLobbyCodeSchema`** (both in `src/core/PrivateLobbyCode.ts` / `Schemas.ts`), the same path the Join window and
+  `#join=` now use — clean **before** computing the worker path (ADR-109). This supersedes the *"(the `ID` schema)"*
+  wording in *What to build* step 4, which predates `0389`. Status and rank unchanged.
 - 🚦 **Release gate:** with `0380`, this meets item 6 in
-  [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+  [`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
 - **Open owner questions — the coder puts these in the plan; do not decide them:**
   - ✅ **(a) Flag cohort — RULED: "Yes, link always lets them in"** (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). An invite link opens the Join
     window for a friend who is **not** in the private-lobby flag cohort (cannot see the lobby buttons, not a tester).

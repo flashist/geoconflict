@@ -236,7 +236,7 @@ doesn't back).
     proven real; if not proven, it drops off the gate. A sixth item was added the same day (OWNER RULING 2026-10-03 on `0199`, owner's own words, relayed by `fkit-lead`; ⛔ not producer precedent): invite
     links must point at Yandex Games correctly, or be removed so joining is by code only (`0199`).* Keeping it hidden until `0301` ships preserves this
     ruling's intent (no non-tester sees the interim popup in place of the real one). Full gate:
-    [`0354`'s *Release gate*](../../backlog/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
+    [`0354`'s *Release gate*](../0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md).
   - This record is left in `done/`; the task is not reopened.
 - *History of the line above — updated 2026-09-26 by owner ruling, kept in its own bullet so no tool reads
   the old link as a live dependency:* it read *"`0301` (the popup and its analytics source shape); an

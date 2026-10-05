@@ -1,9 +1,9 @@
 /**
  * @jest-environment jsdom
  */
-// Task 0302: the private-lobby row. Hidden unless BOTH the private_lobbies
-// switch and the citizenship surfaces are on; Create locked for anything but a
-// confirmed citizen; Join never locked.
+// Tasks 0302/0354: the private-lobby row. Shown only when the citizenship
+// surfaces are on AND (tester marker OR private_lobbies_all); Create locked for
+// anything but a confirmed citizen; Join never locked.
 jest.mock("../../src/client/Utils", () => ({
   translateText: jest.fn((key: string) => key),
 }));
@@ -12,9 +12,10 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     lockedFeatureIds: { privateLobby: "PrivateLobby" },
   },
   flashist_waitGameInitComplete: jest.fn().mockResolvedValue(undefined),
+  isTesterMarkerSet: jest.fn(),
   FlashistFacade: {
     instance: {
-      isPrivateLobbiesEnabled: jest.fn(),
+      isPrivateLobbiesForEveryoneEnabled: jest.fn(),
       isCitizenshipSurfacesEnabled: jest.fn(),
       logLockedFeatureTapEvent: jest.fn(),
     },
@@ -32,14 +33,16 @@ import { OButton } from "../../src/client/components/baseComponents/Button";
 import {
   FlashistFacade,
   flashist_waitGameInitComplete,
+  isTesterMarkerSet,
 } from "../../src/client/flashist/FlashistFacade";
 import {
   PRIVATE_LOBBY_ROW_ID,
   PrivateLobbyAccess,
 } from "../../src/client/PrivateLobbyAccess";
 
-const isPrivateLobbiesEnabled = FlashistFacade.instance
-  .isPrivateLobbiesEnabled as jest.Mock;
+const isEveryoneEnabled = FlashistFacade.instance
+  .isPrivateLobbiesForEveryoneEnabled as jest.Mock;
+const isTester = isTesterMarkerSet as jest.Mock;
 const isSurfacesEnabled = FlashistFacade.instance
   .isCitizenshipSurfacesEnabled as jest.Mock;
 const logLockedFeatureTap = FlashistFacade.instance
@@ -98,14 +101,26 @@ describe("PrivateLobbyAccess (task 0302)", () => {
     jest.clearAllMocks();
     resetCitizenshipStatusForTests();
     waitGameInit.mockResolvedValue(undefined);
-    isPrivateLobbiesEnabled.mockResolvedValue(true);
+    // Shown by default via the everyone-flag; visibility tests override.
+    isTester.mockReturnValue(false);
+    isEveryoneEnabled.mockResolvedValue(true);
     isSurfacesEnabled.mockResolvedValue(true);
     mountPage();
   });
 
-  describe("visibility", () => {
-    it("stays hidden when the private_lobbies switch is off — even for a citizen", async () => {
-      isPrivateLobbiesEnabled.mockResolvedValue(false);
+  describe("visibility (task 0354)", () => {
+    it("is shown for a tester when the everyone-flag is off", async () => {
+      isTester.mockReturnValue(true);
+      isEveryoneEnabled.mockResolvedValue(false);
+
+      const access = await startAccess();
+
+      expect(row().style.display).toBe("");
+      expect(access.isVisible()).toBe(true);
+    });
+
+    it("stays hidden for a non-tester when the everyone-flag is off — even for a citizen", async () => {
+      isEveryoneEnabled.mockResolvedValue(false);
       publishCitizenshipStatus("citizen");
 
       const access = await startAccess();
@@ -114,31 +129,74 @@ describe("PrivateLobbyAccess (task 0302)", () => {
       expect(access.isVisible()).toBe(false);
     });
 
-    it("stays hidden when the citizenship surfaces are off (kill switch)", async () => {
+    it("is shown for a non-tester when the everyone-flag is on", async () => {
+      const access = await startAccess();
+
+      expect(row().style.display).toBe("");
+      expect(access.isVisible()).toBe(true);
+    });
+
+    it.each([
+      [true, true],
+      [true, false],
+      [false, true],
+      [false, false],
+    ])(
+      "stays hidden when the citizenship surfaces are off (tester=%s, everyone=%s)",
+      async (tester, everyone) => {
+        isSurfacesEnabled.mockResolvedValue(false);
+        isTester.mockReturnValue(tester);
+        isEveryoneEnabled.mockResolvedValue(everyone);
+        publishCitizenshipStatus("citizen");
+
+        const access = await startAccess();
+
+        expect(row().style.display).toBe("none");
+        expect(access.isVisible()).toBe(false);
+      },
+    );
+
+    it("stays hidden for a tester on a degraded boot (no flags → both reads false; owner ruling Q3)", async () => {
       isSurfacesEnabled.mockResolvedValue(false);
-      publishCitizenshipStatus("citizen");
+      isEveryoneEnabled.mockResolvedValue(false);
+      isTester.mockReturnValue(true);
 
       await startAccess();
 
       expect(row().style.display).toBe("none");
     });
 
-    it("stays hidden on a degraded boot (no flags → both reads false)", async () => {
-      isPrivateLobbiesEnabled.mockResolvedValue(false);
-      isSurfacesEnabled.mockResolvedValue(false);
-
-      await startAccess();
-
-      expect(row().style.display).toBe("none");
-    });
-
-    it("stays hidden when a flag read throws — fail closed", async () => {
+    it("stays hidden when the everyone-flag read throws — fail closed", async () => {
       jest.spyOn(console, "warn").mockImplementation(() => {});
-      isPrivateLobbiesEnabled.mockRejectedValue(new Error("boom"));
+      isEveryoneEnabled.mockRejectedValue(new Error("boom"));
 
       await startAccess();
 
       expect(row().style.display).toBe("none");
+    });
+
+    it("stays hidden when the citizenship-surfaces read throws — fail closed, even for a tester", async () => {
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      isSurfacesEnabled.mockRejectedValue(new Error("boom"));
+      isTester.mockReturnValue(true);
+
+      const access = await startAccess();
+
+      expect(row().style.display).toBe("none");
+      expect(access.isVisible()).toBe(false);
+    });
+
+    it("reads the tester marker at start(), not at construction", async () => {
+      isTester.mockReturnValue(true);
+      isEveryoneEnabled.mockResolvedValue(false);
+      const access = new PrivateLobbyAccess();
+
+      expect(isTester).not.toHaveBeenCalled();
+
+      await access.start();
+
+      expect(isTester).toHaveBeenCalled();
+      expect(row().style.display).toBe("");
     });
 
     it("does not decide before platform init completes", async () => {
@@ -150,19 +208,13 @@ describe("PrivateLobbyAccess (task 0302)", () => {
       const started = access.start();
       await Promise.resolve();
 
-      expect(isPrivateLobbiesEnabled).not.toHaveBeenCalled();
+      expect(isSurfacesEnabled).not.toHaveBeenCalled();
+      expect(isTester).not.toHaveBeenCalled();
       expect(row().style.display).toBe("none");
 
       releaseInit();
       await started;
       expect(row().style.display).toBe("");
-    });
-
-    it("is shown when both are on", async () => {
-      const access = await startAccess();
-
-      expect(row().style.display).toBe("");
-      expect(access.isVisible()).toBe(true);
     });
   });
 
@@ -235,7 +287,7 @@ describe("PrivateLobbyAccess (task 0302)", () => {
   });
 
   it("the click routing fails closed even when the row was never shown", async () => {
-    isPrivateLobbiesEnabled.mockResolvedValue(false);
+    isEveryoneEnabled.mockResolvedValue(false);
     const access = await startAccess();
     const openHostModal = jest.fn();
 
