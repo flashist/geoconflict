@@ -39,7 +39,7 @@ fkit-coder
 2026-10-02 via `AskUserQuestion` in the live `fkit lead` session, relayed by `fkit-lead`.** ⛔ Not producer
 precedent. Rulings carried here: **deploy slot** — *"This week deploy slot"* (ride the 2026-10-03/04 game deploy);
 **which signature login sends when a second call is made** — *"The original (Recommended)"*. Its partner task
-[`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (read the data, choose the fix) was filed in
+[`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (read the data, choose the fix) was filed in
 the same run.
 
 **The problem, in plain terms.** At login the profile server checks Yandex's signed player data
@@ -138,7 +138,7 @@ documented in [`analytics-event-reference.md`](../../../knowledge-base/analytics
 - **A4** (a server-side boot-kind label) — skipped by the caller's instruction.
 - Any profile-server change; any fix; any retune of the 900 s / 300 s window; any change to which signature login
   sends.
-- **Reading the data.** That is [`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (owner
+- **Reading the data.** That is [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (owner
   standing rule 2026-09-29: build and verify are split; the reading needs a deploy and the owner).
 
 ## Verification steps
@@ -171,7 +171,7 @@ documented in [`analytics-event-reference.md`](../../../knowledge-base/analytics
 
 - **Depends on:** nothing.
   *(`0325`'s S2 client code is in the tree; `0366` is not needed to build this — only to read it, in `0373`.)*
-- **Blocks:** [`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — it reads this task's
+- **Blocks:** [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — it reads this task's
   events once deployed).
 - **Chain after `0373`** (not filed): the chosen fix → an S2-exit re-check with the owner →
   [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md).

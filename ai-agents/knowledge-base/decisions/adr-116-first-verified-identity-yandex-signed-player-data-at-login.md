@@ -66,6 +66,13 @@
     `0340` deployed, not merely built or closed. The reminder now also lives in `0340`'s brief (§ *The
     ADR-113 note — shipping this task triggers it*), which makes the note a close condition for `0340`:
     applied by `fkit-architect` after the S3a deploy, or deferred by an owner ruling.
+- **⛔ Superseded in part by [ADR-121](adr-121-login-signature-freshness-window-24h-id-checked-first.md),
+  2026-10-05** (owner ruling *"24 hours (Recommended)"*, relayed by `fkit-lead`; pointer added by
+  `fkit-architect`, append-only — every line above and below is left byte-identical). **Superseded:** Decision
+  3's 900 s freshness window (now **86,400 s**; the 300 s future limit is unchanged), residual 8 (now ADR-121
+  R1, *"a stolen signature works up to ~48 h"*), and by consequence the 900 s in *Points settled at build*'s
+  A4 and B4 bullets. ADR-121 also adds an id-before-age check order. **Everything else in this ADR stands;
+  Status stays `accepted`.** ⛔ marks the two superseded sites below.
 
 ## Context
 
@@ -126,6 +133,10 @@ architecture decision in the `0250` design report §6.
      and no more than **900 s (15 min)** old and no more than **300 s
      (5 min)** in the future (owner-approved with the plan; measured through S2's `stale` count and tunable
      **before** S3a enforces anything).
+
+   > ⛔ **2026-10-05 — superseded by ADR-121.** The window is now **86,400 s (24 h)** old; 300 s future is
+   > unchanged; the signed id is compared **before** the age. Do not follow the 900 s above. Text above left
+   > byte-identical.
 
    When verified, the player is resolved by the **signed** id (equal to the asserted id by construction).
 4. **Fail behaviour — failure ⇒ an unverified session, never a refused login, never a read error.** Absent,
@@ -326,6 +337,9 @@ only the risk that a label-only change turns every login `bad_payload`.
    (plus 5 min of future skew). Same class as a stolen token (residual 1). *Settled 2026-09-29 (amendment
    D, approved):* `requestPayload` is **not** used as a nonce — Yandex documents no `getPlayer` payload
    option, and a server-issued challenge would be a design change. Re-raise only if Yandex documents one.
+
+   > ⛔ **2026-10-05 — superseded by ADR-121 residual R1:** *a stolen signature works up to ~48 h* (24 h
+   > window + 24 h session). The no-nonce reasoning above still holds. Text above left byte-identical.
 9. **Wider blast radius of `YANDEX_PAYMENTS_SECRET`.** A leak now forges identity as well as purchases, and a
    rotation at Yandex breaks both at once (identity fails soft to unverified; payments per their own path).
 10. **Both HMAC constructions are accepted** (Decision 8). S0 matched decoded JSON only; dropping the other

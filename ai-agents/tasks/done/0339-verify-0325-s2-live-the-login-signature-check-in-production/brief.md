@@ -250,4 +250,4 @@ relayed by `fkit-lead`; the ≈ figures came from a per-minute average over a se
 `ok` / `stale` shares, the failed result and the close are unchanged. Detail: [`worklog.md`](worklog.md) § *2026-10-02
 — CORRECTION*. Follow-ups filed the same day:
 [`0372`](../0372-client-diagnostics-for-stale-login-signatures/brief.md) ·
-[`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md).
+[`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md).

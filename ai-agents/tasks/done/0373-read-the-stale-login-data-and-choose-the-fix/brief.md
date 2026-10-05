@@ -46,7 +46,11 @@ Sprint 7
 > earliest useful read is after the evening of Saturday 2026-10-10 (UTC).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+📌 **Set 2026-10-05** by a spawned `fkit-producer` (no owner channel), on the OWNER RULING of 2026-10-05 relayed by
+`fkit-lead` that waived precondition 3 (see *Preconditions*): the decision step is now active. *(Earlier value, kept as
+history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **THE DECISION IS THE OWNER'S.** The producer runs the reading and frames the choice; the
@@ -55,7 +59,7 @@ has GameAnalytics access). The Uptrace / ClickHouse queries are read-only and ar
 session that has access (standing rule: read-only checks are run, not handed over).
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0370`](../0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
+[`0370`](../../backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
 
 ## Context
 
@@ -71,7 +75,7 @@ threshold for the S2 exit is decided in this task, with the data** (*"Decide it 
 at ~32–33 % over ~20 k logins since 2026-09-29 20:05 UTC; ~21–26 % at 02–06 UTC, ~40–43 % at 20–23 UTC. Because of
 it the owner ruled `0325`'s S2 exit **not met** (2026-10-01, in
 [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)), so
-[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) cannot start — nor `0332`, `0323`, `0250` S3b,
+[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) cannot start — nor `0332`, `0323`, `0250` S3b,
 `0248` and `0301` behind it.
 
 **What is known before reading** (architect consult 2026-10-02, read-only — recorded in full in `0372`'s
@@ -120,6 +124,16 @@ it the owner ruled `0325`'s S2 exit **not met** (2026-10-01, in
 > **Timing consequence:** both deploys landed on **2026-10-03** (game prod ~09:32 UTC, profile ~10:02 UTC), so the
 > precondition-3 data window counts from the **2026-10-03 deploys for both `0366` and `0372`**. The "not covered"
 > line in the note above is now answered.
+
+> 📌 **2026-10-05 — precondition 3 WAIVED by the owner.** OWNER RULING given 2026-10-05 in the `fkit lead` session
+> (the owner's own typed message), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+> (ADR-021/037); ⛔ not producer precedent. Verbatim: *"I agree with your plan, also, make a note somewhere about what
+> we found and that we don't need to wait longer, because the data we have is very straightforward and
+> convincing."* The ~2.5 days of data since the 2026-10-03 deploys (both weekend evenings included) are now the
+> decision readings; the 5–7-day wait and the "earliest after Saturday 2026-10-10" notes above no longer gate this
+> task. Step 3 is recorded in the worklog (row 1 fits, strongly); next is an `fkit-architect` consult on (a) vs (b),
+> then Step 4. Summary:
+> [`2026-10-05-0373-stale-login-findings.md`](../../../knowledge-base/reports/2026-10-05-0373-stale-login-findings.md).
 
 ## What to do
 
@@ -194,7 +208,7 @@ Name which row the readings support, and how strongly. If they fit none, say so 
   5–7 days of data) and [`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard —
   deployed in the profile deploy).
 - **Blocks:** the stale-signature fix task (not yet filed — this task's output) → the S2-exit re-check →
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
+  [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
 - **`0366` Q2 ruling folded in:** `0366`'s owner ruling (2026-10-01) put *reading its brackets* into "the S2-exit
   re-check before `0340`". This task is where they are first read; the re-check after the fix reads them again.
 - **Related:** [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (the S2
@@ -206,3 +220,23 @@ Name which row the readings support, and how strongly. If they fit none, say so 
 - **Privacy:** counts, shares and brackets only. Never paste ids, signatures, tokens, hosts or launch-query contents
   into any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+## 📌 2026-10-05 — Step 4 done: the owner chose the fix; tasks filed (appended; nothing above edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` with no owner channel (ADR-021/037), on OWNER RULINGS given 2026-10-05 live via
+`AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent. Rulings verbatim and the
+five Output items: the [worklog](worklog.md), *2026-10-05 — Step 4: owner's choice*.
+
+- **Fix:** *"24 hours (Recommended)"* →
+  [`0391`](../../backlog/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) (Sprint 7).
+- **Threshold:** *"At most 5% (Recommended)"* → the S2-exit re-check
+  [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (Sprint 8).
+- **Watch task:** *"File it (Recommended)"* →
+  [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md) (Backlog
+  board).
+- **ADR:** [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md)
+  (accepted 2026-10-05).
+- **`0340`**'s `Depends on` repointed to `0392`. The *Blocks* line above (*"the stale-signature fix task (not yet filed)
+  → the S2-exit re-check → `0340`"*) now reads `0391` → `0392` → `0340`.
+- **`## Status` unchanged (`🔄 In progress`). Not closed — `fkit-lead` routes the close.**
+

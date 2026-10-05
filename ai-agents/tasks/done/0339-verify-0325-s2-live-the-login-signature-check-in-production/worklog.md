@@ -153,4 +153,4 @@ the query. This note corrects two numbers only; the task's result and close are 
   no signature-less logins arrive at all. The side finding (old builds mostly do not reach the server) is, if
   anything, sharper.
 - Follow-ups: [`0372`](../0372-client-diagnostics-for-stale-login-signatures/brief.md) and
-  [`0373`](../../backlog/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (filed 2026-10-02).
+  [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (filed 2026-10-02).

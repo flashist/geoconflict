@@ -161,8 +161,11 @@ deploy. This task does not close until that note is applied or the owner rules o
 
 ## Notes
 
-- **Depends on:** [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — read the stale-login data and
-  choose the fix; then the fix and an S2-exit re-check, not yet filed) plus an explicit owner approval to enforce.
+- **Depends on:** [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (hard — the
+  S2-exit re-check: server stale share ≤5% over 7 days after the fix [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+  ships) plus an explicit owner approval to enforce. *Repointed 2026-10-05 (see the dated note at the end), kept as
+  written:* ~~[`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — read the stale-login data and
+  choose the fix; then the fix and an S2-exit re-check, not yet filed) plus an explicit owner approval to enforce.~~
   *Repointed 2026-10-02 (see the dated note at the end), kept as written:* ~~[`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard — `0325`'s S2 exit was ruled
   **not met** in `0339` on 2026-10-01; the next step toward it is this measurement, then a fix and an S2-exit
   re-check that are not filed yet) plus an explicit owner approval to enforce.~~ *Repointed 2026-10-01, kept as
@@ -206,8 +209,31 @@ how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's 
   (they cannot tell whether a second Yandex call returns newer data, or first boot from after-match reload).
 - **The gate's chain is now:** [`0372`](../../done/0372-client-diagnostics-for-stale-login-signatures/brief.md) (client
   diagnostics, Sprint 7, rides the 2026-10-03/04 game deploy) and `0366` (rides the 2026-10-03/04 profile deploy) →
-  [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (read the data, owner chooses the fix and
+  [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (read the data, owner chooses the fix and
   the S2-exit "good enough" threshold; Sprint 8) → the fix task (not yet filed) → an S2-exit re-check with the owner
   → this task. Gate item 2 (a separate owner approval to enforce) is unchanged.
 - The `Depends on` line above is repointed from `0366` (done) to `0373`; the old text is kept struck.
+- **`## Status` unchanged (`🔲 Backlog`). No folder moved, no board row edited, no mover run on this task.**
+
+## 📌 2026-10-05 — gate update: the fix is chosen (`0391`), and the S2-exit re-check is `0392` (appended; nothing above edited except the `Depends on` repoint, ADR-035)
+
+**Provenance.** OWNER RULINGS given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: fix
+**"24 hours (Recommended)"**; good-enough threshold **"At most 5% (Recommended)"** (server stale share over 7 days after
+the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, check: Sprint 8 (Recommended)"**.
+
+- **The gate's chain is now:** [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
+  (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/plan-sprint-7.md)) →
+  [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (the S2-exit re-check, pass =
+  ≤5% over 7 days; [Sprint 8](../../../sprints/plan-sprint-8.md)) → this task. `0373` produced the decision and stays
+  open until the lead routes its close.
+- **Gate item 1** (*"`0339`'s S2 exit is met"*) now reads: **`0392` PASS**. **Gate item 2 is unchanged:** an explicit
+  owner approval to enforce, given after `0392`'s numbers are in.
+  [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md) Decision
+  4 keeps it: meeting the ≤5% gate does not by itself approve this task.
+- **The *Freshness window* bullet under *What to build* is answered:** the retune is ruled (24 h old / 300 s ahead,
+  ADR-121) and is built in `0391`, not here. ⚠️ **For this task's plan:** verification step 2's *"over 900 s old"* reads
+  **over 86,400 s old** once `0391` ships, and a stale note is now always the right player (ADR-121 Decision 2) — the
+  coder's plan should re-ground that step against the tree. Left as written above (append-only).
+- The `Depends on` line above is repointed from `0373` to `0392`; the old text is kept struck.
 - **`## Status` unchanged (`🔲 Backlog`). No folder moved, no board row edited, no mover run on this task.**
