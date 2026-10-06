@@ -9,10 +9,21 @@
 > hit; repo-wide only SVG path coordinates.
 
 ## Sprint
-Sprint 8
+Sprint 7
+
+*(Earlier value, kept as history — true on 2026-10-06 until the move:)* ~~Sprint 8~~ — moved by
+OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent), together with `0396`. Reason: `0401` (on Sprint 7) is checked in the same deploy as this task, because
+`0301` ships with `0248`. See the 2026-10-06 placement note at the end.
 
 ## Priority
-11
+50
+
+> 📌 **2026-10-06 — 50 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> Appended after that board's highest (49, `0396`). ⚠️ Flagged for owner confirmation: on merit it is worked directly
+> after `0396` and in the same slot as `0401` — appending already lands it directly below `0396`. The note below about
+> rank 11 describes the Sprint 8 board and is history.
+>
+> *(Earlier value, kept as history — on Sprint 8:)* ~~11~~
 
 > ⚠️ **Priority 11 is append rank, NOT a merit ranking — flagged for owner confirmation.**
 > **On merit this belongs directly below `0396`**, because it cannot start until `0396` has confirmed the verified
@@ -20,7 +31,8 @@ Sprint 8
 > sprint"*. Appending happens to land it directly below `0396` already. ADR-035: appended, nothing renumbered; a spawned
 > producer never re-ranks. Same branch as `0390`, `0392`, `0395` and `0396`.
 >
-> ⚠️ **Sprint placement is an open question to the owner** — see *Notes*.
+> ~~⚠️ **Sprint placement is an open question to the owner** — see *Notes*.~~ ✅ Answered 2026-10-06 — Sprint 7 (see
+> above).
 
 ## Status
 🔲 Backlog
@@ -135,8 +147,10 @@ requested.
   (hard — the verified owner view live), [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md)
   (hard — deploy together or after, owner ruling R3 2026-10-06)
 - **Does not block Sprint 7's deploy** (owner rule, 2026-09-29).
-- **Placement:** Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396`, its deploy could fall
-  inside Sprint 7's time window — the reasoning that moved `0392` and `0395` to Sprint 7 on 2026-10-05.
+- **Placement:** ~~Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396`, its deploy could fall
+  inside Sprint 7's time window — the reasoning that moved `0392` and `0395` to Sprint 7 on 2026-10-05.~~
+  ✅ **Answered 2026-10-06 — OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/plan-sprint-7.md), rank 50 (append
+  rank). See the placement note at the end.
 - ⚠️ **Open question — the test accounts.** Does the owner have (a) a **paid** account that logs in **verified**,
   (b) a **non-paid** account, and (c) an **earned-only** citizen account? If (c) is missing, record check 4 as *not
   checked live — covered by unit tests* rather than inventing a check.
@@ -148,3 +162,17 @@ requested.
 - **Related:** `0248` (the build) · `0250` (S3b, the paid answer) · `0396` (its live check) · `0397` (verified-status
   display) · `0238` (the kill switch) · `0299` (tiered ad analytics).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+> 📌 **2026-10-06 — placement answered: moved to Sprint 7.** OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent). Option text, verbatim: *"The whole
+> citizenship deploy-and-check chain sits on one board. Sprint 7 gets bigger, and some of it may still run past the
+> sprint's end."* Reasons put to the owner: [`0401`](../0401-verify-0301-live-the-citizenship-explainer-popup-works-in-production/brief.md)
+> (Sprint 7) hard-depends on [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md)
+> (moved with this one), and `0401` is checked in the same deploy as this task, because `0301` ships with `0248`.
+> - `## Sprint` and `## Priority` above updated (old values struck); the placement question in *Notes* marked answered.
+> - ⚠️ **Still open:** the test accounts and the production `citizenship_ui` flip (*Notes*). And
+>   [`0400`](../0400-verify-0397-live-the-session-status-line-shows-the-right-state-in-production/brief.md), run in the
+>   same sitting as this task, ~~was **not** in the ruling and stays on Sprint 8.~~ ✅ Moved to Sprint 7 later the same day, rank 51 —
+>   OWNER RULING *"Move it to Sprint 7 (Recommended)"*.
+> - Not rewritten, now read differently: *"Does not block Sprint 7's deploy"* (in *Notes*) was written while this task
+>   sat on Sprint 8; it is now itself a Sprint 7 task.
+> Nothing else above this note was edited (ADR-035); status unchanged (`🔲 Backlog`).
