@@ -281,7 +281,7 @@ Source: `0250`'s `review.md`, findings R1 and R3, and its `worklog.md` (round-1 
 **Closed `(agent-closed — not owner-verified)`** by a spawned `fkit-producer`, on an OWNER RULING given 2026-09-29
 live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`: **"Split it (Recommended)"**. What
 this brief calls **S3a** (and verification steps 4–6) is now
-[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md); the live proof of S2 and the deploy
+[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md); the live proof of S2 and the deploy
 order (verification step 8) is now
 [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md). **At close, S2
 was not committed and not deployed.** The tasks this brief says it *Blocks* (`0250` S3b, `0319`, and `0323`) now

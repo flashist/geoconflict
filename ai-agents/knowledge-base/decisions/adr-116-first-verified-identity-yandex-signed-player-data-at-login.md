@@ -48,13 +48,24 @@
     § *Context*). So from that date the citation frame's *"Nothing from S2/S3a is built yet"* holds for S3a
     only.
   - **S3a — the first `vfy:true` mint — is now task `0340`**
-    (`ai-agents/tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/`). It starts only when **both**
+    (`ai-agents/tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/`). It starts only when **both**
     hold: `0339`'s S2 exit is met
     (`ai-agents/tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/` — the
     deploys named and dated, the owner's watch window and threshold, `ok` the large majority), **and** an
     explicit owner approval to enforce, given after `0339`'s numbers are in. `0339` closing does not by
     itself approve `0340`. This is the gate Decision 6 already states (*"observe for an owner-picked window →
     owner approves → profile server S3a"*); only its task home is new.
+
+    > 📝 **Clarification, 2026-10-05** (added by `fkit-architect`, spawned by `fkit-lead`, under
+    > `decisions/README.md` § *Immutability starts at `accepted`* — the clarification carve-out: an owner's
+    > follow-up ruling that clarifies wording already here. The bullet above is left byte-identical.) **"The
+    > owner's watch window and threshold" has no fixed value.** Owner ruling 2026-10-05, relayed by
+    > `fkit-lead`: *"Remove the 7 days requirement, we will check whatever data we have at the time it's
+    > needed and we will make a decision about waiting or not waiting longer based on that"*; for the 10/11 Oct
+    > slot, *"Judge by eye"*. So `0339`'s S2 exit is the owner's look at whatever post-`0391` data exists —
+    > see [ADR-122](adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md), which
+    > supersedes ADR-121 Decision 4's *"≤ 5% over 7 days"*. The second condition — an explicit owner approval
+    > to enforce — is unchanged, and so is Decision 6.
   - **How to read the older wording.** Wherever this ADR says "`0325` S3a", "once `0325` S3a ships" or
     "S3a ships", read **task `0340`**. The places: the Status line's quoted option text *"…and to ADR-113
     once S3a ships"* (a verbatim quote, left untouched); Decision 3's *"tunable **before** S3a enforces
@@ -469,5 +480,5 @@ and mark this subsection applied.
   (`LoginRequestSchema`), `src/profile-server/Server.ts` (`YANDEX_PAYMENTS_SECRET`)
 - Tasks: `0250` (S1, S3b), `0319`, `0323`, `0332`, `0267` (Yandex half answered), `0309` / `0310`, `0048`
 - 📝 Added 2026-09-29: `ai-agents/tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/`
-  (verify S2 live) and `ai-agents/tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/` (S3a enforce)
+  (verify S2 live) and `ai-agents/tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/` (S3a enforce)
   — see the dated note at the top of this file.

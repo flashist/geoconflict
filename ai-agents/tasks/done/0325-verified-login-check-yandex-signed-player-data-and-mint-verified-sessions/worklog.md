@@ -439,7 +439,7 @@ coder rows).
   Uptrace and the events reaching GameAnalytics are unverified (see *Not verified* above).
 - **What moved out of this task:**
   - **S3a (plan steps 13–15 and their tests) →
-    [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)** (Sprint 7, rank 3). Gate:
+    [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)** (Sprint 7, rank 3). Gate:
     `0339`'s S2 exit plus an explicit owner approval to enforce. Carries the rollback rule and the ⛔ ADR-113
     reminder above.
   - **The live verification (deploy order check, the metric's outcomes, the four client events, the owner's S2

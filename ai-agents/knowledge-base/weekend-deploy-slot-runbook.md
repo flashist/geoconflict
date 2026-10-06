@@ -1644,7 +1644,7 @@ Runs for days from N3. **The OWNER picks the window and makes the S2-exit call.*
 - Game **0.0.153** (never served).
 - A profile state that expects `007` to be reverted by hand.
 - Never point a hotfix at the **old analytics prefix** — keep `_v2`.
-- **After this slot:** keep an **S2-or-later profile image** as S3a's ([`0340`](../tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) future rollback target.
+- **After this slot:** keep an **S2-or-later profile image** as S3a's ([`0340`](../tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) future rollback target.
 
 ### ⚠️ Not verified by the architect (2026-09-29)
 
@@ -1780,7 +1780,7 @@ relayed by `fkit-lead`; ⛔ not producer precedent.
 
 - **Game prod:** `20260929-220550` (0.0.155) — **registry only**, re-pull needed.
 - **Profile:** previous image `sha256:75fd196a…28e0`. ⚠️ **Updates § *Never roll back to*, "after this slot":**
-  the **S2-or-later profile image** to keep as [`0340`](../tasks/backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)'s
+  the **S2-or-later profile image** to keep as [`0340`](../tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)'s
   future rollback target is now **`sha256:b26113a8…df32`** (`0.0.156-profile.1`); the previous one was
   `sha256:75fd196a…28e0`.
 

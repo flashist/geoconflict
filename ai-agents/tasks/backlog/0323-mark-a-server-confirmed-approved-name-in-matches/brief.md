@@ -66,7 +66,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
 
 ## Notes
 
-- **Depends on:** `0322` (hard — the swap) · [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — verified sessions; `0325`'s slice S3a, split into its own task 2026-09-29) *(repointed 2026-09-29, kept as written: ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login)~~)* · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
+- **Depends on:** `0322` (hard — the swap) · [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — verified sessions; `0325`'s slice S3a, split into its own task 2026-09-29) *(repointed 2026-09-29, kept as written: ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login)~~)* · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
 - ~~**Depends on:** `0322`~~ *(superseded 2026-09-28 — owner ruling below)*
 - ~~**Soft dependencies (not blocking):** `0267` (makes the mark identity-verified with no change here).~~ *(superseded 2026-09-28 — verified identity is now a hard dependency, via `0325` plus the join-token step)*
 - **Related:** [`0317`](../../done/0317-investigate-show-a-citizens-approved-name-in-matches/brief.md) (source) ·
@@ -98,8 +98,38 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
   sits at the end of Sprint 7 (rank 6, directly after this task's row), depends on `0325`, and **blocks this
   task**. The *Depends on* line above now links it.
 
-- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only; the notes above are kept as written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). Verified sessions now come from [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval. Where the notes above say *"`0325`"* as the verified-login dependency, read `0340`. `0332` (the join token) is unchanged and now also depends on `0340`.
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only; the notes above are kept as written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). Verified sessions now come from [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md), ~~which waits on [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where the notes above say *"`0325`"* as the verified-login dependency, read `0340`. `0332` (the join token) is unchanged and now also depends on `0340`.
 
 ### Open questions for the owner
 1. What should the mark look like, and should it replace ★ for these players or sit next to it? (Asked at the
    plan gate.)
+
+## 📌 2026-10-05 — deploy step: the owner looks at the post-`0391` login numbers first (appended; the stale *"`0340` waits on `0339`"* wording above is struck, not deleted, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Yes, add the note (Recommended)"*. Design record: [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md) (accepted 2026-10-05; supersedes ADR-121 Decision 4).
+
+- **Before this task's deploy (the confirmed-name mark reads `verified`):** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
+  `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
+  wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
+  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+- **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
+  sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
+  needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
+  approval of anything beyond this task's deploy.
+- No status, sprint or rank changed by this note. No mover run.
+
+## 📌 2026-10-05 — deploy only after `0395` confirms `vfy: true` live (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Note only (Recommended)"*.
+
+- **Deploy this task only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+  and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
+  DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
+- **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the
+  **build**); no link to `0395` was added, by the owner's ruling. When `0340` closes, the board will stop showing this
+  task as waiting — that is about building, not deploying.
+- No status, sprint or rank changed by this note. No mover run.

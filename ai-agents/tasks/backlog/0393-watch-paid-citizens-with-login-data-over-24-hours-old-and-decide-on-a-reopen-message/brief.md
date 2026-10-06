@@ -34,7 +34,7 @@ board:
 **Why it matters.** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
 accepts Yandex's signed player data ("the note") up to 24 h old. `0373` expects ~2.5% of logins (~50 players/day) to
 still carry an older note. Today that changes nothing a player sees. Once
-[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) enforces verified sessions and later tasks (such as
+[`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) enforces verified sessions and later tasks (such as
 `0250` S3b) show paid perks only to a verified player, **a paying citizen whose note is over 24 h old could log in
 unverified and not see their perks** until they get a fresh note. Nobody knows yet how many paying citizens that is,
 or what gives them a fresh note. This task finds out before anyone builds a message.
@@ -70,8 +70,8 @@ Nothing up front — three steps, in order.
   (hard — shipped; the >24 h case only exists in its current form after it).
 - **Blocks:** nothing. Any "reopen the game" message is filed later as its own task, if the owner decides to build one.
 - **Related:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (the decision),
-  [`0392`](../0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (the overall stale share;
-  its bracket split shows the >24 h residue for all players), [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
+  [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (the overall stale share;
+  its bracket split shows the >24 h residue for all players), [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (S3b: verified-only paid view),
   [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md) (the 24 h window and its accepted residuals).
 - **When to pull it into a sprint:** once `0391` has shipped and there is about a week of data — needing a rank is the

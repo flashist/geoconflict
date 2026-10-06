@@ -44,7 +44,7 @@ the result (`0325` slice S2, shadow mode — nothing is enforced). Over ≈ 40 h
 about **1 login in 3 is `stale`**: the signature is genuine and for the right player, but the time stamp inside
 it (`issuedAt`) is more than 900 s (15 min) old or more than 300 s (5 min) in the future. That share is **not
 falling** (≈ 35 % in the last hour read). Because of it, the owner ruled `0325`'s S2 exit **not met**, so
-[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (turn the check on) cannot start.
+[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (turn the check on) cannot start.
 
 **Why we cannot just widen the window.** The counter says *that* a signature is stale, not *by how much*. Three
 different causes need three different fixes:
@@ -124,7 +124,7 @@ the server, that is a **new** task, not this one.
 ## Notes
 
 - **Depends on:** nothing — `0325`'s S2 code is already in the tree and live.
-- **Blocks:** [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (in practice — `0340` waits on
+- **Blocks:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (in practice — `0340` waits on
   `0325`'s S2 exit; [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) ruled it
   **not met** 2026-10-01, and the next step toward it is this measurement. Recorded as a dated note in `0340`'s
   brief.)
@@ -153,7 +153,7 @@ the server, that is a **new** task, not this one.
 **Authority.** OWNER RULINGS given live 2026-10-01 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. These answer the three open questions in *Notes* above; the questions are kept as written.
 
 - **Q1 — Backlog or Sprint 7?** → *"Move to Sprint 7 (Recommended)"*. Done: appended on [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 30 (append rank — see `## Priority`); the [Backlog board](../../../sprints/backlog.md) row now reads `➡️ Moved to Sprint 7 — priority 30`; `## Sprint` updated. The `⚠️ Open owner question` note under `## Priority` is answered.
-- **Q2 — who reads the brackets after the deploy?** → *"Fold into the re-check (Recommended)"*. **No separate verify task is filed for this task.** Reading the age brackets in Uptrace after the deploy is part of the **S2-exit re-check before [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)**. ⚠️ This is an **owner-ruled exception, for this task only,** to the 2026-09-29 standing rule (close the build, put a verify task at the top of the next sprint). This task still closes on its build proof (verification steps 1–7); the reading is **not** its close condition.
+- **Q2 — who reads the brackets after the deploy?** → *"Fold into the re-check (Recommended)"*. **No separate verify task is filed for this task.** Reading the age brackets in Uptrace after the deploy is part of the **S2-exit re-check before [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)**. ⚠️ This is an **owner-ruled exception, for this task only,** to the 2026-09-29 standing rule (close the build, put a verify task at the top of the next sprint). This task still closes on its build proof (verification steps 1–7); the reading is **not** its close condition.
 - **Q3 — also record the age of `ok` signatures?** → *"Stale only (Recommended)"*. Scope unchanged: `stale` only.
 
 ## 📌 2026-10-01 — owner ruling: committed + placement (appended; nothing above edited except a dated note under `## Priority`, ADR-035)

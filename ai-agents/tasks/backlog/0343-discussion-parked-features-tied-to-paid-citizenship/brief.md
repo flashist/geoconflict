@@ -108,7 +108,7 @@ using the agenda below. For each item, record one outcome in `worklog.md` in thi
    in the Yandex console, 2026-09-25). Re-price in Yan, consistently.
 4. **Trusted identity.** Anything the *game server* must enforce (voting, uploads showing in matches, styled
    names) needs a player identity the server can trust. Today that waits on verified sessions
-   ([`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) and the join token
+   ([`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) and the join token
    ([`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md), Sprint 7).
 5. **Order.** Which one first? The producer's suggestion, for the owner to judge: the cheapest perk that works
    without new trust plumbing goes first.
@@ -183,7 +183,7 @@ but cannot vote (an advert for citizenship).
 [`done/plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md) § *14. Map Voting for Verified Players*.
 
 **Known dependencies / related work.** The server must know who is a citizen **when the vote is cast** — so it waits
-on trusted identity: [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) and
+on trusted identity: [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) and
 [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md). Public
 lobbies and their maps are scheduled by the server master process.
 
@@ -332,7 +332,7 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
 2. Lobby health gate: what numbers show lobbies are "consistently filling"? Do we have them today?
 3. Build on the existing name-tag system, or a real registered clan (backend, ownership, invites)?
 4. A registered clan needs a trusted player identity — does it wait on verified sessions
-   ([`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md))?
+   ([`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md))?
 5. Clan names/tags need the same safety rules as player names (`0307`, `0308`) and possibly moderation.
 6. Paid clan features — prices in rubles or Yan, and do they go through the same Yandex catalog / purchase flow?
 
@@ -357,7 +357,7 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
   [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (free historical maps).
 - **Related:** [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (the twin),
   [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (what the popup promises),
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
+  [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
   [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md),
   [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md),
   [`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md),

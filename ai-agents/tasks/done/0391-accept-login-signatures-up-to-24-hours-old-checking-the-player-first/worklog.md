@@ -128,12 +128,20 @@ Brief verification mapping: 1 ✅ (23 h 59 m → `ok`, unit); 2 ✅ (86 400/86 4
 sweep); 6 ✅ (parametrised fail-open route test, rows updated, `no_secret` + classifier-throws tests kept); 7 — deferred
 by owner ruling, follow-up `0394` (above); 8 ✅; 9 — TODO below; 10 ✅ (synthetic `zz0325-…` fixtures only).
 
-### Deploy — TODO (owner, weekend slot)
+### Deploy — TODO (owner, ~~weekend slot~~ Tue 6 Oct, mid-week exception)
 
-- **Profile deploy only** (no game deploy: client changes are comments only). Planned for the 10/11 Oct weekend slot,
-  owner-run.
-- Deploy date: **TODO**
-- First post-deploy UTC time (start of `0392`'s 7-day window): **TODO**
+- **Profile deploy only** (no game deploy: client changes are comments only). ~~Planned for the 10/11 Oct weekend slot,
+  owner-run.~~ **Planned for Tuesday 6 Oct 2026, owner-run — a mid-week exception to the weekend-slot rule, by owner
+  ruling.**
+- 📌 **2026-10-05 — planned date changed (appended by a spawned `fkit-producer`, no owner channel, ADR-021/037).** OWNER
+  RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer
+  precedent. Verbatim: *"Yes, Tuesday (Recommended)"* — deploy this task (profile server) on Tue 6 Oct instead of the
+  10/11 Oct weekend slot. Same day the owner also ruled away `0392`'s fixed 7-day window (verbatim: *"Remove the 7 days
+  requirement, we will check whatever data we have at the time it's needed and we will make a decision about waiting
+  or not waiting longer based on that"*): the first post-deploy UTC time below is now the **start of the data `0392`
+  reads**, not of a 7-day window. See [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md) (accepted 2026-10-05; supersedes ADR-121 Decision 4).
+- Deploy date: **TODO** *(planned: Tue 6 Oct 2026, owner-run; record the actual date here)*
+- First post-deploy UTC time (~~start of `0392`'s 7-day window~~ start of the post-`0391` data `0392` reads): **TODO**
 - ⚠️ The profile deploy restarts the server counters — **never compare cumulative values across it.**
 - Rollback note: rolling back to the previous profile build only narrows classification back to 900 s; every
   session stays `vfy:false` either way, so it is safe.

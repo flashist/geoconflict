@@ -46,7 +46,7 @@ account B could ride account A's login. ADR-121 Decision 3 says the game should 
 **Why it is low priority today.**
 - **The owner called it rare, and fixable by the player** — reloading the page gives a fresh login for the new
   account.
-- **Every session is `vfy:false` (unverified) until [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)
+- **Every session is `vfy:false` (unverified) until [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)
   enforces verified sessions.** The real harm — a *verified* session following the wrong account — cannot happen
   before then.
 - **`0391` does not create this gap.** A switched account already keeps the old session token today; the 900 s → 24 h
@@ -141,7 +141,7 @@ analytics-event removal, so `analytics-event-reference.md` must be updated with 
 - **Related, not a gate:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   (the task this was split out of).
 - **Blocks:** nothing decided. ⚠️ **Open owner question: should this gate
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a — enforce verified sessions)?** 0391's plan
+  [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a — enforce verified sessions)?** 0391's plan
   recommended *"must block `0340`"*, because once sessions are verified a switched account could ride a *verified*
   login. The owner did **not** rule on that at 0391's plan gate. It is **not** recorded as a dependency here. Put it to
   the owner before `0340` is pulled forward.

@@ -48,7 +48,7 @@ S2, shadow mode — nothing is enforced). About **1 login in 3 is `stale`**: the
 (`issuedAt`) is more than 900 s old or more than 300 s ahead. A read-only check on 2026-10-02 (exact ClickHouse
 sums, by a spawned coder) found it **flat at ~32–33 %** over ~20 k logins since 2026-09-29 20:05 UTC, with a strong
 time-of-day pattern (~21–26 % at 02–06 UTC, ~40–43 % at 20–23 UTC). This blocks
-[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (turn the check on), and through it `0332`,
+[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (turn the check on), and through it `0332`,
 `0323`, `0250` S3b, `0248` and `0301`.
 
 **Why the server counter alone is not enough.**
@@ -174,7 +174,7 @@ documented in [`analytics-event-reference.md`](../../../knowledge-base/analytics
 - **Blocks:** [`0373`](../0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — it reads this task's
   events once deployed).
 - **Chain after `0373`** (not filed): the chosen fix → an S2-exit re-check with the owner →
-  [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
+  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
 - **Caveat carried for `0373`:** on the server, `stale` is decided **before** the id check
   (`src/profile-server/LoginVerification.ts:34` runs before `:45`), so "the right player" is **not** proven for
   stale logins.

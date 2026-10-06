@@ -307,9 +307,9 @@ store-copy condition.
   `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in
   the `fkit lead` session (ADR-021/037, *"Split it (Recommended)"*). `0325` closed as the S2 build (shadow
   mode, still mints only `vfy:false`); the verified sessions that `0250` S3b waits on now come from
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a), after
+  [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a), ~~after
   [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
-  explicit owner approval. This task still waits on **`0250` S3b**; read *"S3b waits on … `0325`"* above as
+  explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated — OWNER RULING 2026-10-05, relayed by `fkit-lead`; [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md))*. This task still waits on **`0250` S3b**; read *"S3b waits on … `0325`"* above as
   *"… on `0340`"*.
 - **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**
   [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer

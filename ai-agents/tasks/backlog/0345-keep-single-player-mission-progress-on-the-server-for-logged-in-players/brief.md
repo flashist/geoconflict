@@ -113,7 +113,7 @@ property `0306` item 6 asks for). The trade-off is cheating and account sharing 
   report nothing to the platform leaderboard (the design confirms both still hold). If it ever becomes
   worth something (a reward, a leaderboard), it cannot be client-reported.
 - **Identity is not verified yet.** The profile session is `vfy:false` until
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (Sprint 7) enforces verified
+  [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (Sprint 7) enforces verified
   sessions — until then, anyone who asserts a player's id can get a session for it and write that
   player's mission level. Low value, but it is griefing (push someone to level 500, or back to 1 under
   a "server wins" rule). Question 5.

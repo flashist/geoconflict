@@ -26,7 +26,7 @@ Sprint 7
 
 📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (still `🚧 Blocked` with its reason); no folder moved; no mover run. The bare-token warning below still applies — the token is now `Sprint 7`.
 
-🚨 **This move changes only WHERE `0250` is tracked. Slice S1 — the leak fix, built + reviewed 2026-09-27, verdict *Ready to merge*, committed on `dev` in `68303d5`, ~~NOT deployed — STILL SHIPS IN THIS WEEKEND'S DEPLOY SLOT~~** *(📌 2026-10-02: S1 went live in the 2026-09-29 deploy — see the correction under `## Status`)*, exactly as planned in the [weekend deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan (written 2026-09-29)* (checked 2026-09-29: that section still carries `0250` S1 — client in the game deploy, server in the profile deploy after it). It has to: [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md), Sprint 6's owner-ruled top priority, cannot start until S1 is live~~, and until S1 is deployed the paid-state leak stays live~~. Only slice **S3b** (which waits on [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) is Sprint 7 work.
+🚨 **This move changes only WHERE `0250` is tracked. Slice S1 — the leak fix, built + reviewed 2026-09-27, verdict *Ready to merge*, committed on `dev` in `68303d5`, ~~NOT deployed — STILL SHIPS IN THIS WEEKEND'S DEPLOY SLOT~~** *(📌 2026-10-02: S1 went live in the 2026-09-29 deploy — see the correction under `## Status`)*, exactly as planned in the [weekend deploy-slot runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan (written 2026-09-29)* (checked 2026-09-29: that section still carries `0250` S1 — client in the game deploy, server in the profile deploy after it). It has to: [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md), Sprint 6's owner-ruled top priority, cannot start until S1 is live~~, and until S1 is deployed the paid-state leak stays live~~. Only slice **S3b** (which waits on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) is Sprint 7 work.
 
 *(Earlier value, kept as history — true from 2026-09-26 until 2026-09-29:)* ~~Sprint 6~~
 
@@ -82,7 +82,7 @@ paid benefit, and every additional paid perk `PROJECT.md` promises ("name change
 lobbies, spectating") will want the same seam.
 
 ## Status
-🚧 Blocked — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0340` (verified sessions — `0325`'s slice S3a, split into its own task 2026-09-29; was ~~`0325`~~, which closed as the S2 build). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) ~~and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**~~
+🔄 In progress — slice S3b (driven by `fkit-sprint-ship-loop`, 2026-10-06, owner chose it; `0340` closed; was ~~🚧 Blocked~~) — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0340` (verified sessions — `0325`'s slice S3a, split into its own task 2026-09-29; was ~~`0325`~~, which closed as the S2 build). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) ~~and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**~~
 
 📌 **2026-10-02 correction — S1 went live in the 2026-09-29 deploy.** Commit `68303d5` is an ancestor of game tag `0.0.155` (tag commit `00825f0` *"DEPLOY prod: bump version to 0.0.155"*, 2026-09-29 19:05 UTC); the profile deploy that evening (`profile-api` started 20:04:48 UTC) ran from a checkout holding `68303d5` ([runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*, precondition row); `src/profile-server/PublicProjection.ts` is unchanged since. Source: `fkit-reviewer` deploy-readiness review 2026-10-02 (range `0.0.155..8a7f8c5`); OWNER RULING 2026-10-02 *"Yes, correct it (Recommended)"*, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent; facts re-checked by the producer (git ancestry + runbook). ⚠️ **Deployed, not verified in use** — the runbook records N2's game checks and N3.2 (citizen bell message) as *not reported*. Status token unchanged (`🚧 Blocked`) — S3b still waits on `0340`.
 
@@ -348,7 +348,7 @@ phase 1 chooses, all of these must hold:**
 
 ## Notes
 
-- **Depends on:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified sessions —
+- **Depends on:** [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified sessions —
   `0325`'s slice S3a, split into its own task 2026-09-29) — **hard, for slice S3b only** (owner ruling D3,
   2026-09-27). **Slice S1 (the MUST-FIX) depends on nothing** and ships first. The task as a whole cannot
   close until `0340` ships. *Repointed 2026-09-29 (see the dated note below), kept as written:*
@@ -365,9 +365,9 @@ phase 1 chooses, all of these must hold:**
   (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build
   task after it."* `0325` closed as the S2 build (shadow mode: checks the signature, still mints only
   `vfy:false`). The verified session that slice **S3b** needs now comes from
-  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a, enforce), which waits on
+  [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a, enforce), ~~which waits on
   [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
-  explicit owner approval. Where the slice table and deploy order below say *"`0325` (S3a)"*, read `0340`.
+  explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where the slice table and deploy order below say *"`0325` (S3a)"*, read `0340`.
   Slice S1 is unaffected.
 - **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,
@@ -516,3 +516,33 @@ detection must use the paid state that S3b can then see**, so that a **paid** ci
 **not** counted as "earned". Without that check, the server would stamp `citizenship_earned_at` for that player
 and the event would fire, over-counting earned citizens. The S1 code comment and the analytics reference doc
 already say this residual is gone only *while the event is dormant*. S3b's plan must carry the fix.
+
+## 📌 2026-10-05 — deploy step: the owner looks at the post-`0391` login numbers first (appended; the stale *"`0340` waits on `0339`"* wording above is struck, not deleted, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Yes, add the note (Recommended)"*. Design record: [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md) (accepted 2026-10-05; supersedes ADR-121 Decision 4).
+
+- **Before slice **S3b**'s deploy (S1 is already live and unaffected):** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
+  `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
+  wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
+  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+- **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
+  sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
+  needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
+  approval of anything beyond this task's deploy.
+- No status, sprint or rank changed by this note. No mover run.
+
+## 📌 2026-10-05 — deploy only after `0395` confirms `vfy: true` live (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Note only (Recommended)"*.
+
+- **Deploy slice **S3b** only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+  and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
+  DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
+- **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the
+  **build**); no link to `0395` was added, by the owner's ruling. When `0340` closes, the board will stop showing this
+  task as waiting — that is about building, not deploying.
+- No status, sprint or rank changed by this note. No mover run.

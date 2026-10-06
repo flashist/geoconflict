@@ -76,7 +76,7 @@ data once per page load and sends it with the login. It was proven in tests only
 SDK, the metric reaching Uptrace and the events reaching GameAnalytics were **not** checked — `0325` worklog,
 *Not verified*). This task is the live half: does it work on real players, and how often?
 
-**Why it matters.** The next step, [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a),
+**Why it matters.** The next step, [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (S3a),
 turns the check on for real: a passing check gives the player a verified session. Before that, we need to know
 that real logins actually pass (`ok`), and how often they fail and why. The plan's S2 exit
 (`0325` `plan.md` § *S2*): *"the owner picks a window, and `ok` is the large majority of real logins. `stale` /
@@ -176,7 +176,7 @@ answer: S2 exit met, or not met.
 
 - **Depends on:** `0325` (the S2 build, closed 2026-09-29) plus the three deploys in *Context* (`0250` S1 client,
   then `0250` S1 profile server, then profile server S2, then game client S2). 📌 2026-09-29: the next slot's actual order is owner-ruled **telemetry → game → profile** — see *Context* and the [runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *Next window — plan (written 2026-09-29)*.
-- **Blocks:** [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — S3a needs this task's S2
+- **Blocks:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — S3a needs this task's S2
   exit plus a separate owner approval to enforce). ⚠️ It does **not** block Sprint 6's deploy.
 - 📌 **2026-09-29, latest:** `0340` moved back to [Sprint 7](../../../sprints/plan-sprint-7.md) by the owner ruling quoted under *Priority*. This task still blocks it (the block now runs from Sprint 6 to Sprint 7, the normal direction). The `0250` S1 deploy precondition under *Depends on* is unchanged; `0250` is now tracked on Sprint 7.
 - **Related:** [ADR-116](../../../knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)

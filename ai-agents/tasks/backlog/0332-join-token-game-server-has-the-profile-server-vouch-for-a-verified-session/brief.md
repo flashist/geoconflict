@@ -168,8 +168,8 @@ Built from the design. In outline only — the design decides the shape:
 
 ## Notes
 
-- **Depends on:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — there is no verified session to send until it ships; it is `0325`'s slice S3a, split into its own task 2026-09-29). *Repointed 2026-09-29, kept as written:* ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)~~
-- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). The verified session this task sends in the join now comes from [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), which waits on [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval. Where this brief says *"`0325`"* or *"its slice S3a"* for the verified session, read `0340`.
+- **Depends on:** [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — there is no verified session to send until it ships; it is `0325`'s slice S3a, split into its own task 2026-09-29). *Repointed 2026-09-29, kept as written:* ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)~~
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). The verified session this task sends in the join now comes from [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md), ~~which waits on [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where this brief says *"`0325`"* or *"its slice S3a"* for the verified session, read `0340`.
 - **Blocks:** [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard — the mark is only honest once the game server can check who the player is; owner ruling on `0323`, 2026-09-28)
 - **Closes (when phase 2 ships and the owner's per-user policy is applied):** ADR-103's forged-id risk for
   XP crediting · the `0068` ★ forged-id case · the `0302` private-lobby-gate forged-id case · ADR-115
@@ -188,3 +188,33 @@ Built from the design. In outline only — the design decides the shape:
 1. For a player whose session is **not** verified: should XP still be credited, the ★ still shown, the
    private lobby still open, and the approved name still swapped in? (Asked after phase 1 lays out the cost
    of each.)
+
+## 📌 2026-10-05 — deploy step: the owner looks at the post-`0391` login numbers first (appended; the stale *"`0340` waits on `0339`"* wording above is struck, not deleted, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Yes, add the note (Recommended)"*. Design record: [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md) (accepted 2026-10-05; supersedes ADR-121 Decision 4).
+
+- **Before this task's deploy:** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
+  `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
+  wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
+  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+- **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
+  sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
+  needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
+  approval of anything beyond this task's deploy.
+- No status, sprint or rank changed by this note. No mover run.
+
+## 📌 2026-10-05 — deploy only after `0395` confirms `vfy: true` live (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-05 live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Note only (Recommended)"*.
+
+- **Deploy this task only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+  and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
+  DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
+- **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the
+  **build**); no link to `0395` was added, by the owner's ruling. When `0340` closes, the board will stop showing this
+  task as waiting — that is about building, not deploying.
+- No status, sprint or rank changed by this note. No mover run.

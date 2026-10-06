@@ -75,7 +75,7 @@ threshold for the S2 exit is decided in this task, with the data** (*"Decide it 
 at ~32–33 % over ~20 k logins since 2026-09-29 20:05 UTC; ~21–26 % at 02–06 UTC, ~40–43 % at 20–23 UTC. Because of
 it the owner ruled `0325`'s S2 exit **not met** (2026-10-01, in
 [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md)), so
-[`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) cannot start — nor `0332`, `0323`, `0250` S3b,
+[`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) cannot start — nor `0332`, `0323`, `0250` S3b,
 `0248` and `0301` behind it.
 
 **What is known before reading** (architect consult 2026-10-02, read-only — recorded in full in `0372`'s
@@ -208,7 +208,7 @@ Name which row the readings support, and how strongly. If they fit none, say so 
   5–7 days of data) and [`0366`](../../done/0366-measure-how-old-stale-login-signatures-are/brief.md) (hard —
   deployed in the profile deploy).
 - **Blocks:** the stale-signature fix task (not yet filed — this task's output) → the S2-exit re-check →
-  [`0340`](../../backlog/0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
+  [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md).
 - **`0366` Q2 ruling folded in:** `0366`'s owner ruling (2026-10-01) put *reading its brackets* into "the S2-exit
   re-check before `0340`". This task is where they are first read; the re-check after the fix reads them again.
 - **Related:** [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (the S2
@@ -230,7 +230,7 @@ five Output items: the [worklog](worklog.md), *2026-10-05 — Step 4: owner's ch
 - **Fix:** *"24 hours (Recommended)"* →
   [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) (Sprint 7).
 - **Threshold:** *"At most 5% (Recommended)"* → the S2-exit re-check
-  [`0392`](../../backlog/0392-verify-0391-live-stale-login-share-at-most-5-percent-over-7-days/brief.md) (Sprint 8).
+  [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (Sprint 8).
 - **Watch task:** *"File it (Recommended)"* →
   [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md) (Backlog
   board).

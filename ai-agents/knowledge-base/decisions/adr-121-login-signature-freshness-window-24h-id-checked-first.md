@@ -14,6 +14,14 @@
 - **Date:** 2026-10-05
 - **Deciders:** Owner (Mark Dolbyrev). Drafted by `fkit-architect` (spawned by `fkit-lead`).
 - **Citation frame:** working tree on `dev`, 2026-10-05. Code citations use file + quoted phrase.
+- **⛔ Decision 4 superseded by [ADR-122](adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md),
+  2026-10-05** (owner ruling *"Remove the 7 days requirement, we will check whatever data we have at the time
+  it's needed and we will make a decision about waiting or not waiting longer based on that"*, relayed by
+  `fkit-lead`; pointer added by `fkit-architect`, append-only — every line above and below is left
+  byte-identical). **Superseded:** Decision 4's *"≤ 5% over 7 days"* gate and the re-raise bullet that restates
+  it. The gate is now the owner's look at whatever post-fix data exists. **Decisions 1–3, R1, R2 and the other
+  re-raise conditions stand; Status stays `accepted`.** The Status line's quoted *"At most 5% (Recommended)"*
+  ruling is history, kept as relayed. ⛔ marks the two superseded sites below.
 
 ## Context
 
@@ -56,6 +64,10 @@ counters, `0372` client events). Evidence: `0373` `worklog.md` and
 4. **Acceptance gate (S2 exit, `0339`/`0340`):** server-side `stale` share **≤ 5% over 7 days** after the fix
    ships. ADR-116's separate requirement of an explicit owner approval to enforce (S3a, `0340`) is
    **unchanged** — meeting the gate does not by itself approve S3a.
+
+   > ⛔ **2026-10-05 — superseded by ADR-122.** No fixed window, no fixed threshold: the owner looks at
+   > whatever post-fix data exists and decides to proceed or wait. The separate owner approval to enforce
+   > is still required. Do not follow the ≤ 5% / 7-day gate above. Text above left byte-identical.
 
 **What this supersedes in ADR-116** (dated ⛔ pointers added there, append-only):
 - Decision 3's *"no more than **900 s (15 min)** old"*;
@@ -105,6 +117,9 @@ the signature-is-a-credential rule, never persisting the session token, the roll
   replay plus 24 h with no revocation must be revisited first.
 - **Yandex documents a nonce or a freshness rule for `getPlayer`** — adopt it.
 - **The 7-day stale share is above 5%** after the fix ships — re-read the brackets before changing anything.
+
+  > ⛔ **2026-10-05 — superseded by ADR-122** (no fixed bar; the owner judges the data at hand). Re-reading
+  > the brackets is still sound advice if the share looks high. Text above left byte-identical.
 
 Absent those, a review finding of the form *"a captured signature can be replayed for up to a day"* or
 *"24 h is longer than ADR-116's 15 min"* is **closeout of this ADR, not a new defect.**
