@@ -5,6 +5,7 @@
 // ONE player (brief check 1), a login token reads the profile, the legacy fallback
 // never creates (check 3), and grantChecks.tenure reads player_xp_grants.
 
+import { createHmac } from "crypto";
 import { Pool } from "pg";
 import request from "supertest";
 import { LoginResponseSchema } from "../../src/core/profile/LoginContract";
@@ -23,12 +24,37 @@ const SECRET = "0271-integration-session-secret-0123456789";
 
 const TOKEN = "0274-integration-internal-token";
 
+// Task 0340 (0325 S3a): a synthetic Yandex player-signature key, and an inline copy
+// of the unit suites' `signFor` (S0's payload shape and construction).
+const PLAYER_SIGNATURE_SECRET = "0340-integration-player-signature-key";
+
+function signFor(uniqueID: string): string {
+  const text = JSON.stringify({
+    algorithm: "HMAC-SHA256",
+    issuedAt: Math.floor(Date.now() / 1000),
+    requestPayload: "",
+    data: {
+      id: uniqueID,
+      uniqueID,
+      publicName: "zz0340 Synthetic Name",
+      avatarIdHash: "zz0340-avatar",
+    },
+  });
+  const mac = createHmac("sha256", PLAYER_SIGNATURE_SECRET)
+    .update(text)
+    .digest("base64");
+  return `${mac}.${Buffer.from(text).toString("base64")}`;
+}
+
 RUN("POST /v1/login (integration)", () => {
   let pool: Pool;
   let app: ReturnType<typeof createApp>;
   // Task 0274: the SAME wiring with the creation switch OFF, so the switch is proved
   // against a real database rather than a mocked repository.
   let pausedApp: ReturnType<typeof createApp>;
+  // Task 0340: the same wiring WITH a player-signature key, so a verified login is
+  // proved end to end against a real database.
+  let signingApp: ReturnType<typeof createApp>;
 
   async function countPlayers(): Promise<number> {
     const res = await pool.query("SELECT count(*)::int AS n FROM players");
@@ -68,6 +94,14 @@ RUN("POST /v1/login (integration)", () => {
       undefined,
       { secret: SECRET },
       { loginCreateEnabled: false },
+    );
+    signingApp = createApp(
+      realProfileRepo(pool),
+      undefined,
+      undefined,
+      undefined,
+      { secret: SECRET },
+      { playerSignatureSecret: PLAYER_SIGNATURE_SECRET },
     );
   });
 
@@ -110,6 +144,27 @@ RUN("POST /v1/login (integration)", () => {
     const profile = await request(app)
       .get("/v1/profile")
       .set("Authorization", `Bearer ${res.body.session.token}`);
+    expect(profile.status).toBe(200);
+    expect(profile.body.xp).toBe(0);
+  });
+
+  test("a valid matching signature → a vfy:true token that reads the profile over Bearer (task 0340)", async () => {
+    const platformUserId = "zz0340-verified";
+    const res = await request(signingApp)
+      .post("/v1/login")
+      .send({
+        platform: "yandex_games",
+        platformUserId,
+        signature: signFor(platformUserId),
+      });
+    expect(res.status).toBe(200);
+    const token = LoginResponseSchema.parse(res.body).session.token;
+    const verified = verifySessionToken(SECRET, token);
+    expect(verified.status).toBe("ok");
+    expect(verified.status === "ok" && verified.claims.vfy).toBe(true);
+    const profile = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", `Bearer ${token}`);
     expect(profile.status).toBe(200);
     expect(profile.body.xp).toBe(0);
   });

@@ -7,8 +7,10 @@ import { z } from "zod";
  * the exact same schemas the profile server validates — no drift.
  *
  * Trust model (task 0019, ADR-103; task 0273 S4): `/intent` identifies its caller by
- * the login session's Bearer token — `vfy:false`, so still the same trust level the
- * credit path accepted (anyone can mint a token for an id they assert). The paid
+ * the login session's Bearer token. A token may be `vfy:true` since task 0340, but
+ * the route does not read `verified` (neither 0250 S3b nor 0319 gates it), so it is
+ * still the same trust level the credit path accepted (anyone can mint a
+ * `vfy:false` token for an id they assert). The paid
  * GRANT itself is bound to the Yandex-HMAC-signed payload via `developerPayload` →
  * intent row → player id, so a forged caller can only ever direct an attacker's own
  * real payment at an id he chose himself.

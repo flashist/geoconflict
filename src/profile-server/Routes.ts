@@ -94,6 +94,7 @@ import {
   isUsableSessionSecret,
   signSessionToken,
   verifySessionToken,
+  type SessionClaims,
 } from "./SessionToken";
 import {
   metricPlatform,
@@ -307,12 +308,31 @@ export interface NameChangeRepo {
  * fallback — there is nothing left to distinguish, and task 0274 (S5) must NOT
  * implement a `legacy_fallback_used` metric reason against it.
  *
- * ⚠️ `ok` is NOT a proven owner: the token is `vfy:false` (anyone asserting an id
- * gets one), so paid state (0250) must never trust it. Such a caller gets the
- * EQUALIZED view (PublicProjection.ts, task 0250 S1) on every route that returns
- * profile data, xp or inbox messages — a paid and an earned citizen look the same.
+ * ⚠️ `ok` alone is NOT a proven owner — anyone asserting an id at login gets a
+ * `vfy:false` token. Only `verified: true` is: since task 0340 (0325 S3a) the login
+ * mints `vfy:true` for a fresh, genuine Yandex signature of the asserted id, and
+ * this carries it. Paid state (0250) must never trust `ok` without it.
+ *
+ * NO route reads `verified` yet: 0250 S3b adds the owner view and 0319 gates name
+ * change. Until then every caller gets the EQUALIZED view (PublicProjection.ts, task
+ * 0250 S1) on every route that returns profile data, xp or inbox messages — a paid
+ * and an earned citizen look the same.
  */
-type CallerResolution = { status: "ok"; playerId: string } | CallerFailure;
+export type SessionCaller = {
+  status: "ok";
+  playerId: string;
+  verified: boolean;
+};
+
+type CallerResolution = SessionCaller | CallerFailure;
+
+/**
+ * A verified session token's claims, as the caller every route sees. Pure, no
+ * database read. Strictly `=== true`, like the mint: anything else is unverified.
+ */
+export function callerFromSession(claims: SessionClaims): SessionCaller {
+  return { status: "ok", playerId: claims.pid, verified: claims.vfy === true };
+}
 
 type CallerFailure =
   | {
@@ -456,8 +476,9 @@ export function createApp(
   /**
    * The ONE place every player-facing route learns who is asking (task 0012
    * owner-ruled D1; 0270 moved it onto the internal player id; 0271 put the login
-   * session in front; 0273 made it the only path). Any future signature check
-   * (0267) drops in HERE and nowhere else — which is why this stays `async`.
+   * session in front; 0273 made it the only path). The Yandex signature is checked
+   * ONCE, at login (ADR-116); this carries its result from the token's `vfy` claim
+   * as `verified` (task 0340), with no database read.
    *
    * The `Authorization` header decides, alone. A valid Bearer token is the caller,
    * with NO database read; an expired or invalid one is a 401; no header at all is
@@ -508,7 +529,7 @@ export function createApp(
       authorization.slice(BEARER_PREFIX.length),
     );
     if (verification.status === "ok") {
-      return { status: "ok", playerId: verification.claims.pid };
+      return callerFromSession(verification.claims);
     }
     return verification.status === "expired"
       ? rejectCaller("session_expired", "expired")
@@ -596,9 +617,9 @@ export function createApp(
 
   // Client-facing profile read. Rate-limited per-IP: since task 0273 the caller must
   // hold a session token, so there is no id to enumerate here any more, but the cap
-  // still bounds abuse of the read itself. TODO(0267): verify a Yandex signature at
-  // login so a token can only ever be minted for its real owner. Task 0325 checks it
-  // at login in shadow mode (counted, not enforced); its S3a mints vfy:true.
+  // still bounds abuse of the read itself. Since task 0340 (0325 S3a) a token may be
+  // `vfy:true`, but this route does not read `verified` yet (0250 S3b adds the owner
+  // view), so every caller still gets the same, equalized view.
   const profileReadLimiter = rateLimit({
     windowMs: 60_000,
     max: 60,
@@ -663,7 +684,8 @@ export function createApp(
 
   // ── Login (task 0271, S2; ADR-113; design §4) ──────────────────────────────
   // Find-or-create the player for a platform login and hand back a 24 h session
-  // token. 🔓 Adds NO security today: anyone asserting an id gets a token for it.
+  // token. 🔓 A `vfy:false` session adds NO security: anyone asserting an id gets
+  // one for it. Only a `vfy:true` session (below) says anything about ownership.
   // NO rate limiter — owner-accepted; S5's monitoring replaces it (junk profile
   // rows are the accepted, monitored risk). ⛔ Never log the platform id, the
   // player id or the token on this path.
@@ -679,13 +701,15 @@ export function createApp(
   // WebSocket join with a made-up Yandex id and create a player through the game
   // server. That path is slow, and alert A1 counts creations from BOTH sources.
   //
-  // ── Signed player data (task 0325, S2 — SHADOW MODE) ────────────────────────
+  // ── Signed player data (task 0325; S3a — ENFORCE, task 0340) ────────────────
   // An optional `signature` (Yandex's signed player data) is checked and its outcome
-  // COUNTED (`geoconflict.profile.login.verification`) — and used for nothing else:
-  // the resolve, the response and the token (`vfy:false`) are exactly as without it.
-  // The fail rule is fixed: a missing, bad or stale signature, or a check that
-  // throws, is an unverified session — NEVER a refused login. ⛔ Never log the
-  // signature, never persist it, never pass it to the repository.
+  // COUNTED (`geoconflict.profile.login.verification`). Outcome `ok` mints a
+  // `vfy:true` session; every other outcome, or a check that throws, mints
+  // `vfy:false` — NEVER a refused login. The resolve, the status and the response
+  // body are exactly as without a signature; only the token's `vfy` claim differs.
+  // ⛔ Never log the signature, never persist it, never pass it to the repository.
+  // `verified` is a YANDEX-only proof: a second platform must not reuse this check
+  // (ADR-116 re-raise: a second login method).
   // Task 0366: a `stale` outcome also counts its age bracket
   // (`geoconflict.profile.login.verification.stale_age`) — fixed values, never the
   // raw age, and its own try/catch so it can never cost a login.
@@ -720,10 +744,12 @@ export function createApp(
       return;
     }
     const platformLabel = metricPlatform(parsed.data.platform);
-    // Task 0325, S2: count what the signature would prove, then carry on unchanged.
-    // Its own try/catch — a throw here must never cost the player their login.
+    // Task 0325: count what the signature proves; since S3a (task 0340) `ok` also
+    // mints a verified session. Its own try/catch — a throw here must never cost the
+    // player their login, and leaves `verified` false.
     let verificationOutcome: LoginVerificationOutcome;
     let staleAgeBracket: StaleSignatureAgeBracket | undefined;
+    let verified = false;
     try {
       const verification = classifyLoginSignature(
         parsed.data.signature,
@@ -733,6 +759,7 @@ export function createApp(
       );
       verificationOutcome = verification.outcome;
       staleAgeBracket = verification.staleAgeBracket;
+      verified = verification.verified === true;
     } catch {
       verificationOutcome = "bad_signature";
     }
@@ -745,6 +772,9 @@ export function createApp(
       }
     }
     try {
+      // Resolved by the ASSERTED id, as always. When `verified`, it equals the signed
+      // id by construction (LoginVerification.ts: id checked first), so the signed id
+      // never has to leave the classifier (ADR-121).
       const resolved = loginCreateEnabled
         ? await repo.resolveOrCreatePlayer(
             parsed.data.platform,
@@ -779,6 +809,7 @@ export function createApp(
         session: signSessionToken(sessionSecret, {
           playerId: resolved.playerId,
           platform: parsed.data.platform,
+          verified,
         }),
       };
       recordLogin(platformLabel, resolved.created ? "created" : "existing");
@@ -916,10 +947,12 @@ export function createApp(
   if (paymentsRepo !== undefined) {
     // Create a purchase intent BEFORE the payment frame opens. The caller (since
     // task 0273: a session token, and nothing else — same trust level ADR-103
-    // accepted for crediting, since the token is `vfy:false`) is only who the intent
-    // is FOR; the GRANT is bound to the Yandex-signed payload via developerPayload →
-    // intent row, so the worst abuse is paying real money to gift citizenship to a
-    // chosen id. A token for a player that no longer exists hits the FK — 404 (0271).
+    // accepted for crediting: a token may be `vfy:true` since task 0340, but this
+    // route does not read `verified` — neither 0250 S3b nor 0319 gates it) is only
+    // who the intent is FOR; the GRANT is bound to the Yandex-signed payload via
+    // developerPayload → intent row, so the worst abuse is paying real money to gift
+    // citizenship to a chosen id. A token for a player that no longer exists hits
+    // the FK — 404 (0271).
     app.post("/v1/payments/yandex/intent", async (req, res) => {
       const parsed = PurchaseIntentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1539,8 +1572,9 @@ export function createApp(
   // and by the one-row-per-player primary key, not by request rate.
   //
   // CALLER: the Bearer session alone (resolveCaller) — the body carries no id.
-  // ⚠️ Accepted risk (ADR-112 amended; closes with 0268): the token is
-  // `vfy:false`, so anyone who can mint one for a player can claim for them.
+  // ⚠️ Accepted risk (ADR-112 amended; closes with 0268): this route does not read
+  // `verified` (a token may be `vfy:true` since task 0340), so anyone who can mint a
+  // `vfy:false` token for a player can still claim for them.
   //
   // AMOUNT: computed HERE from the evidence by the shared rule. zod strips any
   // amount a client sends. Every checked claim writes a row, 0 XP included.

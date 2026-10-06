@@ -11,15 +11,22 @@ export const TEST_SESSION_SECRET = "0273-test-session-secret-0123456789ab";
 /** The `session` argument createApp takes. */
 export const TEST_SESSION_CONFIG = { secret: TEST_SESSION_SECRET };
 
-/** A full `Authorization` value for the given internal player id. */
+/**
+ * A full `Authorization` value for the given internal player id. `verified` mints a
+ * `vfy:true` token (task 0340); it defaults to an unverified one.
+ */
 export function bearerFor(
   playerId: string,
-  options: { secret?: string; nowMs?: number } = {},
+  options: { secret?: string; nowMs?: number; verified?: boolean } = {},
 ): string {
-  const { secret = TEST_SESSION_SECRET, nowMs = Date.now() } = options;
+  const {
+    secret = TEST_SESSION_SECRET,
+    nowMs = Date.now(),
+    verified = false,
+  } = options;
   const { token } = signSessionToken(
     secret,
-    { playerId, platform: "yandex_games" },
+    { playerId, platform: "yandex_games", verified },
     nowMs,
   );
   return `Bearer ${token}`;

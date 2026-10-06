@@ -90,8 +90,9 @@ export type LoginOutcome =
 export type SessionRejectedReason = "expired" | "invalid" | "absent";
 
 /**
- * What the login's signed-player-data check found (task 0325, S2 — shadow mode:
- * counted, and used for nothing else yet). Seven bounded values, in check order
+ * What the login's signed-player-data check found (task 0325; counted since S2, and
+ * since S3a, task 0340, `ok` also mints a `vfy:true` session). Seven bounded values,
+ * in check order
  * (id before age since ADR-121, task 0391):
  *  - `absent`        — no signature in the body: an old client bundle, or the
  *                      client's signed call failed / hung past its 60 s safety net.

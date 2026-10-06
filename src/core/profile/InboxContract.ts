@@ -14,10 +14,11 @@ import { z } from "zod";
  *
  * Trust model (ADR-103, owner-ruled 2026-08-26 at the 0012 plan gate): the
  * player routes identify the caller by the login session's Bearer token (task 0273,
- * S4); it is `vfy:false`, so still the same trust level
+ * S4). A token may be `vfy:true` since task 0340, but the routes do not read
+ * `verified` yet (0250 S3b), so it is still the same trust level
  * `/v1/profile` and the credit path accept today. The citizen gate is enforced
- * server-side on every call; signature verification slots into the server's
- * single `resolveCaller` funnel once the Yandex secret exists (blocked on 0014).
+ * server-side on every call; `resolveCaller` already carries `verified` for when a
+ * route needs it.
  *
  * See ai-agents/tasks/backlog/0012-personal-inbox/brief.md.
  */

@@ -11,10 +11,11 @@ import { z } from "zod";
  *
  * Trust model (ADR-103, re-affirmed by the owner at this task's plan gate,
  * amendment 2; task 0273 S4): the player routes identify the caller by the login
- * session's Bearer token. The token is `vfy:false`, so it is still the same trust
- * level `/v1/profile`, the inbox and the credit path accept today — anyone can mint
- * one for an id they merely assert. The citizen gate is enforced server-side in SQL
- * on every call.
+ * session's Bearer token. A token may be `vfy:true` since task 0340, but the routes
+ * do not read `verified` yet (0319 gates name change on it), so it is still the same
+ * trust level `/v1/profile`, the inbox and the credit path accept today — anyone can
+ * mint a `vfy:false` token for an id they merely assert. The citizen gate is
+ * enforced server-side in SQL on every call.
  *
  * ⚠️ ACCEPTED RESIDUAL, deliberately NOT solved here: a griefer who knows a
  * citizen's (non-secret) Yandex id can submit an offensive name IN THAT CITIZEN'S
@@ -142,8 +143,9 @@ export type NameChangeStatus = z.infer<typeof NameChangeStatusSchema>;
  * projection.
  *
  * `GET /v1/profile` needs a login session's Bearer token since task 0273 (S4),
- * but that token is `vfy:false` — anyone can mint one for a non-secret player id
- * they merely assert — so the projection is still effectively enumerable by
+ * but the route does not read `verified` yet (0250 S3b / 0319) — anyone can mint a
+ * `vfy:false` token for a non-secret player id they merely assert — so the
+ * projection is still effectively enumerable by
  * anyone who knows the id; only the cost of one `POST /v1/login` was added. It
  * therefore still deliberately OMITS `rejection_reason`: operator-authored text
  * reaches the player through the citizen-gated inbox message, which already has

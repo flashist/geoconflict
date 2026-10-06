@@ -162,6 +162,45 @@ describe("POST /v1/profile/tenure-grant", () => {
         .expect(200, { status: "duplicate", xpAwarded: 30, xp: 45 });
     });
 
+    // Task 0340 (0325 S3a): the login mints `vfy:true` now, but this route does
+    // not read `verified` yet — a verified token gets exactly the unverified answer
+    // (citizen xp still equalized), and the repository sees exactly the same call.
+    it("a vfy:true token → the same status, body and repository call as vfy:false", async () => {
+      const result = outcome({
+        citizenshipNewlyGranted: true,
+        isCitizen: true,
+        xpAwarded: 50,
+        xp: 110,
+      });
+      const evidence = { daysPlayed: 80, gameRecordDays: 0 };
+      const unverifiedGrant = mockTenureGrant(result);
+      const verifiedGrant = mockTenureGrant(result);
+      const unverified = await request(appWith(unverifiedGrant))
+        .post(PATH)
+        .set("Authorization", bearerFor(PLAYER_ID, { verified: false }))
+        .send({ evidence });
+      const verified = await request(appWith(verifiedGrant))
+        .post(PATH)
+        .set("Authorization", bearerFor(PLAYER_ID, { verified: true }))
+        .send({ evidence });
+      expect(verified.status).toBe(200);
+      expect(verified.status).toBe(unverified.status);
+      expect(verified.body).toEqual(unverified.body);
+      expect(verified.body).toEqual({
+        status: "granted",
+        xpAwarded: 50,
+        xp: 100,
+      });
+      expect(verifiedGrant.recordTenureCheck.mock.calls).toEqual(
+        unverifiedGrant.recordTenureCheck.mock.calls,
+      );
+      expect(verifiedGrant.recordTenureCheck).toHaveBeenCalledWith(
+        PLAYER_ID,
+        50,
+        evidence,
+      );
+    });
+
     it("the response never carries citizenshipNewlyGranted or any id", async () => {
       const tenureGrant = mockTenureGrant(
         outcome({

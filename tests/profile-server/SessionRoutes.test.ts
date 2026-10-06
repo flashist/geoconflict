@@ -96,12 +96,31 @@ function appWith(m: Mocks, secret: string | null = SECRET) {
   );
 }
 
-function tokenFor(secret = SECRET, nowMs = Date.now()): string {
+function tokenFor(
+  secret = SECRET,
+  nowMs = Date.now(),
+  verified = false,
+): string {
   return signSessionToken(
     secret,
-    { playerId: PLAYER_ID, platform: "yandex_games" },
+    { playerId: PLAYER_ID, platform: "yandex_games", verified },
     nowMs,
   ).token;
+}
+
+/** Every repository call the app made, in one comparable value. */
+function allCalls(m: Mocks): unknown {
+  return Object.fromEntries(
+    Object.entries(m).map(([name, repo]) => [
+      name,
+      Object.fromEntries(
+        Object.entries(repo as Record<string, jest.Mock>).map(([fn, mock]) => [
+          fn,
+          mock.mock.calls,
+        ]),
+      ),
+    ]),
+  );
 }
 
 function flipMiddleMacChar(token: string): string {
@@ -277,6 +296,26 @@ describe.each(ROUTES)("resolveCaller — $name", (route) => {
     expect(route.acted(m)).toHaveBeenCalledWith(...route.actedWith);
     expect(m.repo.findPlayerByIdentity).not.toHaveBeenCalled();
     expect(m.repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
+  });
+
+  // Task 0340 (0325 S3a): the login now mints `vfy:true`, but NO route reads
+  // `verified` yet (0250 S3b / 0319) — a verified token must be answered exactly
+  // like an unverified one. Turns red the day a route starts branching on it
+  // without updating this guard.
+  test("a vfy:true token → the same status, body and repository calls as vfy:false", async () => {
+    const unverified = mocks();
+    const verified = mocks();
+    const unverifiedRes = await send(appWith(unverified), route, {
+      authorization: `Bearer ${tokenFor(SECRET, Date.now(), false)}`,
+    });
+    const verifiedRes = await send(appWith(verified), route, {
+      authorization: `Bearer ${tokenFor(SECRET, Date.now(), true)}`,
+    });
+    expect(verifiedRes.status).toBe(route.okStatus);
+    expect(verifiedRes.status).toBe(unverifiedRes.status);
+    expect(verifiedRes.body).toEqual(unverifiedRes.body);
+    expect(route.acted(verified)).toHaveBeenCalledWith(...route.actedWith);
+    expect(allCalls(verified)).toEqual(allCalls(unverified));
   });
 
   test.each<[string, () => string]>([

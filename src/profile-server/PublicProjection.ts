@@ -1,9 +1,10 @@
 // What an UNVERIFIED caller may see of a player (task 0250, slice S1).
 //
-// A session token is `vfy:false` (no Yandex signature verification yet — 0325):
-// anyone who asserts a platform id gets one. So every player-facing route shows
-// such a caller a view in which a PAID citizen and an EARNED citizen look the
-// same — same keys, same types, only the values are equalized:
+// A `vfy:false` session token proves nothing: anyone who asserts a platform id gets
+// one. A token may be `vfy:true` since task 0340 (0325 S3a), but no route branches
+// on it yet — so this is the view EVERY caller gets until S3b, in which a PAID
+// citizen and an EARNED citizen look the same — same keys, same types, only the
+// values are equalized:
 //  - L1 `citizenship_earned_at` → always null;
 //  - L2/L3 `xp` → exactly the citizenship threshold for EVERY citizen (owner
 //    ruling Q-A, 2026-09-27), so a citizen's xp never moves on any route;
@@ -40,18 +41,18 @@ export function equalizedXp(xp: number, isCitizen: boolean): number {
 }
 
 /**
- * Public projection of a profile — the equalized view above. Sprint 4: this read
- * needs a session token but the token is `vfy:false` (no Yandex signature
- * verification yet — deferred to 0267 / 0325), so anyone can still mint one for
- * an id they merely assert. So:
+ * Public projection of a profile — the equalized view above. This read needs a
+ * session token; a token may be `vfy:true` since task 0340, but no route branches
+ * on it yet, so this is the view every caller gets until S3b — and anyone can still
+ * mint a `vfy:false` token for an id they merely assert. So:
  *  - paid state (`is_paid_citizen`, `citizenship_purchased_at`) is omitted —
  *    leaking "who paid";
  *  - `xp`, `citizenship_earned_at` and `updated_at` are equalized (task 0250 S1)
  *    so paid state cannot be inferred from them either.
  * The profile carries no identity at all (task 0270): neither the internal player
  * id nor a platform id can reach a client through it (ADR-113 hard rule).
- * TODO(payments): once Yandex-signature auth lands, the true values can be
- * returned to the verified owner of the profile.
+ * TODO(payments): 0250 S3b returns the true values to a `verified` caller (the
+ * signature is checked at login since task 0340; no route reads it yet).
  *
  * `nameChange` (task 0067) is merged in when the caller has one. It carries only
  * {status, requested_name, decided_at} — never the operator's rejection reason,

@@ -2,14 +2,15 @@
 // One `POST /v1/login` per logged-in page load; every other profile call then goes
 // out with `Authorization: Bearer <token>` and no Yandex id in the URL or body.
 //
-// 🔓 The token adds NO security today (`vfy:false` — anyone asserting a platform id
-// gets one). It takes Yandex ids out of URLs and logs and gives 0267 one place to
-// verify. It must never count as a proven owner (paid state, task 0250).
+// 🔓 A `vfy:false` token adds NO security (anyone asserting a platform id gets one).
+// It takes Yandex ids out of URLs and logs. It must never count as a proven owner
+// (paid state, task 0250).
 //
-// Task 0325 (S2 — shadow mode): each login also sends Yandex's signed player data
-// (`signature`) when the facade has one. The server only COUNTS what it proves for
-// now. No signature — the signed call failed, hung past the facade's 60 s safety
-// net, anything — just means the body goes without it; it never fails the login.
+// Task 0325: each login also sends Yandex's signed player data (`signature`) when
+// the facade has one. Since 0340 (S3a) a verified signature yields a `vfy:true`
+// session. No signature — the signed call failed, hung past the facade's 60 s safety
+// net, anything — just means the body goes without it and the session is
+// `vfy:false`; it never fails the login.
 // ⛔ The signature is a credential too: memory only, like the token, for the one
 // request that carries it. Never logged, never persisted.
 //

@@ -1,8 +1,10 @@
-// Route tests for task 0325, S2 — SHADOW MODE: POST /v1/login checks an optional
-// Yandex signed-player-data `signature`, COUNTS the outcome, and changes nothing
-// else. A sibling of LoginRoutes.test.ts (same harness), split out because this file
-// mocks the Logger (to prove the signature never reaches a log line) and wraps the
-// classifier (to force a throw) — neither should reach the older suite.
+// Route tests for task 0325, S2 + S3a (task 0340): POST /v1/login checks an optional
+// Yandex signed-player-data `signature`, COUNTS the outcome, and — since S3a — mints
+// a `vfy:true` session for outcome `ok` and `vfy:false` for everything else, with the
+// status and body unchanged. A sibling of LoginRoutes.test.ts (same harness), split
+// out because this file mocks the Logger (to prove the signature never reaches a log
+// line) and wraps the classifier (to force a throw) — neither should reach the older
+// suite.
 // supertest-based, so part of the known supertest flake family (CLAUDE.md).
 // Synthetic key, ids and names only.
 
@@ -55,6 +57,8 @@ import {
 const SESSION_SECRET = "0325-login-session-secret-0123456789abcdef";
 const SIGNATURE_SECRET = "0325-synthetic-yandex-player-signature-key";
 const PLAYER_ID = "0b6f8a52-3c1e-4d7a-9f10-2a4b6c8d0e1f";
+/** Task 0340: a DIFFERENT internal player, for the platform id nobody asserted. */
+const OTHER_PLAYER_ID = "7d2c4e91-5a3b-4f6c-8e0d-1b2a3c4d5e6f";
 const PLATFORM_USER_ID = "zz0325-login-synthetic";
 const OTHER_PLATFORM_USER_ID = "zz0325-someone-else";
 
@@ -137,25 +141,67 @@ function appWith(
   );
 }
 
+/** The `<mac>.<base64 payload>` envelope over any payload object. */
+function signPayload(
+  payload: Record<string, unknown>,
+  secret: string = SIGNATURE_SECRET,
+): string {
+  const text = JSON.stringify(payload);
+  const mac = createHmac("sha256", secret).update(text).digest("base64");
+  return `${mac}.${Buffer.from(text).toString("base64")}`;
+}
+
 /** A Yandex-style signed player payload (S0's shape and construction). */
 function signFor(
   uniqueID: string,
   issuedAtSec: number = Math.floor(Date.now() / 1000),
   secret: string = SIGNATURE_SECRET,
 ): string {
-  const text = JSON.stringify({
-    algorithm: "HMAC-SHA256",
-    issuedAt: issuedAtSec,
-    requestPayload: "",
-    data: {
-      id: uniqueID,
-      uniqueID,
-      publicName: "zz0325 Synthetic Name",
-      avatarIdHash: "zz0325-avatar",
+  return signPayload(
+    {
+      algorithm: "HMAC-SHA256",
+      issuedAt: issuedAtSec,
+      requestPayload: "",
+      data: {
+        id: uniqueID,
+        uniqueID,
+        publicName: "zz0325 Synthetic Name",
+        avatarIdHash: "zz0325-avatar",
+      },
     },
+    secret,
+  );
+}
+
+/** The session token a 200 login minted, verified with the test key. */
+function mintedClaims(body: unknown) {
+  const verification = verifySessionToken(
+    SESSION_SECRET,
+    LoginResponseSchema.parse(body).session.token,
+  );
+  if (verification.status !== "ok") {
+    throw new Error(`minted token did not verify: ${verification.status}`);
+  }
+  return verification.claims;
+}
+
+/**
+ * Task 0340: a repository whose two platform ids resolve to DIFFERENT internal
+ * players, so a token minted for the wrong one is visible in its `pid`.
+ */
+function twoPlayerRepo(overrides: Partial<ProfileRepo> = {}): ProfileRepo {
+  const playerFor = (_platform: string, platformUserId: string) =>
+    Promise.resolve({
+      playerId:
+        platformUserId === PLATFORM_USER_ID ? PLAYER_ID : OTHER_PLAYER_ID,
+      created: false,
+      profile: fullProfile(),
+    });
+  return mockRepo({
+    resolveOrCreatePlayer: jest.fn(playerFor),
+    resolveExistingPlayer: jest.fn(playerFor),
+    ...overrides,
   });
-  const mac = createHmac("sha256", secret).update(text).digest("base64");
-  return `${mac}.${Buffer.from(text).toString("base64")}`;
 }
 
 const BASE = { platform: "yandex_games", platformUserId: PLATFORM_USER_ID };
@@ -174,7 +220,7 @@ beforeEach(() => {
   (classifyLoginSignature as jest.Mock).mockClear();
 });
 
-describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", () => {
+describe("POST /v1/login — signed player data, S2 + S3a (tasks 0325, 0340)", () => {
   const cases: Array<[string, () => Record<string, unknown>, string]> = [
     [
       "a valid signature",
@@ -216,7 +262,7 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
   ];
 
   test.each(cases)(
-    "%s → 200, the same body shape, a vfy:false token, one outcome recorded",
+    "%s → 200, the same body shape, vfy only for `ok`, one outcome recorded",
     async (_label, extra, expectedOutcome) => {
       const { metrics, verifications, staleAges } = recordingMetrics();
       const repo = mockRepo();
@@ -236,7 +282,10 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
         LoginResponseSchema.parse(res.body).session.token,
       );
       expect(verified.status).toBe("ok");
-      expect(verified.status === "ok" && verified.claims.vfy).toBe(false);
+      // Task 0340 (S3a): verified exactly when the outcome is `ok`.
+      expect(verified.status === "ok" && verified.claims.vfy).toBe(
+        expectedOutcome === "ok",
+      );
       expect(verified.status === "ok" && verified.claims.pid).toBe(PLAYER_ID);
 
       expect(verifications).toEqual([expectedOutcome]);
@@ -259,7 +308,7 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     ["option absent", null],
     ["empty string (YANDEX_PAYMENTS_SECRET unset)", ""],
   ])(
-    "no secret configured (%s) → 200 and `no_secret`",
+    "no secret configured (%s) → 200, `no_secret` and a vfy:false token",
     async (_label, secret) => {
       const { metrics, verifications } = recordingMetrics();
       const res = await request(appWith(mockRepo(), metrics, secret))
@@ -267,6 +316,7 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
         .send({ ...BASE, signature: signFor(PLATFORM_USER_ID) });
       expect(res.status).toBe(200);
       expect(verifications).toEqual(["no_secret"]);
+      expect(mintedClaims(res.body).vfy).toBe(false);
     },
   );
 
@@ -281,6 +331,8 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     expect(res.status).toBe(200);
     expect(classifyLoginSignature).toHaveBeenCalledTimes(1);
     expect(verifications).toEqual(["bad_signature"]);
+    // Task 0340: a throw leaves the session unverified, never refused.
+    expect(mintedClaims(res.body).vfy).toBe(false);
   });
 
   // Task 0366. Ages well away from any edge, so the gap between the test reading
@@ -385,6 +437,189 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     expect(verifications).toEqual(["ok"]);
   });
 
+  // ── Task 0340 (S3a) ───────────────────────────────────────────────────────
+
+  test("forgery: a valid signature for A with B asserted → vfy:false, B's player, A never resolved", async () => {
+    for (const issuedAtSec of [
+      Math.floor(Date.now() / 1000),
+      // ADR-121: an old genuine note for someone else is `id_mismatch`, not stale.
+      Math.floor(Date.now() / 1000) - THREE_DAYS_SEC,
+    ]) {
+      const { metrics, verifications } = recordingMetrics();
+      const repo = twoPlayerRepo();
+      const res = await request(appWith(repo, metrics))
+        .post("/v1/login")
+        .send({
+          platform: "yandex_games",
+          platformUserId: OTHER_PLATFORM_USER_ID,
+          signature: signFor(PLATFORM_USER_ID, issuedAtSec),
+        });
+
+      expect(res.status).toBe(200);
+      expect(verifications).toEqual(["id_mismatch"]);
+      const claims = mintedClaims(res.body);
+      expect(claims.vfy).toBe(false);
+      expect(claims.pid).toBe(OTHER_PLAYER_ID);
+      expect(claims.pid).not.toBe(PLAYER_ID);
+      expect(repo.resolveOrCreatePlayer).toHaveBeenCalledTimes(1);
+      expect(repo.resolveOrCreatePlayer).toHaveBeenCalledWith(
+        "yandex_games",
+        OTHER_PLATFORM_USER_ID,
+        "login",
+      );
+      expect(
+        JSON.stringify(jest.mocked(repo.resolveOrCreatePlayer).mock.calls),
+      ).not.toContain(PLATFORM_USER_ID);
+    }
+  });
+
+  test("a valid matching signature with distinct players → vfy:true for the asserted player", async () => {
+    const repo = twoPlayerRepo();
+    const res = await request(appWith(repo, noopProfileMetrics))
+      .post("/v1/login")
+      .send({ ...BASE, signature: signFor(PLATFORM_USER_ID) });
+    expect(res.status).toBe(200);
+    const claims = mintedClaims(res.body);
+    expect(claims.vfy).toBe(true);
+    expect(claims.pid).toBe(PLAYER_ID);
+  });
+
+  test.each<[string, () => string, LoginVerificationOutcome]>([
+    [
+      "a tampered signature (payload swapped, MAC kept)",
+      () => {
+        const [mac] = signFor(PLATFORM_USER_ID).split(".");
+        const [, payload] = signFor(OTHER_PLATFORM_USER_ID).split(".");
+        return `${mac}.${payload}`;
+      },
+      "bad_signature",
+    ],
+    [
+      "`bad_payload` (HMAC fine, no data.uniqueID)",
+      () =>
+        signPayload({
+          algorithm: "HMAC-SHA256",
+          issuedAt: Math.floor(Date.now() / 1000),
+          requestPayload: "",
+          data: { id: PLATFORM_USER_ID },
+        }),
+      "bad_payload",
+    ],
+    [
+      // Hours from the 86 400 s edge, so the test/server clock gap cannot move it.
+      "stale for the right player, 30 h old",
+      () =>
+        signFor(PLATFORM_USER_ID, Math.floor(Date.now() / 1000) - 30 * 3600),
+      "stale",
+    ],
+    [
+      // Minutes from the 300 s edge, for the same reason.
+      "stale for the right player, 10 min ahead",
+      () => signFor(PLATFORM_USER_ID, Math.floor(Date.now() / 1000) + 10 * 60),
+      "stale",
+    ],
+  ])("%s → 200 and vfy:false", async (_label, signature, outcome) => {
+    const { metrics, verifications } = recordingMetrics();
+    const res = await request(appWith(mockRepo(), metrics))
+      .post("/v1/login")
+      .send({ ...BASE, signature: signature() });
+    expect(res.status).toBe(200);
+    expect(verifications).toEqual([outcome]);
+    expect(mintedClaims(res.body).vfy).toBe(false);
+  });
+
+  // Check 3: whatever goes wrong with the signature, the card still loads.
+  test.each<[string, string | null, () => Record<string, unknown>]>([
+    [
+      "no secret (option absent)",
+      null,
+      () => ({ signature: signFor(PLATFORM_USER_ID) }),
+    ],
+    [
+      "no secret (empty string)",
+      "",
+      () => ({ signature: signFor(PLATFORM_USER_ID) }),
+    ],
+    [
+      "a bad signature",
+      SIGNATURE_SECRET,
+      () => ({ signature: signFor(PLATFORM_USER_ID, undefined, "wrong-key") }),
+    ],
+    ["no signature", SIGNATURE_SECRET, () => ({})],
+  ])(
+    "%s → a vfy:false token that still reads GET /v1/profile (200)",
+    async (_label, secret, extra) => {
+      const repo = mockRepo({
+        getProfile: jest.fn().mockResolvedValue(fullProfile()),
+      });
+      const app = appWith(repo, noopProfileMetrics, secret);
+      const login = await request(app)
+        .post("/v1/login")
+        .send({ ...BASE, ...extra() });
+      expect(login.status).toBe(200);
+      expect(mintedClaims(login.body).vfy).toBe(false);
+
+      const profile = await request(app)
+        .get("/v1/profile")
+        .set(
+          "Authorization",
+          `Bearer ${LoginResponseSchema.parse(login.body).session.token}`,
+        );
+      expect(profile.status).toBe(200);
+      expect(repo.getProfile).toHaveBeenCalledWith(PLAYER_ID);
+    },
+  );
+
+  describe("creation switch off + a valid signature (task 0274 × 0340)", () => {
+    const pausedApp = (repo: ProfileRepo) =>
+      createApp(
+        repo,
+        undefined,
+        undefined,
+        undefined,
+        { secret: SESSION_SECRET },
+        {
+          metrics: noopProfileMetrics,
+          playerSignatureSecret: SIGNATURE_SECRET,
+          loginCreateEnabled: false,
+        },
+      );
+
+    test("an existing player → 200 and vfy:true, found without creating", async () => {
+      const repo = mockRepo({
+        resolveExistingPlayer: jest.fn().mockResolvedValue({
+          playerId: PLAYER_ID,
+          created: false,
+          profile: fullProfile(),
+        }),
+      });
+      const res = await request(pausedApp(repo))
+        .post("/v1/login")
+        .send({ ...BASE, signature: signFor(PLATFORM_USER_ID) });
+      expect(res.status).toBe(200);
+      const claims = mintedClaims(res.body);
+      expect(claims.vfy).toBe(true);
+      expect(claims.pid).toBe(PLAYER_ID);
+      expect(repo.resolveExistingPlayer).toHaveBeenCalledWith(
+        "yandex_games",
+        PLATFORM_USER_ID,
+      );
+      expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
+    });
+
+    test("a new id → 503 `creation_paused`, no token, nothing written", async () => {
+      const repo = mockRepo(); // resolveExistingPlayer → null
+      const res = await request(pausedApp(repo))
+        .post("/v1/login")
+        .send({ ...BASE, signature: signFor(PLATFORM_USER_ID) });
+      expect(res.status).toBe(503);
+      expect(res.body).toEqual({ error: "creation_paused" });
+      expect(res.body.session).toBeUndefined();
+      expect(repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
+      expect(repo.hasXpGrant).not.toHaveBeenCalled();
+    });
+  });
+
   test("no leak: the signature never reaches a log line or any repository call", async () => {
     const nowSec = () => Math.floor(Date.now() / 1000);
     const signature = signFor(PLATFORM_USER_ID);
@@ -455,7 +690,32 @@ describe("POST /v1/login — signed player data, S2 shadow mode (task 0325)", ()
     );
     const metricValues = JSON.stringify([verifications, staleAges]);
     const responses = JSON.stringify(bodies);
-    for (const text of [logged, repoCalls, metricValues, responses]) {
+    // Task 0340: a minted token carries exactly its five claims — no part of the
+    // signature, and no signed id, ever reaches its (readable) payload.
+    const tokenPayloads = bodies
+      .filter((body) => LoginResponseSchema.safeParse(body).success)
+      .map((body) => {
+        const [, payloadB64] =
+          LoginResponseSchema.parse(body).session.token.split(".");
+        return Buffer.from(payloadB64, "base64url").toString("utf8");
+      });
+    expect(tokenPayloads).toHaveLength(signatures.length);
+    for (const payload of tokenPayloads) {
+      expect(Object.keys(JSON.parse(payload)).sort()).toEqual([
+        "exp",
+        "iat",
+        "pid",
+        "plt",
+        "vfy",
+      ]);
+    }
+    for (const text of [
+      logged,
+      repoCalls,
+      metricValues,
+      responses,
+      ...tokenPayloads,
+    ]) {
       expect(text).not.toContain(OTHER_PLATFORM_USER_ID);
       for (const sent of signatures) {
         const [macPart, payloadPart] = sent.split(".");

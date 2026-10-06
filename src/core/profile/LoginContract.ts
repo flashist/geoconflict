@@ -7,15 +7,15 @@ import { PublicPlayerProfileSchema } from "./PlayerProfile";
  * ADR-113; design report §4). The login sibling of CreditContract.ts /
  * PaymentsContract.ts, so the client (S4) parses exactly what the server returns.
  *
- * 🔓 The token adds NO security today: anyone who asserts a platform id gets one.
- * It takes Yandex ids out of URLs and logs and gives one later verification point
- * (0267). A `vfy:false` session never counts as a proven owner (e.g. 0250 paid
- * state).
+ * 🔓 A `vfy:false` token adds NO security: anyone who asserts a platform id gets
+ * one. It takes Yandex ids out of URLs and logs and carries the login's one
+ * verification result. A `vfy:false` session never counts as a proven owner (e.g.
+ * 0250 paid state).
  *
- * `signature` (task 0325, S2 — shadow mode) is Yandex's signed player data
+ * `signature` (task 0325) is Yandex's signed player data
  * (`getPlayer({ signed: true }).signature`). The server checks it and COUNTS the
- * outcome, but still mints only `vfy:false`: nothing depends on it yet. Once 0325's
- * S3a ships, a `vfy:true` session — and only that — is the proven owner. The field
+ * outcome, and since 0340 (S3a) mints `vfy:true` for a verified signature — that
+ * session, and only that, is the proven owner (no route reads it yet). The field
  * is optional forever: a missing or bad signature means an unverified session,
  * never a refused login. ⛔ It is a credential: never log it, never persist it.
  *

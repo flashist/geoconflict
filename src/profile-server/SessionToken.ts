@@ -3,15 +3,15 @@
 //   v1.<base64url(JSON payload)>.<base64url(HMAC-SHA256(secret, "v1." + payloadB64))>
 //   payload = { pid, plt, iat, exp, vfy }   (iat/exp in seconds, TTL 24 h)
 //
-// 🔓 Security gained today: NONE. Anyone who asserts a Yandex id at POST /v1/login
-// gets a token for it. The token takes Yandex ids out of URLs and logs and gives one
-// later verification point (0267). A `vfy:false` token must NEVER count as a proven
-// owner — not for paid state (0250), not for anything else.
+// 🔓 A `vfy:false` token gains NO security: anyone who asserts a Yandex id at
+// POST /v1/login gets one for it. The token takes Yandex ids out of URLs and logs and
+// carries the login's one verification result (`vfy`). A `vfy:false` token must
+// NEVER count as a proven owner — not for paid state (0250), not for anything else.
 //
 // `vfy` is a boolean since task 0325, S2, which WIDENED the claim ahead of the first
 // `vfy:true` mint (S3a) so that a live verified token still parses if the server is
-// rolled back to S2. S2 itself still mints only `false` — no caller passes
-// `verified: true` yet. ⛔ Never roll a server that minted `vfy:true` straight back
+// rolled back to S2. S2 minted only `false`; since S3a (task 0340) the login mints
+// `true` for outcome `ok`. ⛔ Never roll a server that minted `vfy:true` straight back
 // to a pre-S2 build: every live verified token would turn `session_invalid`.
 //
 // The payload is base64, NOT encrypted: whoever holds a token can read its `pid`.
@@ -21,9 +21,10 @@
 // Key rotation: one key, no key id, no "previous key" overlap. Rotating (a new
 // PROFILE_SESSION_SECRET, or rm the box's persist file and redeploy) makes every live
 // token `session_invalid`; the client logs in again once and nothing stored is lost.
-// Once 0325 issues `vfy:true` tokens, rotation also drops every VERIFIED session (the
-// client's next login re-verifies). Revisit a key id / dual key then — a `v2` prefix
-// is the upgrade path. No refresh endpoint and no revocation (design §2).
+// Since task 0340 issues `vfy:true` tokens, rotation also drops every VERIFIED
+// session; the client's relogin makes a fresh signed call, so it re-verifies. Revisit
+// a key id / dual key later — a `v2` prefix is the upgrade path. No refresh endpoint
+// and no revocation (design §2).
 //
 // ⛔ Never log a token, a claim, or the secret from here or from a caller.
 

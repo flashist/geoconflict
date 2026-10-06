@@ -53,8 +53,10 @@ export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
 /**
  * Public projection of a profile — the shape returned by `GET /v1/profile` (and
  * `profile` on `POST /v1/login`) and parsed by the client card. The read is behind
- * a Bearer session (`resolveCaller`), but that session is `vfy:false`: anyone who
- * asserts a platform id gets one. So paid state (`is_paid_citizen`,
+ * a Bearer session (`resolveCaller`); a session may be `vfy:true` since task 0340,
+ * but the route does not read `verified` yet (0250 S3b / 0319), so it is still the
+ * same trust level: anyone who asserts a platform id gets a `vfy:false` session.
+ * So paid state (`is_paid_citizen`,
  * `citizenship_purchased_at`) is omitted, and the server also EQUALIZES `xp`,
  * `citizenship_earned_at` and `updated_at` so a paid citizen and an earned
  * citizen look the same (task 0250 S1) — same keys, same types, only the values

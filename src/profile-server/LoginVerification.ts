@@ -1,8 +1,8 @@
 // The login's verification decision, as one pure function (task 0325).
 //
-// S2 (shadow mode): the login route calls this, COUNTS the outcome
-// (`geoconflict.profile.login.verification`), and uses it for nothing else — every
-// login still gets a `vfy:false` session. S3a will mint `vfy:true` from `verified`.
+// The login route calls this and COUNTS the outcome
+// (`geoconflict.profile.login.verification`); since S3a (task 0340) it also mints
+// the session's `vfy` claim from `verified` — `vfy:true` only for `ok`.
 //
 // The fail rule, for every outcome but `ok`: an UNVERIFIED session, never a refused
 // login. ⛔ Never log the signature (see PlayerSignature.ts).
