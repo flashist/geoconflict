@@ -11,7 +11,9 @@ import { runCitizenshipPurchase } from "./CitizenshipPurchase";
 import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   deriveCitizenshipStatus,
+  derivePaidCitizenship,
   publishCitizenshipStatus,
+  publishPaidCitizenship,
 } from "./CitizenshipStatus";
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
@@ -245,6 +247,11 @@ export class CitizenshipCard extends LitElement {
     this.newestAppliedProfileRead = readNumber;
     this.profile = profile;
     this.publishCitizenshipStatus();
+    // Task 0248: the interstitial-ad gate reads this. Every applied read
+    // republishes it — a failed read publishes false, so ads come back (fail
+    // open). Verified paid reads only; `paidGrantConfirmed` is deliberately not
+    // used here (ADR-116 Decision 4): the post-purchase re-read carries it.
+    publishPaidCitizenship(derivePaidCitizenship(profile));
     this.publishApprovedName();
     this.requestUpdate();
   }

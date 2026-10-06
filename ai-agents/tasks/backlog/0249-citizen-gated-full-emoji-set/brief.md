@@ -111,12 +111,12 @@ server is a turn relay and never simulates (CLAUDE.md, *Game Loop & Tick System*
 client-visible profile response** — `src/core/profile/PlayerProfile.ts:55-58` and
 `src/profile-server/Routes.ts:169-171`, deliberately, because the Sprint-4 profile read is
 unauthenticated and returning it would leak *who paid*. **That is the same blocker
-[`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) hit**, and it is worth solving
+[`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) hit**, and it is worth solving
 once for both — see *Notes*.
 
 ### Which flag? — and here this brief genuinely does not know
 
-⛔ **Unlike [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md), `PROJECT.md` does NOT
+⛔ **Unlike [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md), `PROJECT.md` does NOT
 say "paid" for the emoji benefit.** The sentence reads *"no interstitial ads **for paid citizens**, the
 full emoji set"* — the qualifier attaches to the ads, and the emoji clause carries none. **This brief
 therefore does not specify a flag**, and an implementer must not choose one.
@@ -210,7 +210,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
   `PROJECT.md` claim was allowed to stand:** **the Yandex Games store description must NOT promise "the
   full emoji set" or any emoji benefit for citizens until this task ships.** ⛔ Whoever writes or edits
   the store copy must read this bullet. The same condition applies independently to
-  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) for the ad-free half.
+  [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) for the ad-free half.
 - 📌 **Shared prerequisite with `0248`, recorded so it is solved once rather than twice:** if **either**
   brief's phase-1 decision lands on `is_paid_citizen`, both need the same thing — the paid flag reaching
   a client that is entitled to see it, without un-redacting "who paid" to the whole internet.
@@ -224,7 +224,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
   flag) is **still open**, and the producer's reading there favours `is_citizen` — which needs none of
   `0250`'s work. ⇒ **`0250` becomes a prerequisite of THIS task only if the owner rules
   `is_paid_citizen`.** ⛔ **Do not write it into `Depends on` before that ruling.** (It is already an
-  unconditional hard prerequisite of [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md),
+  unconditional hard prerequisite of [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md),
   whose flag **was** ruled paid-only on 2026-09-12.)
 - ⛔ **NOT in scope, and do not absorb it: FLAGS.** Flags are a **separate** planned paid cosmetic, are
   interim-suppressed on purpose (the `/flags` → `flags_source` rename makes `/flags/*.svg` 404 **by
@@ -239,7 +239,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
     the paid go-live gate.
   - [`0014-yandex-catalog-registration`](../../done/0014-yandex-catalog-registration/brief.md) — catalog
     registration; product ID fixed at `citizenship`.
-  - [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — the sibling benefit, filed
+  - [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — the sibling benefit, filed
     in the same pass under the same ruling.
 - **Effort:** ⛔ **not estimable today, and an estimate here would be fiction.** Phase 1 is ~0.5–1 day of
   design plus an architect consult. Phase 2 ranges from ~1 day (picker-only gate, hidden locked emoji)

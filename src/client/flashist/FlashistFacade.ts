@@ -5,6 +5,7 @@ import { isMobileDevice } from "../Utils";
 import version from "../../version";
 import { SIGNATURE_MAX } from "../../core/profile/LoginContract";
 import { logDaysPlayedAnalytics } from "../DaysPlayedAnalytics";
+import { isCurrentPlayerPaidCitizen } from "../CitizenshipStatus";
 import {
   consumePendingSessionEnd,
   startSessionMatchTracking,
@@ -197,6 +198,12 @@ export const flashistConstants = {
     // wasShown === true), not per attempt; no tier dimension — the tiered
     // variants are task 0299. No banner events: our code never shows one.
     AD_INTERSTITIAL: "Ad:Interstitial",
+    // Task 0248: an interstitial REQUEST the paid-citizen gate suppressed (SDK
+    // present). Counts requests, not ads — an upper bound on impressions given
+    // up. Deliberately outside `Ad:Interstitial:*`, which 0299 reserves for
+    // tiered SHOWN ads. No value, no placement.
+    AD_INTERSTITIAL_SUPPRESSED_PAID_CITIZEN:
+      "Ad:InterstitialSuppressed:PaidCitizen",
 
     BUILD_STALE_DETECTED: "Build:StaleDetected",
 
@@ -1498,11 +1505,14 @@ export class FlashistFacade {
   }
 
   /**
-   * Sync snapshot of the above, for renderCitizenBadge() — which is synchronous
-   * and cannot await. Primed during platform init, and re-primed on late-SDK
-   * recovery from yandexSdkInit().
+   * Sync snapshot of the above, for the two readers that are synchronous and
+   * cannot await: renderCitizenBadge(), and the paid-citizen interstitial gate
+   * isInterstitialSuppressedForPaidCitizen() (task 0248). Primed during platform
+   * init, and re-primed on late-SDK recovery from yandexSdkInit().
    *
    * DEFAULT FALSE, deliberately (task 0236): a kill switch fails CLOSED.
+   * Weigh any change to this default for BOTH readers: for the badge false
+   * hides it, for the ad gate false means ads SHOW (fail-open for ads).
    *
    * On the HAPPY path the pre-resolution window is empty: Bootstrap.ts loads
    * Main.ts (which pulls in all four badge call sites) only AFTER
@@ -1524,7 +1534,8 @@ export class FlashistFacade {
     // suites build facades via Object.create(FlashistFacade.prototype), which
     // skips class-field initializers, so the field is `undefined` there and
     // this keeps the declared `boolean` return honest. (`!undefined` is already
-    // truthy, so the only caller behaves the same either way.)
+    // truthy and `undefined && …` is already falsy, so both callers behave the
+    // same either way.)
     return this.citizenshipSurfacesSnapshot === true;
   }
 
@@ -2111,6 +2122,18 @@ export class FlashistFacade {
 
   // ADV
 
+  /**
+   * Task 0248: the one gate that turns interstitials off for a paid citizen.
+   * The citizenship kill switch is read at ad time, so with citizenship surfaces
+   * off ads show even if a paid answer were somehow published. Every unknown
+   * reads as "not paid" upstream (see CitizenshipStatus), so the ad shows.
+   */
+  private isInterstitialSuppressedForPaidCitizen(): boolean {
+    return (
+      this.isCitizenshipSurfacesEnabledSync() && isCurrentPlayerPaidCitizen()
+    );
+  }
+
   public async showInterstitial() {
     console.log("FlashistFacade | Main | showInterstitial");
 
@@ -2120,6 +2143,38 @@ export class FlashistFacade {
         this.yandexGamesSDK,
       );
       return;
+    }
+
+    // After the no-SDK return on purpose: the suppression event counts only
+    // requests that really would have reached Yandex. A throw in the check
+    // fails OPEN — the ad is requested.
+    let isSuppressed = false;
+    try {
+      isSuppressed = this.isInterstitialSuppressedForPaidCitizen();
+    } catch (error) {
+      console.log(
+        "FlashistFacade | Main | showInterstitial __ paid-citizen check failed, showing the ad: ",
+        error,
+      );
+    }
+    if (isSuppressed) {
+      // Analytics must never break the flow (the Ad:Interstitial pattern below).
+      try {
+        flashist_logEventAnalytics(
+          flashistConstants.analyticEvents
+            .AD_INTERSTITIAL_SUPPRESSED_PAID_CITIZEN,
+        );
+      } catch (error) {
+        console.log(
+          "FlashistFacade | Main | showInterstitial __ suppression logging failed: ",
+          error,
+        );
+      }
+      console.log(
+        "FlashistFacade | Main | showInterstitial __ suppressed for a paid citizen",
+      );
+      // "No ad was shown" — callers ignore it and go on as after a declined ad.
+      return false;
     }
 
     return new Promise<boolean>((resolve) => {

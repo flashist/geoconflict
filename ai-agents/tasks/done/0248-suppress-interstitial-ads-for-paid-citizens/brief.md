@@ -75,12 +75,15 @@ below). Medium and not Low because it is the single benefit a paying player will
 and because `PROJECT.md` currently promises it.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
-fkit-producer
+fkit-coder
 
-⚠️ **`fkit-producer`, not `fkit-coder`, and that is deliberate.** Phase 1 of this task is a **decision**
+📌 **Reassigned 2026-10-06 for Step 2** — Step 1 closed by OWNER RULING R1 (see the 2026-10-06 *Step 1 closed* note
+at the end of this brief). *Earlier value, kept as history — true until 2026-10-06:* ~~fkit-producer~~
+
+⚠️ *(History — the reason below held while Step 1 was open.)* **`fkit-producer`, not `fkit-coder`, and that is deliberate.** Phase 1 of this task is a **decision**
 (*where does the client learn that a player paid?*) that nobody has taken, and a **product framing** the
 owner has not been given yet (*what does this cost in ad revenue?*). It re-assigns to `fkit-coder` once
 those are settled — see *What to build*, step 1.
@@ -283,7 +286,7 @@ store-copy condition.
   — a HARD PREREQUISITE.** 🔴 **This task cannot be built until `0250` ships.** The owner ruled
   2026-09-12, live in session, that the profile-read work be **filed now as its own task** rather than
   left as a recorded gap here — on the reasoning that both this brief and
-  [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) would want it, so it should be filed **once**.
+  [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) would want it, so it should be filed **once**.
   ⚠️ **The conditional is gone:** the old wording made the new task contingent on step 1 choosing
   candidate 1. It is not contingent any more — *Ruling 2* below fixes this brief's gate at
   `is_paid_citizen`, and that flag reaches no client by **any** of the three candidate seams without
@@ -312,7 +315,7 @@ store-copy condition.
   explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated — OWNER RULING 2026-10-05, relayed by `fkit-lead`; [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md))*. This task still waits on **`0250` S3b**; read *"S3b waits on … `0325`"* above as
   *"… on `0340`"*.
 - **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**
-  [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
+  [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
   popup, which now ranks below this task so it can list ad-free. ⚠️ Through this task, `0301` also waits on
   `0250`.
 - 📌 **Stale fact, corrected 2026-09-26 (not an owner ruling — a code read):** *Step 2* says
@@ -323,7 +326,7 @@ store-copy condition.
   `PROJECT.md` claim was allowed to stand:** **the Yandex Games store description must NOT promise
   ad-free play for citizens until this task ships.** ⛔ Whoever writes or edits the store copy must read
   this bullet. The same condition applies independently to
-  [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) for the emoji half.
+  [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) for the emoji half.
 - **Cross-references for whoever writes the store copy or the paid-citizenship launch plan:**
   - [`0018-citizenship-paid`](../../done/0018-citizenship-paid/brief.md) — paid citizenship, the ~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25) path
     (mock-buildable scope).
@@ -351,11 +354,15 @@ store-copy condition.
    **paid-only**, in agreement with the producer's recommendation. **Full record in *The gate is
    `is_paid_citizen`, not `is_citizen`* above.** ⇒ Makes
    [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) a hard prerequisite.
-2. **All six interstitial placements, or a subset?** Suppressing some placements delivers most of the
+2. ✅ **CLOSED 2026-10-06 BY OWNER RULING R1 — ALL SIX placements off for paid citizens.** The superseded
+   question, struck not deleted: ~~**All six interstitial placements, or a subset?** Suppressing some placements delivers most of the
    felt benefit at a fraction of the revenue cost.
-   **Producer's recommendation: decide this against step 1's numbers, not now.**
-3. **Is the ad-revenue data in question 2 available at all?** If not, measuring it is its own small task
-   and should be filed before this one is planned.
+   **Producer's recommendation: decide this against step 1's numbers, not now.**~~ Full record: the
+   2026-10-06 *Step 1 closed* note at the end of this brief.
+3. ✅ **CLOSED 2026-10-06 — moot under R1.** Struck, not deleted: ~~**Is the ad-revenue data in question 2 available at all?** If not, measuring it is its own small task
+   and should be filed before this one is planned.~~ Answer for the record: per-placement data does **not**
+   exist ([Step 1 report](../../../knowledge-base/reports/2026-10-06-0248-step1-decision-gate.md) §3). With all
+   six ruled off, a per-placement split decides nothing here, so **no measuring task is filed** (R1).
 
 ## 📌 2026-10-06 — deploy only after `0396` confirms the owner view live (appended; nothing above edited, ADR-035)
 
@@ -365,7 +372,7 @@ ruling for the identical `0395` case — 2026-10-05, live via `AskUserQuestion` 
 *"Note only (Recommended)"*.
 
 - **Deploy this task only after
-  [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) confirms
+  [`0396`](../../backlog/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) confirms
   the owner view live** in production — a verified paid account's `GET /v1/profile` shows `is_paid_citizen: true`.
   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) closed 2026-10-06
   `(agent-closed — not owner-verified)` once built and reviewed; its slice S3b (the verified owner view this task reads
@@ -375,3 +382,83 @@ ruling for the identical `0395` case — 2026-10-05, live via `AskUserQuestion` 
   `0396` was added. With `0250` closed, the board will stop showing this task as waiting — that is about building, not
   deploying.
 - No status, sprint or rank changed by this note. No mover run.
+
+## 📌 2026-10-06 — Step 1 facts gathered for the owner (appended; nothing above edited, ADR-035)
+
+**Provenance.** Added by a spawned `fkit-producer` with no owner channel (ADR-021/037), at `fkit-lead`'s instruction
+(driving `/fkit-sprint-ship-loop`), after the owner chose live *"0248 decision gate first"*. ⛔ Not producer precedent;
+**nothing is decided by this note.** Full findings:
+[`2026-10-06-0248-step1-decision-gate.md`](../../../knowledge-base/reports/2026-10-06-0248-step1-decision-gate.md).
+
+- **Seam:** `0250` S3b's `PlayerProfileView.isPaidCitizen` is **committed** (`6f4ab77`) but in no release tag, so it is
+  **not deployed**. The 2026-10-06 note above says "not committed"; that was true when written and is stale now. Still
+  missing (Step 2 work): a page-wide paid state that `showInterstitial()` can read. Today only the citizenship card
+  holds it.
+- **Call sites:** the line numbers have moved. They are now `Main.ts:945`, `HostLobbyModal.ts:975` and `WinModal.ts:326`;
+  the other three are unchanged. Four fire on **entering** a game, two on **leaving** one, and none during active play.
+- **Revenue data:** per-placement data **does not exist**. `Ad:Interstitial` has no placement field. Totals are readable
+  in GameAnalytics (live since `0.0.152`, 2026-09-26), but nobody has read them. Revenue per ad is in the Yandex console
+  only. No measuring task exists.
+- ⚠️ **Any subset makes `PROJECT.md:36` untrue as worded**, so it would need a wording ruling as well.
+- Owner questions open: measure first or not; all six or a subset.
+
+## 📌 2026-10-06 — Step 1 CLOSED: all six placements off, one place in the code; deploy with `0397` (appended; ADR-035 — only `## Owner` and open questions 2–3 above were touched, struck not deleted)
+
+**Provenance.** Added by a spawned `fkit-producer` with no owner channel (ADR-021), at `fkit-lead`'s instruction (driving
+`/fkit-sprint-ship-loop`). The rulings are **OWNER RULINGS given 2026-10-06 live via `AskUserQuestion` in the `fkit lead`
+session, relayed by `fkit-lead`** (ADR-037 §3). ⛔ Not producer precedent.
+
+### R1 — Step 1 closes: ALL SIX interstitial placements off for paid citizens
+
+- **The question put** (as relayed): switch off all six full-screen ad moments for paid citizens — public lobby join,
+  Mission, solo start, private-lobby host start, end-of-match exit, in-game quit?
+- **Owner, verbatim:** *"#1, and it should be done in 1 place, we basically need to have 1 place in the code that tells
+  whether the current user is a paid user, and if it is, we should use this in another "one place" to switch the
+  interstitial ads off."* Earlier, also verbatim: *"If you're asking whether I do want to disable interstitial ads for
+  paid users, the answer is yes, I want to disable interstitial ads for paid users."*
+- **The one-place rule — binding on Step 2:**
+  1. **One** place in the client answers *"is the current user a paid citizen?"* — a page-wide paid state, written
+     from `0250` S3b's `PlayerProfileView.isPaidCitizen`. Follow the `src/client/CitizenshipStatus.ts` precedent: the
+     citizenship card stays the **only** caller of `loadPlayerProfileView()` (a second caller can double-fire
+     `Citizenship:Earned:XP`).
+  2. **One** place switches interstitials off: inside `FlashistFacade.showInterstitial()`, reading (1). **No checks at
+     the six call sites.** No placement logic is needed, since all six are off.
+  3. The verified-status display filed as [`0397`](../../backlog/0397-show-players-whether-their-session-is-verified/brief.md)
+     must read the **same** place (1). Whichever of the two is built first creates it; the other reuses it. ⛔ Never a
+     second paid-status source.
+- **What R1 closes:** open questions 2 (all six or a subset) and 3 (is the data available) — struck above. **No
+  per-placement measuring task is filed** (moot). Step 1's seam is `0250` S3b (`isPaidCitizen`), per the
+  [Step 1 report](../../../knowledge-base/reports/2026-10-06-0248-step1-decision-gate.md).
+- **`PROJECT.md:36` stays true as worded** — no rewording, no wording ruling needed (that was only needed for a
+  subset). ⚠️ One residual stays from the report §1, unverified: if Yandex itself shows a fullscreen ad our code did
+  not request, our gate cannot stop it.
+- **Unchanged by R1:** paid-only (`is_paid_citizen`, 2026-09-12); fail open to ads on every unknown; the kill switch;
+  the analytics event (Step 2); Step 3 (rewarded video out of scope); the store-copy condition.
+- **`## Owner` → `fkit-coder`** for Step 2 (old value struck above).
+
+### Verification step 8 — the Step 1 framing as put to the owner
+
+- **Written down:** [`2026-10-06-0248-step1-decision-gate.md`](../../../knowledge-base/reports/2026-10-06-0248-step1-decision-gate.md)
+  — the seam; the six placements (four on entering a game, two on leaving, none during play; at most two per match);
+  the revenue data; the subset option with its wording cost.
+- **Put to the owner:** 2026-10-06, live, by `fkit-lead` via `AskUserQuestion`, in the words quoted under R1.
+- ⚠️ **What the framing did NOT contain — stated so it is not mistaken for more.** No revenue **numbers**: per-placement
+  data does not exist, and the all-six totals (GameAnalytics `Ad:Interstitial` per player; money per ad from the
+  Yandex console) had not been read by anyone when the owner ruled (report §3). The cost was put as a **fact
+  without a figure**: ad-free removes all interstitial revenue from paid citizens, forever, against a one-off 249 Yan.
+  The owner ruled with that in view. ⇒ Step 8 is met as *"written down and put to the owner"*; it is **not** met as
+  *"in numbers"*, and the owner's ruling made the numbers moot for this decision. The analytics event Step 2 adds is
+  still the only way to check the cost afterwards.
+
+### R3 — deploy note: deploy `0248` only together with, or after, `0397` is live
+
+- **Owner, verbatim:** *"Yes, deploy together (Recommended)"* — to the question whether `0248` should deploy only
+  together with / after the verified-status display
+  ([`0397`](../../backlog/0397-show-players-whether-their-session-is-verified/brief.md)). Reason: a good-faith paid citizen whose
+  session is not verified this load still sees ads, and must be able to see why.
+- **This is a note, not a dependency.** The question put said building `0248` is not blocked either way. **No `Depends
+  on` link to `0397` was added**; the `Depends on` line above is unchanged. Same shape as the 2026-10-06 `0396` deploy
+  note above, which also still applies: deploy needs **both** `0396` passed and `0397` live (or shipping in the same
+  deploy).
+- No `## Status` change (stays `🔄 In progress`, set by `fkit-lead`), no sprint or rank change, no board row change. No
+  mover run. Nothing committed.

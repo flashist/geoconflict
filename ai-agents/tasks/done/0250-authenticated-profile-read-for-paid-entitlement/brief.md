@@ -40,7 +40,7 @@ owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not produc
 *"Pull 0250 … into Sprint 6, directly above ad-free (0248)?"*, the owner chose, verbatim: **"Yes, above
 0248 (Recommended)"**.
 - **Why it was asked:** earlier that day the owner moved
-  [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
+  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
   Sprint 6 above the citizenship explainer popup
   ([`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
   without this task, so both waited on it.
@@ -55,7 +55,7 @@ owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not produc
 
 🔴 **BACKLOG BOARD BY OWNER RULING, 2026-09-12, given live in session — ⛔ NOT Sprint 4.** The owner
 ruled **that this be filed**, and filed **rather than scheduled**. Their reasoning as put to them and
-accepted: **both [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
+accepted: **both [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
 [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) would want this work, so it should be filed
 ONCE rather than absorbed into either.** ⛔ **They did NOT rule what it is worth or when it is worked**
 — see *Priority*, where the rank is the **producer's**.
@@ -289,7 +289,7 @@ below). Phase 1 is **done**. Phase 2 is now **two slices of this task**, in this
 
 ### Out of scope — named so it is not absorbed
 
-- ⛔ **The ad-suppression gate itself.** That is [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
+- ⛔ **The ad-suppression gate itself.** That is [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
 - ⛔ **The emoji split and its gate.** That is [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md).
 - ⛔ **Exiting ADR-103 for XP crediting.** The `getCreditableYandexId()` seam
   (`src/server/GameServer.ts:1189-1202`) is a *different* trust question — it is about the **game
@@ -369,7 +369,7 @@ phase 1 chooses, all of these must hold:**
   [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
   explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where the slice table and deploy order below say *"`0325` (S3a)"*, read `0340`.
   Slice S1 is unaffected.
-- **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
+- **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,
   paid-only confirmed), and that flag cannot reach the client until this task ships.
 - **Likely wanted by:** [`0249-citizen-gated-full-emoji-set`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md)

@@ -18,7 +18,7 @@ Sprint 4
   are deferred there.
 - 🚩 **The investigation disproved this brief's premise** (`plan-baseline.md` Q2): **no ad suppression
   exists for any tier today.** `showInterstitial()` and its six call sites have no tier check.
-  Suppression is [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md). So paid citizens
+  Suppression is [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md). So paid citizens
   *do* see interstitials, and the "`PaidCitizen` should never fire" guard below does not hold yet.
 - The text below is kept as written, with struck or annotated parts marked.
 

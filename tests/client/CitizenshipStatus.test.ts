@@ -3,8 +3,11 @@
 
 import {
   deriveCitizenshipStatus,
+  derivePaidCitizenship,
   getCitizenshipStatus,
+  isCurrentPlayerPaidCitizen,
   publishCitizenshipStatus,
+  publishPaidCitizenship,
   resetCitizenshipStatusForTests,
   subscribeCitizenshipStatus,
 } from "../../src/client/CitizenshipStatus";
@@ -96,5 +99,64 @@ describe("citizenship status store", () => {
     publishCitizenshipStatus("citizen");
 
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+// Task 0248: the page's one paid-citizen answer, read by the interstitial-ad
+// gate. Only a verified (authoritative) paid read is paid; false also means
+// "unknown", which the ad gate treats as "show the ad".
+describe("derivePaidCitizenship", () => {
+  it.each([
+    ["guest (null profile)", null, false],
+    [
+      "NON-authoritative read claiming paid (never trusted)",
+      profile({ isAuthoritative: false, isPaidCitizen: true }),
+      false,
+    ],
+    ["authoritative, not paid", profile(), false],
+    [
+      "authoritative earned-only citizen",
+      profile({ isCitizen: true, isPaidCitizen: false }),
+      false,
+    ],
+    [
+      "authoritative paid citizen",
+      profile({ isCitizen: true, isPaidCitizen: true }),
+      true,
+    ],
+  ] as const)("%s → %s", (_label, view, expected) => {
+    expect(derivePaidCitizenship(view)).toBe(expected);
+  });
+
+  it("is false when the field is left out (older path or test stub)", () => {
+    const view = profile({ isCitizen: true }) as Partial<PlayerProfileView>;
+    delete view.isPaidCitizen;
+    expect(derivePaidCitizenship(view as PlayerProfileView)).toBe(false);
+  });
+});
+
+describe("paid citizenship store", () => {
+  beforeEach(() => {
+    resetCitizenshipStatusForTests();
+  });
+
+  it("starts false (unknown reads as not paid)", () => {
+    expect(isCurrentPlayerPaidCitizen()).toBe(false);
+  });
+
+  it("round-trips a published value in both directions", () => {
+    publishPaidCitizenship(true);
+    expect(isCurrentPlayerPaidCitizen()).toBe(true);
+
+    publishPaidCitizenship(false);
+    expect(isCurrentPlayerPaidCitizen()).toBe(false);
+  });
+
+  it("is reset to false by the test reset", () => {
+    publishPaidCitizenship(true);
+
+    resetCitizenshipStatusForTests();
+
+    expect(isCurrentPlayerPaidCitizen()).toBe(false);
   });
 });

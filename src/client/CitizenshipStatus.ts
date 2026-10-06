@@ -58,7 +58,45 @@ export function subscribeCitizenshipStatus(
   };
 }
 
+/**
+ * The page's one answer to "is the current player a PAID citizen?" (task 0248),
+ * read by the interstitial-ad gate in `FlashistFacade.showInterstitial()`.
+ *
+ * - The citizenship card is the only writer, as for the status above: it already
+ *   reads the profile, so no second profile fetch is made and
+ *   `Citizenship:Earned:XP` cannot fire twice.
+ * - Paid comes from the VERIFIED owner view only (ADR-116 Decision 4): an
+ *   unverified read, a failed read and a guest all derive false.
+ * - false means "not paid, OR unknown" (nothing published yet, card disabled,
+ *   failed read). The ad gate treats it as "show the ad": every unknown fails
+ *   OPEN for ads.
+ *
+ * No subscribe API: the ad gate reads it synchronously at ad time.
+ */
+export function derivePaidCitizenship(
+  profile: PlayerProfileView | null,
+): boolean {
+  // `=== true`: a view built by an older path (or a test stub) can omit it.
+  return (
+    profile !== null &&
+    profile.isAuthoritative &&
+    profile.isPaidCitizen === true
+  );
+}
+
+let currentPaidCitizenship = false;
+
+export function publishPaidCitizenship(isPaidCitizen: boolean): void {
+  currentPaidCitizenship = isPaidCitizen;
+}
+
+/** The one reader of the paid answer. false = not paid, or unknown. */
+export function isCurrentPlayerPaidCitizen(): boolean {
+  return currentPaidCitizenship;
+}
+
 export function resetCitizenshipStatusForTests(): void {
   currentStatus = "unknown";
   listeners.clear();
+  currentPaidCitizenship = false;
 }

@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 7
 
-📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
 
 *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 6~~
 
@@ -46,7 +46,7 @@ Given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-le
 precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board](../../../sprints/done/plan-sprint-6.md).
 - **This task is rank 5**, after [`0307`](../../done/0307-security-review-of-every-player-name-path-injection-and-validation/brief.md),
   [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md), [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)
-  and [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
+  and [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
 - **It now DEPENDS ON `0302` and `0248`** — the popup describes their perks. On `0302`, the owner:
   *"it should be the 2nd priority for the Sprint 6, because the "funnel/explanation" of the perks would
   depend on it."* On `0248` (ad-free for paid citizens): *"place it BEFORE the citizenship popup,
@@ -106,7 +106,7 @@ The owner said: *"I'm actually not sure if we have any of them right now."* This
 | ★ Citizen badge next to your name (leaderboard, player panel, lobby lists) | **Yes** — `0068` ✅ Done | `src/client/CitizenBadge.ts`; `Leaderboard.ts`, `PlayerPanel.ts`, `HostLobbyModal.ts`, `JoinPrivateLobbyModal.ts`; server resolves the flag in `GameServer.ts` (wired by `0217`, closed 2026-09-26) | Yes, once step 0 sees it in prod |
 | Change your display name (moderated request) | **Yes** — `0067` ✅ Done | `CitizenshipCard.ts` `renderNameChange()` — rendered only for an authoritative citizen; server refuses non-citizens (`citizenship_name_change.error_not_citizen`) | Yes, once step 0 sees it in prod |
 | Personal inbox (system messages) | **Yes** — `0012` ✅ Done | `src/client/Inbox.ts` — server 403s non-citizens | Weak as a *selling* point (it mostly delivers the name-change result) — owner call |
-| **No interstitial ads** (paid citizens) | ❌ **NO** | No citizen check anywhere in the ad path — see [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) | ⛔ **NO** — owner condition, below |
+| **No interstitial ads** (paid citizens) | ❌ **NO** | No citizen check anywhere in the ad path — see [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) | ⛔ **NO** — owner condition, below |
 | **Full emoji set** | ❌ **NO** | One flat emoji table for everyone — see [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) | ⛔ **NO** — owner condition, below |
 | **Private lobbies** | ❌ **NO** — not gated, and **hidden for everyone** on Yandex | See below | ⛔ **NO** until [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) ships |
 | Match history / archive | ❌ **NO** — archiving is a no-op | `src/server/Archive.ts:18-19`; [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) | ⛔ **NO** |
@@ -121,7 +121,7 @@ wrapped in `style="display: none;"`, and has been since the Yandex port (commit 
 (`plan-index.md`, item 8b) but was never briefed or built.
 
 🔒 **Locked constraint — do NOT claim ad-free or the emoji set.** On 2026-09-12 the owner ruled, for
-both [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
+both [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
 [`0249`](../0249-citizen-gated-full-emoji-set/brief.md): *build the benefit*, but **the claim comes out of
 the store copy until it ships.** This explainer is store copy in everything but name. `PROJECT.md:36`
 still lists those benefits — that is the *intended* product, not the live one; do not copy from it.
@@ -230,7 +230,7 @@ never an inline string. At minimum:
 ## Notes
 
 - **Depends on:** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) and
-  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — OWNER RULINGS 2026-09-26 (see
+  [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — OWNER RULINGS 2026-09-26 (see
   *Owner rulings* above): the popup describes their perks. ⚠️ Through `0248`, this also waits on
   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md). *Struck, not deleted — true
   until 2026-09-26:* ~~nothing — can start now.~~ (Step 0's owner copy approval is still a gate *inside*
@@ -242,7 +242,7 @@ never an inline string. At minimum:
   ships, it re-points `0302`'s locked-button tap to this popup and adds the locked-feature *opened* event
   source (whatever `0302` open question 5 settles for the interim). ✅ *Settled 2026-09-26:* the interim
   is a simple "citizens only" popup with no buy button; this task deletes it.
-- **Related, linked not merged:** [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
+- **Related, linked not merged:** [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   (ad-free) and [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) (emoji set) — when either ships,
   add its line to the explainer in that task, not here. [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
   (the client cannot tell *paid* from *earned*) — only matters if a paid-only benefit is ever listed.

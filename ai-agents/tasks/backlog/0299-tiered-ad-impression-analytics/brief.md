@@ -40,7 +40,7 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
 
 - **No ad suppression exists for any tier today.** `showInterstitial()` (`FlashistFacade.ts:1289-1334`)
   and its six call sites have no tier check. Suppression for paid citizens is
-  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md), which is blocked on
+  [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md), which is blocked on
   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md). ⇒ Until `0248` ships,
   `Ad:Interstitial:PaidCitizen` is **not** the "should never fire" bug guard that `0020`'s brief
   described. Any paid citizen would fire it.
@@ -97,7 +97,7 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
 - **Blocks:** nothing
 - **Split from:** [`0020`](../../done/0020-analytics-p1-ad-impression-tier/brief.md), 2026-09-24 (owner: *"New
   task, close 0020"*). `0020` closes on the tier-free `Ad:Interstitial` baseline alone.
-- **Related:** [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md). Until it ships,
+- **Related:** [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md). Until it ships,
   paid citizens do see interstitials, so `:PaidCitizen` is real data and not a bug guard.
 - **Stale doc comment, a finding and not a task:** `src/core/profile/PlayerProfile.ts:55` still says
   *"Sprint 4's read is unauthenticated"*. `GET /v1/profile` now goes through a Bearer session. Recorded

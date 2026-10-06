@@ -146,7 +146,7 @@ and the ⛔ rollback rule below written out in full.
 - **Also needed, not a task:** the owner's ADR-122 look at the post-`0391` numbers; S3b committed (owner's explicit
   ask only); a weekend slot.
 - ⚠️ **No `Blocks:` line, on purpose.** `fkit-lead`'s instruction for this filing (2026-10-06): add no dependency from
-  a Sprint 7 task onto this one. Instead, [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (which
+  a Sprint 7 task onto this one. Instead, [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (which
   waits on `0250` and now shows as unblocked) carries a dated **note** — *deploy only after this task confirms the
   owner view live* — applying the owner's precedent ruling for the identical `0395` case (2026-10-05, *"Note only
   (Recommended)"*). `0248` reads `is_paid_citizen` through `isPaidCitizen`, so its deploy only means something after

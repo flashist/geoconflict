@@ -145,14 +145,14 @@ step-0 table in hand:
 - **Depends on:** nothing — can start now. (Step 1's owner decision is a gate *inside* the task. `0297`'s
   real purchase, if done first, is useful input to step 0 but not required.)
 - **Blocks:** nothing hard. **Soft sequencing:** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md)
-  and [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) should plug into this task's
+  and [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) should plug into this task's
   mechanism rather than each inventing their own; if either ships first, it adds its own listener and
   this task folds it in.
 - **Related, linked not merged:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   (first real purchase — will show the live behaviour),
   [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (explainer popup; its buy
   button must update too), [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md),
-  [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free, not built),
+  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free, not built),
   [`0018`](../../done/0018-citizenship-paid/brief.md) (paid purchase flow),
   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (paid-state read),
   [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) (archive), `0068` (badge; residual

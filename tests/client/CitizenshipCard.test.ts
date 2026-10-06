@@ -78,6 +78,8 @@ import {
 } from "../../src/client/CitizenshipRestartOffer";
 import {
   getCitizenshipStatus,
+  isCurrentPlayerPaidCitizen,
+  publishPaidCitizenship,
   resetCitizenshipStatusForTests,
 } from "../../src/client/CitizenshipStatus";
 import {
@@ -1341,6 +1343,148 @@ describe("CitizenshipCard", () => {
       await flushLit(card);
 
       expect(getCitizenshipStatus()).toBe("citizen");
+    });
+  });
+
+  // Task 0248: the interstitial-ad gate reads the paid answer the card
+  // publishes. Only a verified paid read is paid; every applied read
+  // republishes, so a failed read brings ads back (fail open).
+  describe("publishes paid citizenship (task 0248)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button") as HTMLButtonElement | null;
+
+    // Two chained reads need more than one flush to drain.
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    const reconcile = () =>
+      window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+
+    const PAID_PROFILE = {
+      ...NON_CITIZEN_PROFILE,
+      xp: 100,
+      isCitizen: true,
+      isPaidCitizen: true,
+    };
+    // What loadPlayerProfileView returns on a failed or timed-out read.
+    const FAILED_READ_PROFILE = {
+      ...NON_CITIZEN_PROFILE,
+      xp: 0,
+      isAuthoritative: false,
+    };
+
+    it("publishes true for a verified paid owner view", async () => {
+      loadProfile.mockResolvedValue(PAID_PROFILE);
+      await appendCard({ visible: true });
+      expect(isCurrentPlayerPaidCitizen()).toBe(true);
+    });
+
+    it.each([
+      ["a guest", null],
+      ["a failed read (zero-state)", FAILED_READ_PROFILE],
+      [
+        "an earned-only citizen",
+        { ...NON_CITIZEN_PROFILE, xp: 100, isCitizen: true },
+      ],
+      [
+        "a non-authoritative read claiming paid",
+        { ...PAID_PROFILE, isAuthoritative: false },
+      ],
+    ])("publishes false for %s", async (_label, view) => {
+      // Seeded true so the test proves the card overwrote it.
+      publishPaidCitizenship(true);
+      loadProfile.mockResolvedValue(view);
+      await appendCard({ visible: true });
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
+    });
+
+    it("publishes nothing when CITIZENSHIP_CARD_ENABLED is off", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+      loadProfile.mockResolvedValue(PAID_PROFILE);
+      await appendCard({ visible: true });
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
+    });
+
+    it("publishes nothing when citizenship_ui is off", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      loadProfile.mockResolvedValue(PAID_PROFILE);
+      await appendCard({ visible: true });
+      expect(loadProfile).not.toHaveBeenCalled();
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
+    });
+
+    it("a later failed re-read flips true back to false", async () => {
+      loadProfile.mockResolvedValue(PAID_PROFILE);
+      const card = await appendCard({ visible: true });
+      expect(isCurrentPlayerPaidCitizen()).toBe(true);
+
+      loadProfile.mockResolvedValue(FAILED_READ_PROFILE);
+      reconcile();
+      await settle(card);
+
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
+    });
+
+    it("a superseded (stale) read does not overwrite a newer one", async () => {
+      let resolveFirst: (value: unknown) => void = () => {};
+      const firstRead = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+      loadProfile
+        .mockReturnValueOnce(firstRead)
+        .mockResolvedValueOnce(PAID_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      reconcile();
+      await settle(card);
+      expect(isCurrentPlayerPaidCitizen()).toBe(true);
+
+      // The slow first read lands with the older, unpaid answer.
+      resolveFirst(NON_CITIZEN_PROFILE);
+      await settle(card);
+
+      expect(isCurrentPlayerPaidCitizen()).toBe(true);
+    });
+
+    it("publishes true from the re-read after a purchase", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
+      runPurchase.mockResolvedValue("granted");
+      loadProfile.mockResolvedValue(PAID_PROFILE);
+
+      buyButton(card)!.click();
+      await settle(card);
+
+      expect(runPurchase).toHaveBeenCalledTimes(1);
+      expect(isCurrentPlayerPaidCitizen()).toBe(true);
+    });
+
+    it("does not publish true on a confirmed grant whose re-read is unverified", async () => {
+      // paidGrantConfirmed is deliberately not used (ADR-116 Decision 4).
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      runPurchase.mockResolvedValue("granted");
+      // An unverified re-read: citizen, but not the owner view.
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        xp: 100,
+        isCitizen: true,
+      });
+
+      buyButton(card)!.click();
+      await settle(card);
+
+      expect(getCitizenshipStatus()).toBe("citizen");
+      expect(isCurrentPlayerPaidCitizen()).toBe(false);
     });
   });
 
