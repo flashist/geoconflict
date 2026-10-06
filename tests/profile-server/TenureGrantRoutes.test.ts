@@ -162,10 +162,11 @@ describe("POST /v1/profile/tenure-grant", () => {
         .expect(200, { status: "duplicate", xpAwarded: 30, xp: 45 });
     });
 
-    // Task 0340 (0325 S3a): the login mints `vfy:true` now, but this route does
-    // not read `verified` yet — a verified token gets exactly the unverified answer
-    // (citizen xp still equalized), and the repository sees exactly the same call.
-    it("a vfy:true token → the same status, body and repository call as vfy:false", async () => {
+    // Task 0250 S3b: a `vfy:true` caller is shown its OWN true total; a
+    // `vfy:false` one still the equalized threshold. `xpAwarded` is the same for
+    // both (owner-ruled, review.md), and the repository sees exactly the same call:
+    // the branch is an in-memory choice on the caller's token alone.
+    it("a vfy:true token → the true xp; vfy:false → the threshold; same status, xpAwarded and repository call", async () => {
       const result = outcome({
         citizenshipNewlyGranted: true,
         isCitizen: true,
@@ -185,8 +186,12 @@ describe("POST /v1/profile/tenure-grant", () => {
         .send({ evidence });
       expect(verified.status).toBe(200);
       expect(verified.status).toBe(unverified.status);
-      expect(verified.body).toEqual(unverified.body);
       expect(verified.body).toEqual({
+        status: "granted",
+        xpAwarded: 50,
+        xp: 110,
+      });
+      expect(unverified.body).toEqual({
         status: "granted",
         xpAwarded: 50,
         xp: 100,
@@ -200,6 +205,25 @@ describe("POST /v1/profile/tenure-grant", () => {
         evidence,
       );
     });
+
+    it.each([
+      ["a paid citizen at 42", "granted", 42, true],
+      ["an earned citizen at 1200 (duplicate)", "duplicate", 1200, true],
+      ["a citizen below minimum at 30", "below_minimum", 30, true],
+      ["a non-citizen at 20", "granted", 20, false],
+    ] as const)(
+      "a vfy:true caller sees its own true xp — %s",
+      async (_label, status, xp, isCitizen) => {
+        const res = await request(
+          appWith(mockTenureGrant(outcome({ status, xp, isCitizen }))),
+        )
+          .post(PATH)
+          .set("Authorization", bearerFor(PLAYER_ID, { verified: true }))
+          .send({ evidence: EVIDENCE })
+          .expect(200);
+        expect(res.body).toEqual({ status, xpAwarded: 12, xp });
+      },
+    );
 
     it("the response never carries citizenshipNewlyGranted or any id", async () => {
       const tenureGrant = mockTenureGrant(

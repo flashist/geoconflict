@@ -261,8 +261,10 @@ describe("POST /v1/login — signed player data, S2 + S3a (tasks 0325, 0340)", (
     ["no signature", () => ({}), "absent"],
   ];
 
+  // Task 0250 S3b: the body shape is unchanged for every outcome but `ok`, whose
+  // `profile` is the owner view of the SAME session it mints (`vfy:true`).
   test.each(cases)(
-    "%s → 200, the same body shape, vfy only for `ok`, one outcome recorded",
+    "%s → 200, the same body shape (owner profile only for `ok`), vfy only for `ok`, one outcome recorded",
     async (_label, extra, expectedOutcome) => {
       const { metrics, verifications, staleAges } = recordingMetrics();
       const repo = mockRepo();
@@ -275,7 +277,22 @@ describe("POST /v1/login — signed player data, S2 + S3a (tasks 0325, 0340)", (
       const baseline = await request(appWith(mockRepo(), noopProfileMetrics))
         .post("/v1/login")
         .send(BASE);
-      expect(stableShape(res.body)).toEqual(stableShape(baseline.body));
+      const baselineShape = stableShape(baseline.body) as Record<
+        string,
+        unknown
+      >;
+      if (expectedOutcome === "ok") {
+        // The stored record verbatim, both paid keys present.
+        expect(stableShape(res.body)).toEqual({
+          ...baselineShape,
+          profile: fullProfile(),
+        });
+        expect(res.body.profile).toHaveProperty("is_paid_citizen", false);
+      } else {
+        expect(stableShape(res.body)).toEqual(baselineShape);
+        expect(res.body.profile).not.toHaveProperty("is_paid_citizen");
+        expect(res.body.profile).not.toHaveProperty("citizenship_purchased_at");
+      }
 
       const verified = verifySessionToken(
         SESSION_SECRET,
@@ -471,6 +488,99 @@ describe("POST /v1/login — signed player data, S2 + S3a (tasks 0325, 0340)", (
         JSON.stringify(jest.mocked(repo.resolveOrCreatePlayer).mock.calls),
       ).not.toContain(PLATFORM_USER_ID);
     }
+  });
+
+  // ── Task 0250 S3b: the owner view, and only for the proven owner ───────────
+
+  /** B (the asserted, unproven player) is a PAID citizen; A is a plain player. */
+  function paidVictimProfile(): PlayerProfile {
+    return {
+      ...fullProfile(),
+      xp: 30,
+      is_citizen: true,
+      is_paid_citizen: true,
+      citizenship_purchased_at: "2026-09-02T10:00:00.000Z",
+      updated_at: "2026-09-02T10:00:00.000Z",
+    };
+  }
+
+  function paidVictimRepo(): ProfileRepo {
+    const profileOf = (playerId: string) =>
+      playerId === OTHER_PLAYER_ID ? paidVictimProfile() : fullProfile();
+    return twoPlayerRepo({
+      resolveOrCreatePlayer: jest.fn(
+        (_platform: string, platformUserId: string) => {
+          const playerId =
+            platformUserId === PLATFORM_USER_ID ? PLAYER_ID : OTHER_PLAYER_ID;
+          return Promise.resolve({
+            playerId,
+            created: false,
+            profile: profileOf(playerId),
+          });
+        },
+      ),
+      getProfile: jest.fn((playerId: string) =>
+        Promise.resolve(profileOf(playerId)),
+      ),
+    });
+  }
+
+  test("forgery (0250 S3b): A's valid signature with paid B asserted → B's login profile AND B's later GET /v1/profile are the S1 view", async () => {
+    const app = appWith(paidVictimRepo(), noopProfileMetrics);
+    const login = await request(app)
+      .post("/v1/login")
+      .send({
+        platform: "yandex_games",
+        platformUserId: OTHER_PLATFORM_USER_ID,
+        signature: signFor(PLATFORM_USER_ID),
+      });
+    expect(login.status).toBe(200);
+    expect(mintedClaims(login.body).vfy).toBe(false);
+    const s1View = {
+      schema_version: 1,
+      xp: 100,
+      is_citizen: true,
+      citizenship_earned_at: null,
+      display_name: null,
+      created_at: "2026-09-01T00:00:00.000Z",
+      updated_at: "2026-09-01T00:00:00.000Z",
+    };
+    expect(login.body.profile).toEqual(s1View);
+
+    const read = await request(app)
+      .get("/v1/profile")
+      .set(
+        "Authorization",
+        `Bearer ${LoginResponseSchema.parse(login.body).session.token}`,
+      );
+    expect(read.status).toBe(200);
+    expect(read.body).toEqual(s1View);
+    for (const body of [login.body.profile, read.body]) {
+      expect(body).not.toHaveProperty("is_paid_citizen");
+      expect(body).not.toHaveProperty("citizenship_purchased_at");
+      expect(JSON.stringify(body)).not.toContain("2026-09-02T10:00:00.000Z");
+    }
+  });
+
+  test("a verified login (0250 S3b) → A's own owner view, in the login and in GET /v1/profile under that token — never B's", async () => {
+    const app = appWith(paidVictimRepo(), noopProfileMetrics);
+    const login = await request(app)
+      .post("/v1/login")
+      .send({ ...BASE, signature: signFor(PLATFORM_USER_ID) });
+    expect(login.status).toBe(200);
+    expect(mintedClaims(login.body).vfy).toBe(true);
+    expect(login.body.profile).toEqual(fullProfile());
+    const read = await request(app)
+      .get("/v1/profile")
+      .set(
+        "Authorization",
+        `Bearer ${LoginResponseSchema.parse(login.body).session.token}`,
+      );
+    expect(read.status).toBe(200);
+    expect(read.body).toEqual(fullProfile());
+    expect(JSON.stringify([login.body.profile, read.body])).not.toContain(
+      "2026-09-02T10:00:00.000Z",
+    );
   });
 
   test("a valid matching signature with distinct players → vfy:true for the asserted player", async () => {

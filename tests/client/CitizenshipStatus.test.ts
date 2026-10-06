@@ -18,6 +18,7 @@ function profile(over: Partial<PlayerProfileView> = {}): PlayerProfileView {
     isAuthoritative: true,
     nameChange: null,
     approvedName: null,
+    isPaidCitizen: false,
     ...over,
   };
 }

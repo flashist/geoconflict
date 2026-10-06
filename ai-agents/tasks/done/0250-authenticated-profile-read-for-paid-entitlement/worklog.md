@@ -211,3 +211,115 @@ No regression or review oscillation arose. Nothing outside the approved plan + t
 - Reviewer re-verification of the round-1 fixes has not happened (the ledger is set `closed-out` per the
   driver's instruction, since nothing blocking remains).
 - Deploy order unchanged: client first, then profile server.
+
+## 2026-10-06 — Build, slice S3b (fkit-coder, spawned by `fkit-sprint-ship-loop` as its Build worker)
+
+Built on `dev` at `800867f` (0340 is `71efd10`, an ancestor). Plan: `plan-s3b.md` (blob `b7beb7e`), owner-approved
+2026-10-06 with choices (a)–(e); build hold lifted 2026-10-06 ("start 0250 part 2"). **Nothing committed** —
+the owner commits, and it must be committed before the 10/11 slot so it cannot ride along with 0340. ⚠️ Until it
+is committed, `build-deploy-profile.sh`'s dirty-tree guard (0355) refuses a profile deploy: stash or commit first.
+
+### Change surface
+
+- `src/core/profile/PlayerProfile.ts` — `PublicPlayerProfileSchema` gains `is_paid_citizen` and
+  `citizenship_purchased_at`, both `.optional()` (separate deploys). Doc rewritten for the two views.
+- `src/core/profile/LoginContract.ts` — comments only.
+- `src/profile-server/PublicProjection.ts` — S1 functions unchanged in behaviour; `toPublicProfile` now returns
+  `UnverifiedPublicProfile` (= public type minus the paid keys). New `toOwnerProfile` and the choosers
+  `profileForCaller`, `xpForCaller`, `inboxMessagesForCaller`.
+- `src/profile-server/Routes.ts` — the 4 channels branch on `caller.verified` (login: the local `verified` it
+  signs into the token); PATCH read hides nothing from a verified caller (same two `markRead` calls);
+  `Cache-Control: no-store` on `GET /v1/profile` and `GET /v1/messages` for every caller; comments updated.
+  Name change, payments and internal routes untouched.
+- `src/client/PlayerProfileView.ts` — `isPaidCitizen` (fail-closed); owner view = `is_paid_citizen !== undefined`;
+  Earned:XP detection re-enabled for owner views only, with the paid rule (fires only if not paid, or purchase
+  strictly after earn; suppresses at-or-before / no purchase date / unparseable). Detector signature changed to
+  `(yandexPlayerId, { earnedAt, isPaidCitizen, purchasedAt })`.
+- `ai-agents/knowledge-base/analytics-event-reference.md` — `CITIZENSHIP_EARNED_XP` row (one table row only;
+  the file was already not prettier-clean at HEAD, so I did not reformat it).
+- Tests: `tests/core/profile/PlayerProfile.test.ts`, `tests/client/{PlayerProfileView,CitizenshipStatus,
+  CitizenshipCard}.test.ts`, `tests/profile-server/{PublicProjection,Routes,LoginRoutes,LoginVerificationRoutes,
+  InboxRoutes,TenureGrantRoutes,SessionRoutes}.test.ts`, `tests/integration/{PaidStateEqualization,Login}.it.test.ts`.
+  The 0340 "verified = unverified" guards were rewritten, not deleted: `SessionRoutes` keeps the identical-answer
+  guard for name-change ×3 and payments intent (so 0319 must update it on purpose), and asserts owner/S1 bodies +
+  identical repository calls for profile, messages and mark-read.
+
+### Evidence
+
+- `npx tsc --noEmit` clean · `npm run lint` clean · prettier clean on every touched `.ts`.
+- Targeted jest: 7 profile-server suites 373/373 (×3 clean re-runs); client + core suites green.
+- `npm run test:integration` (local `gc-0012-it-pg`, `.env.test`): **12/12 suites, 159/159** — incl. 3 new S3b
+  tests (verified paid player on all 4 channels; the other 4 classes; vfy:false + forged login = S1 view, stored
+  rows unchanged). Ran for real; confirmed with `--verbose` that they executed, not skipped.
+- Full `npm test`, three runs:
+  1. 2 failed / 3688 — `LoginRoutes` "an unverified login (earned at 100)" got an unexpected **404** from
+     `POST /v1/login`; `AlertRoutes` "renders alert.url" received no alert. Both are supertest-flake shapes from
+     CLAUDE.md's table ("unexpected 404 — mechanism unknown"; a lost request). No `SIGSEGV`, no new `.ips`.
+     The same `LoginRoutes` test passed alone and in 3 batch re-runs.
+  2. 3 failed / 3688 — `SessionRoutes` payments-intent "expired token" **`Exceeded timeout of 5000 ms`** (the
+     confirmed flake shape) + two shell harnesses killed at the 150 s deadline (`profile-deploy-hardening`,
+     `profile-checks`). Host load average ≈ 8; the run took 394 s vs 179 s. I touched none of the files the
+     harnesses check; the harness wrapper alone then passed 4/4 (`profile-checks` took 128 s of its 150 s).
+  3. **195/195 suites, 3688/3688 tests, exit 0.**
+  ⚠️ Not proof that the flakes are unrelated — they match known shapes and did not recur; that is all.
+  An earlier targeted batch (before my test edits) also showed one-off `LoginRoutes` / `TenureGrantRoutes`
+  failures that I did not capture; they did not reproduce.
+- Mutation checks on the three choosers (`return verified` → `true` / `false`), 7 server suites:
+  always-owner → 48 failed (all 7 suites); always-public → 24 failed (6 suites; `LoginRoutes` has no verified
+  case, as expected). A first always-public run showed 25 / 7 suites — one extra uncaptured `LoginRoutes`
+  failure, same flake family as above. Restored and confirmed **byte-identical with `cmp`**.
+- Secrets scan of the diff: only synthetic test keys (`0250-s3b-integration-player-signature-key`, existing
+  test secrets). No DSN, host, IP or real id.
+
+### Decision log (autonomous judgment calls)
+
+1. **Detector signature** — passed the paid facts as one object `{ earnedAt, isPaidCitizen, purchasedAt }`
+   rather than three positional args. Mechanical, inside plan Step 4 ("the detector learns the paid facts").
+2. **Unparseable dates suppress** — `Date.parse` NaN compares false, so a malformed date cannot fire. Inside
+   plan choice (e) "suppress when unsure"; the schema already rejects non-ISO dates, so this is belt-and-braces.
+3. **`UnverifiedPublicProfile` exported** from `PublicProjection.ts` as the narrow return type the plan names
+   (`Omit<PublicPlayerProfile, …>`), so tests and callers can name it. Mechanical.
+4. **Integration tests extended `PaidStateEqualization.it.test.ts`** (one of the plan's two options) to reuse its
+   production-path seeding; added a separate `signingApp` there so the S1 tests run on unchanged wiring.
+5. **`LoginResponseSchema` field doc** reworded (comment only) in `LoginContract.ts` alongside the planned
+   comment change — "no paid fields" was no longer true.
+6. **Tenure route's accepted-risk comment** reworded: the claim is still not gated on `verified`; only the
+   shown `xp` is. No behaviour change.
+7. **Per-account client test** rewritten to arm a second account's storage key directly, because switching the
+   Yandex id mid-test makes the mocked session layer fail login (`Profile:Login:Failed:Error`) and would have
+   made the test pass vacuously.
+
+No fix to review findings was applied (this is a build, not a review round). No regression or oscillation.
+Nothing outside the approved plan changed.
+
+### Left open
+
+- Reviewer pass (stateful) not yet run — `review.md` untouched by me.
+- Live checks wait for deploy: 0340 in its own earlier slot → `0395` confirms `vfy:true` live → owner looks at
+  post-0391 login numbers (ADR-122) → weekend slot. Then a verify task (DevTools: a verified paid test account's
+  `GET /v1/profile` shows `is_paid_citizen: true`; a `vfy:false` session shows the S1 view).
+
+## 2026-10-06 — Process review, slice S3b, round 3 (fkit-coder, spawned by `fkit-sprint-ship-loop` as its Process-review worker)
+
+Standing approval: the owner-approved `plan-s3b.md` (2026-10-06). Reviewer round 3: ✅ Ready to merge
+(validation-gated), no novel rows; one Codex claim X1.
+
+### What changed
+
+- **No source or test file changed.** `review.md` only: one *Coder response* row (X1, `disproven`), a round-3
+  coder-response note (loop check on three residuals), three dated append-only notes under *Accepted residuals*,
+  header `Status: closed-out`. No re-verification run (nothing to re-verify); the reviewer's round-3 evidence stands.
+
+### Decision log — fixes applied without per-fix owner approval, and obvious-winner calls
+
+- **Fixes applied: none.** X1 verified INCORRECT (re-read `GET /v1/profile` and `GET /v1/messages` in
+  `src/profile-server/Routes.ts`: the header is route-only, never reads `caller.verified`; non-200 bodies carry no
+  purchase fact; 403 follows `is_citizen`, already visible to every caller under S1).
+- **Obvious-winner call (1):** appended a dated, attributed "consumed by S3b; now unverified-only" note under the
+  *L5*, *D4 side effects* and *Citizen xp is a constant* residuals. Answers: the reviewer's optional housekeeping
+  suggestion plus the three re-raise conditions firing on their wording ("S3b ships"). Why it qualified:
+  docs-only, append-only (no existing text changed), records what the reviewer and I both verified, and stays
+  within the plan's intent (`plan-s3b.md` § 5 Edge cases already predicts each one; L5 is settled by ADR-116
+  accepted residual 4). Easy to find and revert: the three bullets dated 2026-10-06 in `review.md`.
+- **Loop-check closeouts (no action):** L5 → ADR-116 residual 4; D4 side effects → owner ruling D1 + ADR-116
+  Decision 4; citizen-xp constant → owner rulings Q-A + D1.

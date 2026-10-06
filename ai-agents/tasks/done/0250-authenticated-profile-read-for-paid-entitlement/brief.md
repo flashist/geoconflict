@@ -40,9 +40,9 @@ owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not produc
 *"Pull 0250 … into Sprint 6, directly above ad-free (0248)?"*, the owner chose, verbatim: **"Yes, above
 0248 (Recommended)"**.
 - **Why it was asked:** earlier that day the owner moved
-  [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
+  [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
   Sprint 6 above the citizenship explainer popup
-  ([`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
+  ([`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
   without this task, so both waited on it.
 - **Effect:** rank **4** on [Sprint 6](../../../sprints/done/plan-sprint-6.md), directly above `0248`; the
   [Backlog board](../../../sprints/backlog.md) row reads `➡️ Moved`. Full record: the second *RE-RANK
@@ -55,8 +55,8 @@ owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not produc
 
 🔴 **BACKLOG BOARD BY OWNER RULING, 2026-09-12, given live in session — ⛔ NOT Sprint 4.** The owner
 ruled **that this be filed**, and filed **rather than scheduled**. Their reasoning as put to them and
-accepted: **both [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
-[`0249`](../0249-citizen-gated-full-emoji-set/brief.md) would want this work, so it should be filed
+accepted: **both [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
+[`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) would want this work, so it should be filed
 ONCE rather than absorbed into either.** ⛔ **They did NOT rule what it is worth or when it is worked**
 — see *Priority*, where the rank is the **producer's**.
 
@@ -82,7 +82,7 @@ paid benefit, and every additional paid perk `PROJECT.md` promises ("name change
 lobbies, spectating") will want the same seam.
 
 ## Status
-🔄 In progress — slice S3b (driven by `fkit-sprint-ship-loop`, 2026-10-06, owner chose it; `0340` closed; was ~~🚧 Blocked~~) — slice S1 (leak fix) built + reviewed 2026-09-27, verdict *Ready to merge* (see `review.md`); slice S3b waits on `0340` (verified sessions — `0325`'s slice S3a, split into its own task 2026-09-29; was ~~`0325`~~, which closed as the S2 build). Driven by `/fkit-sprint-ship-loop` (fkit-lead). **Deploy state (2026-09-29):** S1 is committed on `dev` in commit `68303d5` (2026-09-28; lead-verified — `src/profile-server/PublicProjection.ts` first appears there) ~~and is **NOT deployed**. Per OWNER RULING 2026-09-29 (relayed by `fkit-lead`), it is queued for the **next weekend deploy slot** — deploys use weekend slots unless something urgent comes up. ⚠️ **Until S1 is deployed, the paid-state leak stays live.**~~
+✅ Done (agent-closed — not owner-verified)
 
 📌 **2026-10-02 correction — S1 went live in the 2026-09-29 deploy.** Commit `68303d5` is an ancestor of game tag `0.0.155` (tag commit `00825f0` *"DEPLOY prod: bump version to 0.0.155"*, 2026-09-29 19:05 UTC); the profile deploy that evening (`profile-api` started 20:04:48 UTC) ran from a checkout holding `68303d5` ([runbook](../../../knowledge-base/weekend-deploy-slot-runbook.md) § *What happened 2026-09-29*, precondition row); `src/profile-server/PublicProjection.ts` is unchanged since. Source: `fkit-reviewer` deploy-readiness review 2026-10-02 (range `0.0.155..8a7f8c5`); OWNER RULING 2026-10-02 *"Yes, correct it (Recommended)"*, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent; facts re-checked by the producer (git ancestry + runbook). ⚠️ **Deployed, not verified in use** — the runbook records N2's game checks and N3.2 (citizen bell message) as *not reported*. Status token unchanged (`🚧 Blocked`) — S3b still waits on `0340`.
 
@@ -132,7 +132,7 @@ is not a secret, and the route is deliberately open: it carries
 of the (non-secret) Yandex player IDs" (`src/profile-server/Routes.ts:207-216,222-228`). ⇒ **Returning
 paid state on that route would let anyone who can guess or enumerate player ids build a list of who
 paid.** That is a privacy leak about real people's purchases, in a jurisdiction where
-[`0048`](../0048-compliance-152fz-notification-consent/brief.md) already tracks 152-ФЗ obligations.
+[`0048`](../../backlog/0048-compliance-152fz-notification-consent/brief.md) already tracks 152-ФЗ obligations.
 
 🚨 **The constraint the chosen design must satisfy, stated as a requirement and not as an obstacle:**
 **paid state may reach a caller that is proven to be the profile's owner, and no one else.** A design
@@ -260,7 +260,7 @@ Candidates include not exposing one of them to non-owners, or reshaping the proj
 the architect's, and the owner rules.** ⛔ Note the conflict with Verification step 4: the card reads
 `is_citizen` today, so the fix must not break the citizen badge.
 
-**Known consumer that must not build on the leak:** [`0299`](../0299-tiered-ad-impression-analytics/brief.md)
+**Known consumer that must not build on the leak:** [`0299`](../../backlog/0299-tiered-ad-impression-analytics/brief.md)
 (tiered ad analytics) is explicitly barred from deriving `PaidCitizen` this way.
 
 ## Scope
@@ -289,8 +289,8 @@ below). Phase 1 is **done**. Phase 2 is now **two slices of this task**, in this
 
 ### Out of scope — named so it is not absorbed
 
-- ⛔ **The ad-suppression gate itself.** That is [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
-- ⛔ **The emoji split and its gate.** That is [`0249`](../0249-citizen-gated-full-emoji-set/brief.md).
+- ⛔ **The ad-suppression gate itself.** That is [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md).
+- ⛔ **The emoji split and its gate.** That is [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md).
 - ⛔ **Exiting ADR-103 for XP crediting.** The `getCreditableYandexId()` seam
   (`src/server/GameServer.ts:1189-1202`) is a *different* trust question — it is about the **game
   server** trusting an id for crediting, not about a **browser** proving identity to the profile API.
@@ -369,10 +369,10 @@ phase 1 chooses, all of these must hold:**
   [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an
   explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where the slice table and deploy order below say *"`0325` (S3a)"*, read `0340`.
   Slice S1 is unaffected.
-- **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
+- **Blocks:** [`0248-suppress-interstitial-ads-for-paid-citizens`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   — ⛔ **hard prerequisite.** `0248` is specified on `is_paid_citizen` by owner ruling (2026-09-12,
   paid-only confirmed), and that flag cannot reach the client until this task ships.
-- **Likely wanted by:** [`0249-citizen-gated-full-emoji-set`](../0249-citizen-gated-full-emoji-set/brief.md)
+- **Likely wanted by:** [`0249-citizen-gated-full-emoji-set`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md)
   — ⚠️ **conditional, not established.** `0249`'s flag is an **open question** (`PROJECT.md:36` does not
   say "paid" for the emoji benefit, and the producer's reading there favours `is_citizen`, which needs
   none of this work). **If `0249` lands on `is_paid_citizen`, this task becomes its prerequisite too.**
@@ -399,7 +399,7 @@ phase 1 chooses, all of these must hold:**
   `src/core/profile/PlayerProfile.ts:55` still says *"Sprint 4's read is unauthenticated"*. `GET /v1/profile`
   now goes through a Bearer session (`resolveCaller`, `Routes.ts:630-653`). This task edits that schema, so
   fix the comment here. Also recorded in `0299`.
-- **Split-out consumer:** [`0299`](../0299-tiered-ad-impression-analytics/brief.md) depends on this task
+- **Split-out consumer:** [`0299`](../../backlog/0299-tiered-ad-impression-analytics/brief.md) depends on this task
   for its `PaidCitizen` tier.
 
 ## Open questions for the owner
@@ -526,7 +526,7 @@ already say this residual is gone only *while the event is dormant*. S3b's plan 
 - **Before slice **S3b**'s deploy (S1 is already live and unaffected):** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
   `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
   wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
-  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+  worklog. The read is read-only, done the same way as [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
 - **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
   sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
   needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
@@ -539,7 +539,7 @@ already say this residual is gone only *while the event is dormant*. S3b's plan 
 `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
 *"Note only (Recommended)"*.
 
-- **Deploy slice **S3b** only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+- **Deploy slice **S3b** only after [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
   and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
   DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
 - **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the

@@ -1,6 +1,6 @@
 # 0250 — Authenticated profile read for paid entitlement: design evaluation (phase 1)
 
-- **Task:** [`0250`](../../tasks/backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
+- **Task:** [`0250`](../../tasks/done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
 - **Date:** 2026-09-27
 - **Author:** `fkit-architect`, spawned as a **consult** by `fkit-lead` in `/fkit-sprint-ship-loop`
   (Sprint 6). **No owner channel** — every owner decision is returned as an open question (§10), none is

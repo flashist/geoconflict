@@ -167,6 +167,11 @@ RUN("POST /v1/login (integration)", () => {
       .set("Authorization", `Bearer ${token}`);
     expect(profile.status).toBe(200);
     expect(profile.body.xp).toBe(0);
+    // Task 0250 S3b: a verified session reads the owner view — a new player is
+    // not a payer, and the paid keys are present to say so.
+    expect(profile.body.is_paid_citizen).toBe(false);
+    expect(profile.body.citizenship_purchased_at).toBeNull();
+    expect(res.body.profile.is_paid_citizen).toBe(false);
   });
 
   // Task 0273 (S4), owner ruling D1: the legacy fallback is GONE. A Yandex id on

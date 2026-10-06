@@ -14,7 +14,7 @@ Sprint 7
 
 *(Earlier value, kept as history — true from earlier on 2026-09-29 until this move:)* ~~Sprint 6~~
 
-📌 **Moved from Sprint 7 to Sprint 6 on 2026-09-29** — OWNER RULING given live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. As relayed: *"Move 0340 into Sprint 6."* Reason: [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — and so `0248` and `0301` — on [Sprint 6](../../../sprints/done/plan-sprint-6.md) cannot close until this task ships. Record: the 2026-09-29 `0340` addendum under Sprint 6's status table. `## Status` unchanged; no folder moved; no mover run. **The gate below is unchanged.** ⚠️ Because the gate includes a watch window of days after a deploy, Sprint 6 cannot close as fully done until this task has shipped — flagged for the owner.
+📌 **Moved from Sprint 7 to Sprint 6 on 2026-09-29** — OWNER RULING given live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. As relayed: *"Move 0340 into Sprint 6."* Reason: [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — and so `0248` and `0301` — on [Sprint 6](../../../sprints/done/plan-sprint-6.md) cannot close until this task ships. Record: the 2026-09-29 `0340` addendum under Sprint 6's status table. `## Status` unchanged; no folder moved; no mover run. **The gate below is unchanged.** ⚠️ Because the gate includes a watch window of days after a deploy, Sprint 6 cannot close as fully done until this task has shipped — flagged for the owner.
 
 *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 7~~
 
@@ -95,7 +95,7 @@ only makes "is this the proven owner?" answerable for the tasks that need it.
 ### Who reads `verified` after this ships
 
 No route reads `verified` in this task. These tasks do, and all wait on this one:
-- [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) slice **S3b** — the verified-only
+- [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) slice **S3b** — the verified-only
   view of paid state;
 - [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) — gates the
   name-change routes on a verified caller;
@@ -202,7 +202,7 @@ built and reviewed.)*
   written:* ~~[`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (hard — its S2
   exit) plus an explicit owner approval to enforce.~~ `0325` (the S2 build, closed 2026-09-29) is built into the
   tree.
-- **Blocks:** [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slice S3b only — hard),
+- **Blocks:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slice S3b only — hard),
   [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard),
   [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) (hard),
   [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard). Each of those briefs carries a
@@ -298,7 +298,7 @@ Recorded in [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate
 - **Target:** `0391` deploys Tue 6 Oct; this task's earliest deploy is the 10/11 Oct weekend slot, if the owner's look
   and approval allow.
 - **Architect advice (2026-10-05, relayed by `fkit-lead`): deploy this task alone, not together with
-  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) S3b**. (The advice as relayed; its full
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) S3b**. (The advice as relayed; its full
   reasoning is not recorded here — ask the architect if it is needed.)
 - **Verification step 2** now reads 86,400 s (24 h) for the age limit (edited above, old value struck).
 - `0394` (re-login on a Yandex account switch) stays on the Backlog board and gates nothing here (owner ruling

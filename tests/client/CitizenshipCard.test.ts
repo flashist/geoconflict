@@ -140,6 +140,8 @@ const NON_CITIZEN_PROFILE = {
   isAuthoritative: true,
   // No approved name (task 0321).
   approvedName: null,
+  // Not a verified owner view (task 0250 S3b) — fail-closed.
+  isPaidCitizen: false,
 };
 
 describe("CitizenshipCard", () => {
@@ -2035,6 +2037,7 @@ describe("CitizenshipCard", () => {
       isAuthoritative: true,
       nameChange: null,
       approvedName: null,
+      isPaidCitizen: false,
     };
 
     const nameCta = (card: CitizenshipCard) =>

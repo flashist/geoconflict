@@ -15,7 +15,8 @@ import { PublicPlayerProfileSchema } from "./PlayerProfile";
  * `signature` (task 0325) is Yandex's signed player data
  * (`getPlayer({ signed: true }).signature`). The server checks it and COUNTS the
  * outcome, and since 0340 (S3a) mints `vfy:true` for a verified signature — that
- * session, and only that, is the proven owner (no route reads it yet). The field
+ * session, and only that, is the proven owner: the profile, inbox and tenure
+ * routes give a `vfy:true` caller its own true view (0250 S3b). The field
  * is optional forever: a missing or bad signature means an unverified session,
  * never a refused login. ⛔ It is a credential: never log it, never persist it.
  *
@@ -56,7 +57,10 @@ export type TenureCheckStatus = z.infer<typeof TenureCheckStatusSchema>;
 
 export const LoginResponseSchema = z.object({
   created: z.boolean(),
-  /** Same projection as GET /v1/profile: no player id, no platform id, no paid fields. */
+  /**
+   * Same projection as GET /v1/profile: no player id, no platform id; the paid
+   * fields only when the minted session is `vfy:true` (task 0250 S3b).
+   */
   profile: PublicPlayerProfileSchema,
   grantChecks: z.object({ tenure: TenureCheckStatusSchema }),
   session: z.object({

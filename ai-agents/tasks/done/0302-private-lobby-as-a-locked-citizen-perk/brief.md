@@ -43,7 +43,7 @@ the "funnel/explanation" of the perks would depend on it."*
   task **no longer depends on `0301`**. See *Dependencies* and open question 5.
 - ⚠️ **Reading, open to owner correction:** *"citizens"* is read as **`is_citizen` — earned (XP) OR
   paid**, the owner's word and `plan-index.md` item 8b's (*"citizens only"*). That needs no paid-state read,
-  so [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) is **not** a prerequisite.
+  so [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) is **not** a prerequisite.
   If the owner meant **paid** citizens only, `0250` becomes a hard prerequisite, exactly as for `0248`.
 - ⛔ **Not settled by the ruling:** open questions 3 and 4 (server-side gate; what shows when citizenship
   is off or the profile read fails), the new open question 5 (what the locked tap opens before `0301`
@@ -71,7 +71,7 @@ precedent. Verbatim:
     existing citizenship card.)*
 - **Who may create private lobbies** (open question 6) → **"Earned or paid (Recommended)"**. The gate is
   `is_citizen` (earned via XP **or** paid). ⇒ **No dependency on
-  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md).** The *"Reading, open to owner
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md).** The *"Reading, open to owner
   correction"* bullet above is confirmed.
 - **The forged-id risk** (the `0068` trust condition, folded into open question 3) → **"Accept for now
   (Recommended)"**. Recorded as an accepted residual below.

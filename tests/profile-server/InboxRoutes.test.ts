@@ -197,6 +197,76 @@ describe("inbox routes", () => {
       });
     });
 
+    // Task 0250 S3b: a verified caller reads its OWN messages with the original
+    // keys; every other caller still gets exactly the S1 list above.
+    describe("the verified owner view (task 0250 S3b)", () => {
+      const listOf = (messages: ReturnType<typeof message>[]) =>
+        mockInbox({
+          listMessages: jest.fn().mockResolvedValue({ status: "ok", messages }),
+        });
+      const getAs = (inbox: InboxRepo, verified: boolean) =>
+        request(appWith(inbox))
+          .get("/v1/messages")
+          .set("Authorization", bearerFor(PLAYER_ID, { verified }));
+      const earnedThenPaid = () => [
+        message(9, null, "citizenship_paid"),
+        message(8, null, "name_change_approved"),
+        message(4, "2026-08-27T10:00:00.000Z", "citizenship_earned"),
+      ];
+
+      test("verified → the stored keys verbatim, nothing collapsed", async () => {
+        const res = await getAs(listOf(earnedThenPaid()), true);
+        expect(res.status).toBe(200);
+        expect(res.body.messages).toEqual(earnedThenPaid());
+      });
+
+      test("unverified → exactly the S1 list (deep-equal, same byte length)", async () => {
+        const unverified = await getAs(listOf(earnedThenPaid()), false);
+        const s1 = await request(appWith(listOf(earnedThenPaid())))
+          .get("/v1/messages")
+          .set("Authorization", CALLER);
+        expect(unverified.body).toEqual(s1.body);
+        expect(unverified.body.messages).toEqual([
+          message(8, null, "name_change_approved"),
+          message(4, "2026-08-27T10:00:00.000Z", "citizenship_granted"),
+        ]);
+        expect(JSON.stringify(unverified.body).length).toBe(
+          JSON.stringify(s1.body).length,
+        );
+      });
+
+      test("a paid citizen's verified and unverified lists differ (the branch really runs)", async () => {
+        const verified = await getAs(
+          listOf([message(7, null, "citizenship_paid")]),
+          true,
+        );
+        const unverified = await getAs(
+          listOf([message(7, null, "citizenship_paid")]),
+          false,
+        );
+        expect(verified.body.messages[0].templateKey).toBe("citizenship_paid");
+        expect(unverified.body.messages[0].templateKey).toBe(
+          "citizenship_granted",
+        );
+      });
+
+      test("Cache-Control: no-store for EVERY caller", async () => {
+        for (const verified of [true, false]) {
+          const res = await getAs(listOf(earnedThenPaid()), verified);
+          expect(res.headers["cache-control"]).toBe("no-store");
+        }
+      });
+
+      test("a verified token for a non-citizen / missing player → 403, as today", async () => {
+        const inbox = mockInbox({
+          listMessages: jest.fn().mockResolvedValue({ status: "not_citizen" }),
+        });
+        const res = await getAs(inbox, true);
+        expect(res.status).toBe(403);
+        expect(res.body).toEqual({ error: "not_citizen" });
+      });
+    });
+
     test("500 when the repo throws", async () => {
       const inbox = mockInbox({
         listMessages: jest.fn().mockRejectedValue(new Error("db down")),
@@ -441,6 +511,49 @@ describe("inbox routes", () => {
         );
         expect(earnedById.body).toEqual({ updated: 1 });
         expect(paidById.body).toEqual({ updated: 1 });
+      });
+
+      // Task 0250 S3b: nothing is hidden from the verified owner — `updated`
+      // counts every one of its own unread rows, with the same query pattern.
+      describe("verified caller (task 0250 S3b)", () => {
+        const patchVerified = (inbox: InboxRepo, body: object) =>
+          request(appWith(inbox))
+            .patch("/v1/messages/read")
+            .set("Authorization", bearerFor(PLAYER_ID, { verified: true }))
+            .send(body);
+
+        test("earned-then-paid: both citizenship rows are visible and mark-all counts both", async () => {
+          const rows = [
+            message(2, null, "citizenship_paid"),
+            message(1, null, "citizenship_earned"),
+          ];
+          const inbox = fakeInbox(rows);
+          const res = await patchVerified(inbox, {});
+          expect(res.status).toBe(200);
+          expect(res.body).toEqual({ updated: 2 });
+          expect(rows.every((row) => row.readAt !== null)).toBe(true);
+          // Same two calls as the S1 path: the (empty) hidden set, then the visible.
+          expect(inbox.markRead).toHaveBeenNthCalledWith(1, PLAYER_ID, []);
+          expect(inbox.markRead).toHaveBeenNthCalledWith(2, PLAYER_ID, [2, 1]);
+        });
+
+        test("by id: the newer paid row is confirmed, not treated as foreign", async () => {
+          const rows = earnedThenPaid();
+          const res = await patchVerified(fakeInbox(rows), { ids: [2] });
+          expect(res.body).toEqual({ updated: 1 });
+          expect(rows[0].readAt).not.toBeNull();
+        });
+
+        test("the same stored rows answer differently for an unverified caller (the branch really runs)", async () => {
+          const unverified = await patch(fakeInbox(earnedThenPaid()), {
+            ids: [2],
+          });
+          const verified = await patchVerified(fakeInbox(earnedThenPaid()), {
+            ids: [2],
+          });
+          expect(unverified.body).toEqual({ updated: 0 });
+          expect(verified.body).toEqual({ updated: 1 });
+        });
       });
     });
   });

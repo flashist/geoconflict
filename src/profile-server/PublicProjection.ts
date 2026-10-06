@@ -1,10 +1,8 @@
-// What an UNVERIFIED caller may see of a player (task 0250, slice S1).
+// The two views of a player a route may return (task 0250).
 //
-// A `vfy:false` session token proves nothing: anyone who asserts a platform id gets
-// one. A token may be `vfy:true` since task 0340 (0325 S3a), but no route branches
-// on it yet — so this is the view EVERY caller gets until S3b, in which a PAID
-// citizen and an EARNED citizen look the same — same keys, same types, only the
-// values are equalized:
+// UNVERIFIED view (slice S1). A `vfy:false` session token proves nothing: anyone
+// who asserts a platform id gets one. That caller sees a PAID citizen and an
+// EARNED citizen the same — same keys, same types, only the values are equalized:
 //  - L1 `citizenship_earned_at` → always null;
 //  - L2/L3 `xp` → exactly the citizenship threshold for EVERY citizen (owner
 //    ruling Q-A, 2026-09-27), so a citizen's xp never moves on any route;
@@ -12,10 +10,17 @@
 //  - L4 `citizenship_paid` / `citizenship_earned` inbox messages → one neutral
 //    `citizenship_granted`, and only the oldest one is kept — and marking
 //    messages read never counts or confirms a hidden one (review R2).
-// The stored rows are never rewritten: this is a projection at the route.
 //
-// UNVERIFIED view. S3b adds the owner view beside it and branches on
-// `caller.verified` at the same call sites.
+// OWNER view (slice S3b, owner ruling D1). A `vfy:true` token was minted for a
+// fresh, genuine Yandex signature of the asserted id (task 0340, id checked
+// first), so its `pid` IS the signed player — and no player-facing route takes a
+// target id, so the caller can only ever read itself. That caller gets its own
+// stored values verbatim, plus the raw paid facts, and the original inbox keys.
+//
+// The choice is made ONLY by the caller's own `verified` flag (the `*ForCaller`
+// choosers below), never by anything about the stored player, so which view
+// answers says nothing about paid state. The stored rows are never rewritten:
+// this is a projection at the route.
 
 import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
 import type { InboxMessage } from "../core/profile/InboxContract";
@@ -25,6 +30,12 @@ import type {
   PublicPlayerProfile,
 } from "../core/profile/PlayerProfile";
 
+/** The unverified view's type: the paid keys are never on it. */
+export type UnverifiedPublicProfile = Omit<
+  PublicPlayerProfile,
+  "is_paid_citizen" | "citizenship_purchased_at"
+>;
+
 /**
  * The xp an unverified caller sees: EXACTLY the threshold for every citizen,
  * whatever the stored value (owner ruling Q-A, 2026-09-27). A floor (`max(xp,
@@ -33,26 +44,22 @@ import type {
  * tenure claim, a paid-not-earned one's stayed pinned at 100, and anyone who
  * can cause the credit could watch which. A constant never moves, and it also
  * removes the "exactly 100 ⇒ probably paid" hint. Cost, accepted in the same
- * ruling: an earned citizen sees 100 / 100 on their own card until verified
- * reads ship (0325 + S3b). A non-citizen is unchanged.
+ * ruling: an earned citizen sees 100 / 100 on their own card unless the read
+ * is verified (task 0250 S3b: `xpForCaller`). A non-citizen is unchanged.
  */
 export function equalizedXp(xp: number, isCitizen: boolean): number {
   return isCitizen ? CITIZENSHIP_XP_THRESHOLD : xp;
 }
 
 /**
- * Public projection of a profile — the equalized view above. This read needs a
- * session token; a token may be `vfy:true` since task 0340, but no route branches
- * on it yet, so this is the view every caller gets until S3b — and anyone can still
- * mint a `vfy:false` token for an id they merely assert. So:
+ * The UNVERIFIED projection of a profile — the equalized view above. Anyone can
+ * mint a `vfy:false` token for an id they merely assert, so:
  *  - paid state (`is_paid_citizen`, `citizenship_purchased_at`) is omitted —
- *    leaking "who paid";
+ *    leaking "who paid" (the return type says so);
  *  - `xp`, `citizenship_earned_at` and `updated_at` are equalized (task 0250 S1)
  *    so paid state cannot be inferred from them either.
  * The profile carries no identity at all (task 0270): neither the internal player
  * id nor a platform id can reach a client through it (ADR-113 hard rule).
- * TODO(payments): 0250 S3b returns the true values to a `verified` caller (the
- * signature is checked at login since task 0340; no route reads it yet).
  *
  * `nameChange` (task 0067) is merged in when the caller has one. It carries only
  * {status, requested_name, decided_at} — never the operator's rejection reason,
@@ -62,11 +69,11 @@ export function equalizedXp(xp: number, isCitizen: boolean): number {
 export function toPublicProfile(
   profile: PlayerProfile,
   nameChange?: NameChangeState | null,
-): PublicPlayerProfile {
+): UnverifiedPublicProfile {
   const { is_paid_citizen, citizenship_purchased_at, ...rest } = profile;
   void is_paid_citizen;
   void citizenship_purchased_at;
-  const equalized: PublicPlayerProfile = {
+  const equalized: UnverifiedPublicProfile = {
     ...rest,
     xp: equalizedXp(profile.xp, profile.is_citizen),
     citizenship_earned_at: null,
@@ -75,6 +82,54 @@ export function toPublicProfile(
   // Omit the key entirely (rather than sending null) when there is no request —
   // the field is `.optional()` on the shared schema, not nullable.
   return nameChange ? { ...equalized, name_change: nameChange } : equalized;
+}
+
+/**
+ * The OWNER projection of a profile (task 0250 S3b, owner ruling D1): the stored
+ * record verbatim — true `xp`, `citizenship_earned_at` and `updated_at`, and BOTH
+ * paid keys, always present (even false / null) so their presence marks the owner
+ * view and depends only on the caller's token, never on the player's state.
+ * `name_change` is merged exactly as in `toPublicProfile`. The profile carries no
+ * identity (task 0270), so nothing else can ride along. Only for a `vfy:true`
+ * caller reading ITSELF — use `profileForCaller`, never call this directly.
+ */
+export function toOwnerProfile(
+  profile: PlayerProfile,
+  nameChange?: NameChangeState | null,
+): PublicPlayerProfile {
+  const owner: PublicPlayerProfile = { ...profile };
+  return nameChange ? { ...owner, name_change: nameChange } : owner;
+}
+
+/** The profile a caller sees: the owner view when verified, else the S1 view. */
+export function profileForCaller(
+  profile: PlayerProfile,
+  nameChange: NameChangeState | null | undefined,
+  verified: boolean,
+): PublicPlayerProfile {
+  return verified
+    ? toOwnerProfile(profile, nameChange)
+    : toPublicProfile(profile, nameChange);
+}
+
+/** The xp a caller sees: the true total when verified, else `equalizedXp`. */
+export function xpForCaller(
+  xp: number,
+  isCitizen: boolean,
+  verified: boolean,
+): number {
+  return verified ? xp : equalizedXp(xp, isCitizen);
+}
+
+/**
+ * The inbox list a caller sees: the stored messages unchanged when verified (the
+ * original keys, nothing collapsed), else `toPublicInboxMessages`.
+ */
+export function inboxMessagesForCaller(
+  messages: readonly InboxMessage[],
+  verified: boolean,
+): InboxMessage[] {
+  return verified ? [...messages] : toPublicInboxMessages(messages);
 }
 
 /** The two stored keys that reveal how a player became a citizen. */

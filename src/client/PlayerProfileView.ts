@@ -43,6 +43,15 @@ export type PlayerProfileView = {
    * an `isAuthoritative` view's null means "no approved name".
    */
   approvedName: string | null;
+  /**
+   * True ONLY when the server answered with the verified OWNER view (task 0250
+   * S3b) and it says the player bought citizenship (`is_paid_citizen: true`).
+   * False for every zero-state, every unverified (equalized S1) view and every
+   * server that predates S3b — fail-closed for entitlement (ADR-116 Decision 4):
+   * an unverified read can never grant a paid benefit. Task 0248 reads this; no
+   * UI does in S3b.
+   */
+  isPaidCitizen: boolean;
 };
 
 // Bound the profile read so an unreachable/slow profile API can never hang the
@@ -73,7 +82,7 @@ export const EARNED_AT_STORAGE_KEY_PREFIX =
  * XP and citizenship are read from the server profile via `GET /v1/profile` under
  * the login session's Bearer token (task 0273, S4) — the Yandex id no longer
  * travels in the URL. It is still read here: a missing id is the zero-state, and
- * S3b needs it again for the local earned-at storage key.
+ * it keys the local earned-at storage for the verified-read detector (S3b).
  * The card itself makes no network calls (it just re-reads this view model).
  */
 export async function loadPlayerProfileView(): Promise<PlayerProfileView | null> {
@@ -93,6 +102,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     isAuthoritative: false,
     nameChange: null,
     approvedName: null,
+    isPaidCitizen: false,
   };
 
   const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
@@ -109,11 +119,18 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     return zeroState;
   }
 
-  // `reportEarnedCitizenshipTransition` is deliberately NOT called (task 0250
-  // S1, owner ruling D4): every response is unverified until S3b, and an
-  // unverified response carries `citizenship_earned_at: null` by design — so
-  // there is no true transition to observe. Citizenship:Earned:XP is dormant
-  // until S3b calls it for verified reads.
+  // The server sends the paid keys ONLY in the verified owner view (task 0250
+  // S3b), so their presence is the marker. Detection runs for that view only: an
+  // unverified response carries `citizenship_earned_at: null` by design (S1,
+  // owner ruling D4), so it touches no storage and cannot arm the transition.
+  const isOwnerView = profile.is_paid_citizen !== undefined;
+  if (isOwnerView) {
+    reportEarnedCitizenshipTransition(yandexPlayerId, {
+      earnedAt: profile.citizenship_earned_at,
+      isPaidCitizen: profile.is_paid_citizen === true,
+      purchasedAt: profile.citizenship_purchased_at ?? null,
+    });
+  }
 
   return {
     displayName: profile.display_name ?? displayName,
@@ -124,8 +141,16 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     // requested a change — both mean "no request" to the card.
     nameChange: profile.name_change ?? null,
     approvedName: profile.display_name ?? null,
+    isPaidCitizen: isOwnerView && profile.is_paid_citizen === true,
   };
 }
+
+/** What a verified (owner-view) read says about how the player became a citizen. */
+export type CitizenshipFacts = {
+  earnedAt: string | null;
+  isPaidCitizen: boolean;
+  purchasedAt: string | null;
+};
 
 /**
  * Fire `Citizenship:Earned:XP` when the server-authoritative profile first shows
@@ -136,33 +161,41 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
  * too, and only the server's XP-threshold path ever stamps
  * `citizenship_earned_at`.
  *
- * ⚠️ S3b calls this for VERIFIED reads only. Since task 0250 S1 an unverified
- * profile carries `citizenship_earned_at: null` for every player (paid and
- * earned citizens are equalized), so feeding it an unverified read would arm
- * every device and then never fire — `loadPlayerProfileView` therefore does not
- * call it at all until S3b (owner ruling D4). Storage lives under the fresh
- * `EARNED_AT_STORAGE_KEY_PREFIX` (`_v2`) — see its comment.
+ * Called for VERIFIED (owner-view) reads only (task 0250 S3b). Since S1 an
+ * unverified profile carries `citizenship_earned_at: null` for every player, so
+ * feeding it one would arm every device and then never fire (owner ruling D4).
+ * Storage lives under the fresh `EARNED_AT_STORAGE_KEY_PREFIX` (`_v2`) — see its
+ * comment.
+ *
+ * Paid citizens (brief note 2026-09-27): the server still stamps
+ * `citizenship_earned_at` when a PAID citizen crosses 100 XP, which is not an
+ * earned citizenship. So the date is always stored, but the event fires only if
+ * the earn came BEFORE any purchase:
+ *  - not paid → fire;
+ *  - paid, purchased strictly after the earn (earned first, paid later — even
+ *    between two page loads) → fire;
+ *  - paid with the purchase at or before the earn, or with no purchase date →
+ *    suppress (lean to under-counting, as D4 already does).
  *
  * Accepted MVP residual (owner ruling 2026-08-23): a first-ever observation on
  * a device with no stored snapshot never fires (fresh device / cleared storage
- * under-counts). The old "a paid citizen crossing the threshold over-counts"
- * residual does not apply while the event is dormant; a verified read in S3b
- * carries paid state, so S3b can rule that case out when it re-enables this.
+ * under-counts), and an unverified session never fires at all.
  *
  * Never throws: storage being unavailable (private mode / iframe policy) only
  * skips detection — the card must render regardless.
  */
 export function reportEarnedCitizenshipTransition(
   yandexPlayerId: string,
-  earnedAt: string | null,
+  facts: CitizenshipFacts,
 ): void {
+  const { earnedAt } = facts;
   try {
     const key = EARNED_AT_STORAGE_KEY_PREFIX + yandexPlayerId;
     // null (never observed) is deliberately distinct from "" (observed as
     // not-yet-earned): only the latter can arm the transition.
     const previous = localStorage.getItem(key);
     localStorage.setItem(key, earnedAt ?? "");
-    if (previous === "" && earnedAt !== null) {
+    if (previous === "" && earnedAt !== null && earnedBeforePurchase(facts)) {
       flashist_logEventAnalytics(
         flashistConstants.analyticEvents.CITIZENSHIP_EARNED_XP,
       );
@@ -170,6 +203,20 @@ export function reportEarnedCitizenshipTransition(
   } catch {
     // Storage unavailable — silently skip detection.
   }
+}
+
+/** True when citizenship was earned before any purchase (see the rule above). */
+function earnedBeforePurchase(facts: CitizenshipFacts): boolean {
+  if (!facts.isPaidCitizen) {
+    return true;
+  }
+  if (facts.earnedAt === null || facts.purchasedAt === null) {
+    return false;
+  }
+  const earnedMs = Date.parse(facts.earnedAt);
+  const purchasedMs = Date.parse(facts.purchasedAt);
+  // NaN compares false, so an unparseable date suppresses (under-count).
+  return purchasedMs > earnedMs;
 }
 
 /**

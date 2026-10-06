@@ -278,7 +278,7 @@ Any user-visible string added goes through `translateText` with `en.json` and `r
   game deploy, a live check, then a profile-box deploy.~~ The order is now **profile-box deploy #1
   (S2 + S3 + the fallback removal) → profile-box deploy #2 (S5 monitoring) → the game deploy → the live
   check.** On the weekend-slot cadence this may still be the longest calendar item in the epic.
-- **Related:** [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) —
+- **Related:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) —
   `vfy:false` tokens never unlock paid state.
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.

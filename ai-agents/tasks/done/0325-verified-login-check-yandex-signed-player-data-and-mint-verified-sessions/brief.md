@@ -50,7 +50,7 @@ precedent.** Question D3 of the `0250` design report (where does verified login 
 verbatim: **"New task, above 0250 (Recommended)"**. Option text, verbatim: *"Its own build task in Sprint 6,
 directly above 0250; 0250 waits on it. 0267 (the identity investigation) is closed or narrowed using this
 report."* The full set of rulings (D1–D5) is recorded in the
-[`0250` brief](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md), section *Owner rulings
+[`0250` brief](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md), section *Owner rulings
 (2026-09-27)*.
 
 **Source report — read it first:**
@@ -171,7 +171,7 @@ not close without that sign-off, or an owner ruling that it may.
 ### Out of scope — named so it is not absorbed
 
 - ⛔ **The equalized projection and the verified-only view of paid state** — that is
-  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slices S1 and S3b).
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slices S1 and S3b).
 - ⛔ **Gating the name-change routes on a verified caller** — that is
   [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md).
 - ⛔ **The game server trusting the id (ADR-103), and `0322`'s forged-id case.** The game server learns the id
@@ -213,7 +213,7 @@ not close without that sign-off, or an owner ruling that it may.
 
 - **Depends on: nothing on the boards.** Slice S0 needs the **owner** in the live Yandex iframe — a person,
   not a task. Soft ordering: the report ships `0250`'s slice S1 first; nothing here needs it.
-- **Blocks:** [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b only —
+- **Blocks:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b only —
   hard) and [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard).
 - **Second step on top of this, not filed:** the session token in the WebSocket join, which is what
   [`0322`](../../done/0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md)'s forged-id
@@ -244,9 +244,9 @@ not close without that sign-off, or an owner ruling that it may.
 **Source:** owner ruling **Q3**, 2026-09-27, live via `AskUserQuestion` in the `fkit lead` session, relayed by
 fkit-lead — verbatim: *"Accept as known risk (Recommended)"* — *"Record it next to the other accepted
 'watching' risk, in the verified-login design note."* Recorded verbatim in
-[`0250`'s `plan.md`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/plan.md), section *Owner rulings*.
+[`0250`'s `plan.md`](../../done/0250-authenticated-profile-read-for-paid-entitlement/plan.md), section *Owner rulings*.
 The residual list is that plan's **§8** (*Left for the owner*) and the
-[`0250` `worklog.md`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/worklog.md) (2026-09-27 build,
+[`0250` `worklog.md`](../../done/0250-authenticated-profile-read-for-paid-entitlement/worklog.md) (2026-09-27 build,
 *Left open*).
 
 **What the ADR must do.** Next to **L5** (the polling hole — accepted by owner ruling D4 on `0250`, which already

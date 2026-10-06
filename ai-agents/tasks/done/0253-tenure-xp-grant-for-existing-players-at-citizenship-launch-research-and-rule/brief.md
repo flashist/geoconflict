@@ -243,7 +243,7 @@ with `file:line` evidence, not opinion:
 4. **Identity binding.** The evidence is per-device; the grant is per `yandex_player_id`. Enumerate the
    claim routes: (a) client → game server (WS) → `ProfileApiClient` → box, reusing `0217`'s path;
    (b) client → profile server directly (the client already reads `GET /v1/profile`; check whether an
-   *authenticated write* route exists or whether [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
+   *authenticated write* route exists or whether [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
    is a prerequisite). For each: what identity the server can trust (`GameServer.getCreditableYandexId()`
    is the one trust funnel for credits).
 5. **Abuse surface.** Local storage is forgeable in seconds. Enumerate what a forger gains (cap × 1)
@@ -363,7 +363,7 @@ is deployed. Build and test locally against the profile server + Postgres like `
   [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) landing **and being
   deployed** — a go-live gate, not a build blocker. The build also sits on
   [`0017`](../../done/0017-citizenship-earned/brief.md) (the threshold path it feeds) and may need
-  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) if the client-direct claim
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) if the client-direct claim
   route is chosen (step 1.4) — if the ruling picks that route and `0250` is not done, set this brief's
   status to `🚧 Blocked — 0250` at that point rather than building around it. Declaring `0217` as a
   dependency here would show the research as blocked when it is not.

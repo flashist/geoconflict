@@ -6,6 +6,7 @@ import {
   createGuestProfile,
   migrateProfile,
 } from "../../../src/core/profile/PlayerProfile";
+import { NameChangeStateSchema } from "../../../src/core/profile/NameChangeContract";
 
 const EPOCH_ISO = new Date(0).toISOString();
 
@@ -178,13 +179,77 @@ describe("PlayerProfile contract", () => {
 });
 
 describe("PublicPlayerProfileSchema", () => {
-  test("strips the paid fields when parsing a full profile", () => {
-    const parsed = PublicPlayerProfileSchema.parse(validV1Profile());
+  // Task 0250 S3b: the paid keys are OPTIONAL — present only in the verified
+  // owner view, absent from the unverified (S1) view. The schema carries them
+  // when sent and never invents them.
+  test("carries the paid fields when sent (owner view) and never adds them (S1 view)", () => {
+    const paid = {
+      ...validV1Profile(),
+      is_citizen: true,
+      is_paid_citizen: true,
+      citizenship_purchased_at: "2026-06-13T11:00:00.000Z",
+    };
+    expect(PublicPlayerProfileSchema.parse(paid)).toEqual(paid);
 
-    // These are the fields toPublicProfile() intentionally withholds from the
-    // unauthenticated GET /v1/profile read.
+    const { is_paid_citizen, citizenship_purchased_at, ...s1View } =
+      validV1Profile();
+    void is_paid_citizen;
+    void citizenship_purchased_at;
+    const parsed = PublicPlayerProfileSchema.parse(s1View);
     expect(parsed).not.toHaveProperty("is_paid_citizen");
     expect(parsed).not.toHaveProperty("citizenship_purchased_at");
+  });
+
+  test.each([
+    ["is_paid_citizen as a string", { is_paid_citizen: "yes" }],
+    ["is_paid_citizen as null", { is_paid_citizen: null }],
+    ["a malformed purchase date", { citizenship_purchased_at: "yesterday" }],
+    ["a numeric purchase date", { citizenship_purchased_at: 1_700_000_000 }],
+  ])("rejects %s", (_label, override) => {
+    expect(
+      PublicPlayerProfileSchema.safeParse({ ...validV1Profile(), ...override })
+        .success,
+    ).toBe(false);
+  });
+
+  test("accepts a null purchase date (an owner view of a non-payer)", () => {
+    expect(
+      PublicPlayerProfileSchema.safeParse({
+        ...validV1Profile(),
+        is_paid_citizen: false,
+        citizenship_purchased_at: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  // Verification step 5: the profile server and the client deploy separately.
+  describe("cross-deploy (0250 S3b)", () => {
+    // A byte-for-byte copy of the S1-era schema, as a client built before S3b has it.
+    const S1EraPublicSchema = PlayerProfileSchema.omit({
+      is_paid_citizen: true,
+      citizenship_purchased_at: true,
+    }).extend({ name_change: NameChangeStateSchema.optional() });
+
+    test("an S1-era client parses a new owner body, the paid keys stripped", () => {
+      const owner = {
+        ...validV1Profile(),
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_purchased_at: "2026-06-13T11:00:00.000Z",
+      };
+      const parsed = S1EraPublicSchema.safeParse(owner);
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).not.toHaveProperty("is_paid_citizen");
+      expect(parsed.data).not.toHaveProperty("citizenship_purchased_at");
+    });
+
+    test("a new client parses an S1 (or older-server) body unchanged", () => {
+      const { is_paid_citizen, citizenship_purchased_at, ...s1Body } =
+        validV1Profile();
+      void is_paid_citizen;
+      void citizenship_purchased_at;
+      expect(PublicPlayerProfileSchema.parse(s1Body)).toEqual(s1Body);
+    });
   });
 
   // Task 0270 (ADR-113 hard rule): the internal id never reaches a client, and the
@@ -208,13 +273,20 @@ describe("PublicPlayerProfileSchema", () => {
   });
 
   test("preserves exactly the public fields the card renders from", () => {
-    const parsed = PublicPlayerProfileSchema.parse(validV1Profile());
+    const parsed = PublicPlayerProfileSchema.parse({
+      ...validV1Profile(),
+      unknown_extra: "dropped",
+    });
 
+    // A full stored record IS the owner view (task 0250 S3b): every key kept,
+    // unknown keys stripped.
     expect(parsed).toEqual({
       schema_version: 1,
       xp: 250,
       is_citizen: false,
+      is_paid_citizen: false,
       citizenship_earned_at: null,
+      citizenship_purchased_at: null,
       display_name: "Commander",
       created_at: "2026-06-13T10:00:00.000Z",
       updated_at: "2026-06-13T12:00:00.000Z",

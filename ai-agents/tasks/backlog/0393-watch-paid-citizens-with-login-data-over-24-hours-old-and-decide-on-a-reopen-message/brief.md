@@ -72,7 +72,7 @@ Nothing up front — three steps, in order.
 - **Related:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (the decision),
   [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (the overall stale share;
   its bracket split shows the >24 h residue for all players), [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (S3b: verified-only paid view),
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (S3b: verified-only paid view),
   [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md) (the 24 h window and its accepted residuals).
 - **When to pull it into a sprint:** once `0391` has shipped and there is about a week of data — needing a rank is the
   signal to schedule it.

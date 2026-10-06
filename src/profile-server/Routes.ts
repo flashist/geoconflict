@@ -85,10 +85,10 @@ import type {
   XpGrantKind,
 } from "./PlayerProfileRepository";
 import {
-  equalizedXp,
   hiddenInboxMessageIds,
-  toPublicInboxMessages,
-  toPublicProfile,
+  inboxMessagesForCaller,
+  profileForCaller,
+  xpForCaller,
 } from "./PublicProjection";
 import {
   isUsableSessionSecret,
@@ -313,10 +313,10 @@ export interface NameChangeRepo {
  * mints `vfy:true` for a fresh, genuine Yandex signature of the asserted id, and
  * this carries it. Paid state (0250) must never trust `ok` without it.
  *
- * NO route reads `verified` yet: 0250 S3b adds the owner view and 0319 gates name
- * change. Until then every caller gets the EQUALIZED view (PublicProjection.ts, task
- * 0250 S1) on every route that returns profile data, xp or inbox messages — a paid
- * and an earned citizen look the same.
+ * Since 0250 S3b the profile, login, inbox and tenure routes read `verified`: a
+ * verified caller gets its OWN true view (paid facts included), every other caller
+ * the EQUALIZED view (PublicProjection.ts, task 0250 S1) — a paid and an earned
+ * citizen look the same. Name change does not read it yet (0319), nor do payments.
  */
 export type SessionCaller = {
   status: "ok";
@@ -617,9 +617,8 @@ export function createApp(
 
   // Client-facing profile read. Rate-limited per-IP: since task 0273 the caller must
   // hold a session token, so there is no id to enumerate here any more, but the cap
-  // still bounds abuse of the read itself. Since task 0340 (0325 S3a) a token may be
-  // `vfy:true`, but this route does not read `verified` yet (0250 S3b adds the owner
-  // view), so every caller still gets the same, equalized view.
+  // still bounds abuse of the read itself. A `vfy:true` caller (task 0340) gets its
+  // own owner view, every other caller the equalized S1 view (0250 S3b).
   const profileReadLimiter = rateLimit({
     windowMs: 60_000,
     max: 60,
@@ -671,11 +670,17 @@ export function createApp(
         res.status(404).json({ error: "not_found" });
         return;
       }
-      res
-        .status(200)
-        .json(
-          toPublicProfile(profile, await readNameChangeState(caller.playerId)),
-        );
+      // The view is chosen by the caller's own token alone (0250 S3b): its own
+      // true values and paid facts when verified, the equalized S1 view otherwise.
+      const body = profileForCaller(
+        profile,
+        await readNameChangeState(caller.playerId),
+        caller.verified,
+      );
+      // May carry purchase facts: no cache may keep it. Set for EVERY caller — it
+      // depends only on the route, so it is no paid signal.
+      res.set("Cache-Control", "no-store");
+      res.status(200).json(body);
     } catch (error) {
       log.error(`GET /v1/profile failed: ${formatError(error)}`);
       res.status(500).json({ error: "internal_error" });
@@ -705,8 +710,9 @@ export function createApp(
   // An optional `signature` (Yandex's signed player data) is checked and its outcome
   // COUNTED (`geoconflict.profile.login.verification`). Outcome `ok` mints a
   // `vfy:true` session; every other outcome, or a check that throws, mints
-  // `vfy:false` — NEVER a refused login. The resolve, the status and the response
-  // body are exactly as without a signature; only the token's `vfy` claim differs.
+  // `vfy:false` — NEVER a refused login. The resolve and the status are exactly as
+  // without a signature; the token's `vfy` claim differs, and so does `profile`
+  // (0250 S3b): the owner view for exactly the session minted `vfy:true`.
   // ⛔ Never log the signature, never persist it, never pass it to the repository.
   // `verified` is a YANDEX-only proof: a second platform must not reuse this check
   // (ADR-116 re-raise: a second login method).
@@ -799,11 +805,14 @@ export function createApp(
         (await repo.hasXpGrant(resolved.playerId, "tenure"));
       const body: LoginResponse = {
         created: resolved.created,
-        profile: toPublicProfile(
+        // The SAME `verified` that is signed into the session below, so the
+        // view and the token always agree (0250 S3b).
+        profile: profileForCaller(
           resolved.profile,
           resolved.created
             ? undefined
             : await readNameChangeState(resolved.playerId),
+          verified,
         ),
         grantChecks: { tenure: tenureDone ? "done" : "pending" },
         session: signSessionToken(sessionSecret, {
@@ -1173,11 +1182,13 @@ export function createApp(
           res.status(403).json({ error: "not_citizen" });
           return;
         }
-        // Equalized at the route (task 0250 S1), never in InboxRepository, so
-        // the repository keeps returning the true stored keys for S3b's owner view.
-        res
-          .status(200)
-          .json({ messages: toPublicInboxMessages(outcome.messages) });
+        // Projected at the route, never in InboxRepository: the true stored keys
+        // for a verified caller (0250 S3b), the equalized S1 list for any other.
+        // May name a purchase: no cache may keep it (every caller — no signal).
+        res.set("Cache-Control", "no-store");
+        res.status(200).json({
+          messages: inboxMessagesForCaller(outcome.messages, caller.verified),
+        });
       } catch (error) {
         log.error(`GET /v1/messages failed: ${formatError(error)}`);
         res.status(500).json({ error: "internal_error" });
@@ -1195,6 +1206,10 @@ export function createApp(
     // hidden-ids call is made even when there are none, so the number of queries
     // does not depend on paid state either. Mark-all covers the messages listed
     // here, so one that arrives mid-request is left for the next open to show.
+    //
+    // A VERIFIED caller (0250 S3b) sees every one of its own messages, so nothing
+    // is hidden from it: `updated` counts all of its own unread rows. The query
+    // pattern is the same for both views.
     app.patch("/v1/messages/read", async (req, res) => {
       const parsed = MarkReadRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1211,11 +1226,13 @@ export function createApp(
           res.status(403).json({ error: "not_citizen" });
           return;
         }
-        const hiddenIds = hiddenInboxMessageIds(listed.messages);
+        const hiddenIds = caller.verified
+          ? new Set<number>()
+          : hiddenInboxMessageIds(listed.messages);
         let visibleIds: number[];
         if (parsed.data.ids === undefined) {
           await inbox.markRead(caller.playerId, [...hiddenIds]);
-          visibleIds = toPublicInboxMessages(listed.messages)
+          visibleIds = inboxMessagesForCaller(listed.messages, caller.verified)
             .filter((message) => message.readAt === null)
             .map((message) => message.id);
         } else {
@@ -1572,9 +1589,9 @@ export function createApp(
   // and by the one-row-per-player primary key, not by request rate.
   //
   // CALLER: the Bearer session alone (resolveCaller) — the body carries no id.
-  // ⚠️ Accepted risk (ADR-112 amended; closes with 0268): this route does not read
-  // `verified` (a token may be `vfy:true` since task 0340), so anyone who can mint a
-  // `vfy:false` token for a player can still claim for them.
+  // ⚠️ Accepted risk (ADR-112 amended; closes with 0268): the CLAIM is not gated on
+  // `verified`, so anyone who can mint a `vfy:false` token for a player can still
+  // claim for them. `verified` only picks which `xp` the response shows (0250 S3b).
   //
   // AMOUNT: computed HERE from the evidence by the shared rule. zod strips any
   // amount a client sends. Every checked claim writes a row, 0 XP included.
@@ -1635,10 +1652,11 @@ export function createApp(
           // movement that tells them apart — and it keeps the thank-you popup
           // and `Citizenship:TenureGrant:Claimed` working for every citizen.
           xpAwarded: outcome.xpAwarded,
-          // Equalized (task 0250 S1, owner ruling Q-A): EVERY citizen — paid,
-          // earned, or one this very claim just made a citizen — is shown
-          // exactly the threshold. A non-citizen sees their true total.
-          xp: equalizedXp(outcome.xp, outcome.isCitizen),
+          // Equalized for an UNVERIFIED caller (task 0250 S1, owner ruling Q-A):
+          // EVERY citizen — paid, earned, or one this very claim just made a
+          // citizen — is shown exactly the threshold. A non-citizen sees their
+          // true total, and so does a verified caller (its own, 0250 S3b).
+          xp: xpForCaller(outcome.xp, outcome.isCitizen, caller.verified),
         };
         res.status(200).json(body);
       } catch (error) {

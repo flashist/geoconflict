@@ -41,7 +41,7 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
 - **No ad suppression exists for any tier today.** `showInterstitial()` (`FlashistFacade.ts:1289-1334`)
   and its six call sites have no tier check. Suppression for paid citizens is
   [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md), which is blocked on
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md). ⇒ Until `0248` ships,
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md). ⇒ Until `0248` ships,
   `Ad:Interstitial:PaidCitizen` is **not** the "should never fire" bug guard that `0020`'s brief
   described. Any paid citizen would fire it.
 - **The tier is not available synchronously at ad time**, except guest vs logged-in:
@@ -93,7 +93,7 @@ whether a ~~99-ruble~~ 249 Yan (owner changed it in the Yandex console, 2026-09-
 
 ## Notes
 
-- **Depends on:** [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (the paid tier, through an authenticated read, with the paid-state leak fixed) and [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (the Bearer client session, which must be deployed to production). The earned tier also needs a synchronous tier cache fed by a profile read outside the citizenship card; this task builds that cache itself (What to build 1).
+- **Depends on:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (the paid tier, through an authenticated read, with the paid-state leak fixed) and [`0273`](../../done/0273-profile-identity-s4-client-login-session-and-bearer-token/brief.md) (the Bearer client session, which must be deployed to production). The earned tier also needs a synchronous tier cache fed by a profile read outside the citizenship card; this task builds that cache itself (What to build 1).
 - **Blocks:** nothing
 - **Split from:** [`0020`](../../done/0020-analytics-p1-ad-impression-tier/brief.md), 2026-09-24 (owner: *"New
   task, close 0020"*). `0020` closes on the tier-free `Ad:Interstitial` baseline alone.

@@ -148,6 +148,35 @@ interface PublicRoute {
   /** The repository call that proves the route acted for PLAYER_ID. */
   acted: (m: Mocks) => jest.Mock;
   actedWith: unknown[];
+  /**
+   * Task 0250 S3b: set on the routes that answer a `vfy:true` caller with its OWN
+   * true view. Absent ⇒ the route must answer `vfy:true` exactly like `vfy:false`
+   * (name change — 0319's job — and payments).
+   */
+  ownerView?: {
+    /** Rig the mocks so the two views differ (a no-op when they cannot). */
+    rig: (m: Mocks) => void;
+    verifiedBody: unknown;
+    unverifiedBody: unknown;
+  };
+}
+
+/** A paid-citizen inbox message, as the repository stores it. */
+const PAID_MESSAGE = {
+  id: 7,
+  templateKey: "citizenship_paid",
+  templateParams: {},
+  title: null,
+  body: null,
+  sentAt: "2026-09-02T00:00:00.000Z",
+  readAt: null,
+};
+
+function rigPaidMessage(m: Mocks): void {
+  (m.inbox.listMessages as jest.Mock).mockResolvedValue({
+    status: "ok",
+    messages: [PAID_MESSAGE],
+  });
 }
 
 const ROUTES: PublicRoute[] = [
@@ -162,6 +191,21 @@ const ROUTES: PublicRoute[] = [
     },
     acted: (m) => m.repo.getProfile as jest.Mock,
     actedWith: [PLAYER_ID],
+    ownerView: {
+      rig: () => {},
+      // The stored record verbatim, both paid keys present.
+      verifiedBody: PROFILE,
+      // The equalized S1 view: citizen xp is the threshold, no paid keys.
+      unverifiedBody: {
+        schema_version: 1,
+        xp: 100,
+        is_citizen: true,
+        citizenship_earned_at: null,
+        display_name: null,
+        created_at: PROFILE.created_at,
+        updated_at: PROFILE.created_at,
+      },
+    },
   },
   {
     name: "GET /v1/messages",
@@ -176,6 +220,13 @@ const ROUTES: PublicRoute[] = [
     },
     acted: (m) => m.inbox.listMessages as jest.Mock,
     actedWith: [PLAYER_ID],
+    ownerView: {
+      rig: rigPaidMessage,
+      verifiedBody: { messages: [PAID_MESSAGE] },
+      unverifiedBody: {
+        messages: [{ ...PAID_MESSAGE, templateKey: "citizenship_granted" }],
+      },
+    },
   },
   {
     name: "PATCH /v1/messages/read",
@@ -193,6 +244,13 @@ const ROUTES: PublicRoute[] = [
     // Task 0250 S1 (review R2): mark-all marks the LISTED visible unread
     // messages by id — none here.
     actedWith: [PLAYER_ID, []],
+    // One stored message hides nothing in either view, so both mark the same
+    // rows; the views' differences are pinned in InboxRoutes.test.ts.
+    ownerView: {
+      rig: rigPaidMessage,
+      verifiedBody: { updated: 0 },
+      unverifiedBody: { updated: 0 },
+    },
   },
   {
     name: "POST /v1/profile/name-change-request",
@@ -298,25 +356,47 @@ describe.each(ROUTES)("resolveCaller — $name", (route) => {
     expect(m.repo.resolveOrCreatePlayer).not.toHaveBeenCalled();
   });
 
-  // Task 0340 (0325 S3a): the login now mints `vfy:true`, but NO route reads
-  // `verified` yet (0250 S3b / 0319) — a verified token must be answered exactly
-  // like an unverified one. Turns red the day a route starts branching on it
-  // without updating this guard.
-  test("a vfy:true token → the same status, body and repository calls as vfy:false", async () => {
-    const unverified = mocks();
-    const verified = mocks();
-    const unverifiedRes = await send(appWith(unverified), route, {
-      authorization: `Bearer ${tokenFor(SECRET, Date.now(), false)}`,
+  // Task 0340 (0325 S3a) minted `vfy:true`; task 0250 S3b made the profile and
+  // inbox routes read it. Every OTHER public route must still answer a verified
+  // token exactly like an unverified one — this turns red the day one starts
+  // branching on it (0319: name change) without updating this guard.
+  if (route.ownerView === undefined) {
+    test("a vfy:true token → the same status, body and repository calls as vfy:false", async () => {
+      const unverified = mocks();
+      const verified = mocks();
+      const unverifiedRes = await send(appWith(unverified), route, {
+        authorization: `Bearer ${tokenFor(SECRET, Date.now(), false)}`,
+      });
+      const verifiedRes = await send(appWith(verified), route, {
+        authorization: `Bearer ${tokenFor(SECRET, Date.now(), true)}`,
+      });
+      expect(verifiedRes.status).toBe(route.okStatus);
+      expect(verifiedRes.status).toBe(unverifiedRes.status);
+      expect(verifiedRes.body).toEqual(unverifiedRes.body);
+      expect(route.acted(verified)).toHaveBeenCalledWith(...route.actedWith);
+      expect(allCalls(verified)).toEqual(allCalls(unverified));
     });
-    const verifiedRes = await send(appWith(verified), route, {
-      authorization: `Bearer ${tokenFor(SECRET, Date.now(), true)}`,
+  } else {
+    const ownerView = route.ownerView;
+    test("a vfy:true token → its owner view, vfy:false → the S1 view; same status and repository calls (0250 S3b)", async () => {
+      const unverified = mocks();
+      const verified = mocks();
+      ownerView.rig(unverified);
+      ownerView.rig(verified);
+      const unverifiedRes = await send(appWith(unverified), route, {
+        authorization: `Bearer ${tokenFor(SECRET, Date.now(), false)}`,
+      });
+      const verifiedRes = await send(appWith(verified), route, {
+        authorization: `Bearer ${tokenFor(SECRET, Date.now(), true)}`,
+      });
+      expect(verifiedRes.status).toBe(route.okStatus);
+      expect(unverifiedRes.status).toBe(route.okStatus);
+      expect(verifiedRes.body).toEqual(ownerView.verifiedBody);
+      expect(unverifiedRes.body).toEqual(ownerView.unverifiedBody);
+      // The branch is an in-memory choice: the same database work either way.
+      expect(allCalls(verified)).toEqual(allCalls(unverified));
     });
-    expect(verifiedRes.status).toBe(route.okStatus);
-    expect(verifiedRes.status).toBe(unverifiedRes.status);
-    expect(verifiedRes.body).toEqual(unverifiedRes.body);
-    expect(route.acted(verified)).toHaveBeenCalledWith(...route.actedWith);
-    expect(allCalls(verified)).toEqual(allCalls(unverified));
-  });
+  }
 
   test.each<[string, () => string]>([
     ["a tampered token", () => `Bearer ${flipMiddleMacChar(tokenFor())}`],

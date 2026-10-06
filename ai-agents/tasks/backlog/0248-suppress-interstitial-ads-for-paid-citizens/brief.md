@@ -20,7 +20,7 @@
 ## Sprint
 Sprint 7
 
-📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still hard-blocked on [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b), which moved to Sprint 7 by the same ruling. The bare-token warning below still applies — the token is now `Sprint 7`.
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still hard-blocked on [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (its slice S3b), which moved to Sprint 7 by the same ruling. The bare-token warning below still applies — the token is now `Sprint 7`.
 
 *(Earlier value, kept as history — true from 2026-09-26 until 2026-09-29:)* ~~Sprint 6~~
 
@@ -38,7 +38,7 @@ citizenship popup, because it will add something else we could tell about in the
   [Backlog board](../../../sprints/backlog.md) row reads `➡️ Moved`. Full record: the *RE-RANK
   2026-09-26* addendum on the Sprint 6 board.
 - ⛔ **What the ruling did NOT change:** the paid-only gate (`is_paid_citizen`, ruled 2026-09-12), the
-  hard prerequisite [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) (still on
+  hard prerequisite [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (still on
   the Backlog board — whether it joins Sprint 6 is an **open owner question**) 📌 *answered later the same
 day: `0250` is now in Sprint 6, directly above this task*, and Step 1's decision gate
   (revenue framing; all six placements or a subset). **A rank is not readiness: this task still cannot
@@ -60,7 +60,7 @@ rank is the **producer's**.
 📌 **Shifted 5 → 10 later on 2026-09-26** by a third OWNER RULING (R2/R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): five appended name-change rows were placed above it. Still directly below `0250` and above `0301`. ⛔ Not a merit re-rank of this task. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~5~~ —
 
 📌 **Shifted 4 → 5 later on 2026-09-26** by a second OWNER RULING (relayed the same way): the owner moved
-[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 **directly above
+[`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 **directly above
 this task** (*"Yes, above 0248 (Recommended)"*). Position relative to `0301` unchanged. *Earlier value,
 kept:* ~~4~~ —
 
@@ -134,7 +134,7 @@ input to a decision, not a recommendation**:
 1. **Land Yandex-signature auth on the profile read** and return paid state to the verified owner — the
    path the `TODO` anticipates. Largest scope; also unblocks the other planned perks.
    ~~**No task exists for it on any board.**~~ 📌 **CORRECTED 2026-09-12 — a task exists now:**
-   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md), filed on an owner ruling
+   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md), filed on an owner ruling
    given live in session.
 2. **Return a narrow, non-identifying entitlement** (e.g. an `ad_free: boolean` on the authenticated
    caller's own response only) rather than un-redacting `is_paid_citizen` wholesale.
@@ -146,7 +146,7 @@ input to a decision, not a recommendation**:
 radius. Do not pick one inside an implementation plan.**
 
 📌 **UPDATED 2026-09-12 — THE SEAM CHOICE HAS MOVED OUT OF THIS BRIEF.** It is now
-[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)'s phase 1, by owner ruling.
+[`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)'s phase 1, by owner ruling.
 ~~*"step 1 exists precisely so the owner and the architect settle it in the open"*~~ — step 1 of this
 brief **no longer carries the seam question**; it carries only the **revenue framing** (see *What to
 build*). ⛔ **The three candidates above are kept here as context, not as this task's decision to take.
@@ -176,7 +176,7 @@ The owner was shown **both options with the tradeoff stated** and ruled **`is_pa
 | **`is_paid_citizen`** (paid only) | Matches [`PROJECT.md:36`](../../../knowledge-base/PROJECT.md); preserves ad revenue from XP-earned citizens; keeps ad-free a real reason to **pay**. ⚠️ **Costs the auth work** — the paid flag reaches no client today. | ✅ **CHOSEN** |
 | `is_citizen` (earned **or** paid) | **Much cheaper** — `isCitizen` already reaches the client, so the blocker largely evaporates. ⚠️ Hands the **strongest paid benefit** to everyone who grinds the 1,000-XP threshold. | ⛔ Rejected |
 
-🔴 **This is what makes [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) a
+🔴 **This is what makes [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) a
 HARD PREREQUISITE rather than a nice-to-have.** The cheap option was the one that would have let this
 task proceed without any auth work; the owner declined it with that cost in view. ⛔ **An implementer
 must not re-open this to make the task cheaper — the cost was ruled on, not overlooked.**
@@ -279,7 +279,7 @@ store-copy condition.
   on the profile read), that becomes a **new task** and this brief becomes blocked on it. **File it; do
   not absorb it.**"*~~
 
-  ⇒ **[`0250-authenticated-profile-read-for-paid-entitlement`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)
+  ⇒ **[`0250-authenticated-profile-read-for-paid-entitlement`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
   — a HARD PREREQUISITE.** 🔴 **This task cannot be built until `0250` ships.** The owner ruled
   2026-09-12, live in session, that the profile-read work be **filed now as its own task** rather than
   left as a recorded gap here — on the reasoning that both this brief and
@@ -350,9 +350,28 @@ store-copy condition.
    it is a reason to pay."*~~ The owner was shown both options with the tradeoff stated and ruled
    **paid-only**, in agreement with the producer's recommendation. **Full record in *The gate is
    `is_paid_citizen`, not `is_citizen`* above.** ⇒ Makes
-   [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) a hard prerequisite.
+   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) a hard prerequisite.
 2. **All six interstitial placements, or a subset?** Suppressing some placements delivers most of the
    felt benefit at a fraction of the revenue cost.
    **Producer's recommendation: decide this against step 1's numbers, not now.**
 3. **Is the ad-revenue data in question 2 available at all?** If not, measuring it is its own small task
    and should be filed before this one is planned.
+
+## 📌 2026-10-06 — deploy only after `0396` confirms the owner view live (appended; nothing above edited, ADR-035)
+
+**Provenance.** Added by a spawned `fkit-producer` with no owner channel (ADR-021/037), at `fkit-lead`'s instruction
+(driving `/fkit-sprint-ship-loop`) during `0250`'s close. ⛔ Not producer precedent. It applies the owner's precedent
+ruling for the identical `0395` case — 2026-10-05, live via `AskUserQuestion` in the `fkit lead` session, verbatim
+*"Note only (Recommended)"*.
+
+- **Deploy this task only after
+  [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) confirms
+  the owner view live** in production — a verified paid account's `GET /v1/profile` shows `is_paid_citizen: true`.
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) closed 2026-10-06
+  `(agent-closed — not owner-verified)` once built and reviewed; its slice S3b (the verified owner view this task reads
+  through `isPaidCitizen`) is **not committed and not deployed**. Until `0396` passes, no live client learns that its
+  player has paid, so ad-free would reach no one.
+- **This is a note, not a dependency.** The `Depends on` line is unchanged (`0250` covers the **build**); no link to
+  `0396` was added. With `0250` closed, the board will stop showing this task as waiting — that is about building, not
+  deploying.
+- No status, sprint or rank changed by this note. No mover run.

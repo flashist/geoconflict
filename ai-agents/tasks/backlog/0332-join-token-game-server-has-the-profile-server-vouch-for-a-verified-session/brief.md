@@ -179,7 +179,7 @@ Built from the design. In outline only — the design decides the shape:
   [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) ·
   ADR-113 (internal player id; session notes) · [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md)
   (the game-server path is its open scope) · [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) ·
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md).
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md).
 - **Effort:** not estimated — phase 1 decides it.
 - **Privacy/secrets:** no player ids, names, tokens, hosts or IPs in the report, tests, worklog or brief.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

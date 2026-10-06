@@ -154,7 +154,7 @@ step-0 table in hand:
   button must update too), [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md),
   [`0248`](../../backlog/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free, not built),
   [`0018`](../../done/0018-citizenship-paid/brief.md) (paid purchase flow),
-  [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (paid-state read),
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (paid-state read),
   [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) (archive), `0068` (badge; residual
   "no icon until next join"), `0236` (kill switch), `0019` (reconciliation).
 - **Why one brief, not two:** the inventory alone ships nothing a player sees, and the build's shape

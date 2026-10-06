@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 7
 
-📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
+📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. Still depends on [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and, through it, [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) — both moved to Sprint 7 by the same ruling. Where this brief says `0250` or `0248` is *"in Sprint 6"*, that was true until 2026-09-29.
 
 *(Earlier value, kept as history — true until 2026-09-29:)* ~~Sprint 6~~
 
@@ -18,7 +18,7 @@ Sprint 7
 📌 **Shifted 6 → 11 later on 2026-09-26** by a third OWNER RULING (R2/R3, live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): five appended name-change rows were placed above it. Order relative to `0302`, `0248` and `0303` unchanged. ⛔ Not a merit re-rank of this task. See the *RE-RANK 2026-09-26, THIRD* addendum on the Sprint 6 board. *Earlier value, kept:* ~~6~~ —
 
 📌 **Shifted 5 → 6 later on 2026-09-26** by a second OWNER RULING (relayed the same way): the owner moved
-[`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 directly above
+[`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) into Sprint 6 directly above
 `0248`. Order relative to `0302`, `0248` and `0303` unchanged. *Earlier value, kept:* ~~5~~ —
 
 **Board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), OWNER-RULED 2026-09-26** — see *Owner
@@ -54,7 +54,7 @@ precedent. Full record: the *RE-RANK 2026-09-26* addendum on the [Sprint 6 board
 - ⇒ **Open question 1 below is answered:** the owner chose to pull real perks forward **before** the
   explainer, not to ship the explainer with the thin list first.
 - 🚨 **Consequence to know:** `0248` is hard-blocked on
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md), which is **not** in Sprint 6.
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md), which is **not** in Sprint 6.
   Until the owner decides whether `0250` joins the sprint, this popup waits on an unscheduled task.
   ✅ *Answered later the same day:* `0250` is now in Sprint 6 (rank 4), directly above `0248`. This popup
   still waits on it, through `0248`.
@@ -232,7 +232,7 @@ never an inline string. At minimum:
 - **Depends on:** [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) and
   [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) — OWNER RULINGS 2026-09-26 (see
   *Owner rulings* above): the popup describes their perks. ⚠️ Through `0248`, this also waits on
-  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md). *Struck, not deleted — true
+  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md). *Struck, not deleted — true
   until 2026-09-26:* ~~nothing — can start now.~~ (Step 0's owner copy approval is still a gate *inside*
   the task.)
 - 🚢 **Release coupling (owner ruling 2026-09-26):** ships in the **same deploy** as `0302` — see *Owner
@@ -244,7 +244,7 @@ never an inline string. At minimum:
   is a simple "citizens only" popup with no buy button; this task deletes it.
 - **Related, linked not merged:** [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
   (ad-free) and [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) (emoji set) — when either ships,
-  add its line to the explainer in that task, not here. [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md)
+  add its line to the explainer in that task, not here. [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
   (the client cannot tell *paid* from *earned*) — only matters if a paid-only benefit is ever listed.
   [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (match archive). Sprint 6's un-briefed perk
   rows — Nickname Styling, Map Voting, Replay Access, Custom Flags — each should add its explainer line

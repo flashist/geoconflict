@@ -570,7 +570,7 @@ down (`0019` decision).
       from this moment, before any real purchase has been proven.
       📌 **2026-09-24 — THE TENURE GRANT MUST BE LIVE BEFORE THIS FLIP** ([`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), closed 2026-09-24). Deploy fact (owner ruling at `0253` plan approval, 2026-09-24, Q2 — live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent): **the claim route goes onto the profile box with the next profile-box deploy, before this flip. No special hold.** Go-live prerequisites for the tenure path, in order: **(1)** the claim route is on the profile box; **(2)** the client carrying `0253`'s code is deployed; **(3)** then this flip. **It does not depend on `0217`.** ⚠️ The owner-accepted claim-on-behalf risk (ADR-112 as amended) starts **when the route reaches the box**, not at this flip. [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) closes it.
       📌 **2026-09-24, later — SCHEDULED: the route rides Saturday 2026-09-26's profile deploy (runbook W3), if the window runs** (owner ruling 2026-09-24, *"Yes, ship it Saturday"*, live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent). The claim-on-behalf risk opens at W3. W12 carries `0253`'s client code, inert while the flag is `false`.
-      🔓 **2026-09-24, for visibility, NOT a gate on this flip:** paid state is **derivable** from the public profile (`is_citizen && citizenship_earned_at === null` ⇒ paid), readable by anyone who asserts another player's id. Owner ruled it a **must-fix in [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (see its 🚨 MUST-FIX block). Until then, paid state is **not** private. No recorded ruling makes this block the flip.
+      🔓 **2026-09-24, for visibility, NOT a gate on this flip:** paid state is **derivable** from the public profile (`is_citizen && citizenship_earned_at === null` ⇒ paid), readable by anyone who asserts another player's id. Owner ruled it a **must-fix in [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (see its 🚨 MUST-FIX block). Until then, paid state is **not** private. No recorded ruling makes this block the flip.
 
 ## Verification
 
@@ -652,7 +652,7 @@ PRODUCTION* block under `## Status`). ⛔ Not closed here — the close is route
     **[`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md)** (`:244`, `:249`, plus its
     plan/worklog/review) — both already hedge the 503 claim as *never verified against a running box*,
     so they are the mildest cases.
-  - **[`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (`:157`) — describes
+  - **[`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)** (`:157`) — describes
     the 503 as the behaviour when the variable is **unset**, which is a true statement about the code
     and is **not** stale. Listed only so a reader does not "fix" it.
   - **Closed (`done/`) folders and the `✅ Done` `0195` row** — unchanged reasoning: finished outputs and

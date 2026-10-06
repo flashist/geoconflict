@@ -81,7 +81,7 @@ moderation step for to be the name other players see.
 - **Related:** [`0067`](../../done/0067-name-change-citizens-only/brief.md) (ruling (b)) ·
   [`0068`](../../done/0068-citizen-verified-icon/brief.md) (citizen flag in matches — the precedent and the
   review note) · [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md) (verified identity)
-  · [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (authenticated profile read) ·
+  · [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (authenticated profile read) ·
   [`0316`](../0316-approve-inbox-message-must-not-promise-the-new-name-is-active-everywhere/brief.md) (wording
   updated again if this ships) · [`0311`](../0311-remove-the-game-name-from-player-facing-texts/brief.md).
 - **Privacy/secrets:** no player ids, names or tokens in the report.

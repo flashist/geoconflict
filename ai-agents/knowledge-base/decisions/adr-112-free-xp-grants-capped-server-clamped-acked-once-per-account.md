@@ -210,5 +210,5 @@ ledger"* are **closeout of this ADR, not new defects.**
 - [ADR-101](adr-101-fail-soft-xp-crediting-no-durable-queue.md),
   [ADR-103](adr-103-identity-trust-seam-client-asserted-yandex-id.md),
   [ADR-111](adr-111-xp-economy-rescale-awards-move-up-never-down.md)
-- `ai-agents/tasks/backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md` — signed identity
+- `ai-agents/tasks/done/0250-authenticated-profile-read-for-paid-entitlement/brief.md` — signed identity
 - `ai-agents/knowledge-base/analytics-event-reference.md` — where the grant events must be added

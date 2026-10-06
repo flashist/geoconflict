@@ -64,6 +64,18 @@ function publicProfile(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/**
+ * The verified OWNER view (task 0250 S3b): true values, both paid keys always
+ * present. The server sends these keys in no other view.
+ */
+function ownerProfile(overrides: Record<string, unknown> = {}) {
+  return publicProfile({
+    is_paid_citizen: false,
+    citizenship_purchased_at: null,
+    ...overrides,
+  });
+}
+
 /** Install a global fetch stub that resolves to the given status + body. */
 function stubFetch(status: number, body: unknown): jest.Mock {
   const fetchMock = jest.fn().mockResolvedValue({
@@ -85,6 +97,8 @@ const ZERO_STATE = {
   nameChange: null,
   // ...nor about an approved name (0321): null never means "none" here.
   approvedName: null,
+  // Fail-closed for entitlement (0250 S3b, ADR-116 Decision 4).
+  isPaidCitizen: false,
 };
 
 describe("loadPlayerProfileView", () => {
@@ -130,6 +144,7 @@ describe("loadPlayerProfileView", () => {
       isAuthoritative: true,
       nameChange: null,
       approvedName: "Генерал",
+      isPaidCitizen: false,
     });
     // The Yandex id is gone from the URL; the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
@@ -154,6 +169,7 @@ describe("loadPlayerProfileView", () => {
       // The card falls back to the Yandex name; the approved name does not
       // (task 0321), so the name box never locks to a platform name.
       approvedName: null,
+      isPaidCitizen: false,
     });
   });
 
@@ -293,6 +309,77 @@ describe("loadPlayerProfileView", () => {
       isAuthoritative: false,
       nameChange: null,
       approvedName: null,
+      isPaidCitizen: false,
+    });
+  });
+
+  // Task 0250 S3b — `isPaidCitizen` is true ONLY for a verified owner view that
+  // says paid. Fail-closed everywhere else (ADR-116 Decision 4).
+  describe("isPaidCitizen", () => {
+    it("is true for an owner view with is_paid_citizen: true", async () => {
+      stubFetch(
+        200,
+        ownerProfile({
+          xp: 30,
+          is_citizen: true,
+          is_paid_citizen: true,
+          citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        }),
+      );
+      await expect(loadPlayerProfileView()).resolves.toEqual({
+        displayName: "Commander",
+        // The owner view's TRUE xp, not the equalized 100.
+        xp: 30,
+        isCitizen: true,
+        isAuthoritative: true,
+        nameChange: null,
+        approvedName: "Commander",
+        isPaidCitizen: true,
+      });
+    });
+
+    it("is false for an owner view of a non-payer", async () => {
+      stubFetch(200, ownerProfile({ xp: 1200, is_citizen: true }));
+      const view = await loadPlayerProfileView();
+      expect(view!.isPaidCitizen).toBe(false);
+      expect(view!.isAuthoritative).toBe(true);
+    });
+
+    it("is false for an unverified (S1) view of a citizen, which carries no paid keys", async () => {
+      stubFetch(200, publicProfile({ xp: 100, is_citizen: true }));
+      const view = await loadPlayerProfileView();
+      expect(view!.isPaidCitizen).toBe(false);
+      expect(view!.isCitizen).toBe(true);
+    });
+
+    it("is false for a body from an older server, even if it somehow names a purchase date only", async () => {
+      // No `is_paid_citizen` key ⇒ not an owner view, whatever else is there.
+      stubFetch(
+        200,
+        publicProfile({
+          is_citizen: true,
+          citizenship_purchased_at: "2026-06-24T11:00:00.000Z",
+        }),
+      );
+      const view = await loadPlayerProfileView();
+      expect(view!.isPaidCitizen).toBe(false);
+    });
+
+    it("degrades to the zero-state (false) when a paid key has the wrong type", async () => {
+      stubFetch(200, ownerProfile({ is_paid_citizen: "yes" }));
+      await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
+      stubFetch(200, ownerProfile({ citizenship_purchased_at: "not-a-date" }));
+      await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
+    });
+
+    it("is false on every zero-state path", async () => {
+      stubFetch(404, { error: "not_found" });
+      expect((await loadPlayerProfileView())!.isPaidCitizen).toBe(false);
+      stubFetch(500, ownerProfile({ is_paid_citizen: true }));
+      expect((await loadPlayerProfileView())!.isPaidCitizen).toBe(false);
+      getYandexUniqueId.mockResolvedValue(null);
+      stubFetch(200, ownerProfile({ is_paid_citizen: true }));
+      expect((await loadPlayerProfileView())!.isPaidCitizen).toBe(false);
     });
   });
 });
@@ -300,10 +387,10 @@ describe("loadPlayerProfileView", () => {
 // Task 0017 / 0021 §6 — Citizenship:Earned:XP fires when the server profile
 // first shows citizenship_earned_at after a previous observation without it.
 //
-// Task 0250 S1 (owner ruling D4): every profile read is unverified until S3b,
-// and an unverified read carries `citizenship_earned_at: null` for every player.
-// So `loadPlayerProfileView` no longer runs the detection at all; the detector
-// itself stays (S3b calls it for verified reads) under a fresh `_v2` prefix.
+// Task 0250 S1 (owner ruling D4): an unverified read carries
+// `citizenship_earned_at: null` for every player, so it never runs detection.
+// Task 0250 S3b: a verified OWNER view does, under the fresh `_v2` prefix, and
+// it now knows the paid facts — a payer who later crosses 100 is not "earned".
 describe("Citizenship:Earned:XP transition detection", () => {
   const EARNED_AT = "2026-08-23T10:00:00.000Z";
   const OLD_PREFIX = "geoconflict_citizenship_earned_at:";
@@ -330,7 +417,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
     jest.restoreAllMocks();
   });
 
-  describe("loadPlayerProfileView — dormant until S3b (task 0250 S1)", () => {
+  describe("loadPlayerProfileView — an UNVERIFIED view never detects (task 0250 S1)", () => {
     it("a not-earned → earned sequence NEVER fires and writes nothing under either prefix", async () => {
       stubFetch(200, publicProfile({ xp: 99 }));
       await loadPlayerProfileView(); // would have armed before S1
@@ -380,54 +467,178 @@ describe("Citizenship:Earned:XP transition detection", () => {
         isAuthoritative: true,
         nameChange: null,
         approvedName: "Commander",
+        isPaidCitizen: false,
       });
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
   });
 
-  // The detector S3b will call for VERIFIED reads — exercised directly.
-  describe("reportEarnedCitizenshipTransition (S3b's verified-read detector)", () => {
+  describe("loadPlayerProfileView — a VERIFIED owner view detects (task 0250 S3b)", () => {
+    const PURCHASED_BEFORE = "2026-08-20T10:00:00.000Z";
+    const PURCHASED_AFTER = "2026-08-25T10:00:00.000Z";
+    const notYetEarned = (overrides: Record<string, unknown> = {}) =>
+      ownerProfile({ xp: 99, ...overrides });
+    const earned = (overrides: Record<string, unknown> = {}) =>
+      ownerProfile({
+        xp: 100,
+        is_citizen: true,
+        citizenship_earned_at: EARNED_AT,
+        ...overrides,
+      });
+
+    async function loadWith(body: unknown) {
+      stubFetch(200, body);
+      return loadPlayerProfileView();
+    }
+
+    it("a non-payer's not-earned → earned fires exactly once", async () => {
+      await loadWith(notYetEarned()); // arms
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(
+        localStorage.getItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-123"),
+      ).toBe("");
+      await loadWith(earned()); // transition
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+      expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Earned:XP");
+      await loadWith(earned()); // steady
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    });
+
+    it("paid-then-earned is suppressed, the date is still stored, and it never fires later", async () => {
+      const paid = {
+        is_citizen: true,
+        is_paid_citizen: true,
+        citizenship_purchased_at: PURCHASED_BEFORE,
+      };
+      await loadWith(notYetEarned(paid)); // arms (a paid citizen below 100)
+      await loadWith(earned(paid)); // crosses 100 after paying
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(
+        localStorage.getItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-123"),
+      ).toBe(EARNED_AT);
+      await loadWith(earned(paid));
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("earned-then-paid between two loads still fires (the earn came first)", async () => {
+      await loadWith(notYetEarned()); // arms
+      await loadWith(
+        earned({
+          is_paid_citizen: true,
+          citizenship_purchased_at: PURCHASED_AFTER,
+        }),
+      );
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    });
+
+    it("a purchase at the same instant as the earn is suppressed (under-count)", async () => {
+      await loadWith(notYetEarned());
+      await loadWith(
+        earned({ is_paid_citizen: true, citizenship_purchased_at: EARNED_AT }),
+      );
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("paid with no purchase date is suppressed (under-count)", async () => {
+      await loadWith(notYetEarned());
+      await loadWith(
+        earned({ is_paid_citizen: true, citizenship_purchased_at: null }),
+      );
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("an unverified read in between neither arms nor disarms it", async () => {
+      await loadWith(notYetEarned()); // arms
+      // A stale-signature session (S1 view): no paid keys, earned_at null.
+      await loadWith(publicProfile({ xp: 100, is_citizen: true }));
+      expect(
+        localStorage.getItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-123"),
+      ).toBe("");
+      await loadWith(earned());
+      expect(logEventAnalytics).toHaveBeenCalledTimes(1);
+    });
+
+    it("an old-prefix armed snapshot from a pre-S1 bundle does not arm it", async () => {
+      localStorage.setItem(OLD_PREFIX + "yandex-123", "");
+      await loadWith(earned());
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+
+    it("tracks the transition per Yandex account", async () => {
+      // Another account on this device is armed; yandex-123 is not.
+      localStorage.setItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-456", "");
+      await loadWith(earned());
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+      expect(
+        localStorage.getItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-456"),
+      ).toBe("");
+      expect(
+        localStorage.getItem(EARNED_AT_STORAGE_KEY_PREFIX + "yandex-123"),
+      ).toBe(EARNED_AT);
+    });
+
+    it("survives localStorage being unavailable (no fire, card unaffected)", async () => {
+      jest.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+        throw new Error("storage disabled");
+      });
+      await expect(loadWith(earned({ xp: 1000 }))).resolves.toEqual({
+        displayName: "Commander",
+        xp: 1000,
+        isCitizen: true,
+        isAuthoritative: true,
+        nameChange: null,
+        approvedName: "Commander",
+        isPaidCitizen: false,
+      });
+      expect(logEventAnalytics).not.toHaveBeenCalled();
+    });
+  });
+
+  // The verified-read detector, exercised directly.
+  describe("reportEarnedCitizenshipTransition (the verified-read detector)", () => {
+    const NOT_PAID = { isPaidCitizen: false, purchasedAt: null };
+    const facts = (earnedAt: string | null) => ({ earnedAt, ...NOT_PAID });
     it("uses the fresh _v2 prefix", () => {
       expect(EARNED_AT_STORAGE_KEY_PREFIX).toBe(
         "geoconflict_citizenship_earned_at_v2:",
       );
-      reportEarnedCitizenshipTransition("yandex-123", null);
+      reportEarnedCitizenshipTransition("yandex-123", facts(null));
       expect(earnedAtKeys()).toEqual([
         "geoconflict_citizenship_earned_at_v2:yandex-123",
       ]);
     });
 
     it("fires exactly once when earned_at appears after a not-earned observation", () => {
-      reportEarnedCitizenshipTransition("yandex-123", null); // arms
+      reportEarnedCitizenshipTransition("yandex-123", facts(null)); // arms
       expect(logEventAnalytics).not.toHaveBeenCalled();
-      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT); // transition
+      reportEarnedCitizenshipTransition("yandex-123", facts(EARNED_AT)); // transition
       expect(logEventAnalytics).toHaveBeenCalledTimes(1);
       expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Earned:XP");
-      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT); // steady
+      reportEarnedCitizenshipTransition("yandex-123", facts(EARNED_AT)); // steady
       expect(logEventAnalytics).toHaveBeenCalledTimes(1);
     });
 
     it('an old-prefix "" does not arm it (no false Earned event at S3b)', () => {
       localStorage.setItem(OLD_PREFIX + "yandex-123", "");
-      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT);
+      reportEarnedCitizenshipTransition("yandex-123", facts(EARNED_AT));
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
 
     it("does not fire on a first-ever observation that is already a citizen", () => {
       // Fresh device / cleared storage (accepted MVP residual, 2026-08-23).
-      reportEarnedCitizenshipTransition("yandex-123", EARNED_AT);
+      reportEarnedCitizenshipTransition("yandex-123", facts(EARNED_AT));
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
 
     it("does not fire while earned_at stays null", () => {
-      reportEarnedCitizenshipTransition("yandex-123", null);
-      reportEarnedCitizenshipTransition("yandex-123", null);
+      reportEarnedCitizenshipTransition("yandex-123", facts(null));
+      reportEarnedCitizenshipTransition("yandex-123", facts(null));
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
 
     it("tracks the transition per Yandex account", () => {
-      reportEarnedCitizenshipTransition("yandex-123", null); // arms 123 only
-      reportEarnedCitizenshipTransition("yandex-456", EARNED_AT);
+      reportEarnedCitizenshipTransition("yandex-123", facts(null)); // arms 123 only
+      reportEarnedCitizenshipTransition("yandex-456", facts(EARNED_AT));
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
 
@@ -436,7 +647,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
         throw new Error("storage disabled");
       });
       expect(() =>
-        reportEarnedCitizenshipTransition("yandex-123", EARNED_AT),
+        reportEarnedCitizenshipTransition("yandex-123", facts(EARNED_AT)),
       ).not.toThrow();
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });

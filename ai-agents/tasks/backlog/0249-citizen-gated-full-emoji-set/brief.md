@@ -216,7 +216,7 @@ Shape depends entirely on phase 1. The invariants that hold **whatever** phase 1
   a client that is entitled to see it, without un-redacting "who paid" to the whole internet.
   ~~⚠️ **No task exists for that work.** Whichever brief is planned first should file it.~~
   📌 **CORRECTED 2026-09-12 — that task exists now:**
-  [`0250-authenticated-profile-read-for-paid-entitlement`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md),
+  [`0250-authenticated-profile-read-for-paid-entitlement`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md),
   filed on an owner ruling given live in session, precisely so it is solved once for both briefs rather
   than absorbed into either.
 

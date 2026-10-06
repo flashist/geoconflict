@@ -10,8 +10,12 @@ import {
 import {
   equalizedXp,
   hiddenInboxMessageIds,
+  inboxMessagesForCaller,
+  profileForCaller,
+  toOwnerProfile,
   toPublicInboxMessages,
   toPublicProfile,
+  xpForCaller,
 } from "../../src/profile-server/PublicProjection";
 
 const CREATED_AT = "2026-06-01T00:00:00.000Z";
@@ -164,24 +168,24 @@ describe("toPublicProfile", () => {
   });
 });
 
-describe("toPublicInboxMessages", () => {
-  function message(
-    id: number,
-    templateKey: string | null,
-    overrides: Partial<InboxMessage> = {},
-  ): InboxMessage {
-    return {
-      id,
-      templateKey,
-      templateParams: {},
-      title: templateKey === null ? "Hello" : null,
-      body: templateKey === null ? "A literal note" : null,
-      sentAt: `2026-08-${String(10 + id).padStart(2, "0")}T10:00:00.000Z`,
-      readAt: null,
-      ...overrides,
-    };
-  }
+function message(
+  id: number,
+  templateKey: string | null,
+  overrides: Partial<InboxMessage> = {},
+): InboxMessage {
+  return {
+    id,
+    templateKey,
+    templateParams: {},
+    title: templateKey === null ? "Hello" : null,
+    body: templateKey === null ? "A literal note" : null,
+    sentAt: `2026-08-${String(10 + id).padStart(2, "0")}T10:00:00.000Z`,
+    readAt: null,
+    ...overrides,
+  };
+}
 
+describe("toPublicInboxMessages", () => {
   test("citizenship_paid → citizenship_granted", () => {
     expect(toPublicInboxMessages([message(1, "citizenship_paid")])).toEqual([
       message(1, "citizenship_granted"),
@@ -265,5 +269,141 @@ describe("toPublicInboxMessages", () => {
     const list = [message(1, "citizenship_paid")];
     toPublicInboxMessages(list);
     expect(list[0].templateKey).toBe("citizenship_paid");
+  });
+});
+
+// ── Task 0250 S3b: the verified OWNER view and the per-caller choosers ────────
+
+const NAME_CHANGE = {
+  status: "pending" as const,
+  requested_name: "NewName",
+  decided_at: null,
+};
+
+/** The S1 fixture matrix plus a non-citizen. */
+const PROFILE_MATRIX: Record<string, PlayerProfile> = {
+  "paid-not-earned at 0": paidNotEarned(0),
+  "paid-not-earned at 30": paidNotEarned(30),
+  "paid-not-earned at 99": paidNotEarned(99),
+  "earned at 100": EARNED_AT_100,
+  "earned at 1200": { ...EARNED_AT_100, xp: 1200 },
+  "paid-then-earned": PAID_THEN_EARNED,
+  "non-citizen at 42": profile({ xp: 42 }),
+};
+
+describe("toOwnerProfile", () => {
+  test.each(Object.entries(PROFILE_MATRIX))(
+    "%s: the stored values verbatim, both paid keys present",
+    (_name, stored) => {
+      const owner = toOwnerProfile(stored);
+      expect(owner).toEqual(stored);
+      expect(owner).toHaveProperty("is_paid_citizen", stored.is_paid_citizen);
+      expect(owner).toHaveProperty(
+        "citizenship_purchased_at",
+        stored.citizenship_purchased_at,
+      );
+      expect(PublicPlayerProfileSchema.safeParse(owner).success).toBe(true);
+    },
+  );
+
+  test("a non-payer still carries both paid keys (false / null): presence marks the view, not the state", () => {
+    const owner = toOwnerProfile(profile({ xp: 42 }));
+    expect(Object.keys(owner)).toEqual(
+      expect.arrayContaining(["is_paid_citizen", "citizenship_purchased_at"]),
+    );
+    expect(owner.is_paid_citizen).toBe(false);
+    expect(owner.citizenship_purchased_at).toBeNull();
+  });
+
+  test("name_change is merged in when present and omitted when absent", () => {
+    expect(toOwnerProfile(EARNED_AT_100, NAME_CHANGE).name_change).toEqual(
+      NAME_CHANGE,
+    );
+    expect(toOwnerProfile(EARNED_AT_100, null)).not.toHaveProperty(
+      "name_change",
+    );
+    expect(toOwnerProfile(EARNED_AT_100)).not.toHaveProperty("name_change");
+  });
+
+  test("the stored record is not mutated", () => {
+    const stored = paidNotEarned(30);
+    const copy = { ...stored };
+    toOwnerProfile(stored, NAME_CHANGE);
+    expect(stored).toEqual(copy);
+  });
+});
+
+describe("per-caller choosers", () => {
+  describe("verified = false → exactly the S1 functions", () => {
+    test.each(Object.entries(PROFILE_MATRIX))(
+      "profileForCaller — %s",
+      (_name, stored) => {
+        for (const nameChange of [undefined, null, NAME_CHANGE]) {
+          const chosen = profileForCaller(stored, nameChange, false);
+          expect(chosen).toEqual(toPublicProfile(stored, nameChange));
+          expect(chosen).not.toHaveProperty("is_paid_citizen");
+          expect(chosen).not.toHaveProperty("citizenship_purchased_at");
+          expect(JSON.stringify(chosen).length).toBe(
+            JSON.stringify(toPublicProfile(stored, nameChange)).length,
+          );
+        }
+      },
+    );
+
+    test.each([
+      [0, true],
+      [42, true],
+      [1200, true],
+      [0, false],
+      [99, false],
+    ])("xpForCaller(%i, citizen=%s)", (xp, isCitizen) => {
+      expect(xpForCaller(xp, isCitizen, false)).toBe(
+        equalizedXp(xp, isCitizen),
+      );
+    });
+
+    test("inboxMessagesForCaller", () => {
+      const list = [
+        message(9, "citizenship_paid"),
+        message(5, "name_change_approved", { templateParams: { name: "A" } }),
+        message(2, "citizenship_earned"),
+      ];
+      expect(inboxMessagesForCaller(list, false)).toEqual(
+        toPublicInboxMessages(list),
+      );
+    });
+  });
+
+  describe("verified = true → the caller's own true values", () => {
+    test.each(Object.entries(PROFILE_MATRIX))(
+      "profileForCaller — %s",
+      (_name, stored) => {
+        expect(profileForCaller(stored, undefined, true)).toEqual(stored);
+        expect(profileForCaller(stored, NAME_CHANGE, true)).toEqual({
+          ...stored,
+          name_change: NAME_CHANGE,
+        });
+      },
+    );
+
+    test("a paid citizen's two views really differ (the branch runs)", () => {
+      const stored = paidNotEarned(30);
+      expect(profileForCaller(stored, undefined, true)).not.toEqual(
+        profileForCaller(stored, undefined, false),
+      );
+      expect(xpForCaller(30, true, true)).toBe(30);
+      expect(xpForCaller(1200, true, true)).toBe(1200);
+    });
+
+    test("inboxMessagesForCaller keeps the original keys, collapses nothing, and copies", () => {
+      const list = [
+        message(9, "citizenship_paid", { templateParams: { product: "x" } }),
+        message(5, "name_change_approved", { templateParams: { name: "A" } }),
+        message(2, "citizenship_earned"),
+      ];
+      const chosen = inboxMessagesForCaller(list, true);
+      expect(chosen).toEqual(list);
+      expect(chosen).not.toBe(list);
+    });
   });
 });

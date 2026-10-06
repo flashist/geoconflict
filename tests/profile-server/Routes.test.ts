@@ -3,6 +3,7 @@ import request from "supertest";
 import winston from "winston";
 import type { PlayerProfile } from "../../src/core/profile/PlayerProfile";
 import { logger } from "../../src/profile-server/Logger";
+import { toPublicProfile } from "../../src/profile-server/PublicProjection";
 import { createApp, type ProfileRepo } from "../../src/profile-server/Routes";
 import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
@@ -262,6 +263,169 @@ describe("profile API routes", () => {
         );
       },
     );
+  });
+
+  // Task 0250 S3b: a `vfy:true` caller reads its OWN true record, paid facts
+  // included; every other caller still gets exactly the S1 view above.
+  describe("GET /v1/profile — the verified owner view (task 0250 S3b)", () => {
+    const PLAYER_B = "7d2c4e91-5a3b-4f6c-8e0d-1b2a3c4d5e6f";
+    const A_PURCHASED_AT = "2026-06-24T11:00:00.000Z";
+    const B_EARNED_AT = "2026-06-20T10:00:00.000Z";
+    const B_UPDATED_AT = "2026-06-25T10:00:00.000Z";
+    // A: paid, not earned, xp 30. B: earned, xp 1200 (values found nowhere in A).
+    const profileA: PlayerProfile = {
+      schema_version: 1,
+      xp: 30,
+      is_citizen: true,
+      is_paid_citizen: true,
+      citizenship_earned_at: null,
+      citizenship_purchased_at: A_PURCHASED_AT,
+      display_name: "Alpha",
+      created_at: "2026-06-01T00:00:00.000Z",
+      updated_at: A_PURCHASED_AT,
+    };
+    const profileB: PlayerProfile = {
+      schema_version: 1,
+      xp: 1200,
+      is_citizen: true,
+      is_paid_citizen: false,
+      citizenship_earned_at: B_EARNED_AT,
+      citizenship_purchased_at: null,
+      display_name: "Bravo",
+      created_at: "2026-06-02T00:00:00.000Z",
+      updated_at: B_UPDATED_AT,
+    };
+    const twoPlayers = () =>
+      mockRepo({
+        getProfile: jest.fn(async (playerId: string) =>
+          playerId === PLAYER_ID
+            ? profileA
+            : playerId === PLAYER_B
+              ? profileB
+              : null,
+        ),
+      });
+    const readAs = (
+      repo: ProfileRepo,
+      playerId: string,
+      verified: boolean,
+      path = "/v1/profile",
+    ) =>
+      request(appWithSession(repo))
+        .get(path)
+        .set("Authorization", bearerFor(playerId, { verified }));
+
+    test("verified for A → A's facts verbatim, and no value of B's anywhere", async () => {
+      const repo = twoPlayers();
+      const res = await readAs(repo, PLAYER_ID, true);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(profileA);
+      expect(res.body.is_paid_citizen).toBe(true);
+      expect(res.body.citizenship_purchased_at).toBe(A_PURCHASED_AT);
+      expect(res.body.xp).toBe(30);
+      expect(res.body.citizenship_earned_at).toBeNull();
+      const text = JSON.stringify(res.body);
+      for (const valueOfB of [
+        "Bravo",
+        B_EARNED_AT,
+        B_UPDATED_AT,
+        "1200",
+        PLAYER_B,
+      ]) {
+        expect(text).not.toContain(valueOfB);
+      }
+      expect(repo.getProfile).toHaveBeenCalledTimes(1);
+      expect(repo.getProfile).toHaveBeenCalledWith(PLAYER_ID);
+    });
+
+    test("verified for B → is_paid_citizen false, a null purchase date, the true earned_at and xp", async () => {
+      const res = await readAs(twoPlayers(), PLAYER_B, true);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(profileB);
+      expect(res.body.is_paid_citizen).toBe(false);
+      expect(res.body.citizenship_purchased_at).toBeNull();
+      expect(res.body.citizenship_earned_at).toBe(B_EARNED_AT);
+      expect(JSON.stringify(res.body)).not.toContain(A_PURCHASED_AT);
+    });
+
+    test("A's verified token with a stray legacy ?yandexPlayerId → still only A, the id ignored", async () => {
+      const repo = twoPlayers();
+      const res = await readAs(
+        repo,
+        PLAYER_ID,
+        true,
+        `/v1/profile?yandexPlayerId=yandex-1&playerId=${PLAYER_B}`,
+      );
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(profileA);
+      expect(repo.getProfile).toHaveBeenCalledWith(PLAYER_ID);
+      expect(repo.getProfile).not.toHaveBeenCalledWith(PLAYER_B);
+      expect(repo.findPlayerByIdentity).not.toHaveBeenCalled();
+    });
+
+    test("a vfy:true token with a tampered MAC → 401, nothing read", async () => {
+      const repo = twoPlayers();
+      const [scheme, token] = bearerFor(PLAYER_ID, { verified: true }).split(
+        " ",
+      );
+      const [version, payload, mac] = token.split(".");
+      const flipped = mac[20] === "A" ? "B" : "A";
+      const tampered = `${version}.${payload}.${mac.slice(0, 20)}${flipped}${mac.slice(21)}`;
+      const res = await request(appWithSession(repo))
+        .get("/v1/profile")
+        .set("Authorization", `${scheme} ${tampered}`);
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({ error: "session_invalid" });
+      expect(repo.getProfile).not.toHaveBeenCalled();
+    });
+
+    test("a vfy:true token for a player that is gone → 404", async () => {
+      const res = await readAs(
+        twoPlayers(),
+        "11111111-1111-4111-8111-111111111111",
+        true,
+      );
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: "not_found" });
+    });
+
+    test.each([
+      ["A (paid)", PLAYER_ID, profileA],
+      ["B (earned)", PLAYER_B, profileB],
+    ])(
+      "unverified for %s → exactly the S1 projection: no paid key, same byte length",
+      async (_label, playerId, stored) => {
+        const res = await readAs(twoPlayers(), playerId, false);
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual(toPublicProfile(stored));
+        expect(res.body).not.toHaveProperty("is_paid_citizen");
+        expect(res.body).not.toHaveProperty("citizenship_purchased_at");
+        expect(JSON.stringify(res.body).length).toBe(
+          JSON.stringify(toPublicProfile(stored)).length,
+        );
+      },
+    );
+
+    test("a paid citizen's verified and unverified bodies differ (the branch really runs)", async () => {
+      const verified = await readAs(twoPlayers(), PLAYER_ID, true);
+      const unverified = await readAs(twoPlayers(), PLAYER_ID, false);
+      expect(verified.body).not.toEqual(unverified.body);
+      expect(verified.body.xp).toBe(30);
+      expect(unverified.body.xp).toBe(100);
+    });
+
+    test("Cache-Control: no-store for EVERY caller (no paid signal in the header)", async () => {
+      for (const [playerId, verified] of [
+        [PLAYER_ID, true],
+        [PLAYER_ID, false],
+        [PLAYER_B, true],
+        [PLAYER_B, false],
+      ] as const) {
+        const res = await readAs(twoPlayers(), playerId, verified);
+        expect(res.status).toBe(200);
+        expect(res.headers["cache-control"]).toBe("no-store");
+      }
+    });
   });
 
   // Task 0273 (S4), owner ruling D1: the legacy client-asserted Yandex id is GONE.

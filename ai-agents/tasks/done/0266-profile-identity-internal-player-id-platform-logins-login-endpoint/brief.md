@@ -316,7 +316,7 @@ briefs once the design is approved):
 - *(Superseded dependency line, kept: ~~Depends on: nothing — the design can start now; the build waits on the owner's design ruling~~ — the design is delivered and ruled.)*
 - **Blocks:** [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md), XP go-live via [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md), [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (indirectly, through `0253`)
 - **Related:** [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md) (verify the
-  platform identity — Backlog), [`0250`](../../backlog/0250-authenticated-profile-read-for-paid-entitlement/brief.md),
+  platform identity — Backlog), [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md),
   ADR-103, ADR-112.
 - ✅ **~~Split recommendation — flagged for owner confirmation, not ruled.~~ RULED 2026-09-15: "Split into 4"** (+ monitoring as a 5th slice) — filed as `0270`–`0274`. History below kept: The build's four units are
   independently testable, and units 1→2→3→4 ship in order. The producer recommends that once the

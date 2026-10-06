@@ -11,6 +11,7 @@ import {
   type NameChangeRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
+import { toPublicProfile } from "../../src/profile-server/PublicProjection";
 import { verifySessionToken } from "../../src/profile-server/SessionToken";
 
 const SECRET = "0271-login-test-secret-0123456789abcdef";
@@ -423,6 +424,30 @@ describe("POST /v1/login", () => {
           citizenship_earned_at: null,
           updated_at: CREATED_AT,
         });
+      },
+    );
+
+    // Task 0250 S3b: an unverified login (no signature checked here — this
+    // suite configures no signature secret) still gets EXACTLY the S1 view.
+    test.each([
+      ["paid-not-earned", paidNotEarned],
+      ["earned at 100", earnedAt100],
+    ])(
+      "an unverified login (%s) → exactly the S1 projection, no paid key, a vfy:false token",
+      async (_label, stored) => {
+        const res = await loginAs(stored);
+        expect(res.status).toBe(200);
+        expect(res.body.profile).toEqual(toPublicProfile(stored));
+        expect(res.body.profile).not.toHaveProperty("is_paid_citizen");
+        expect(res.body.profile).not.toHaveProperty("citizenship_purchased_at");
+        expect(JSON.stringify(res.body.profile).length).toBe(
+          JSON.stringify(toPublicProfile(stored)).length,
+        );
+        const verified = verifySessionToken(
+          SECRET,
+          LoginResponseSchema.parse(res.body).session.token,
+        );
+        expect(verified.status === "ok" && verified.claims.vfy).toBe(false);
       },
     );
   });

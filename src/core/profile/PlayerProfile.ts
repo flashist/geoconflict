@@ -53,17 +53,19 @@ export type PlayerProfile = z.infer<typeof PlayerProfileSchema>;
 /**
  * Public projection of a profile — the shape returned by `GET /v1/profile` (and
  * `profile` on `POST /v1/login`) and parsed by the client card. The read is behind
- * a Bearer session (`resolveCaller`); a session may be `vfy:true` since task 0340,
- * but the route does not read `verified` yet (0250 S3b / 0319), so it is still the
- * same trust level: anyone who asserts a platform id gets a `vfy:false` session.
- * So paid state (`is_paid_citizen`,
- * `citizenship_purchased_at`) is omitted, and the server also EQUALIZES `xp`,
- * `citizenship_earned_at` and `updated_at` so a paid citizen and an earned
- * citizen look the same (task 0250 S1) — same keys, same types, only the values
- * change. No identity is on the profile at all, so no player id can leak through
- * it. Derived from `PlayerProfileSchema` so the server return type and the client
+ * a Bearer session (`resolveCaller`), and the server returns one of TWO views,
+ * chosen by the caller's own token alone (task 0250 S3b):
+ *  - UNVERIFIED (`vfy:false` — anyone who asserts a platform id gets one): paid
+ *    state (`is_paid_citizen`, `citizenship_purchased_at`) is ABSENT, and the
+ *    server EQUALIZES `xp`, `citizenship_earned_at` and `updated_at` so a paid
+ *    citizen and an earned citizen look the same (task 0250 S1).
+ *  - OWNER (`vfy:true` — a genuine Yandex signature of this player's id, task
+ *    0340): the stored values verbatim, with BOTH paid keys always present (owner
+ *    ruling D1). Their presence is what marks the owner view.
+ * No identity is on the profile at all, so no player id can leak through it.
+ * Derived from `PlayerProfileSchema` so the server return type and the client
  * parse share ONE source of truth and cannot drift.
- * See `toPublicProfile()` in src/profile-server/PublicProjection.ts.
+ * See src/profile-server/PublicProjection.ts.
  */
 export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
   is_paid_citizen: true,
@@ -81,6 +83,15 @@ export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
    * name-change state lives in `player_name_history`, never on the profile row.
    */
   name_change: NameChangeStateSchema.optional(),
+  /**
+   * The paid facts — sent ONLY in the verified owner view (task 0250 S3b), and
+   * then always both together. `.optional()` is MANDATORY for the same separate-
+   * deploy reason as `name_change`: a client that predates them strips them, and
+   * a client that knows them must still parse an unverified (or older-server)
+   * profile that omits them.
+   */
+  is_paid_citizen: z.boolean().optional(),
+  citizenship_purchased_at: z.iso.datetime().nullable().optional(),
 });
 
 export type PublicPlayerProfile = z.infer<typeof PublicPlayerProfileSchema>;

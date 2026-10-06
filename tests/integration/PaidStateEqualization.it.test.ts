@@ -9,19 +9,29 @@
 // are untouched (the projection happens at the route). Timing is NOT measured:
 // the projection is pure and adds no DB work that depends on paid state.
 //
+// Task 0250 S3b (the last section): the verified OWNER view over the same seeded
+// classes — a real signed login (synthetic key) mints `vfy:true`, and that session
+// reads its own true values and paid facts on every channel, while a `vfy:false`
+// session for the same player, and a forged login, still read the S1 view.
+//
 // Gated by RUN_DB_TESTS; supertest-based, so the known flake family applies
 // (CLAUDE.md).
 
+import { createHmac } from "crypto";
 import { Pool } from "pg";
 import request from "supertest";
 import { InboxListResponseSchema } from "../../src/core/profile/InboxContract";
+import { LoginResponseSchema } from "../../src/core/profile/LoginContract";
 import { PublicPlayerProfileSchema } from "../../src/core/profile/PlayerProfile";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
 import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
 import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
+import { toPublicProfile } from "../../src/profile-server/PublicProjection";
 import { createApp } from "../../src/profile-server/Routes";
+import { verifySessionToken } from "../../src/profile-server/SessionToken";
 import {
   TEST_SESSION_CONFIG,
+  TEST_SESSION_SECRET,
   bearerFor,
 } from "../profile-server/support/sessionToken";
 import {
@@ -31,6 +41,28 @@ import {
 } from "./support/db";
 
 const RUN = process.env.RUN_DB_TESTS ? describe : describe.skip;
+
+// Task 0250 S3b: a synthetic Yandex player-signature key, and an inline copy of
+// Login.it.test.ts's `signFor` (S0's payload shape and construction).
+const PLAYER_SIGNATURE_SECRET = "0250-s3b-integration-player-signature-key";
+
+function signFor(uniqueID: string): string {
+  const text = JSON.stringify({
+    algorithm: "HMAC-SHA256",
+    issuedAt: Math.floor(Date.now() / 1000),
+    requestPayload: "",
+    data: {
+      id: uniqueID,
+      uniqueID,
+      publicName: "zz0250 Synthetic Name",
+      avatarIdHash: "zz0250-avatar",
+    },
+  });
+  const mac = createHmac("sha256", PLAYER_SIGNATURE_SECRET)
+    .update(text)
+    .digest("base64");
+  return `${mac}.${Buffer.from(text).toString("base64")}`;
+}
 
 /** A fixture class — (a)–(e) of the plan. */
 type PlayerClass =
@@ -80,6 +112,9 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
   let profiles: PlayerProfileRepository;
   let payments: PaymentsRepository;
   let app: ReturnType<typeof createApp>;
+  // Task 0250 S3b: the SAME wiring plus a player-signature key, so a signed login
+  // mints a real `vfy:true` session.
+  let signingApp: ReturnType<typeof createApp>;
   let purchaseSeq = 0;
   let gameSeq = 0;
 
@@ -104,6 +139,14 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
       undefined,
       TEST_SESSION_CONFIG,
       { tenureGrant: profiles },
+    );
+    signingApp = createApp(
+      realProfileRepo(pool, inbox),
+      { paymentsRepo: payments, yandexPaymentsSecret: "it-0250-secret" },
+      inbox,
+      undefined,
+      TEST_SESSION_CONFIG,
+      { tenureGrant: profiles, playerSignatureSecret: PLAYER_SIGNATURE_SECRET },
     );
   });
 
@@ -592,5 +635,204 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
         await waitForStoredKeys(player.playerId, player.storedKeys.length),
       ).toEqual(player.storedKeys);
     }
+  });
+  // ── Task 0250 S3b: the verified OWNER view ─────────────────────────────────
+
+  /** A real signed login on the signing app; returns its session token. */
+  async function verifiedLogin(
+    s: Seeded,
+  ): Promise<{ token: string; body: Record<string, unknown> }> {
+    const res = await request(signingApp)
+      .post("/v1/login")
+      .send({
+        platform: "yandex_games",
+        platformUserId: s.platformUserId,
+        signature: signFor(s.platformUserId),
+      });
+    expect(res.status).toBe(200);
+    const token = LoginResponseSchema.parse(res.body).session.token;
+    const claims = verifySessionToken(TEST_SESSION_SECRET, token);
+    expect(claims.status === "ok" && claims.claims.vfy).toBe(true);
+    expect(claims.status === "ok" && claims.claims.pid).toBe(s.playerId);
+    return { token, body: res.body };
+  }
+
+  const asToken = (token: string) => `Bearer ${token}`;
+
+  async function paidFacts(playerId: string) {
+    const res = await pool.query(
+      `SELECT xp, is_paid_citizen, citizenship_purchased_at,
+              citizenship_earned_at, updated_at
+       FROM players WHERE id = $1`,
+      [playerId],
+    );
+    return res.rows[0];
+  }
+
+  test("S3b step 1: a signed login for a paid player → vfy:true, and every channel shows its own true values and paid facts", async () => {
+    const paid = await seedPaidNotEarned("s3b-paid", 30);
+    const stored = await paidFacts(paid.playerId);
+    const storedProfile = await realProfileRepo(pool).getProfile(paid.playerId);
+    const { token, body: loginBody } = await verifiedLogin(paid);
+
+    // POST /v1/login: the owner view of the session it mints.
+    expect(loginBody.profile).toEqual(storedProfile);
+
+    // GET /v1/profile.
+    const profile = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", asToken(token));
+    expect(profile.status).toBe(200);
+    expect(profile.body).toEqual(storedProfile);
+    expect(profile.body.is_paid_citizen).toBe(true);
+    expect(profile.body.citizenship_purchased_at).toBe(
+      new Date(stored.citizenship_purchased_at).toISOString(),
+    );
+    expect(profile.body.xp).toBe(30);
+    expect(profile.body.citizenship_earned_at).toBeNull();
+    expect(profile.headers["cache-control"]).toBe("no-store");
+    expect(PublicPlayerProfileSchema.safeParse(profile.body).success).toBe(
+      true,
+    );
+
+    // GET /v1/messages: the original key.
+    const messages = await request(signingApp)
+      .get("/v1/messages")
+      .set("Authorization", asToken(token));
+    expect(messages.status).toBe(200);
+    expect(
+      messages.body.messages.map((m: { templateKey: string }) => m.templateKey),
+    ).toEqual(["citizenship_paid"]);
+
+    // POST /v1/profile/tenure-grant: the true total (30 + 10).
+    const tenure = await request(signingApp)
+      .post("/v1/profile/tenure-grant")
+      .set("Authorization", asToken(token))
+      .send({ evidence: { daysPlayed: 10, gameRecordDays: 0 } });
+    expect(tenure.status).toBe(200);
+    expect(tenure.body).toEqual({ status: "granted", xpAwarded: 10, xp: 40 });
+    expect(Number((await paidFacts(paid.playerId)).xp)).toBe(40);
+  });
+
+  test("S3b step 1: the other classes read their own facts — earned, paid-then-earned, earned-then-paid, non-citizen", async () => {
+    const earned = await seedEarned("s3b-earned", 120);
+    const paidThenEarned = await seedPaidThenEarned("s3b-pte", 30, 80);
+    const earnedThenPaid = await seedEarnedThenPaid("s3b-etp", 100);
+    const nonCitizen = await seedNonCitizen("s3b-none", 40);
+
+    const readOwn = async (s: Seeded) => {
+      const { token } = await verifiedLogin(s);
+      const profile = await request(signingApp)
+        .get("/v1/profile")
+        .set("Authorization", asToken(token));
+      expect(profile.status).toBe(200);
+      return { token, body: profile.body };
+    };
+
+    const e = await readOwn(earned);
+    expect(e.body).toMatchObject({
+      xp: 120,
+      is_citizen: true,
+      is_paid_citizen: false,
+      citizenship_purchased_at: null,
+    });
+    expect(e.body.citizenship_earned_at).not.toBeNull();
+
+    const pte = await readOwn(paidThenEarned);
+    expect(pte.body).toMatchObject({ xp: 110, is_paid_citizen: true });
+    expect(pte.body.citizenship_earned_at).not.toBeNull();
+    // Paid FIRST: the purchase date is before the earn date.
+    expect(Date.parse(pte.body.citizenship_purchased_at)).toBeLessThan(
+      Date.parse(pte.body.citizenship_earned_at),
+    );
+
+    const etp = await readOwn(earnedThenPaid);
+    expect(etp.body).toMatchObject({ xp: 100, is_paid_citizen: true });
+    // Earned FIRST: the purchase date is after the earn date.
+    expect(Date.parse(etp.body.citizenship_purchased_at)).toBeGreaterThan(
+      Date.parse(etp.body.citizenship_earned_at),
+    );
+    // Both citizenship messages visible, with their true keys...
+    const etpMessages = await request(signingApp)
+      .get("/v1/messages")
+      .set("Authorization", asToken(etp.token));
+    expect(
+      etpMessages.body.messages
+        .map((m: { templateKey: string }) => m.templateKey)
+        .sort(),
+    ).toEqual(["citizenship_earned", "citizenship_paid"]);
+    // ...and mark-all counts both (nothing is hidden from the owner).
+    const markAll = await request(signingApp)
+      .patch("/v1/messages/read")
+      .set("Authorization", asToken(etp.token))
+      .send({});
+    expect(markAll.status).toBe(200);
+    expect(markAll.body).toEqual({ updated: 2 });
+
+    const n = await readOwn(nonCitizen);
+    expect(n.body).toMatchObject({
+      xp: 40,
+      is_citizen: false,
+      is_paid_citizen: false,
+      citizenship_purchased_at: null,
+      citizenship_earned_at: null,
+    });
+  });
+
+  test("S3b step 2: the same paid player under a vfy:false token, and a forged login, read exactly the S1 view; stored rows unchanged", async () => {
+    const victim = await seedPaidNotEarned("s3b-victim", 30);
+    const attacker = await seedEarned("s3b-attacker", 100);
+    const before = await paidFacts(victim.playerId);
+    const storedProfile = await realProfileRepo(pool).getProfile(
+      victim.playerId,
+    );
+    expect(storedProfile).not.toBeNull();
+    const s1View = toPublicProfile(storedProfile!);
+
+    // A plain vfy:false token for the victim.
+    const unverified = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", bearerFor(victim.playerId));
+    expect(unverified.status).toBe(200);
+    expect(unverified.body).toEqual(s1View);
+    expect(unverified.body).not.toHaveProperty("is_paid_citizen");
+    expect(unverified.body).not.toHaveProperty("citizenship_purchased_at");
+    expect(unverified.body.xp).toBe(100);
+
+    // Forgery: the attacker's GENUINE signature, the victim's id asserted.
+    const forged = await request(signingApp)
+      .post("/v1/login")
+      .send({
+        platform: "yandex_games",
+        platformUserId: victim.platformUserId,
+        signature: signFor(attacker.platformUserId),
+      });
+    expect(forged.status).toBe(200);
+    const forgedToken = LoginResponseSchema.parse(forged.body).session.token;
+    const claims = verifySessionToken(TEST_SESSION_SECRET, forgedToken);
+    expect(claims.status === "ok" && claims.claims.vfy).toBe(false);
+    expect(forged.body.profile).toEqual(s1View);
+
+    const forgedRead = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", asToken(forgedToken));
+    expect(forgedRead.body).toEqual(s1View);
+    const forgedMessages = await request(signingApp)
+      .get("/v1/messages")
+      .set("Authorization", asToken(forgedToken));
+    expect(leakL4(forgedMessages.body)).toBe(false);
+    const forgedTenure = await request(signingApp)
+      .post("/v1/profile/tenure-grant")
+      .set("Authorization", asToken(forgedToken))
+      .send({ evidence: { daysPlayed: 2, gameRecordDays: 0 } });
+    expect(forgedTenure.body.xp).toBe(100);
+
+    // Nothing the reads did touched the stored paid facts.
+    const after = await paidFacts(victim.playerId);
+    expect(after.is_paid_citizen).toBe(before.is_paid_citizen);
+    expect(after.citizenship_purchased_at).toEqual(
+      before.citizenship_purchased_at,
+    );
+    expect(Number(after.xp)).toBe(Number(before.xp));
   });
 });
