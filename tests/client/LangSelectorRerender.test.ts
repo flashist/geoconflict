@@ -16,8 +16,10 @@ describe("LangSelector.applyTranslation re-render list", () => {
     "tenure-grant-modal",
     "citizenship-card",
     "game-starting-modal",
-    // Task 0302: the interim citizens-only notice.
-    "citizens-only-modal",
+    // Task 0301: the citizenship explainer (replaced 0302's interim notice)
+    // and its Instructions section.
+    "citizenship-explainer-modal",
+    "citizenship-help-section",
     // Task 0303: the "restart to apply" popup.
     "citizenship-restart-modal",
   ])("re-renders <%s>", (tag) => {

@@ -244,7 +244,8 @@ export class LangSelector extends LitElement {
       "start-screen-tabs",
       "citizenship-card",
       "tenure-grant-modal",
-      "citizens-only-modal",
+      "citizenship-explainer-modal",
+      "citizenship-help-section",
       "citizenship-restart-modal",
     ];
 
@@ -303,16 +304,16 @@ export class LangSelector extends LitElement {
       this.languageList.find((l) => l.code === this.currentLang) ??
       (this.currentLang === "debug"
         ? {
-          code: "debug",
-          native: "Debug",
-          en: "Debug",
-          svg: "xx",
-        }
+            code: "debug",
+            native: "Debug",
+            en: "Debug",
+            svg: "xx",
+          }
         : {
-          native: "English",
-          en: "English",
-          svg: "uk_us_flag",
-        });
+            native: "English",
+            en: "English",
+            svg: "uk_us_flag",
+          });
 
     return html`
       <div class="container__row">
@@ -336,7 +337,7 @@ export class LangSelector extends LitElement {
         .languageList=${this.languageList}
         .currentLang=${this.currentLang}
         @language-selected=${(e: CustomEvent) =>
-        this.changeLanguage(e.detail.lang)}
+          this.changeLanguage(e.detail.lang)}
         @close-modal=${() => (this.showModal = false)}
       ></language-modal>
     `;

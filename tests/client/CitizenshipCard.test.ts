@@ -77,6 +77,7 @@ import {
   resetApprovedNameForTests,
 } from "../../src/client/ApprovedName";
 import { resetCitizenshipNoticeReportedForTests } from "../../src/client/CitizenshipNotice";
+import { CITIZENSHIP_OFFER_CHANGED_EVENT } from "../../src/client/CitizenshipOffer";
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
   CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
@@ -3213,6 +3214,245 @@ describe("CitizenshipCard", () => {
         expect(card.textContent).not.toContain(
           "citizenship_name_change.pending_label",
         );
+      });
+    });
+  });
+
+  // ── Explainer popup seam (task 0301) ────────────────────────────────────
+  // The card stays the only owner of purchase state: the popup reads
+  // getCitizenshipOffer() and buys / logs in through the card.
+  describe("explainer popup seam (task 0301)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button") as HTMLButtonElement | null;
+    const explainerLink = (card: CitizenshipCard) =>
+      card.querySelector(
+        "#citizenship-explainer-link",
+      ) as HTMLButtonElement | null;
+
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    /** A stand-in for the real <citizenship-explainer-modal> in the page. */
+    function appendExplainer(): jest.Mock {
+      const modal = document.createElement("citizenship-explainer-modal");
+      const show = jest.fn();
+      Object.assign(modal, { show });
+      document.body.appendChild(modal);
+      return show;
+    }
+
+    describe("getCitizenshipOffer()", () => {
+      it("is checking while the card is not revealed", async () => {
+        isCitizenshipUiEnabled.mockResolvedValue(false);
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({ kind: "checking" });
+      });
+
+      it("is checking before the first read lands", async () => {
+        loadProfile.mockReturnValueOnce(new Promise(() => {}));
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({ kind: "checking" });
+      });
+
+      it("is guest with canLogIn for a guest in Yandex", async () => {
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({
+          kind: "guest",
+          canLogIn: true,
+        });
+      });
+
+      it("is guest without canLogIn on a degraded boot", async () => {
+        isYandexDegraded.mockReturnValue(true);
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({
+          kind: "guest",
+          canLogIn: false,
+        });
+      });
+
+      it("is buy with the catalog price for an authoritative non-citizen", async () => {
+        getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+        loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({
+          kind: "buy",
+          price: "99 ₽",
+          xp: 25,
+        });
+      });
+
+      it("is read_failed for a failed read, even with the product present", async () => {
+        getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+        loadProfile.mockResolvedValue({
+          ...NON_CITIZEN_PROFILE,
+          xp: 0,
+          isAuthoritative: false,
+        });
+        const card = await appendCard({ visible: true });
+
+        expect(card.getCitizenshipOffer()).toEqual({ kind: "read_failed" });
+        expect(buyButton(card)).toBeNull();
+      });
+    });
+
+    it("buyCitizenship(explainer id) logs that tap and leaves the same state as a card tap", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      const grants: Event[] = [];
+      const onGrant = (event: Event) => grants.push(event);
+      window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, onGrant);
+      // The real flow dispatches the grant signal itself (CitizenshipPurchase).
+      runPurchase.mockImplementation(async () => {
+        window.dispatchEvent(
+          new CustomEvent(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, {
+            detail: { source: "purchase" },
+          }),
+        );
+        return "granted";
+      });
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const result = await card.buyCitizenship("PurchaseCitizenshipExplainer");
+      await settle(card);
+      window.removeEventListener(
+        CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+        onGrant,
+      );
+
+      expect(result).toBe("granted");
+      expect(logUiTapEvent).toHaveBeenCalledWith(
+        "PurchaseCitizenshipExplainer",
+      );
+      expect(logUiTapEvent).not.toHaveBeenCalledWith("PurchaseCitizenship");
+      expect(runPurchase).toHaveBeenCalledTimes(1);
+      expect(grants).toHaveLength(1);
+      // Citizen presentation, status published, no buy button — even with a
+      // stale re-read (paidGrantConfirmed).
+      expect(getCitizenshipStatus()).toBe("citizen");
+      expect(card.textContent).toContain("citizenship_card.citizen_badge");
+      expect(buyButton(card)).toBeNull();
+      expect(card.getCitizenshipOffer()).toEqual({ kind: "citizen" });
+    });
+
+    it("buyCitizenship answers error on a failed flow and shows the card's error line", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      runPurchase.mockResolvedValue("error");
+
+      const result = await card.buyCitizenship("PurchaseCitizenshipExplainer");
+      await settle(card);
+
+      expect(result).toBe("error");
+      expect(card.querySelector("#citizenship-purchase-error")).not.toBeNull();
+    });
+
+    it("one shared latch: a card tap in flight makes a popup buy answer busy", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      let resolveFlow: (value: string) => void = () => {};
+      runPurchase.mockImplementation(
+        () => new Promise<string>((resolve) => (resolveFlow = resolve)),
+      );
+
+      buyButton(card)!.click();
+      const second = await card.buyCitizenship("PurchaseCitizenshipExplainer");
+
+      expect(second).toBe("busy");
+      expect(runPurchase).toHaveBeenCalledTimes(1);
+      expect(logUiTapEvent).toHaveBeenCalledTimes(1);
+      expect(logUiTapEvent).toHaveBeenCalledWith("PurchaseCitizenship");
+
+      resolveFlow("error");
+      await settle(card);
+    });
+
+    it("logIn passes its own tap id and still bubbles the login request", async () => {
+      const card = await appendCard({ visible: true });
+      const requests: Event[] = [];
+      const onRequest = (event: Event) => requests.push(event);
+      document.addEventListener(CITIZENSHIP_LOGIN_REQUESTED_EVENT, onRequest);
+
+      await card.logIn("CitizenshipLoginExplainer");
+      document.removeEventListener(
+        CITIZENSHIP_LOGIN_REQUESTED_EVENT,
+        onRequest,
+      );
+
+      expect(logUiTapEvent).toHaveBeenCalledWith("CitizenshipLoginExplainer");
+      expect(logUiTapEvent).not.toHaveBeenCalledWith("CitizenshipLoginToEarn");
+      expect(requests).toHaveLength(1);
+      expect(openYandexAuthDialog).toHaveBeenCalledTimes(1);
+    });
+
+    it("dispatches the offer-changed event on window after an update", async () => {
+      const onChanged = jest.fn();
+      window.addEventListener(CITIZENSHIP_OFFER_CHANGED_EVENT, onChanged);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      const callsAfterRead = onChanged.mock.calls.length;
+      card.requestUpdate();
+      await flushLit(card);
+      window.removeEventListener(CITIZENSHIP_OFFER_CHANGED_EVENT, onChanged);
+
+      expect(callsAfterRead).toBeGreaterThan(0);
+      expect(onChanged.mock.calls.length).toBeGreaterThan(callsAfterRead);
+    });
+
+    describe("the What is citizenship? link (owner ruling Q2)", () => {
+      it("is absent while checking", async () => {
+        loadProfile.mockReturnValueOnce(new Promise(() => {}));
+        const card = await appendCard({ visible: true });
+
+        expect(explainerLink(card)).toBeNull();
+      });
+
+      it.each([
+        ["guest", null],
+        ["guest without a login button", "degraded"],
+        ["authoritative non-citizen", NON_CITIZEN_PROFILE],
+        ["citizen", { ...NON_CITIZEN_PROFILE, xp: 100, isCitizen: true }],
+        [
+          "failed read",
+          { ...NON_CITIZEN_PROFILE, xp: 0, isAuthoritative: false },
+        ],
+      ] as const)("shows for a %s", async (_label, profile) => {
+        if (profile === "degraded") {
+          isYandexDegraded.mockReturnValue(true);
+          loadProfile.mockResolvedValue(null);
+        } else {
+          loadProfile.mockResolvedValue(profile);
+        }
+        const card = await appendCard({ visible: true });
+
+        expect(explainerLink(card)).not.toBeNull();
+        expect(explainerLink(card)!.textContent).toContain(
+          "citizenship_explainer.link",
+        );
+      });
+
+      it("opens the explainer with the CardLink source", async () => {
+        const show = appendExplainer();
+        const card = await appendCard({ visible: true });
+
+        explainerLink(card)!.click();
+
+        expect(show).toHaveBeenCalledTimes(1);
+        expect(show).toHaveBeenCalledWith({ source: "CardLink" });
       });
     });
   });

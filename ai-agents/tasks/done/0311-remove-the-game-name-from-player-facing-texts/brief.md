@@ -137,7 +137,7 @@ tenure popup shows the new body.
   (tenure popup copy, owner-approved — this task changes it) ·
   [`0268`](../../backlog/0268-remove-tenure-xp-claim-logic-after-60-days/brief.md) (will remove the tenure popup
   later; fix the copy anyway, it is live now) ·
-  [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (the explainer's new copy
+  [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (the explainer's new copy
   must follow the same rule — no game name).
 - **Standing rule from here on (proposed, owner to confirm):** new player-facing copy does not name the
   game. `0301` and any future inbox template should follow it.

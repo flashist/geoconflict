@@ -7,12 +7,21 @@ import {
   usernameRulesHint,
 } from "../core/validations/username";
 import { publishApprovedName } from "./ApprovedName";
+import { openCitizenshipExplainer } from "./CitizenshipExplainer";
 import {
   type CitizenshipNotice,
   deriveCitizenshipNotice,
   reportCitizenshipNoticeShown,
 } from "./CitizenshipNotice";
-import { runCitizenshipPurchase } from "./CitizenshipPurchase";
+import {
+  CITIZENSHIP_OFFER_CHANGED_EVENT,
+  type CitizenshipOffer,
+  deriveCitizenshipOffer,
+} from "./CitizenshipOffer";
+import {
+  type CitizenshipPurchaseResult,
+  runCitizenshipPurchase,
+} from "./CitizenshipPurchase";
 import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   deriveCitizenshipStatus,
@@ -96,6 +105,11 @@ export function resetCitizenshipSeenReportedForTests(): void {
  * confirmed" for an unverified citizen, or "couldn't load" with a player-pressed
  * Restart game button (and its "still not working" variant).
  * XP/citizenship values come from PlayerProfileView.
+ *
+ * Task 0301: the card is the only owner of purchase state. The "What is
+ * citizenship?" explainer popup asks it what may be offered
+ * (getCitizenshipOffer) and buys or logs in through it (buyCitizenship /
+ * logIn), so both surfaces share one rule, one latch and one end state.
  */
 @customElement("citizenship-card")
 export class CitizenshipCard extends LitElement {
@@ -478,17 +492,50 @@ export class CitizenshipCard extends LitElement {
     return this.getClientRects().length > 0;
   }
 
+  /**
+   * Task 0301: what a citizenship surface may offer right now — the card's own
+   * render and the explainer popup both read this. `checking` until the card
+   * has been revealed.
+   */
+  public getCitizenshipOffer(): CitizenshipOffer {
+    const facade = FlashistFacade.instance;
+    const product = this.isEnabled
+      ? facade.getCatalogProduct("citizenship")
+      : null;
+    return deriveCitizenshipOffer({
+      isRevealed: this.isEnabled,
+      isChecking: this.isEnabled && this.currentNotice() === "checking",
+      profile: this.profile,
+      paidGrantConfirmed: this.paidGrantConfirmed,
+      canLogIn: facade.yaGamesAvailable && !facade.isYandexDegraded(),
+      productPrice: product === null ? null : product.price,
+    });
+  }
+
+  // Task 0301: an open explainer popup re-reads the offer after every update.
+  protected updated(changedProperties: Map<PropertyKey, unknown>): void {
+    super.updated(changedProperties);
+    window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
+  }
+
   private isAuthDialogOpen = false;
 
-  private async onLoginCtaTap() {
+  private readonly onLoginCtaTap = (): void => {
+    void this.logIn(flashistConstants.uiElementIds.citizenshipLoginToEarn);
+  };
+
+  /**
+   * The guest login (task 0301: shared with the explainer popup, which passes
+   * its own tap id). The login events still bubble from the card, so Main.ts's
+   * listener on `document` hears both.
+   */
+  public async logIn(tapElementId: string): Promise<void> {
     if (this.isAuthDialogOpen) {
       return;
     }
     this.isAuthDialogOpen = true;
     try {
-      FlashistFacade.instance.logUiTapEvent(
-        flashistConstants.uiElementIds.citizenshipLoginToEarn,
-      );
+      FlashistFacade.instance.logUiTapEvent(tapElementId);
       this.dispatchEvent(
         new CustomEvent(CITIZENSHIP_LOGIN_REQUESTED_EVENT, {
           bubbles: true,
@@ -533,13 +580,32 @@ export class CitizenshipCard extends LitElement {
     if (!this.isEnabled) {
       return nothing;
     }
-    if (this.currentNotice() === "checking") {
+    const offer = this.getCitizenshipOffer();
+    if (offer.kind === "checking") {
       return this.renderChecking();
     }
-    return this.profile === null
-      ? this.renderGuest()
-      : this.renderLoggedIn(this.profile);
+    // `guest` is exactly "no profile" (CitizenshipOffer.ts); the null check
+    // only narrows the type.
+    if (offer.kind === "guest" || this.profile === null) {
+      return this.renderGuest(offer.kind === "guest" && offer.canLogIn);
+    }
+    return this.renderLoggedIn(this.profile, offer);
   }
+
+  // Task 0301 (owner ruling Q2, 2026-10-06): in every state but "checking".
+  private renderExplainerLink() {
+    return html`<button
+      id="citizenship-explainer-link"
+      class="mt-2 block text-left text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors duration-200"
+      @click=${this.onExplainerLinkTap}
+    >
+      ${translateText("citizenship_explainer.link")}
+    </button>`;
+  }
+
+  private readonly onExplainerLinkTap = (): void => {
+    openCitizenshipExplainer({ source: "CardLink" });
+  };
 
   // Task 0397: before the first read lands (and during the re-read after a late
   // Yandex login). Replaces the guest card, whose login button would be wrong
@@ -559,71 +625,72 @@ export class CitizenshipCard extends LitElement {
     `;
   }
 
-  private renderGuest() {
+  private renderGuest(canLogIn: boolean) {
     const isDegraded = FlashistFacade.instance.isYandexDegraded();
     return html`
-      <div
-        class="w-full flex items-center gap-3 p-3 rounded-[12px] bg-[#1c1c1e]/85"
-      >
-        <span class="shrink-0 opacity-50" aria-hidden="true">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="26"
-            height="26"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <rect
-              x="5"
-              y="11"
-              width="14"
-              height="10"
-              rx="2"
-              fill="white"
-              fill-opacity="0.25"
-              stroke="white"
-              stroke-opacity="0.5"
-              stroke-width="1.5"
-            />
-            <path
-              d="M8 11V7a4 4 0 0 1 8 0v4"
-              stroke="white"
-              stroke-opacity="0.6"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <circle cx="12" cy="16" r="1.5" fill="white" fill-opacity="0.7" />
-          </svg>
-        </span>
-        <div class="flex-1 min-w-0 text-left">
-          <div class="text-[13px] font-bold text-white leading-tight mb-0.5">
-            ${translateText("citizenship_card.title")}
-          </div>
-          <div class="text-[11px] text-[#98989f] leading-[1.4]">
-            ${translateText(
-              isDegraded
-                ? "citizenship_card.guest_subtitle_degraded"
-                : "citizenship_card.guest_subtitle",
-            )}
-          </div>
-        </div>
-        ${FlashistFacade.instance.yaGamesAvailable && !isDegraded
-          ? html`<button
-              id="citizenship-login-button"
-              class="shrink-0 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
-              @click=${this.onLoginCtaTap}
+      <div class="w-full p-3 rounded-[12px] bg-[#1c1c1e]/85">
+        <div class="flex items-center gap-3">
+          <span class="shrink-0 opacity-50" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
             >
-              ${translateText("citizenship_card.login_cta")}
-            </button>`
-          : // With no Yandex context at all, or with the SDK failed/timed out
-            // (degraded), openYandexAuthDialog() silently no-ops — a login
-            // button would be dead, so show only the lock + subtitle.
-            nothing}
+              <rect
+                x="5"
+                y="11"
+                width="14"
+                height="10"
+                rx="2"
+                fill="white"
+                fill-opacity="0.25"
+                stroke="white"
+                stroke-opacity="0.5"
+                stroke-width="1.5"
+              />
+              <path
+                d="M8 11V7a4 4 0 0 1 8 0v4"
+                stroke="white"
+                stroke-opacity="0.6"
+                stroke-width="1.5"
+                stroke-linecap="round"
+              />
+              <circle cx="12" cy="16" r="1.5" fill="white" fill-opacity="0.7" />
+            </svg>
+          </span>
+          <div class="flex-1 min-w-0 text-left">
+            <div class="text-[13px] font-bold text-white leading-tight mb-0.5">
+              ${translateText("citizenship_card.title")}
+            </div>
+            <div class="text-[11px] text-[#98989f] leading-[1.4]">
+              ${translateText(
+                isDegraded
+                  ? "citizenship_card.guest_subtitle_degraded"
+                  : "citizenship_card.guest_subtitle",
+              )}
+            </div>
+          </div>
+          ${canLogIn
+            ? html`<button
+                id="citizenship-login-button"
+                class="shrink-0 px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+                @click=${this.onLoginCtaTap}
+              >
+                ${translateText("citizenship_card.login_cta")}
+              </button>`
+            : // With no Yandex context at all, or with the SDK failed/timed out
+              // (degraded), openYandexAuthDialog() silently no-ops — a login
+              // button would be dead, so show only the lock + subtitle.
+              nothing}
+        </div>
+        ${this.renderExplainerLink()}
       </div>
     `;
   }
 
-  private renderLoggedIn(profile: PlayerProfileView) {
+  private renderLoggedIn(profile: PlayerProfileView, offer: CitizenshipOffer) {
     // paidGrantConfirmed: server-confirmed paid grant whose profile re-fetch
     // hasn't landed (or failed) — present as citizen, never re-offer the CTA.
     const isCitizen = profile.isCitizen || this.paidGrantConfirmed;
@@ -690,13 +757,14 @@ export class CitizenshipCard extends LitElement {
           ></div>
         </div>
         ${this.renderStatusNotice()}
-        ${isCitizen || !profile.isAuthoritative
+        ${offer.kind === "buy"
           ? // Review R1: the CTA requires an AUTHORITATIVE non-citizen read.
             // A zero-state fallback also reports isCitizen: false — offering
             // a working buy button off it could double-charge a real citizen
-            // whose profile read failed.
-            nothing
-          : this.renderBuyCta()}
+            // whose profile read failed. The rule lives in CitizenshipOffer.ts
+            // (task 0301), shared with the explainer popup.
+            this.renderBuyCta(offer.price)
+          : nothing}
         ${isCitizen && profile.isAuthoritative
           ? // The exact inverse of the buy-CTA gate: name change is the
             // citizens-only benefit. `isAuthoritative` is required for the same
@@ -706,6 +774,7 @@ export class CitizenshipCard extends LitElement {
             // reject with 403) or hide a real pending request.
             this.renderNameChange(profile)
           : nothing}
+        ${this.renderExplainerLink()}
       </div>
     `;
   }
@@ -912,18 +981,14 @@ export class CitizenshipCard extends LitElement {
   // Buy CTA (task 0018, State 2 only). Hidden ENTIRELY — never disabled —
   // unless the catalog is ready and carries the citizenship product; the
   // price string comes from the catalog, never hardcoded.
-  private renderBuyCta() {
-    const product = FlashistFacade.instance.getCatalogProduct("citizenship");
-    if (product === null) {
-      return nothing;
-    }
+  private renderBuyCta(price: string) {
     return html`
       <button
         id="citizenship-buy-button"
         class="mt-2 w-full px-3 py-[7px] rounded-lg text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
         @click=${this.onBuyCtaTap}
       >
-        ${translateText("citizenship_paid.buy_cta")} — ${product.price}
+        ${translateText("citizenship_paid.buy_cta")} — ${price}
       </button>
       ${this.purchaseError
         ? html`<div
@@ -938,9 +1003,23 @@ export class CitizenshipCard extends LitElement {
 
   private isPurchaseInFlight = false;
 
-  private async onBuyCtaTap() {
+  private readonly onBuyCtaTap = (): void => {
+    void this.buyCitizenship(
+      flashistConstants.uiElementIds.purchaseCitizenship,
+    );
+  };
+
+  /**
+   * The paid purchase (task 0018). Task 0301: shared with the explainer popup,
+   * which passes its own tap id. One in-flight latch for both, so a card tap
+   * and a popup tap can never start two purchases — the second answers
+   * `"busy"`. Either way the card ends in the same state.
+   */
+  public async buyCitizenship(
+    tapElementId: string,
+  ): Promise<CitizenshipPurchaseResult | "busy"> {
     if (this.isPurchaseInFlight) {
-      return;
+      return "busy";
     }
     this.isPurchaseInFlight = true;
     this.purchaseError = false;
@@ -949,12 +1028,10 @@ export class CitizenshipCard extends LitElement {
     // transform does not reliably schedule updates under the test build.
     this.requestUpdate();
     try {
-      FlashistFacade.instance.logUiTapEvent(
-        flashistConstants.uiElementIds.purchaseCitizenship,
-      );
+      FlashistFacade.instance.logUiTapEvent(tapElementId);
       const result = await runCitizenshipPurchase();
       if (!this.isConnected) {
-        return;
+        return result;
       }
       if (result === "granted") {
         this.paidGrantConfirmed = true;
@@ -965,6 +1042,7 @@ export class CitizenshipCard extends LitElement {
         this.purchaseError = true;
         this.requestUpdate();
       }
+      return result;
     } finally {
       this.isPurchaseInFlight = false;
     }

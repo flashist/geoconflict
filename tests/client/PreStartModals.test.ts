@@ -14,10 +14,25 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       CITIZENSHIP_RESTART_PROMPT_RESTART: "Citizenship:RestartPrompt:Restart",
       CITIZENSHIP_RESTART_PROMPT_LATER: "Citizenship:RestartPrompt:Later",
     },
+    citizenshipExplainerSources: {
+      cardLink: "CardLink",
+      instructions: "Instructions",
+      lockedFeature: "LockedFeature",
+    },
   },
   flashist_logEventAnalytics: jest.fn(),
+  FlashistFacade: {
+    instance: {
+      isCitizenshipSurfacesEnabled: jest.fn().mockResolvedValue(true),
+      logCitizenshipExplainerOpenedEvent: jest.fn(),
+    },
+  },
+}));
+jest.mock("../../src/client/PrivateLobbyAccess", () => ({
+  isPrivateLobbyRowEnabled: jest.fn().mockResolvedValue(false),
 }));
 
+import { CitizenshipExplainerModal } from "../../src/client/CitizenshipExplainerModal";
 import { CitizenshipRestartModal } from "../../src/client/CitizenshipRestartModal";
 import { closePreStartModals } from "../../src/client/PreStartModals";
 import { TenureGrantModal } from "../../src/client/TenureGrantModal";
@@ -57,6 +72,18 @@ describe("closePreStartModals (task 0336)", () => {
   it("S2. regression: still closes the restart popup", async () => {
     const modal = await mount(new CitizenshipRestartModal());
     modal.show(() => false);
+    await modal.updateComplete;
+    expect(modal.isVisible).toBe(true);
+
+    closePreStartModals();
+    await modal.updateComplete;
+
+    expect(modal.isVisible).toBe(false);
+  });
+
+  it("S3. closes an open citizenship explainer (task 0301)", async () => {
+    const modal = await mount(new CitizenshipExplainerModal());
+    await modal.show({ source: "CardLink" });
     await modal.updateComplete;
     expect(modal.isVisible).toBe(true);
 

@@ -22,7 +22,7 @@ fkit-coder
 
 **Filed 2026-09-26 by a spawned `fkit-producer` with no owner channel (ADR-021), on an owner request
 given in the `fkit lead` session and relayed by `fkit-lead`.** Split out of the same request as
-[`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (the explainer popup). ⚠️ The
+[`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (the explainer popup). ⚠️ The
 owner asked for the work; they did **not** rule that private lobbies become a citizen perk, how it is
 enforced, or this split. ⛔ Not producer precedent. *(Kept as written; answered below.)*
 
@@ -38,7 +38,7 @@ the "funnel/explanation" of the perks would depend on it."*
 - **Settled:** private lobbies become a citizen perk (open question 1 — **yes**). **Creating** a lobby is
   the perk; **joining** a friend's lobby by invite **stays free** (open question 2 — **yes**, as
   recommended).
-- **Rank:** 2 on Sprint 6 — **above** [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md).
+- **Rank:** 2 on Sprint 6 — **above** [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md).
   The dependency is therefore **reversed**: `0301` now depends on this task (it lists this perk), and this
   task **no longer depends on `0301`**. See *Dependencies* and open question 5.
 - ⚠️ **Reading, open to owner correction:** *"citizens"* is read as **`is_citizen` — earned (XP) OR
@@ -61,7 +61,7 @@ precedent. Verbatim:
   information that this feature is only for citizens, without the "buy" button, but later when we do the
   better "what is citizenship + buy it" popu, this simple solution will be removed."*
   - **Build:** a **simple "citizens only" info popup — NO buy button.** It is **temporary**:
-    [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) **removes** it and points the
+    [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) **removes** it and points the
     locked tap at the full explainer.
   - 🚢 **This task and `0301` ship in the SAME deploy.** Build this first (it ranks above `0301`), but do
     **not** release it on its own. ⚠️ `0301` waits on `0248`, which waits on `0250`, so the shared release
@@ -106,7 +106,7 @@ product decision (open question 1). Showing a locked button that stays locked af
 false promise on a paid product.
 
 ### Dependencies and conflicts
-- ~~**Needs [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)'s popup** — the
+- ~~**Needs [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)'s popup** — the
   locked tap opens it.~~ 📌 **Reversed 2026-09-26 by owner ruling:** this task now ranks **above** `0301`
   and `0301` depends on it. Until `0301` ships there is no popup for the locked tap to open — **open
   question 5**. Producer recommendation: the tap opens the **existing citizenship card** (it already has
@@ -220,7 +220,7 @@ doesn't back).
 
 - **Depends on:** nothing.
 - 🚢 **Release coupling (owner ruling 2026-09-26):** ships in the **same deploy** as
-  [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md). Not a build dependency —
+  [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md). Not a build dependency —
   this task is built first — but it must not be released alone.
 - ⚠️ **2026-10-03 — the release coupling above was BROKEN, and is now replaced by a release gate.** OWNER RULING
   relayed by `fkit-lead`; ⛔ not producer precedent. *(Recorded by a spawned `fkit-producer` with no owner channel,
@@ -241,7 +241,7 @@ doesn't back).
 - *History of the line above — updated 2026-09-26 by owner ruling, kept in its own bullet so no tool reads
   the old link as a live dependency:* it read *"`0301` (the popup and its analytics source shape); an
   owner decision (open question 1)"*. The owner decision is taken, and this task now ranks above `0301`.
-- **Blocks:** [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) — it lists this perk
+- **Blocks:** [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) — it lists this perk
   (owner ruling 2026-09-26). Otherwise nothing directly. Its shared locked-feature state is meant for reuse by
   [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md), [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md)
   and Sprint 6's perk rows (Nickname Styling, Map Voting, Replay Access, Custom Flags). Linked, not merged.
@@ -249,7 +249,7 @@ doesn't back).
   private-lobby entry in the Multiplayer tab); `0068` (citizen badge — the server-side citizen flag);
   `plan-index.md` item 8b.
 - ⚠️ **Priority 20 is append rank, NOT a merit ranking — flagged for owner confirmation.**
-  **On merit this belongs directly below [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)**,
+  **On merit this belongs directly below [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)**,
   because it needs that popup, and it turns *"we have almost no perks"* into one real, visible one.
   ✅ **Answered 2026-09-26 by owner ruling — the other way:** rank 2, **above** `0301`.
 - **Open questions for the owner** (also in the producer's hand-off):

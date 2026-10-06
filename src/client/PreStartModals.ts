@@ -19,6 +19,8 @@ export const PRE_START_MODAL_TAGS: readonly string[] = [
   "citizenship-restart-modal",
   // Task 0336: the tenure gift popup never stays over a match.
   "tenure-grant-modal",
+  // Task 0301: nor does the citizenship explainer.
+  "citizenship-explainer-modal",
 ];
 
 export function closePreStartModals(): void {

@@ -14,6 +14,22 @@ export const PRIVATE_LOBBY_ROW_ID = "private-lobby-row";
 export const HOST_LOBBY_BUTTON_ID = "host-lobby-button";
 
 /**
+ * Whether the private-lobby row is shown at all (task 0354): the citizenship
+ * surfaces are on AND (the `geoconflict_tester` marker OR the
+ * `private_lobbies_all` flag). Waits for platform init. The row and the
+ * citizenship explainer's private-lobby line (task 0301) both read this — one
+ * rule, two readers. May reject; callers fail closed.
+ */
+export async function isPrivateLobbyRowEnabled(): Promise<boolean> {
+  await flashist_waitGameInitComplete();
+  const facade = FlashistFacade.instance;
+  return (
+    (await facade.isCitizenshipSurfacesEnabled()) &&
+    (isTesterMarkerSet() || (await facade.isPrivateLobbiesForEveryoneEnabled()))
+  );
+}
+
+/**
  * The private-lobby row on the start screen (task 0302). Creating a private
  * lobby is a citizen perk; joining one stays free for everyone (owner rulings
  * 2026-09-26 / 2026-09-27).
@@ -55,13 +71,7 @@ export class PrivateLobbyAccess {
   /** Resolves once the row's visibility has been decided. Never rejects. */
   public async start(): Promise<void> {
     try {
-      await flashist_waitGameInitComplete();
-      const facade = FlashistFacade.instance;
-      const isEnabled =
-        (await facade.isCitizenshipSurfacesEnabled()) &&
-        (isTesterMarkerSet() ||
-          (await facade.isPrivateLobbiesForEveryoneEnabled()));
-      if (!isEnabled) {
+      if (!(await isPrivateLobbyRowEnabled())) {
         return;
       }
       const row = document.getElementById(PRIVATE_LOBBY_ROW_ID);
@@ -79,7 +89,7 @@ export class PrivateLobbyAccess {
   }
 
   /**
-   * The Create Lobby click. Locked → the citizenship popup, and the host modal
+   * The Create Lobby click. Locked → the citizenship explainer, and the host modal
    * never opens. Unlocked → `openHostModal`, exactly as before this task.
    */
   public onCreateTap(openHostModal: () => void): void {

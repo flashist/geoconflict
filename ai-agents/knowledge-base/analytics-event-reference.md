@@ -346,6 +346,8 @@ would trade a rare mislabelled error for a permanently silent one.
 | `uiElementIds.singleplayerTab`          | `UI:Tap:SingleplayerTab`          | Player taps the Singleplayer tab on the start screen. Same semantics as `MultiplayerTab`                                                                                                                                                                                                                                                                                    |
 | `uiElementIds.citizenshipLoginToEarn`   | `UI:Tap:CitizenshipLoginToEarn`   | Guest player taps the "Войти в Яндекс" login CTA on the citizenship card (start screen). Note: supersedes the `UI:Tap:CitizenLoginCta` string mentioned in `0191-citizenship-xp-progress-ui` — the citizenship funnel spec (`0021-analytics-p1-citizenship-funnel`) is authoritative                                                                                        |
 | `uiElementIds.purchaseCitizenship`      | `UI:Tap:PurchaseCitizenship`      | Player taps the "Buy Citizenship" button on the citizenship card (State 2, non-citizen), before the purchase flow starts and before the Yandex payment frame opens. Constant registered in 0019; button wired in 0018. Note: supersedes the `UI:Tap:CitizenshipBuy` string in `0021-analytics-p1-citizenship-funnel` §2 — this reference + the 0018 brief are authoritative |
+| `uiElementIds.purchaseCitizenshipExplainer` | `UI:Tap:PurchaseCitizenshipExplainer` | Player taps the Buy button **inside the "What is citizenship?" explainer popup** (task 0301). Fires before the purchase flow starts; the existing `Purchase:Started/Completed/Abandoned:Citizenship` events follow, unchanged. The popup buys through the citizenship card, so a tap while a purchase from the card (or the popup) is already running fires **nothing** and does nothing (one shared latch, checked before this event is logged — the same as a repeat tap on the card's own button). Separate from the card's own `UI:Tap:PurchaseCitizenship`, so the popup's share of purchases is countable |
+| `uiElementIds.citizenshipLoginExplainer` | `UI:Tap:CitizenshipLoginExplainer` | A guest taps the login button **inside the explainer popup** (task 0301). Shown only when a login can work (Yandex context, SDK not degraded) — the card's own rule. The login restart funnel (`Profile:Login:Restart:*`) follows exactly as for the card's `UI:Tap:CitizenshipLoginToEarn`. Not fired while a Yandex auth dialog is already open |
 
 > **UI:Tap convention:** `UI:Tap:{ElementId}` is the standard pattern for tracking specific UI element interactions. The prefix is `flashistConstants.analyticEvents.UI_TAP_FIRST_PART`. Element IDs are registered in `flashistConstants.uiElementIds` (PascalCase, descriptive). Fire via `FlashistFacade.instance.logUiTapEvent(flashistConstants.uiElementIds.yourElement)`. This is opt-in — only elements listed in this document are instrumented.
 
@@ -416,6 +418,31 @@ Part of the citizenship funnel (`ai-agents/tasks/done/0021-analytics-p1-citizens
 > chain runs impression → CTA tap → purchase started → completed/abandoned, so a player who
 > considered citizenship and declined is indistinguishable from one who never engaged past the
 > impression. If a Learn-more surface is ever designed, the event returns **with** it — and only then.
+>
+> **Addendum 2026-10-06 (task `0301`): the Learn-more surface now exists, and its signal is
+> `Citizenship:Explainer:Opened:CardLink`, not the dropped string.** The citizenship card carries a
+> "What is citizenship?" link that opens the explainer popup. `UI:Tap:CitizenshipLearnMore` is **still
+> not re-added** — the explainer has its own per-source events (below). The accepted cost above — "no
+> researched-but-didn't-buy signal" — is **closed**: a player who opened the explainer and did not buy
+> is now distinguishable from one who never engaged past the impression.
+
+### Citizenship Explainer Events
+
+The "What is citizenship?" popup (task `0301`). One *opened* event per source; it fires only when the popup actually
+opens — never while the citizenship kill switch is off (the popup refuses to open). Taps inside the popup are the two
+`UI:Tap:*Explainer` rows under *UI:Tap events*.
+
+| Enum Key / Id | Event String | When Fired |
+| --- | --- | --- |
+| `CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART` + `citizenshipExplainerSources.cardLink` | `Citizenship:Explainer:Opened:CardLink` | The popup opened from the "What is citizenship?" link on the citizenship card. The link shows in every card state except "checking" (owner ruling Q2, 2026-10-06), so guests, non-citizens, citizens and players whose profile read failed can all fire it |
+| `CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART` + `citizenshipExplainerSources.instructions` | `Citizenship:Explainer:Opened:Instructions` | The popup opened from the link in the Citizenship section at the top of Instructions. That section is shown only when the citizenship surfaces are on at load; a late flag recovery (`0329`) does not reveal it for that load |
+| `CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART` + `citizenshipExplainerSources.lockedFeature` + `:` + `lockedFeatureIds.privateLobby` | `Citizenship:Explainer:Opened:LockedFeature:PrivateLobby` | The popup opened from a tap on the **locked** Create Lobby button, right after `LockedFeature:Tap:PrivateLobby`. Five colon parts — the GameAnalytics maximum, as `Profile:Login:SignatureAge:*`. Later locked perks add their own `lockedFeatureIds` suffix. Unreachable in a local dev build (Create is never locked there) |
+
+> **Fired through** `FlashistFacade.logCitizenshipExplainerOpenedEvent(sourceSuffix)` from
+> `CitizenshipExplainerModal.show()`; callers open the popup only via `openCitizenshipExplainer()` in
+> `src/client/CitizenshipExplainer.ts`. Each `show()` that opens fires once, so re-opening counts again.
+> **Funnel reading:** Opened → `UI:Tap:PurchaseCitizenshipExplainer` → `Purchase:Started/Completed/Abandoned:Citizenship`.
+> The purchase events are not split by surface; the tap events are.
 
 ### Locked Feature Events
 
@@ -423,12 +450,13 @@ A citizen perk shown **locked** to a non-citizen (task `0302`). One event per ta
 
 | Enum Key / Id                                                   | Event String                   | When Fired                                                                                                                                                                                                                                                                                                                                          |
 | --------------------------------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `LOCKED_FEATURE_TAP_FIRST_PART` + `lockedFeatureIds.privateLobby` | `LockedFeature:Tap:PrivateLobby` | Player taps the **locked** "Create Lobby" button on the Multiplayer tab. The button is locked for anything but a confirmed citizen — guest, non-citizen, profile still loading or unreadable. Fires before the "citizens only" popup opens (the popup itself does nothing while the citizenship kill switch is off). Never fires for a citizen, and never while the row is hidden — citizenship surfaces off (testers included, and on a degraded boot), or a non-tester while the `private_lobbies_all` flag is not `enabled` (task `0354`) |
+| `LOCKED_FEATURE_TAP_FIRST_PART` + `lockedFeatureIds.privateLobby` | `LockedFeature:Tap:PrivateLobby` | Player taps the **locked** "Create Lobby" button on the Multiplayer tab. The button is locked for anything but a confirmed citizen — guest, non-citizen, profile still loading or unreadable. Fires before the citizenship explainer popup opens (task 0301; the popup itself does nothing while the citizenship kill switch is off), and before its `Citizenship:Explainer:Opened:LockedFeature:PrivateLobby`. Never fires for a citizen, and never while the row is hidden — citizenship surfaces off (testers included, and on a degraded boot), or a non-tester while the `private_lobbies_all` flag is not `enabled` (task `0354`) |
 
 > **Convention:** `LockedFeature:Tap:{FeatureId}`. Prefix `flashistConstants.analyticEvents.LOCKED_FEATURE_TAP_FIRST_PART`; ids in
 > `flashistConstants.lockedFeatureIds` (PascalCase). Fire only through `onLockedFeatureTap(featureId)` in
 > `src/client/LockedFeature.ts`, which `FlashistFacade.logLockedFeatureTapEvent()` backs. Later perks add their own id. The
-> "explainer opened" event belongs to task `0301`.
+> "explainer opened" event that follows a locked tap is `Citizenship:Explainer:Opened:LockedFeature:{FeatureId}` — see
+> *Citizenship Explainer Events* (task `0301`).
 
 ### Profile Session Events
 

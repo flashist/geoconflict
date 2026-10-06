@@ -185,6 +185,13 @@ export const flashistConstants = {
     CITIZENSHIP_RESTART_PROMPT_RESTART: "Citizenship:RestartPrompt:Restart",
     CITIZENSHIP_RESTART_PROMPT_LATER: "Citizenship:RestartPrompt:Later",
 
+    // The "What is citizenship?" explainer popup actually opened (task 0301).
+    // The suffix is a citizenshipExplainerSources value; a locked-perk tap adds
+    // ":" + its lockedFeatureIds value, e.g.
+    // Citizenship:Explainer:Opened:LockedFeature:PrivateLobby. Not fired while
+    // the citizenship kill switch is off (the popup does not open).
+    CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART: "Citizenship:Explainer:Opened:",
+
     // The citizenship card's session status line (task 0397). Unverified = the
     // "not confirmed" notice shown to a citizen (paid AND earned — it cannot
     // count paid alone, on purpose); ReadFailed = the "couldn't load" notice
@@ -342,6 +349,18 @@ export const flashistConstants = {
     citizenshipLoginToEarn: "CitizenshipLoginToEarn",
     // Fired by 0018's "Buy Citizenship" CTA (via logUiTapEvent) — no UI in 0019.
     purchaseCitizenship: "PurchaseCitizenship",
+    // The Buy and Login buttons inside the citizenship explainer popup (task
+    // 0301) — separate from the card's own, so the popup's share is countable.
+    purchaseCitizenshipExplainer: "PurchaseCitizenshipExplainer",
+    citizenshipLoginExplainer: "CitizenshipLoginExplainer",
+  },
+
+  // Where the citizenship explainer popup was opened from (task 0301): the
+  // suffix of Citizenship:Explainer:Opened:{Source}.
+  citizenshipExplainerSources: {
+    cardLink: "CardLink",
+    instructions: "Instructions",
+    lockedFeature: "LockedFeature",
   },
 
   // Citizen perks shown locked to everyone else (task 0302). One id per perk;
@@ -1875,6 +1894,13 @@ export class FlashistFacade {
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.LOCKED_FEATURE_TAP_FIRST_PART +
         featureId,
+    );
+  }
+
+  public logCitizenshipExplainerOpenedEvent(sourceSuffix: string): void {
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART +
+        sourceSuffix,
     );
   }
 

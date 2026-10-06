@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, query } from "lit/decorators.js";
 import { getAltKey, getModifierKey, translateText } from "../client/Utils";
+import "./CitizenshipHelpSection";
 import "./components/Difficulties";
 import "./components/Maps";
 
@@ -39,6 +40,8 @@ export class HelpModal extends LitElement {
         flashistAdaptation_title="Instructions"
         translationKey="main.instructions"
       >
+        <!-- Task 0301: renders nothing (and no separator) while hidden. -->
+        <citizenship-help-section></citizenship-help-section>
         <div class="flex flex-col items-center">
           <div class="text-center text-2xl font-bold mb-4">
             ${translateText("help_modal.hotkeys")}

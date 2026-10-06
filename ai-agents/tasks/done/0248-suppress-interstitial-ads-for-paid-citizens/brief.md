@@ -315,7 +315,7 @@ store-copy condition.
   explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated — OWNER RULING 2026-10-05, relayed by `fkit-lead`; [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md))*. This task still waits on **`0250` S3b**; read *"S3b waits on … `0325`"* above as
   *"… on `0340`"*.
 - **Blocks:** ~~nothing.~~ 📌 **Updated 2026-09-26 (owner ruling — see *Sprint*):**
-  [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
+  [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md), the citizenship explainer
   popup, which now ranks below this task so it can list ad-free. ⚠️ Through this task, `0301` also waits on
   `0250`.
 - 📌 **Stale fact, corrected 2026-09-26 (not an owner ruling — a code read):** *Step 2* says

@@ -72,7 +72,7 @@ addendum under Sprint 6's status table.
 the ★ verified icon (`0068`), name change (`0067`), the personal inbox, private lobbies (`0302`), and — once
 built — no interstitial ads for paid citizens (`0248`). Items A–E are the candidate **next** perks and
 paid add-ons. They should be discussed together, because each one changes what "being a citizen" means and what
-the explainer popup ([`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)) promises.
+the explainer popup ([`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)) promises.
 
 ### How the split was decided (producer's call — owner may overrule)
 
@@ -356,7 +356,7 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
 - **Blocks:** nothing directly. ⚠️ Cross-board ordering: item A (paid map packs) is meant to ship **after**
   [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (free historical maps).
 - **Related:** [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (the twin),
-  [`0301`](../0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (what the popup promises),
+  [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (what the popup promises),
   [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
   [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md),
   [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md),

@@ -42,7 +42,7 @@ owner channel (ADR-021; the relay named the ruling, ADR-037 §3); ⛔ not produc
 - **Why it was asked:** earlier that day the owner moved
   [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free for paid citizens) into
   Sprint 6 above the citizenship explainer popup
-  ([`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
+  ([`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md)). `0248` cannot be built
   without this task, so both waited on it.
 - **Effect:** rank **4** on [Sprint 6](../../../sprints/done/plan-sprint-6.md), directly above `0248`; the
   [Backlog board](../../../sprints/backlog.md) row reads `➡️ Moved`. Full record: the second *RE-RANK

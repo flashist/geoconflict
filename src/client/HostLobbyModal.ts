@@ -1036,7 +1036,7 @@ export class HostLobbyModal extends LitElement {
     if (!response.ok) {
       // Task 0302: a 403 `citizens_only` (creator not a citizen, or the profile
       // could not be read in time) or any other failure. A generic line, not the
-      // citizens-only popup (owner ruling 2026-09-27, Q1); the modal stays open.
+      // citizenship popup (owner ruling 2026-09-27, Q1); the modal stays open.
       console.error(
         `Failed to start private game: ${response.status} ${response.statusText}`,
       );

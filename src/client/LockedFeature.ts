@@ -1,16 +1,16 @@
-import type { CitizensOnlyModal } from "./CitizensOnlyModal";
+import { openCitizenshipExplainer } from "./CitizenshipExplainer";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 
 /**
  * The one place a tap on a LOCKED citizen perk goes (task 0302). Fires
- * `LockedFeature:Tap:{featureId}` and opens the citizenship popup.
- *
- * Today the popup is the interim "citizens only" notice (no buy button, owner
- * ruling 2026-09-26). Task 0301 re-points THIS function at its citizenship
- * explainer; later perks (0249, 0030, ...) call it with their own
+ * `LockedFeature:Tap:{featureId}` first, then opens the citizenship explainer
+ * popup (task 0301 — it replaced 0302's interim "citizens only" notice). The
+ * popup's own `Citizenship:Explainer:Opened:LockedFeature:{featureId}` follows
+ * only if it actually opens (not while the citizenship kill switch is off).
+ * Later perks (0249, 0030, ...) call it with their own
  * `flashistConstants.lockedFeatureIds` value.
  */
 export function onLockedFeatureTap(featureId: string): void {
   FlashistFacade.instance.logLockedFeatureTapEvent(featureId);
-  void document.querySelector<CitizensOnlyModal>("citizens-only-modal")?.show();
+  openCitizenshipExplainer({ source: "LockedFeature", featureId });
 }

@@ -3,7 +3,8 @@
  */
 // Tasks 0302/0354: the private-lobby row. Shown only when the citizenship
 // surfaces are on AND (tester marker OR private_lobbies_all); Create locked for
-// anything but a confirmed citizen; Join never locked.
+// anything but a confirmed citizen; Join never locked. Task 0301: a locked tap
+// opens the citizenship explainer popup.
 jest.mock("../../src/client/Utils", () => ({
   translateText: jest.fn((key: string) => key),
 }));
@@ -38,6 +39,7 @@ import {
 import {
   PRIVATE_LOBBY_ROW_ID,
   PrivateLobbyAccess,
+  isPrivateLobbyRowEnabled,
 } from "../../src/client/PrivateLobbyAccess";
 
 const isEveryoneEnabled = FlashistFacade.instance
@@ -58,10 +60,10 @@ function mountPage(): void {
       <o-button id="host-lobby-button" translationKey="main.create_lobby"></o-button>
       <o-button id="join-private-lobby-button" translationKey="main.join_lobby"></o-button>
     </div>
-    <citizens-only-modal></citizens-only-modal>
+    <citizenship-explainer-modal></citizenship-explainer-modal>
   `;
   popupShow = jest.fn();
-  Object.assign(document.querySelector("citizens-only-modal")!, {
+  Object.assign(document.querySelector("citizenship-explainer-modal")!, {
     show: popupShow,
   });
 }
@@ -218,6 +220,50 @@ describe("PrivateLobbyAccess (task 0302)", () => {
     });
   });
 
+  // Task 0301: the visibility rule, extracted so the citizenship explainer's
+  // private-lobby line reads the same answer as the row.
+  describe("isPrivateLobbyRowEnabled()", () => {
+    it.each([
+      // surfaces, tester, everyone → enabled
+      [true, true, false, true],
+      [true, false, true, true],
+      [true, true, true, true],
+      [true, false, false, false],
+      [false, true, true, false],
+      [false, true, false, false],
+      [false, false, true, false],
+    ])(
+      "surfaces=%s tester=%s everyone=%s → %s",
+      async (surfaces, tester, everyone, expected) => {
+        isSurfacesEnabled.mockResolvedValue(surfaces);
+        isTester.mockReturnValue(tester);
+        isEveryoneEnabled.mockResolvedValue(everyone);
+
+        await expect(isPrivateLobbyRowEnabled()).resolves.toBe(expected);
+      },
+    );
+
+    it("waits for platform init before reading anything", async () => {
+      let releaseInit: () => void = () => {};
+      waitGameInit.mockReturnValue(
+        new Promise<void>((resolve) => (releaseInit = resolve)),
+      );
+      const answer = isPrivateLobbyRowEnabled();
+      await Promise.resolve();
+
+      expect(isSurfacesEnabled).not.toHaveBeenCalled();
+
+      releaseInit();
+      await expect(answer).resolves.toBe(true);
+    });
+
+    it("rejects when a read throws — the caller fails closed", async () => {
+      isSurfacesEnabled.mockRejectedValue(new Error("boom"));
+
+      await expect(isPrivateLobbyRowEnabled()).rejects.toThrow("boom");
+    });
+  });
+
   describe("switch on: Create is a citizen perk", () => {
     it.each([
       ["unknown (profile still loading)", null],
@@ -238,7 +284,7 @@ describe("PrivateLobbyAccess (task 0302)", () => {
       );
     });
 
-    it("a locked tap fires LockedFeature:Tap:PrivateLobby, opens the popup, never the host modal", async () => {
+    it("a locked tap fires LockedFeature:Tap:PrivateLobby, then opens the explainer, never the host modal", async () => {
       publishCitizenshipStatus("not_citizen");
       const access = await startAccess();
       const openHostModal = jest.fn();
@@ -247,6 +293,15 @@ describe("PrivateLobbyAccess (task 0302)", () => {
 
       expect(logLockedFeatureTap).toHaveBeenCalledWith("PrivateLobby");
       expect(popupShow).toHaveBeenCalledTimes(1);
+      // Task 0301: the explainer, with the locked perk as its source.
+      expect(popupShow).toHaveBeenCalledWith({
+        source: "LockedFeature",
+        featureId: "PrivateLobby",
+      });
+      // The tap event fires first.
+      expect(logLockedFeatureTap.mock.invocationCallOrder[0]).toBeLessThan(
+        popupShow.mock.invocationCallOrder[0],
+      );
       expect(openHostModal).not.toHaveBeenCalled();
     });
 
@@ -376,8 +431,12 @@ describe.each(["index.html", "yandex-games_iframe.html"])(
       expect(buttons[0].closest(`#${PRIVATE_LOBBY_ROW_ID}`)).not.toBeNull();
     });
 
-    it("mounts <citizens-only-modal>", () => {
-      expect(page.querySelectorAll("citizens-only-modal")).toHaveLength(1);
+    // Task 0301: the explainer replaced 0302's interim notice.
+    it("mounts <citizenship-explainer-modal>, and no interim notice", () => {
+      expect(page.querySelectorAll("citizenship-explainer-modal")).toHaveLength(
+        1,
+      );
+      expect(page.querySelectorAll("citizens-only-modal")).toHaveLength(0);
     });
   },
 );

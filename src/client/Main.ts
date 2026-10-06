@@ -17,7 +17,8 @@ import version from "../version";
 import "./AccountModal";
 import { startBuildVersionChecker } from "./BuildVersionChecker";
 import "./CitizenshipCard";
-import "./CitizensOnlyModal";
+import "./CitizenshipExplainerModal";
+import "./CitizenshipHelpSection";
 import "./CitizenshipRestartModal";
 import { CitizenshipRestartModal } from "./CitizenshipRestartModal";
 import {

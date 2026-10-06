@@ -609,6 +609,71 @@ describe("FlashistFacade private_lobbies_all flag + tester marker (tasks 0302/03
   });
 });
 
+// Task 0301: the citizenship explainer funnel's event strings.
+describe("FlashistFacade citizenship explainer events (task 0301)", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const sources = flashistConstants.citizenshipExplainerSources;
+
+  it.each([
+    [sources.cardLink, "Citizenship:Explainer:Opened:CardLink"],
+    [sources.instructions, "Citizenship:Explainer:Opened:Instructions"],
+    [
+      sources.lockedFeature +
+        ":" +
+        flashistConstants.lockedFeatureIds.privateLobby,
+      "Citizenship:Explainer:Opened:LockedFeature:PrivateLobby",
+    ],
+  ])("logCitizenshipExplainerOpenedEvent(%s) sends %s", (suffix, expected) => {
+    const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const facade = Object.create(FlashistFacade.prototype) as FlashistFacade;
+
+    facade.logCitizenshipExplainerOpenedEvent(suffix);
+
+    // Outside prod the event goes to the console instead of GameAnalytics.
+    expect(log).toHaveBeenCalledWith(
+      expect.any(String),
+      expected,
+      expect.any(String),
+      undefined,
+    );
+  });
+
+  it.each([
+    [
+      flashistConstants.uiElementIds.purchaseCitizenshipExplainer,
+      "UI:Tap:PurchaseCitizenshipExplainer",
+    ],
+    [
+      flashistConstants.uiElementIds.citizenshipLoginExplainer,
+      "UI:Tap:CitizenshipLoginExplainer",
+    ],
+  ])("logUiTapEvent(%s) sends %s", (elementId, expected) => {
+    const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    const facade = Object.create(FlashistFacade.prototype) as FlashistFacade;
+
+    facade.logUiTapEvent(elementId);
+
+    expect(log).toHaveBeenCalledWith(
+      expect.any(String),
+      expected,
+      expect.any(String),
+      undefined,
+    );
+  });
+
+  it("every explainer event has at most five colon parts (GameAnalytics limit)", () => {
+    const longest =
+      flashistConstants.analyticEvents.CITIZENSHIP_EXPLAINER_OPENED_FIRST_PART +
+      sources.lockedFeature +
+      ":" +
+      flashistConstants.lockedFeatureIds.privateLobby;
+    expect(longest.split(":")).toHaveLength(5);
+  });
+});
+
 // Task 0329: the late-recovery signal the citizenship card re-checks its gate
 // on. Drives the real yandexSdkInit() recovery branch on a bare facade.
 describe("FlashistFacade.whenPlatformRecoveredLate (task 0329)", () => {

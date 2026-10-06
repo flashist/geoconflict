@@ -1,5 +1,7 @@
 // Task 0302: every new string must exist, non-empty, in BOTH en.json and
-// ru.json (project rule: the two files stay in sync).
+// ru.json (project rule: the two files stay in sync). Task 0301 removed the
+// interim `citizens_only_modal` notice; CitizenshipExplainerLang.test.ts checks
+// that it is gone.
 
 import fs from "fs";
 import path from "path";
@@ -14,9 +16,6 @@ function load(file: string): Record<string, Record<string, string>> {
 // still fails.
 const REQUIRED_KEYS: Array<[string, string]> = [
   ["locked_feature", "citizens_only"],
-  ["citizens_only_modal", "title"],
-  ["citizens_only_modal", "body"],
-  ["citizens_only_modal", "close"],
   ["host_modal", "start_failed"],
 ];
 
@@ -32,7 +31,7 @@ describe("private-lobby perk localization (task 0302)", () => {
     },
   );
 
-  it.each(["locked_feature", "citizens_only_modal"])(
+  it.each(["locked_feature"])(
     "en and ru carry EXACTLY the same %s key set",
     (section) => {
       expect(Object.keys(ru[section]).sort()).toEqual(

@@ -150,7 +150,7 @@ step-0 table in hand:
   this task folds it in.
 - **Related, linked not merged:** [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)
   (first real purchase — will show the live behaviour),
-  [`0301`](../../backlog/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (explainer popup; its buy
+  [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (explainer popup; its buy
   button must update too), [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md),
   [`0248`](../0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (ad-free, not built),
   [`0018`](../../done/0018-citizenship-paid/brief.md) (paid purchase flow),

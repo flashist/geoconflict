@@ -25,7 +25,7 @@ Sprint 7
 rulings* below. ~~19~~ was the append rank until then.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) *(2026-10-06 — closed by a spawned `fkit-producer` (no owner channel), on results relayed by `fkit-lead` from the live `fkit lead` session (`fkit-sprint-ship-loop`, Sprint 7). Plan approved by the owner live via `AskUserQuestion` 2026-10-06 (rulings Q1–Q5 in the task folder's `worklog.md`). Build done; independent verify passed — first full `npm test` red with two failures outside this task (a confirmed `0197` SIGSEGV in `MissileSilo.test.ts`; an untraced supertest-family empty-body failure in `AlertRoutes.test.ts`), re-run green 202/202 suites; ⚠️ the Docker secret-boundary harness was **SKIPPED, not passed**. Stateful review round 1: one low doc defect (R1) fixed doc-only; `review.md` `Status: closed-out`; coverage reasoning-only second opinion. **Q5 owner live check:** owner, verbatim, *"Both work — close it"* (★ badge + name change work in production). ⚠️ **NOT done:** the local dev look in a real browser (plan §6 step 11) — nobody has looked at the layout or ru/en by eye. **Not committed, not deployed.** Deploying `0301` also deploys `0248` (in `dev`), so `0248`'s deploy conditions bind it. After-deploy checks moved to verify task [`0401`](../../backlog/0401-verify-0301-live-the-citizenship-explainer-popup-works-in-production/brief.md) on [Sprint 8](../../../sprints/plan-sprint-8.md) (owner standing rule 2026-09-29, build vs verify split). Earlier values, kept as history:)* ~~🔄 In progress~~ ~~🔲 Backlog~~
 
 ## Owner
 fkit-coder
@@ -107,9 +107,9 @@ The owner said: *"I'm actually not sure if we have any of them right now."* This
 | Change your display name (moderated request) | **Yes** — `0067` ✅ Done | `CitizenshipCard.ts` `renderNameChange()` — rendered only for an authoritative citizen; server refuses non-citizens (`citizenship_name_change.error_not_citizen`) | Yes, once step 0 sees it in prod |
 | Personal inbox (system messages) | **Yes** — `0012` ✅ Done | `src/client/Inbox.ts` — server 403s non-citizens | Weak as a *selling* point (it mostly delivers the name-change result) — owner call |
 | **No interstitial ads** (paid citizens) | ❌ **NO** | No citizen check anywhere in the ad path — see [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) | ⛔ **NO** — owner condition, below |
-| **Full emoji set** | ❌ **NO** | One flat emoji table for everyone — see [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) | ⛔ **NO** — owner condition, below |
+| **Full emoji set** | ❌ **NO** | One flat emoji table for everyone — see [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) | ⛔ **NO** — owner condition, below |
 | **Private lobbies** | ❌ **NO** — not gated, and **hidden for everyone** on Yandex | See below | ⛔ **NO** until [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md) ships |
-| Match history / archive | ❌ **NO** — archiving is a no-op | `src/server/Archive.ts:18-19`; [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) | ⛔ **NO** |
+| Match history / archive | ❌ **NO** — archiving is a no-op | `src/server/Archive.ts:18-19`; [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) | ⛔ **NO** |
 | Nickname styling, map voting, replay access, custom flags | ❌ **NO** — not built | Sprint 6 rows *Nickname Styling System*, *Map Voting for Verified Players*, *Replay Access as Premium Feature*, *Custom Uploaded Flags & Patterns* (no briefs yet) | ⛔ **NO** |
 
 **Why no private-lobby button is visible (the owner's direct question).** It is **not** hidden for
@@ -122,7 +122,7 @@ wrapped in `style="display: none;"`, and has been since the Yandex port (commit 
 
 🔒 **Locked constraint — do NOT claim ad-free or the emoji set.** On 2026-09-12 the owner ruled, for
 both [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) and
-[`0249`](../0249-citizen-gated-full-emoji-set/brief.md): *build the benefit*, but **the claim comes out of
+[`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md): *build the benefit*, but **the claim comes out of
 the store copy until it ships.** This explainer is store copy in everything but name. `PROJECT.md:36`
 still lists those benefits — that is the *intended* product, not the live one; do not copy from it.
 
@@ -243,10 +243,10 @@ never an inline string. At minimum:
   source (whatever `0302` open question 5 settles for the interim). ✅ *Settled 2026-09-26:* the interim
   is a simple "citizens only" popup with no buy button; this task deletes it.
 - **Related, linked not merged:** [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md)
-  (ad-free) and [`0249`](../0249-citizen-gated-full-emoji-set/brief.md) (emoji set) — when either ships,
+  (ad-free) and [`0249`](../../backlog/0249-citizen-gated-full-emoji-set/brief.md) (emoji set) — when either ships,
   add its line to the explainer in that task, not here. [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md)
   (the client cannot tell *paid* from *earned*) — only matters if a paid-only benefit is ever listed.
-  [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (match archive). Sprint 6's un-briefed perk
+  [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) (match archive). Sprint 6's un-briefed perk
   rows — Nickname Styling, Map Voting, Replay Access, Custom Flags — each should add its explainer line
   when it ships. Kill switch: `0236` / `0238`. Paid flow: `0018`, `0065`.
 - **Suggested standing rule for the owner to confirm:** *"a perk is added to the explainer by the task
