@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 30 (✅ owner-ruled 2026-10-01: placed **directly below `0337`**, with the top group, whatever the number says — the number stays 30, ADR-035) / task `0366`
 
+> 📌 **2026-10-06 sync — read, then re-cut.** `0373` read these brackets: only ≈ 11 % of stale was 15–20 min old,
+> ≈ 58 % was 30 min – 6 h, `past_over_24h` ≈ 2.5 % of logins ([[tasks/stale-login-fix-decision]]). `0391` (**deployed
+> 2026-10-06**, `0.0.156-profile.2`) **retired the five sub-24 h past brackets** and split the old `past_over_24h` into
+> `past_24h_48h` / `past_48h_7d` / `past_over_7d`; the counter name, label key and the future side are unchanged. Old
+> bracket series stop at that deploy ([[tasks/login-signature-24h-window]]).
+>
 > ✅ Done (agent-closed — not owner-verified), 2026-10-01. Built to the owner-approved plan; the code landed in
 > commit `e581824` ("Sprint push", 2026-10-01). ⚠️ **Not deployed** — it targets Saturday's (2026-10-03/04) profile
 > deploy. ⚠️ The board row's own text says *"Not committed"*; that was true when the producer closed it and is now
@@ -107,3 +113,6 @@ board to Sprint 7 the same day.
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, the client-side labels that mirror these brackets (same edges, a parity test)
 - [[decisions/sprint-8]] — where `0373` reads these brackets (rank 2 until 2026-10-04; then moved to Sprint 7, rank 36)
 - [[systems/analytics]] — the client mirror of these brackets (`0372`'s `Profile:Login:SignatureAge:*` events)
+- [[tasks/stale-login-fix-decision]] — task `0373`, which read these brackets
+- [[tasks/login-signature-24h-window]] — task `0391`, which re-cut them (deployed 2026-10-06)
+- [[decisions/adr-121-login-signature-24h-window]] — the decision that retired the sub-24 h brackets

@@ -5,6 +5,27 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-10-06 — A MID-WEEK PROFILE DEPLOY RAN (`0391`, OWNER-RULED EXCEPTION); NEXT PROFILE DEPLOY IS `0340`
+>
+> - **Owner-run profile deploy, Tue 2026-10-06** — a mid-week exception to the weekend-slot rule (owner *"Yes, Tuesday
+>   (Recommended)"*, [[decisions/adr-122-stale-login-gate-owner-judgment]]). Profile only, no game deploy. Version
+>   **`0.0.156-profile.2`**, commit `0aef613` (code = `6eef01f`, **`0391` only**; `0340`'s `71efd10` NOT in it). Deploy
+>   record 08:09:49Z.
+> - **Checks (read-only, `fkit-lead`, relayed):** `/health` ok, `/ready` 200; `profile-api` recreated and healthy,
+>   `postgres` untouched; 0 warn / 0 error; game server kept crediting — one resolve warn during the restart, **no XP
+>   lost**; the owner saw the name-change digest arrive. Early login sample (~5 min): `ok` 45, `stale` 1 — ⚠️ far too
+>   little to judge.
+> - ⚠️ The 2026-10-06 08:00Z `profile-checks` run was ~9 min **before** the deploy; the first backup and checks on the
+>   new version were still to come (2026-10-07 02:00Z / 08:00Z) — not recorded in this window.
+> - **Rollback target:** `0.0.156-profile.1` (safe; brings back the 900 s window). ⚠️ Counters restarted — never compare
+>   across the deploy; 08:09:49Z starts `0392`'s reading window.
+> - **Next profile deploy: `0340` from `71efd10`** (checkout, deploy, return; rollback target `0.0.156-profile.2`) via
+>   `0395`. Gates: `0391` live — **met**; the owner's look via `0392` — open; the owner's separate OK to enforce — open.
+>   Earliest: the 10/11 Oct slot. `0250` S3b must go in a **later** slot (`0396`).
+> - See [[tasks/login-signature-24h-window]], [[tasks/verified-login-enforce]].
+>
+> ---
+>
 > # 📌 2026-10-04 (later, `72a223d`) — W15's `0032` RE-CHECK IS DONE; F-C NOW HAS A DECIDED DIRECTION (NOT BUILT)
 >
 > - ✅ **W15 — `0032` step 5's Uptrace re-check: PASSED, 2026-10-04.** Run read-only by `fkit-lead` at the owner's request
@@ -776,3 +797,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[decisions/sprint-8]] — the verify tasks `0363`, `0358`, `0370`, `0351` for the 2026-10-03 window
 - [[tasks/client-null-id-errors]] — task `0032`: shipped in W12 (`0.0.152`); its W15 Uptrace re-check passed 2026-10-04
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): the decided direction for finding F-C (pin images by digest; deliberate, backup-first Postgres upgrades)
+- [[tasks/login-signature-24h-window]] — task `0391`, the 2026-10-06 mid-week profile deploy
+- [[tasks/verified-login-enforce]] — task `0340`, the next profile deploy (via `0395`)
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — the ruling behind the Tuesday exception
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 read lifted the profile freeze (closed 2026-10-05)

@@ -5,6 +5,10 @@
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
 >
+> 📌 **2026-10-06 sync — ADR-116's note to this ADR is STILL PENDING.** `0340` (S3a) is built (commit `71efd10`) and
+> closed as built + reviewed, but **not deployed**; applying the note after S3a is live moved to its verify task `0395`.
+> See [[tasks/verified-login-enforce]].
+>
 > 📌 **2026-09-26 — fully implemented and in production.** All five slices and the epic (`0266`) are
 > closed `(agent-closed — not owner-verified)`; the game deploy of 2026-09-26 (release `0.0.152`) put the
 > client login and the game-server resolve/credit path live — **41 players / 41 identities** and the first
@@ -163,3 +167,5 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks
 - [[decisions/adr-116-verified-login]] — the verified login that will update point 5, point 9 and the re-raise list once `0340` ships
 - [[tasks/verified-login-shadow-mode]] — task `0325`, S2 shadow mode: `vfy` widened, still minted `false`
+- [[tasks/verified-login-enforce]] — task `0340`, S3a; the dated note here waits for its deploy (`0395`)
+- [[tasks/authenticated-profile-read]] — task `0250`: S3b branches the profile read on the session's `verified` claim

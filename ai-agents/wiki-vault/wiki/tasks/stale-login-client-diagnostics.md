@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 35 (append rank — ⚠️ **not** a merit rank; owner ruling *"Leave the number, start now (Recommended)"*) / task `0372`
 
+> 📌 **2026-10-06 sync — read, and now frozen.** `0373` read these events (with the server brackets): ≈ 87–88 % of
+> stale logins were after-match reloads; the refetch returned the same data ≈ 99 % of the time
+> ([[tasks/stale-login-fix-decision]]). Since `0391` (deployed 2026-10-06) the server window is 24 h, but **these client
+> labels stay frozen on `0366`'s 900 s edges** — `Fresh` no longer equals the server's `ok`, and only the future side is
+> still parity-tested. The refetch and its diagnostic were **kept** (owner: *"Keep both for now (Recommended)"*). See
+> [[tasks/login-signature-24h-window]].
+>
 > ✅ Done (agent-closed — not owner-verified), 2026-10-02, on owner ruling *"Close it (Recommended)"* (live
 > `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). The code is in commit `0c9a620`
 > ("Sprint push", 2026-10-02 — checked with `git show --stat`: `src/client/SignatureAgeAnalytics.ts`,
@@ -112,3 +119,6 @@ tables: [[systems/analytics]] § *Profile Login Signature Age Events*.
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, the same-tab reload behind the leading hypothesis
 - [[decisions/sprint-7]] — the board (rank 35); `0373`, the reading task, moved here at rank 36 on 2026-10-04
 - [[decisions/sprint-8]] — where `0373`, the reading task, sat at rank 2 until 2026-10-04 (moved to Sprint 7, rank 36)
+- [[tasks/stale-login-fix-decision]] — task `0373`, which read these events
+- [[tasks/login-signature-24h-window]] — task `0391`, after which these labels no longer match the server
+- [[decisions/adr-121-login-signature-24h-window]] — the 24 h window; these labels stay frozen on the old edges

@@ -10,6 +10,19 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md`
 >
+> ⛔ **2026-10-05 — SUPERSEDED IN PART by [[decisions/adr-121-login-signature-24h-window]]** (owner *"24 hours
+> (Recommended)"*; append-only pointers added to the canonical ADR, every older line byte-identical). **Superseded:**
+> Decision 3's 900 s freshness window (now **86,400 s**; the 300 s future limit is unchanged), residual 8 (now ADR-121
+> R1 — *a stolen signature works up to ~48 h*), and by consequence the 900 s in *Points settled at build* A4 / B4.
+> ADR-121 also adds an **id-before-age** check order. **Everything else stands; Status stays `accepted`.**
+> 📝 **2026-10-05 clarification** on the S3a gate (*"the owner's watch window and threshold"*): **it has no fixed value**
+> — the owner looks at whatever post-`0391` data exists ([[decisions/adr-122-stale-login-gate-owner-judgment]]). The
+> separate owner approval to enforce, and Decision 6, are unchanged.
+> 🆕 **2026-10-06 sync — where the slices stand:** the 24 h window is **live** since the 2026-10-06 profile deploy
+> (`0391`, [[tasks/login-signature-24h-window]]); **S3a is built, not deployed** — `0340` closed as built + reviewed
+> (`71efd10`), its deploy and live check are `0395` ([[tasks/verified-login-enforce]]); `0250` S3b (the first reader of
+> `verified`) is built, not deployed ([[tasks/authenticated-profile-read]]). **No player is verified in production yet.**
+>
 > 📝 **Dated note on the canonical ADR, 2026-09-29 — S2 shipped in `0325`; S3a moved to task `0340`.** No
 > decision changed; only the task that carries S3a. Wherever the ADR says "`0325` S3a", read **`0340`**. S3a
 > starts only when **both** hold: `0339`'s S2 exit is met, **and** the owner explicitly approves enforcing
@@ -153,3 +166,9 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics feeding `0373`, the reading task S3a (`0340`) now waits on (done 2026-10-02, not deployed)
 - [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: signed identity is a candidate for the citizen-gated archive read (open point 1, an owner question)
+- [[decisions/adr-121-login-signature-24h-window]] — supersedes this ADR in part (2026-10-05): 24 h window, id first, residual R1
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S3a gate's watch window and threshold have no fixed value
+- [[tasks/stale-login-fix-decision]] — task `0373`, the data that overturned the 900 s window
+- [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed; deploy in `0395`)
+- [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed)

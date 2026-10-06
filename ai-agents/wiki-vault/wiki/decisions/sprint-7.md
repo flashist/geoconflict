@@ -5,6 +5,37 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-06 (latest, `6f4ab77`) — 46 ROWS, 8 OPEN: NINE CLOSED, FOUR ADDED; THE STALE-LOGIN CHAIN RAN END TO END
+>
+> **Re-counted at `HEAD` = `6f4ab77`: 46 rows — 33 `✅ Done` · 7 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 8 OPEN** (was 42 / 15). ⚠️ Counted by me this run, by each row's leading status glyph. Every close
+> is `(agent-closed — not owner-verified)`, made by spawned `fkit-producer`s on owner rulings relayed by `fkit-lead`
+> (⛔ not producer precedent). The line-3 banner still reads `🔄 In progress — 2026-09-29`.
+>
+> - ✅ **Closed:** **16** `0340` S3a — built + reviewed only, **not deployed** ([[tasks/verified-login-enforce]]) ·
+>   **17** `0250` — S1 live since 2026-09-29, S3b built and committed (`6f4ab77`), **not deployed**
+>   ([[tasks/authenticated-profile-read]]) · **21** `0297` — three checks **waived by the owner, not verified**
+>   ([[tasks/paid-citizenship-test-buy]]) · **36** `0373` ([[tasks/stale-login-fix-decision]]) · **37** `0354`
+>   ([[tasks/private-lobby-tester-default]]) · **38** `0380` ([[tasks/yandex-invite-copies-code]]) · **39** `0377`
+>   ([[tasks/private-lobby-idle-end]]) · **40** `0353` ([[tasks/host-window-poll-before-lobby]]) · **41** `0374`
+>   ([[tasks/lobby-window-joining-mark]]).
+> - ➕ **Added (all append rank — ⚠️ not merit ranks, flagged for owner confirmation):** **42** `0389` (done —
+>   [[tasks/private-lobby-code-format]]) · **43** `0391` (done, **deployed 2026-10-06** —
+>   [[tasks/login-signature-24h-window]]) · **44** `0392` (read the post-`0391` login numbers before `0340`'s deploy;
+>   moved in from Sprint 8, folder renamed) · **45** `0395` (verify `0340` live: deploy S3a, the owner's DevTools `vfy`
+>   check, route the ADR-113 note; moved in from Sprint 8).
+> - 📌 **Rulings carried (2026-10-05):** fix *"24 hours (Recommended)"* → [[decisions/adr-121-login-signature-24h-window]];
+>   the 5 %/7-day bar removed → [[decisions/adr-122-stale-login-gate-owner-judgment]]; `0391` deployed on a Tuesday
+>   (mid-week exception, *"Yes, Tuesday (Recommended)"*); `0340` split (*"Split it (Recommended)"*) — closes on build +
+>   review, deploy in `0395`; `0250` S3b / `0319` / `0332` / `0323` carry a dated note *"deploy only after `0395` confirms
+>   `vfy: true` live"* — **a note, not a dependency** (*"Note only (Recommended)"*). Architect advice: deploy `0340`
+>   **alone**, not with `0250` S3b.
+> - ⚠️ **Committed ≠ deployed:** the six private-lobby closes are in `8d74090`; no game deploy since `0.0.156`. The only
+>   deploy in this window is the 2026-10-06 profile deploy (`0391` only).
+> - **Still open:** `0219` (Blocked), `0323`, `0332`, `0213`, `0248`, `0301`, `0392`, `0395`.
+>
+> ---
+>
 > # 🆕 2026-10-04 (latest, `72a223d`) — 42 ROWS, 15 OPEN: `0032` PASSED AND CLOSED; FIVE PRIVATE-LOBBY TASKS MOVED IN AT RANKS 37–41
 >
 > **Re-counted at `HEAD` = `72a223d`: 42 rows — 22 `✅ Done` · 13 `🔲 Backlog` · 2 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -553,3 +584,16 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/client-null-id-errors]] — task `0032`, rank 5, closed 2026-10-04 (agent-closed — not owner-verified): Step 5 Uptrace re-check passed
 - [[tasks/private-lobby-citizen-perk]] — the release gate behind `0354`, `0377`, `0380` (ranks 37–39, moved in 2026-10-04)
 - [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — the decision `0380` (rank 38) builds the code half of
+- [[tasks/verified-login-enforce]] — task `0340` (rank 16), S3a built; deploy in `0395` (rank 45)
+- [[tasks/authenticated-profile-read]] — task `0250` (rank 17), closed 2026-10-06; S3b not deployed
+- [[tasks/paid-citizenship-test-buy]] — task `0297` (rank 21), closed 2026-10-05 with three checks waived
+- [[tasks/stale-login-fix-decision]] — task `0373` (rank 36), closed 2026-10-05
+- [[tasks/private-lobby-tester-default]] — task `0354` (rank 37)
+- [[tasks/yandex-invite-copies-code]] — task `0380` (rank 38)
+- [[tasks/private-lobby-idle-end]] — task `0377` (rank 39)
+- [[tasks/host-window-poll-before-lobby]] — task `0353` (rank 40)
+- [[tasks/lobby-window-joining-mark]] — task `0374` (rank 41)
+- [[tasks/private-lobby-code-format]] — task `0389` (rank 42)
+- [[tasks/login-signature-24h-window]] — task `0391` (rank 43), deployed 2026-10-06
+- [[decisions/adr-121-login-signature-24h-window]] — the 24 h window decision behind `0391`
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — no fixed bar for `0340`'s deploy

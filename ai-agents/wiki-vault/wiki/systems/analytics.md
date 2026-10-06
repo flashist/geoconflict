@@ -3,6 +3,19 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-06 sync (`6f4ab77`) — three reference-doc changes, no event added or renamed:**
+> - **§A1 (`Profile:Login:SignatureAge:*`) reworded for `0391`** (deployed 2026-10-06): the server window is now 24 h,
+>   but the **client labels stay frozen on `0366`'s 900 s edges** — `Fresh` is "the pre-ADR-121 15-min window, not the
+>   server's `ok`", only the future side is still parity-tested, and the "~32 % `stale`" comparison holds **for data
+>   before the `0391` deploy only** (expected after: ≈ 2.5 %). See [[tasks/login-signature-24h-window]].
+> - **`Citizenship:Earned:XP`:** dormant until the `0250` S3b client **and** profile server are both live; from S3b it
+>   fires on **verified** reads only, and not for a paid citizen who crosses 100 XP (bought at or before earning). S3b is
+>   built, **not deployed** — [[tasks/authenticated-profile-read]].
+> - **Private-lobby flag:** `private_lobbies_all` replaces `private_lobbies` (`0354`, not deployed); testers see the row by
+>   the `geoconflict_tester` browser marker, not a flag; a leftover `private_lobbies` value still fires an
+>   `Experiment:private_lobbies:*` event that gates nothing. `LockedFeature:Tap:PrivateLobby` reworded to match —
+>   [[tasks/private-lobby-tester-default]].
+>
 > 🆕 **2026-10-02 — 24 new profile-login diagnostic events (task `0372`)**: `Profile:Login:SignatureAge:*` (20) and
 > `Profile:Login:Signature:Refetch:*` (4), plus a held-ms value on `Profile:Login:Signature:Ready`. Committed in
 > `0c9a620`, **not deployed** (targets the 2026-10-03/04 game deploy). See *Profile Login Signature Age Events* below
@@ -612,3 +625,7 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, the `Citizenship:TenureGrant:Claimed` popup timing
 - [[tasks/verified-login-live-check]] — task `0339`: the first live counts of the four `Profile:Login:Signature:*` events
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: the 20 `Profile:Login:SignatureAge:*` + 4 `Profile:Login:Signature:Refetch:*` events and `Ready`'s held-ms value (committed, not deployed)
+- [[tasks/login-signature-24h-window]] — task `0391`: why the §A1 client labels no longer match the server
+- [[tasks/authenticated-profile-read]] — task `0250`: `Citizenship:Earned:XP` dormant from S1, verified-only from S3b
+- [[tasks/private-lobby-tester-default]] — task `0354`: the `private_lobbies_all` cohort event
+- [[decisions/adr-121-login-signature-24h-window]] — the window change behind the §A1 rewrite

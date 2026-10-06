@@ -63,3 +63,5 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-112-free-xp-grants]] · [[decisions/adr-113-internal-player-id]] · [[decisions/adr-114-admin-server-alert-relay]] — the three project ADRs recorded 2026-09-14 → 2026-09-17
 - [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks
 - [[decisions/adr-116-verified-login]] — project ADR-116 (2026-09-29)
+- [[decisions/adr-121-login-signature-24h-window]] — project ADR-121 (2026-10-05)
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — project ADR-122 (2026-10-05)

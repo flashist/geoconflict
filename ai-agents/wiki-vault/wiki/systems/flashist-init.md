@@ -85,3 +85,5 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/match-exit-keeps-query-string]] — task `0331`: a match exit now keeps the query string (Yandex's `sdk` parameter)
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the facade pre-fetches Yandex's signed player data at boot for the profile login
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: `takeYandexPlayerSignature()` now fires signature-age and second-call diagnostics (login unchanged)
+- [[tasks/private-lobby-tester-default]] — task `0354`: the `private_lobbies_all` flag and the tester marker
+- [[tasks/yandex-invite-copies-code]] — task `0380`: `FlashistFacade.copyText()` (SDK clipboard inside the click)

@@ -4,6 +4,18 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 📌 **2026-10-06 sync (`6f4ab77`) — the five Sprint 7 private-lobby tasks plus `0389` are DONE (agent-closed — not
+> owner-verified), all committed in `8d74090` (2026-10-05) and ⚠️ NOT DEPLOYED** (no game deploy since `0.0.156`):
+> [[tasks/private-lobby-tester-default]] (`0354`, gate item 1 ✅), [[tasks/yandex-invite-copies-code]] (`0380`, half of
+> item 6), [[tasks/private-lobby-idle-end]] (`0377`, gate item 4 built — 30-minute idle end; live check `0390` on
+> Sprint 8), [[tasks/host-window-poll-before-lobby]] (`0353`), [[tasks/lobby-window-joining-mark]] (`0374`) and
+> [[tasks/private-lobby-code-format]] (`0389`, new 8-character code; its live check is folded into `0376` step 3).
+> **The release gate is not met:** still open — `0376` (live host + friend test), `0228` (only if proven), `0301` (the
+> citizenship popup), `0382` (the link) and the checks `0381` / `0383`. `private_lobbies_all` stays unset. Console values
+> (owner-stated 2026-10-05): `private_lobbies` was **never set**, `citizenship_ui` is `enabled` — so after deploy testers
+> see the row and nobody else does. ⚠️ Accepted interim limit (`0380` R3): a non-tester friend on Yandex has no Join
+> button and no `#join=` path until `0382` ships or the flag goes on.
+>
 > 📌 **2026-10-04 (`72a223d`) — three gate tasks moved onto [[decisions/sprint-7]]:** `0354` (rank 37), `0380` (38),
 > `0377` (39), plus the small fixes `0353` (40) and `0374` (41) — owner ruling *"Yes: all 5 ready ones"*; ranks are the
 > producer's order, not owner-ruled. **The release gate below is unchanged** and none of their open owner questions
@@ -121,3 +133,9 @@ of the perks would depend on it."*
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322` (2026-09-28): the game server swaps a citizen's approved name in for other players, at ADR-103 trust
 - [[tasks/citizenship-card-newest-profile-read]] — task `0326` (2026-09-28): the citizenship card applies only the newest profile read
 - [[decisions/sprint-7]] — `0354`, `0380`, `0377` (gate items) moved onto this board 2026-10-04, ranks 37–39 (producer order)
+- [[tasks/private-lobby-tester-default]] — task `0354`, gate item 1 (done 2026-10-05, not deployed)
+- [[tasks/yandex-invite-copies-code]] — task `0380`, half of gate item 6 (done 2026-10-05, not deployed)
+- [[tasks/private-lobby-idle-end]] — task `0377`, gate item 4 (done, not deployed; live check `0390`)
+- [[tasks/host-window-poll-before-lobby]] — task `0353`, host-window poll fix
+- [[tasks/lobby-window-joining-mark]] — task `0374`, the joining mark ends on close
+- [[tasks/private-lobby-code-format]] — task `0389`, the new private-lobby code

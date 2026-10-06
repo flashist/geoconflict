@@ -3,6 +3,20 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-10-06 sync (`6f4ab77`) — one profile deploy, two builds waiting.**
+> - ✅ **DEPLOYED Tue 2026-10-06 (owner-run, mid-week exception — ADR-122): `0.0.156-profile.2`**, commit `0aef613`
+>   (code = `6eef01f`, **`0391` only**). The login signature window is now **24 h with the player id checked first**
+>   ([[decisions/adr-121-login-signature-24h-window]], [[tasks/login-signature-24h-window]]); stale-age brackets re-cut.
+>   `/health` ok, `/ready` 200, 0 warn / 0 error after deploy; one resolve warn during the restart, **no XP lost**.
+>   Rollback target `0.0.156-profile.1` (safe, brings back 900 s). ⚠️ Counters restarted at deploy. Still shadow mode —
+>   every session `vfy:false`.
+> - 🔨 **Built, NOT deployed:** `0340` S3a — login mints `vfy:true`, `resolveCaller` reports `verified` (`71efd10`;
+>   deploy + live check in `0395`; deploy it **alone**) — [[tasks/verified-login-enforce]]; and `0250` S3b — a verified
+>   caller sees its own true XP, inbox keys and raw paid facts, everyone else the S1 view (`6f4ab77`; deploy in `0396`,
+>   never in the same slot as `0340`) — [[tasks/authenticated-profile-read]]. ⇒ **No player is verified in production.**
+> - `0297` closed 2026-10-05 — real purchases proven, construction `decoded_json` (n = 1), `/reconcile` never observed
+>   and its check **waived, not verified** — [[tasks/paid-citizenship-test-buy]].
+>
 > 📝 **2026-10-04 (`72a223d`) — F-C (the unplanned Postgres 16.15 upgrade) now has a decided direction; nothing
 > built.** Owner rulings: pin this box's Postgres (and every third-party image on it and on the telemetry box) by
 > digest, and make each Postgres upgrade a deliberate, backup-first change with a restore drill against the new image
@@ -539,3 +553,9 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/profile-os-baseline-hardening]] — task `0221` (P6): OS baseline, `unless-stopped` + `init`, graceful shutdown; closed 2026-10-01 with two owner-accepted residuals
 - [[decisions/sprint-7]] — the board holding `0250` (rank 17; S1 deployed 2026-09-29, S3b waits on `0340`)
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): this box's Postgres is to be pinned by digest (`0384`/`0385`); upgrades become deliberate and backup-first (`0388`)
+- [[tasks/login-signature-24h-window]] — task `0391`, the 24 h login window (deployed 2026-10-06, `0.0.156-profile.2`)
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed)
+- [[tasks/authenticated-profile-read]] — task `0250`, S1 live / S3b built, not deployed
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, the live payments checks (closed 2026-10-05)
+- [[decisions/adr-121-login-signature-24h-window]] — the login window decision
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — the owner-judgment gate before each `verified` deploy

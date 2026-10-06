@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as a FAILED verification**
 **Sprint/Tag**: Sprint 7, rank 25 (append rank; owner-ruled first of the three rows moved from Sprint 6) / task `0339`
 
+> 📌 **2026-10-06 sync — the chain this failure started has run:** `0373` read the data and the owner chose a 24 h
+> window with the id checked first ([[tasks/stale-login-fix-decision]], [[decisions/adr-121-login-signature-24h-window]]);
+> `0391` built it and it was **deployed 2026-10-06** ([[tasks/login-signature-24h-window]]). The S2 exit no longer has a
+> fixed bar — the owner looks at whatever post-`0391` numbers exist (`0392`) before `0340` deploys
+> ([[decisions/adr-122-stale-login-gate-owner-judgment]]). This task's own result is unchanged: a failed verification.
+>
 > ✅ Done (agent-closed — not owner-verified), 2026-10-01 — 🚨 **VERIFICATION FAILED: the S2 exit was NOT met.**
 > About **68 % `ok`, 32 % `stale`, and the `stale` share is not falling.** The owner agreed (*"Agree"*, live
 > `fkit lead` session, relayed by `fkit-lead`). Per the brief's own step 6: `0325` is **not** reopened, `0340`
@@ -103,3 +109,7 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, client-side follow-up filed 2026-10-02 (age by boot kind, second-call check, held time); `0373` reads it
 - [[decisions/sprint-8]] — where `0373`, the reading task, sat at rank 2 (moved to Sprint 7 rank 36 on 2026-10-04)
+- [[tasks/stale-login-fix-decision]] — task `0373`, the reading and the owner's choice of fix
+- [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that answers this failure
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S2 exit is now the owner's look, no fixed bar
+- [[tasks/verified-login-enforce]] — task `0340`, S3a, the gate this check failed (built 2026-10-05, not deployed)

@@ -5,6 +5,20 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-06 (latest, `6f4ab77`): 10 rows — 2 `✅ Done` · 5 `🔲 Backlog` · 3 `➡️ Moved`; 5 OPEN** (was 6 / 3). ⚠️
+> Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged. Four verify rows appended
+> (ADR-035: ranks 2–4 are closed rows, so none could go to the top as the 2026-09-29 build/verify rule says — every
+> append rank is ⚠️ flagged for owner confirmation; on merit each belongs directly below `0370`):
+> - **7** `0390` — verify `0377` live: an abandoned private lobby ends after 30 minutes, an occupied one does not
+>   ([[tasks/private-lobby-idle-end]]).
+> - **8** `0392` — filed as the 7-day ≤ 5 % re-check, re-scoped the same day by ADR-122 (no fixed bar), renamed *"Read the
+>   post-0391 login numbers before the 0340 deploy"*, then ➡️ **moved to Sprint 7 (44)**.
+> - **9** `0395` — verify `0340` live; ➡️ **moved to Sprint 7 (45)** the same day.
+> - **10** `0396` — verify `0250` S3b live ([[tasks/authenticated-profile-read]]). Gates, in order: `0340` in its own
+>   earlier slot (never the same one) → `0395` confirms `vfy: true` → the owner's look at the login numbers → a weekend
+>   slot. ⚠️ Open to the owner: whether it belongs on Sprint 7, and which paid / `vfy:false` test sessions exist. `0248`
+>   carries a dated note: deploy only after `0396`.
+>
 > 🆕 **2026-10-04 (latest, `b99c1f1`): 6 rows — 2 `✅ Done` · 3 `🔲 Backlog` · 1 `➡️ Moved`; 3 OPEN** (was 6 / 4). ⚠️
 > Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
 >
@@ -177,3 +191,8 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363` (rank 3): verify passed, closed 2026-10-03
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358` (rank 4): verify passed, closed 2026-10-03
 - [[systems/weekend-deploy-window]] — the 2026-10-03 window in which `0363`, `0358` and `0370`'s Steps 1–3 ran
+- [[tasks/private-lobby-idle-end]] — task `0377`, verified by `0390` (rank 7)
+- [[tasks/authenticated-profile-read]] — task `0250`, S3b verified by `0396` (rank 10)
+- [[tasks/verified-login-enforce]] — task `0340`, verified by `0395` (filed here at 9, moved to Sprint 7)
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — why `0392` was re-scoped and moved
+- [[tasks/stale-login-fix-decision]] — task `0373`, filed here (rank 2), moved to Sprint 7 on 2026-10-04

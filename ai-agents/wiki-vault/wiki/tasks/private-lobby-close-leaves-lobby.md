@@ -59,3 +59,4 @@ never showed, and start-screen cleanup was skipped.
 - [[tasks/lobby-close-leftovers-investigation]] — task `0335`, the four plan leftovers investigated and ruled
 - [[decisions/sprint-6]] — the board carrying this task
 - [[decisions/sprint-backlog]] — the Backlog board, where this task was filed before an owner ruling moved it to Sprint 6
+- [[tasks/host-window-poll-before-lobby]] — task `0353`, found during `0333`'s verify step (done 2026-10-05)

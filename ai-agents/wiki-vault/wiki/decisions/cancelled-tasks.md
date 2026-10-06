@@ -240,3 +240,4 @@ both (or the other on some path) — stop and ask; dropping either would then re
 - [[decisions/sprint-backlog]] — where `0064`, the surviving deploy-time config guard, sits, alongside the `0062`/`0063` findings that motivated it
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the config-drift sweep that surfaced `0062` and `0063`
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose first label read (`decoded_json`, n = 1) led to `0310`'s cancellation in favour of `0379`
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 follow-up `0310` was cancelled for `0379`

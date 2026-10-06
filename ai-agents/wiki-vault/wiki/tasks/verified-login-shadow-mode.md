@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as the S2 build only**
 **Sprint/Tag**: Sprint 6, rank 38 (append rank; owner ruled it *"directly above 0250"*) / task `0325`
 
+> 📌 **2026-10-06 sync — S3a is BUILT, not live.** `0340` closed 2026-10-06 (agent-closed — not owner-verified) as
+> **built and reviewed only** (commit `71efd10`); its deploy and live check moved to `0395`
+> ([[tasks/verified-login-enforce]]). The freshness window this task shipped (900 s) is now **24 h with the id checked
+> first** — [[decisions/adr-121-login-signature-24h-window]], built in `0391` and **deployed 2026-10-06**
+> ([[tasks/login-signature-24h-window]]). The fixed S2-exit bar is gone: the owner judges the data at hand
+> ([[decisions/adr-122-stale-login-gate-owner-judgment]]).
+>
 > ✅ **Closed 2026-09-29** `(agent-closed — not owner-verified)` on an owner ruling, **"Split it
 > (Recommended)"**. This task shipped **S0 (the spike) and S2 (shadow mode)**. **S3a — actually minting
 > verified sessions — moved to task `0340`**; the live proof of S2 moved to task `0339`. Both sit on
@@ -94,3 +101,7 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check that FAILED 2026-10-01 (S2 exit not met)
 - [[tasks/stale-login-signature-age]] — task `0366`: counts how old this check's `stale` signatures are (done 2026-10-01, not deployed)
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics on this check's `stale` logins (signature age by boot kind, second-call check, held ms on `Ready`); committed, not deployed
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built 2026-10-05, not deployed; deploy in `0395`)
+- [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that replaced this task's 900 s
+- [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
+- [[tasks/authenticated-profile-read]] — task `0250`, whose ruling D3 filed this task; its S3b reads `verified`

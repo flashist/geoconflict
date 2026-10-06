@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 12 (append rank) / task `0335` — investigation, no code
 
+> 📌 **2026-10-06 sync — case 3 is BUILT:** `0377` ends an unstarted private lobby with nobody connected after **30
+> idle minutes** (owner's value), done 2026-10-04 (agent-closed — not owner-verified), committed `8d74090`, ⚠️ **not
+> deployed**; live check `0390` (Sprint 8). See [[tasks/private-lobby-idle-end]]. Case 1 (`0228`) unchanged.
+>
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30, on owner rulings for all four cases. **No code review
 > step ran** — it produced a report, not a diff. ⚠️ **The live two-window reproduction was NOT RUN.** Case 1 is
 > **reasoned from code only**; cases 2–4 were shown by throwaway jest probes, since removed from the tree.
@@ -70,3 +74,5 @@ case — is it real, how bad, how likely, how hard to fix, and a recommendation.
 - [[tasks/private-lobby-citizen-perk]] — task `0302`: citizen-only create and the `private_lobbies` flag that bounds production reach
 - [[systems/client-game-teardown]] — `0228` (case 1) and `0252` (case 2) are part of this teardown cluster
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0228`, `0252` and `0354`
+- [[tasks/private-lobby-idle-end]] — task `0377`, the build for case 3 (30-minute idle end)
+- [[tasks/private-lobby-tester-default]] — task `0354`, requested at this task's close

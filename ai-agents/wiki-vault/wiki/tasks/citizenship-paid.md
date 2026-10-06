@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 5 (was Sprint 4 until the 2026-09-23 rescope) · task `0018` · monetization milestone
 
+> 📌 **2026-10-06 sync — `0297` (the owner-run test-buy) CLOSED 2026-10-05**, with §2's catalog read, both §4
+> reconciliation boxes and §5 **waived by the owner, not verified** ([[tasks/paid-citizenship-test-buy]]). `0250`
+> closed 2026-10-06: S1 (paid state hidden from unverified readers) live since 2026-09-29; S3b (a verified owner sees
+> their own paid facts) **built, not deployed** ([[tasks/authenticated-profile-read]]).
+>
 > 🚨 **READ THIS FIRST — what the close does and does not prove.** Closed **2026-09-26** by a spawned
 > `fkit-producer` via `/fkit-task-done`, on an **owner ruling given live in the `fkit lead` session via
 > `AskUserQuestion`**: *"Close 0065 (citizenship go-live) and 0018 (the buy flow) now?"* →
@@ -103,3 +108,5 @@ timestamp ⇒ paid). The owner ruled that a must-fix in `0250` (authenticated pr
 - [[systems/project-brief]] — product ground truth — the go-live-before-proof tradeoff, now live
 - [[tasks/citizenship-restart-prompt]] — task `0303` (2026-09-28): a "restart to apply" popup after a purchase or a citizenship-making tenure gift
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the HMAC-construction label is built but not deployed; the answer is still owed in `0297`
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, the owner-run test-buy (closed 2026-10-05; three checks waived)
+- [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak fix and verified owner view

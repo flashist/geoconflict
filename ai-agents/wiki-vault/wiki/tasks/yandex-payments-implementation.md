@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task 0019 / payments track
 
+> 📌 **2026-10-06 sync — `0297` closed 2026-10-05:** the real-purchase checks passed; the construction is
+> **`decoded_json`** via `/complete` (n = 1); `/reconcile` has **never been observed** and its live check was **waived by
+> the owner, not verified** — a player report of a paid-but-not-granted buy reopens it. Keep-or-drop of the unused
+> construction stays with `0379`. See [[tasks/paid-citizenship-test-buy]].
+>
 > 🆕 **2026-09-26 — THE FIRST REAL SIGNED PAYLOADS PASSED IN PRODUCTION.** After the citizenship launch
 > ([[tasks/citizenship-go-live]]), a real player purchase and the owner's test purchase both returned
 > **200** from the complete route, with the grant, the processed-purchase row and the used intent on the
@@ -101,3 +106,4 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the purchase HMAC-envelope check is shared with the player-login check; the same key now serves identity
 - [[decisions/adr-116-verified-login]] — one key serves payments and identity (a wider blast radius, accepted)
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): logs which of the two constructions matched; result still owed in `0297`
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, the owner-run live checks of this flow (closed 2026-10-05)

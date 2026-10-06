@@ -75,3 +75,6 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 the ruling: on the Yandex build the invite is an SDK-built Yandex Games link + the code, and `#join=` is no longer honoured there
 - [[tasks/citizen-verified-icon]] — task 0068's `isCitizen` flag on the frozen roster and the lobby-poll payload
 - [[systems/client-game-teardown]] — `ClientGameRunner.stop()` is not reached on a normal leave, so a surviving 1-second `connectionCheckInterval` keeps calling `transport.reconnect()` for an abandoned game (task `0231` — ⚠️ **reasoned from code, not observed**)
+- [[tasks/private-lobby-idle-end]] — task `0377`: unstarted private lobbies end after 30 idle minutes
+- [[tasks/host-window-poll-before-lobby]] — task `0353`: no empty-id lobby poll
+- [[tasks/private-lobby-code-format]] — task `0389`: `create_game` validates the id and refuses duplicates (`409`)

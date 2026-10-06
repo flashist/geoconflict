@@ -3,6 +3,16 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-06 (latest, `6f4ab77`): 136 rows, 101 open — two filed.** Re-counted by me at `HEAD` = `6f4ab77`, by each
+> row's leading status glyph: 98 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled` (was
+> 134 / 99). Both filed by spawned `fkit-producer`s on OWNER RULINGS relayed by `fkit-lead` (⛔ not producer precedent):
+> - **`0393`** — watch paid citizens with login data over 24 h old, then decide on a "reopen the game" message
+>   (*"File it (Recommended)"*; the owner ruled **no forced popup**). Starts after `0391` ships (it did, 2026-10-06).
+> - **`0394`** — re-login when a player switches Yandex accounts (ADR-121 Decision 3's unbuilt half), investigation first;
+>   deferred at `0391`'s plan gate, and ruled **not a gate** for anything (*"I already told you that the described
+>   scenario is very rare. Keep the task in the backlog"*). See [[decisions/adr-121-login-signature-24h-window]].
+> - Every other change on this board in the window is a link repoint (`backlog/` → `done/`) for `0297`, `0250`, `0340`.
+>
 > 🆕 **2026-10-04 (latest, `72a223d`): 134 rows, 99 open — FIVE FILED, FIVE MOVED TO SPRINT 7.** Re-counted by me at
 > `HEAD` = `72a223d`, by each row's leading status glyph: 96 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` ·
 > 2 `⛔ Cancelled` (was 129 / 99). All edits by spawned `fkit-producer`s on OWNER RULINGS relayed by `fkit-lead`
@@ -841,3 +851,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, whose popup gate `0374` (filed here 2026-10-02, open) fixes for a hung lobby request
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: its watch item F-B recurred 2026-10-03 and is now investigation task `0375` (filed here, open)
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): the decision behind `0384`–`0388`, filed on this board
+- [[decisions/adr-121-login-signature-24h-window]] — `0393` (the >24 h residue) and `0394` (its unbuilt Decision 3) live here
+- [[tasks/login-signature-24h-window]] — task `0391`, which filed `0394` and feeds `0393`

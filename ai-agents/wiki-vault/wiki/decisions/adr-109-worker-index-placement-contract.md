@@ -56,3 +56,4 @@ The decision became necessary because of the 2026-08-22 outage track. `0056` rep
 - [[decisions/windoworigin-url-join-defect]] — task `0198`: the `/w<N>/` host-root mount this contract defines is what the private-lobby URL join misses in production
 - [[decisions/sprint-4]] — the sprint board carrying the outage track
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
+- [[tasks/private-lobby-code-format]] — task `0389`: the typed code is cleaned before the worker path is computed

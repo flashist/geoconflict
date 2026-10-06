@@ -4,6 +4,9 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 20 (append rank; moved in from the Backlog board 2026-09-29) / task `0309`
 
+> 📌 **2026-10-06 sync — `0297` closed 2026-10-05 on this label's reading** (`decoded_json`, `/complete`, n = 1);
+> `0379` (Backlog board) still re-reads the log for more samples. See [[tasks/paid-citizenship-test-buy]].
+>
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30 — **closed on LOCAL PROOF ONLY, with NO RESULT.**
 > 🚨 **Which construction Yandex really uses is STILL UNKNOWN.** Owner ruling *"Move it into 0297"*: the deploy
 > and the log read-back belong to `0297` §1. Committed in `26b85c0`; **not deployed**.
@@ -83,3 +86,4 @@ recorded which. This task **finds out**; `0310` then **removes** the other.
 - [[tasks/verified-login-live-check]] — task `0339`; its follow-up `0366` may wait on this task's log line being read
 - [[tasks/stale-login-signature-age]] — task `0366`: its profile deploy rides Saturday's slot or waits on this task's log line being read
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`: the 2026-10-03 deploy that first shipped this line; its Step 7 is the no-second-deploy ordering
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, which this label's reading let close

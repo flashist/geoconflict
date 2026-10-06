@@ -70,3 +70,4 @@ Owner rulings at the plan: scope **1 + 2 + 3** (all three fix directions); **Q1 
 - [[systems/analytics]] — the `Citizenship:TenureGrant:Claimed` row
 - [[decisions/sprint-7]] — the board
 - [[decisions/sprint-backlog]] — `0374` (filed 2026-10-02, open, placement unruled): end the lobby windows' joining mark at close, the gap this gate left
+- [[tasks/lobby-window-joining-mark]] — task `0374`: the lobby windows now end their joining mark on close (done 2026-10-05)

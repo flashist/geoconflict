@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 5 (was Sprint 4 until the 2026-09-23 rescope) · task `0065` · the citizenship go-live
 
+> 📌 **2026-10-06 sync:** `0297` (the live test-buy split out of this task) **closed 2026-10-05** — real purchases
+> proven, HMAC construction `decoded_json` (n = 1), and the reconciliation and catalog checks **waived by the owner, not
+> verified** ([[tasks/paid-citizenship-test-buy]]). `0250` closed 2026-10-06 — S1 live since 2026-09-29, S3b built and
+> **not deployed** ([[tasks/authenticated-profile-read]]).
+>
 > # ✅ CITIZENSHIP IS LIVE IN PRODUCTION SINCE 2026-09-26 — release `0.0.154`
 >
 > `CITIZENSHIP_CARD_ENABLED` was flipped to `true` in commit `3386b90` (verified in `HEAD` this sync:
@@ -127,3 +132,5 @@ unknown** — backlog follow-ups `0309` → `0310`. A snapshot at about 14:47 UT
 - [[tasks/citizenship-xp-progress-ui]] — task `0191`, the card — first seen in a browser at the launch
 - [[systems/project-brief]] — product ground truth — the go-live-before-proof tradeoff, now live
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): closed on local proof; which construction matched is still unknown
+- [[tasks/paid-citizenship-test-buy]] — task `0297`, the test-buy split out of this task (closed 2026-10-05)
+- [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak this page flagged at launch
