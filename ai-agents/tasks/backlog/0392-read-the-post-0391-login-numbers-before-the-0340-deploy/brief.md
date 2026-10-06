@@ -189,3 +189,32 @@ links"*.
   every link under `ai-agents/` repointed (struck history links included, so they still resolve). Nothing under
   `ai-agents/wiki-vault/` linked to it.
 - **`## Status` unchanged (`🔲 Backlog`). No mover run.**
+
+## 📌 2026-10-06 — `0391` is live; the reading window starts now (appended; nothing above edited, ADR-035)
+
+**Provenance.** Facts checked read-only by `fkit-lead` on 2026-10-06, relayed to a spawned `fkit-producer` (no owner
+channel, ADR-021/037).
+
+- [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) is **live since 2026-10-06T08:09:49Z** — profile `0.0.156-profile.2`, commit `0aef613`
+  (`0391` only; `0340` not in it). Owner-run, mid-week by owner ruling (ADR-122). Deploy record:
+  [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *Deploy*.
+- **This task's reading window starts at 2026-10-06T08:09:49Z.** Counters restarted at deploy — never compare
+  cumulative values across it.
+- Not yet checked at filing: login metrics in Uptrace; game-server `failed after retries` count.
+- **`## Status` unchanged (`🔲 Backlog`). No mover run.**
+
+## 📌 2026-10-06 — an early 5-minute sample was read; it is NOT this task's reading (appended; nothing above edited, ADR-035)
+
+**Provenance.** Read read-only by `fkit-lead` on 2026-10-06 (owner's 2026-10-05 read-only approval), relayed to a
+spawned `fkit-producer` (no owner channel, ADR-021/037).
+
+- **Sample:** Uptrace/ClickHouse, version `.2`, **08:09–08:14Z (~5 min)** — `ok` 45, `stale` 1 (~2 %),
+  `id_mismatch` 0; no `absent` / `no_secret` seen. The one `stale` fell in the new `past_48h_7d` bracket, so the
+  new brackets are recording.
+- ⚠️ **Far too little data to judge — an early sign only. It is NOT the reading this task delivers** and does not
+  satisfy any verification step above. The reading window still starts at 2026-10-06T08:09:49Z.
+- The earlier note's *"Not yet checked at filing"* items are now looked at: the login metric only by this sample; the
+  game-server `failed after retries` count is resolved — one blip during the profile restart (08:10:48Z), the
+  retried-later kind, no `credit batch … dropped` line, no XP lost. Details:
+  [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *post-deploy checks*.
+- **`## Status` unchanged (`🔲 Backlog`). No mover run.**

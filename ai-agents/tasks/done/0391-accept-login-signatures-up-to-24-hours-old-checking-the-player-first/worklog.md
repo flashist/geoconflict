@@ -126,9 +126,9 @@ Commands run this turn, all on the working tree:
 Brief verification mapping: 1 ✅ (23 h 59 m → `ok`, unit); 2 ✅ (86 400/86 401, 300/301 s, unit); 3 ✅ (another id at
 1 min and 3 d → `id_mismatch`, unit + route); 4 ✅ (no-leak route test extended); 5 ✅ (edge sweep + fixed-value
 sweep); 6 ✅ (parametrised fail-open route test, rows updated, `no_secret` + classifier-throws tests kept); 7 — deferred
-by owner ruling, follow-up `0394` (above); 8 ✅; 9 — TODO below; 10 ✅ (synthetic `zz0325-…` fixtures only).
+by owner ruling, follow-up `0394` (above); 8 ✅; 9 — ~~TODO below~~ deployed and healthy 2026-10-06; login-share outcome pending `0392` (see § *Deploy*); 10 ✅ (synthetic `zz0325-…` fixtures only).
 
-### Deploy — TODO (owner, ~~weekend slot~~ Tue 6 Oct, mid-week exception)
+### Deploy — ~~TODO~~ done 2026-10-06 (owner, ~~weekend slot~~ Tue 6 Oct, mid-week exception)
 
 - **Profile deploy only** (no game deploy: client changes are comments only). ~~Planned for the 10/11 Oct weekend slot,
   owner-run.~~ **Planned for Tuesday 6 Oct 2026, owner-run — a mid-week exception to the weekend-slot rule, by owner
@@ -140,13 +140,57 @@ by owner ruling, follow-up `0394` (above); 8 ✅; 9 — TODO below; 10 ✅ (synt
   requirement, we will check whatever data we have at the time it's needed and we will make a decision about waiting
   or not waiting longer based on that"*): the first post-deploy UTC time below is now the **start of the data `0392`
   reads**, not of a 7-day window. See [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md) (accepted 2026-10-05; supersedes ADR-121 Decision 4).
-- Deploy date: **TODO** *(planned: Tue 6 Oct 2026, owner-run; record the actual date here)*
-- First post-deploy UTC time (~~start of `0392`'s 7-day window~~ start of the post-`0391` data `0392` reads): **TODO**
+- Deploy date: ~~**TODO** *(planned: Tue 6 Oct 2026, owner-run; record the actual date here)*~~ **2026-10-06, owner-run** (see the dated record below).
+- First post-deploy UTC time (~~start of `0392`'s 7-day window~~ start of the post-`0391` data `0392` reads): ~~**TODO**~~ **2026-10-06T08:09:49Z**
 - ⚠️ The profile deploy restarts the server counters — **never compare cumulative values across it.**
 - Rollback note: rolling back to the previous profile build only narrows classification back to 900 s; every
   session stays `vfy:false` either way, so it is safe.
 - Expected after deploy: `ok` ≈ 97 %, `stale` ≈ 2.5 %; `id_mismatch` may tick up slightly (wrong-player notes that
   were previously hidden under `stale`) — ADR-121's point, not a regression. Old bracket series stop at deploy.
+
+#### 📌 2026-10-06 — deploy record (appended by a spawned `fkit-producer`, no owner channel, ADR-021/037)
+
+Facts checked read-only by `fkit-lead` on 2026-10-06 and relayed here; not re-checked by this producer.
+
+- **Owner-run** profile deploy, **2026-10-06** — mid-week exception by owner ruling 2026-10-05 (ADR-122). Profile only;
+  no game deploy.
+- **Deploy record timestamp: 2026-10-06T08:09:49Z.** Version **`0.0.156-profile.2`**, commit **`0aef613`** — code
+  identical to `6eef01f`, i.e. **`0391` only**. ⚠️ `0340`'s code (commit `71efd10`) is **not** in this deploy.
+- `/health` → `status: ok`, version `0.0.156-profile.2`, commit `0aef613…`. `/ready` → 200.
+- On the box: `profile-api` healthy (recreated), `postgres` healthy. `profile-api` log since 08:09Z: **0 `error`,
+  0 `warn`.**
+- **Rollback target:** `0.0.156-profile.1`, commit `f712263`. Safe (no migration; every session stays `vfy:false`
+  either way) but **brings back the 900 s window**.
+- ⚠️ **Counters restart at deploy — never compare cumulative values across it.**
+- **First post-deploy UTC time = 2026-10-06T08:09:49Z — the start of [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
+- ~~**Not yet checked:** login metrics in Uptrace (whether `stale` actually fell toward ≈ 2.5 %); the game server's
+  `failed after retries` count.~~ *(2026-10-06: both looked at — see § "post-deploy checks" below. The game-server
+  count is resolved: one restart blip, no XP lost. The login metric has only an early ~5-minute sample; whether
+  `stale` really fell toward ≈ 2.5 % is still `0392`'s read.)* Brief verification item 9 is therefore **deployed, not
+  yet proven in use** — the numbers are `0392`'s job.
+
+#### 📌 2026-10-06 — post-deploy checks (appended by a spawned `fkit-producer`, no owner channel, ADR-021/037)
+
+Facts checked read-only by `fkit-lead` on 2026-10-06 (under the owner's 2026-10-05 read-only SSH approval) and relayed
+here; not re-checked by this producer.
+
+- **Re-check at 08:22Z** (~12 min after deploy): `/health` ok, version `0.0.156-profile.2`, commit `0aef613` · `/ready`
+  200 (0.12 s) · `profile-api` healthy, RestartCount 0, started 08:10:23Z · `postgres` healthy and **untouched** (up
+  since 2026-10-03) · `profile-api` log since deploy: 14 lines — 9 `info`, **0 `warn`, 0 `error`** (startup lines and
+  tenure grants) · disk 18 %, ~2.8 GB memory available.
+- **Daily `profile-checks`, 2026-10-06 08:00Z:** 13 ok, 0 failed. ⚠️ **It ran ~9 min BEFORE the deploy, so it covers
+  the old version.** First `profile-checks` run on the new version: **2026-10-07 08:00Z**. First backup on the new
+  version: **tonight, 2026-10-07 02:00Z**.
+- **Login metric (Uptrace/ClickHouse, version `.2`, 08:09–08:14Z, ~5 min):** `ok` 45, `stale` 1 (~2 %),
+  `id_mismatch` 0; no `absent` / `no_secret` seen. The one `stale` fell in the new `past_48h_7d` bracket, so the new
+  brackets are recording. ⚠️ **Far too little data to judge — an early sign only. The real read is
+  [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).**
+- **Game server (`geoconflict-prod`), since 07:30Z:** 50 "credited" lines, last at 08:15:05Z — **credits are flowing
+  after the deploy.** One `player resolve failed after retries` (`warn`) at 08:10:48Z, during the profile restart. That
+  is the retried-later kind, **not** a `credit batch … dropped` line; there were 0 `dropped` lines in the 30 h before
+  either. ⇒ **a restart blip; no XP lost.**
+- **Telegram:** the owner confirmed the name-change digest message arrived at deploy (~08:10Z).
+- **Verification item 9: deployed and healthy; login-share outcome pending `0392`.**
 
 ### Decision log (autonomous judgment calls in this build)
 

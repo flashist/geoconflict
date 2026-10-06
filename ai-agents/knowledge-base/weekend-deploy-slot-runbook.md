@@ -1843,3 +1843,46 @@ after a real purchase** — is **MET as of 2026-10-04.** ⇒ **The profile freez
 - ⚠️ **n = 1, `/complete` only — `/reconcile` has not been observed.** Lifting the freeze is about the log line
   having been read, not about that caveat. A recreate now loses only lines written after this read.
 - The banners and the § *Standing* text above are left as written; this note supersedes them on this one point.
+
+### 📌 2026-10-06 — profile deploy `0391` (mid-week, owner ruling) (appended; the sections above are not edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) on facts checked read-only by `fkit-lead`.
+
+- **Owner-run profile deploy, Tue 2026-10-06** — a mid-week exception to the weekend-slot rule, by owner ruling
+  2026-10-05 (ADR-122). Profile only; no game deploy.
+- Deploy record **2026-10-06T08:09:49Z** · version **`0.0.156-profile.2`** · commit **`0aef613`** (code = `6eef01f`,
+  [`0391`](../tasks/done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) only;
+  `0340` / `71efd10` **not** deployed).
+- `/health` ok with that version and commit · `/ready` 200 · `profile-api` healthy (recreated), `postgres` healthy ·
+  `profile-api` log since 08:09Z: 0 `error`, 0 `warn`.
+- **Rollback target:** `0.0.156-profile.1` (commit `f712263`) — safe (no migration, all sessions `vfy:false`) but
+  brings back the 900 s window.
+- ⚠️ Counters restarted at deploy — never compare cumulative values across it. **2026-10-06T08:09:49Z is the start of
+  [`0392`](../tasks/backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
+- **Not yet checked:** login metrics in Uptrace; game-server `failed after retries` count.
+- Next profile deploy planned: `0340` from commit `71efd10` (checkout, deploy, return); its rollback target is
+  `0.0.156-profile.2` — see [`0395`](../tasks/backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).
+
+### 📌 2026-10-06 — profile deploy `0391`: post-deploy checks (appended; the note above is not edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) on facts checked read-only by `fkit-lead` under
+the owner's 2026-10-05 read-only SSH approval. Resolves the note above's *"Not yet checked"* line.
+
+- **Re-check 08:22Z:** `/health` ok (`0.0.156-profile.2`, `0aef613`) · `/ready` 200 (0.12 s) · `profile-api` healthy,
+  RestartCount 0, started 08:10:23Z · `postgres` healthy, untouched (up since 2026-10-03) · `profile-api` log since
+  deploy: 14 lines, 9 `info`, **0 `warn`, 0 `error`** · disk 18 %, ~2.8 GB memory available.
+- **Daily `profile-checks` 2026-10-06 08:00Z:** 13 ok, 0 failed — ⚠️ ran ~9 min **before** the deploy, so it covers
+  the old version. First run on the new version: **2026-10-07 08:00Z**. First backup on the new version: **2026-10-07
+  02:00Z**.
+- **Login metric** (version `.2`, 08:09–08:14Z, ~5 min): `ok` 45, `stale` 1 (~2 %), `id_mismatch` 0; no `absent` /
+  `no_secret`. The one `stale` is in the new `past_48h_7d` bracket (new brackets recording). ⚠️ Early sign only — the
+  real read is [`0392`](../tasks/backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).
+- **Game server since 07:30Z:** 50 "credited" lines, last 08:15:05Z — credits flowing. One `player resolve failed
+  after retries` (`warn`) at 08:10:48Z during the profile restart — the retried-later kind, **not** a
+  `credit batch … dropped` line (0 of those in the 30 h before either) ⇒ restart blip, **no XP lost**.
+- **Telegram:** owner confirmed the name-change digest message arrived at deploy (~08:10Z).
+- **Gates for the next profile deploy (`0340`,
+  [`0395`](../tasks/backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)):**
+  gate 1 (`0391` live) **MET**; gate 2 (owner's look via `0392`) and gate 3 (owner's separate OK to enforce) **open**.
+- Still to watch: the 2026-10-07 02:00Z backup and the 2026-10-07 08:00Z `profile-checks` run — the first on the new
+  version.

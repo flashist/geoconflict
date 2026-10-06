@@ -77,3 +77,19 @@ Nothing up front — three steps, in order.
 - **When to pull it into a sprint:** once `0391` has shipped and there is about a week of data — needing a rank is the
   signal to schedule it.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+## 📌 2026-10-06 — dependency `0391` shipped; the watch window starts now (appended; nothing above edited, ADR-035)
+
+**Provenance.** Facts checked read-only by `fkit-lead` on 2026-10-06, relayed to a spawned `fkit-producer` (no owner
+channel, ADR-021/037).
+
+- The hard dependency [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) is **shipped: live since 2026-10-06T08:09:49Z** — profile
+  `0.0.156-profile.2`, commit `0aef613`. Deploy record and post-deploy checks:
+  [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *Deploy*.
+- **This task's watch window starts at 2026-10-06T08:09:49Z.** Counters restarted at deploy — never compare
+  cumulative values across it.
+- Early sign only: in the first ~5 minutes, the new over-24 h brackets were recording (one `stale` in
+  `past_48h_7d`). That says nothing about **paid citizens** — Step 1's open question (can today's telemetry tell a
+  paid citizen's login apart at all?) is untouched.
+- The *"When to pull it into a sprint"* note above still holds: about a week of data first, so not before ~2026-10-13.
+- **`## Status` unchanged (`🔲 Backlog`). No mover run.**

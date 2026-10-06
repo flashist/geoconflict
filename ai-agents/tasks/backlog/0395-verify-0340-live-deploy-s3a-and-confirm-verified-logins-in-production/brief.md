@@ -204,3 +204,31 @@ placement *"Move to Sprint 7 (Recommended)"*; on `0250` S3b / `0319` / `0332` / 
   only after this task confirms `vfy: true` live*. **No `Depends on` link to this task was added**, by the owner's
   ruling; the *No `Blocks:` line, on purpose* note above stands.
 - **`## Status` unchanged (`🔲 Backlog`). No folder moved, no mover run.**
+
+## 📌 2026-10-06 — how `0340` deploys, and its rollback target (appended; nothing above edited, ADR-035)
+
+**Provenance.** Facts checked read-only by `fkit-lead` on 2026-10-06, relayed to a spawned `fkit-producer` (no owner
+channel, ADR-021/037).
+
+- `0391` is live since 2026-10-06T08:09:49Z as profile `0.0.156-profile.2` (commit `0aef613`) — that deploy did
+  **not** include `0340`.
+- **The `0340` deploy will be from commit `71efd10`**: check that commit out, deploy the profile server from it, then
+  return the working tree to where it was.
+- **Rollback target: `0.0.156-profile.2`** (the `0391` image) — not `0.0.156-profile.1`, which would also lose the
+  24 h window.
+- Still gated as above: `0392`'s read and the owner's separate explicit OK to enforce (ADR-116, ADR-122).
+- **`## Status` unchanged (`🔲 Backlog`). No mover run.**
+
+## 📌 2026-10-06 — gate 1 MET; gates 2 and 3 still open (appended; nothing above edited, ADR-035)
+
+**Provenance.** Facts checked read-only by `fkit-lead` on 2026-10-06, relayed to a spawned `fkit-producer` (no owner
+channel, ADR-021/037).
+
+| § 1 gate | State |
+|---|---|
+| 1. `0391` is live in production | ✅ **MET 2026-10-06T08:09:49Z** — profile `0.0.156-profile.2`, commit `0aef613`; healthy at the 08:22Z re-check. Record: [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *Deploy* |
+| 2. The owner has looked at the post-`0391` login data (via [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)) | 🔲 **Open.** Only an early ~5-minute sample exists (`ok` 45, `stale` 1, `id_mismatch` 0), read by `fkit-lead` — **not** `0392`'s reading and **not** the owner's look |
+| 3. The owner's separate, explicit approval to enforce (ADR-116, ADR-122) | 🔲 **Open** |
+
+- The § 2 slot rule is unchanged: the 10/11 Oct weekend at the earliest, profile only, alone, not 02:00–03:15 UTC.
+- **`## Status` unchanged (`🔲 Backlog`). No mover run.**
