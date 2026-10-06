@@ -195,3 +195,94 @@ untouched; nothing committed.
 window on the table, and the owner still rules keep or revert (brief, Step 6). Note on form: the brief's Step 6 words
 the rule as a **rise** ("did not rise by more than the Step 3 number"); the owner set an **absolute level** (15 %),
 i.e. a rise of more than 3.2 points over 11.8 %. Step 6 applies the owner's 15 %.
+
+## ⚠️ Interim early look — 2026-10-06, NOT the day-4 snapshot or Step 6 result
+
+Run by a spawned `fkit-producer` (no owner channel, ADR-021), on `fkit-lead`'s bounded unit after the owner asked
+(2026-10-06): *"Do we have any stats about the amount of players per 1 match? I wonder if our latest change of "wait"
+for the public lobby matches from 2m to 1m made any difference to this metric"*. Read-only on every server. No status,
+rank or brief text changed; no mover run; nothing committed. **This is not a verdict and not a reading the decision
+rule uses** — the day-4 snapshot (Step 4, due 2026-10-08) and the day-7 read (Step 5, 2026-10-11) stand as planned.
+
+**Query run:** 2026-10-06, 13:19:23–13:19:48 UTC. **Windows:** 2026-10-04 00:00 → 2026-10-06 00:00 UTC (2 full days on
+the 1-minute window: Sun 10-04, Mon 10-05); deploy day 2026-10-03 for context only (mixed — deploy ~09:32 UTC).
+**Query:** Step 1's query text unchanged except the two dates (one run 2026-10-03 → 2026-10-06 grouped by day; one run
+2026-10-04 → 2026-10-06 ungrouped for the 2-day totals and median), plus one extra column `sum(humans)` (=
+"real-player match entries") and an hour-of-day slice (00:00–09:00 UTC) in a side run. Same definitions as the
+baseline. Access as Step 1 (password-file fallback, `clickhouse-client --readonly=1`, container's own credentials,
+host redacted). The same side run re-read 2026-09-26 → 10-02: **all seven Before rows reproduce Step 1 exactly.**
+Retention: oldest row today 2026-09-22 00:00 UTC. `sending start message` since 2026-10-03: environment `prod` only.
+
+### Per-day table
+
+| day (UTC) | window | public lobbies | public matches with ≥1 real player | exactly 1 real player | **lone share** | avg real players | median |
+|---|---|---|---|---|---|---|---|
+| 2026-10-03 (Sat) | deploy day, **mixed** — context only | 1 153 | 1 030 | 162 | 15.7 % | 3.87 | 3 |
+| 2026-10-04 (Sun) | 1-minute | 1 445 | 1 157 | 293 | **25.3 %** | 3.32 | 3 |
+| 2026-10-05 (Mon) | 1-minute | 1 446 | 1 233 | 196 | **15.9 %** | 5.31 | 5 |
+| **10-04 + 10-05** | 1-minute | **2 891** | **2 390** | **489** | **20.5 %** (0.2046) | **4.35** | **4** |
+
+Deploy-day split (context only): 00–09 UTC (2-minute) lone 21.6 %, avg 3.70 · 09–10 (mixed) 7.9 %, 5.68 · 10–24 UTC
+(1-minute) 14.4 %, 3.82. ⚠️ Not comparable to each other — night hours always run lonelier (see below).
+
+### Against the Before baseline (Step 1)
+
+| | Before, matching day | After | Before, 7-day (Step 1) |
+|---|---|---|---|
+| Sunday | 09-27: lone **13.4 %**, avg **4.93**, median 5 | 10-04: lone **25.3 %**, avg **3.32**, median 3 | |
+| Monday | 09-28: lone **13.6 %**, avg **7.90**, median 7 | 10-05: lone **15.9 %**, avg **5.31**, median 5 | |
+| Sun + Mon | lone 13.5 % (174 / 1 285), avg 6.42 | lone **20.5 %** (489 / 2 390), avg **4.35**, median 4 | lone **11.8 %**, avg **7.41**, median **6** |
+| public matches with ≥1 real player / day | 640 (Sun), 645 (Mon) | 1 157 (Sun), 1 233 (Mon) | ≈ 662/day |
+| **real-player match entries** (`sum(humans)`) | 3 157 (Sun), 5 098 (Mon) = 8 255 | 3 844 (Sun), 6 542 (Mon) = **10 386 (+26 %)** | — |
+
+Same-hours check, lone share in 00:00–09:00 UTC only: Sun 23.7 % → **40.1 %**; Mon 23.8 % → 23.4 %. Avg real
+players 00–09 UTC: Sun 3.76 → 2.36; Mon 5.55 → 4.56.
+
+### Reading (plain language — not a verdict)
+
+- **Players per match fell, as expected by construction.** Avg real players per match: 7.41 (Before, 7 days) →
+  **4.35** (2 days After); median 6 → 4. Day-matched: Sunday 4.93 → 3.32, Monday 7.90 → 5.31 (about one-third fewer
+  real people per match). Lobbies doubled (~722 → ~1 445/day), so the same players are spread over twice as many matches.
+- **Lone share is above the owner's 15 % line on this early sample:** 20.5 % over the 2 days vs 11.8 % Before.
+  Monday alone (15.9 %) is just over; **Sunday (25.3 %) drives most of it**, and within Sunday the night hours (40 % lone
+  00–09 UTC). The 15 % line applies to the **7-day** After share (Step 3); 2 days cannot settle it.
+- **Total real-player match entries rose ~26 %** on the matched days (8 255 → 10 386). This is a count of
+  player-in-match starts, **not unique players** — it may mean people play more matches (shorter wait), not that more
+  people came. GameAnalytics (`Game:Mode:Multiplayer`) was **not read** in this look.
+- **Caveats:** 2 days only; one of them a Sunday, the weakest day of the Before week; the Before week's lone share was
+  falling day by day (13.6 % → 7.6 %), so week-to-week noise is large; what else shipped in `0.0.156` alongside `0367`
+  was not checked here; the deploy-day row is mixed and time-of-day skewed.
+
+### Decision log
+
+none — read-only reading only; no fix, no judgment call on keep/revert (that is the owner's, at Step 6).
+
+## 📌 2026-10-06 — OWNER RULING: wait for the day-4 snapshot, decide keep/revert by the weekend
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037), on an **OWNER RULING given live 2026-10-06 via
+`AskUserQuestion`** in the `fkit lead` session, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`). ⛔ Not producer
+precedent.
+
+**Ruling, verbatim:** *"Wait for day-4, decide by weekend (Recommended)"*.
+
+**Option text, as relayed:** the planned day-4 snapshot on 2026-10-08 adds Tue/Wed. That is still before the weekend
+deploy slot, so waiting costs nothing. If the lone share is still over 15 %, the owner decides on reverting to 2 minutes
+in time for the 10/11 Oct deploy.
+
+**Context it answers:** the interim early look above (2026-10-06) — lone share **20.5 %** over 10-04/10-05 vs **11.8 %**
+Before; avg real players per match **7.41 → 4.35**.
+
+**What this changes, in plain terms:**
+- No revert now. The day-4 snapshot (Step 4, due 2026-10-08 00:00 UTC) runs as planned.
+- If the day-4 lone share is **still over 15 %**, the **owner** decides keep vs revert-to-2-minutes **before the
+  2026-10-10/11 deploy slot** — i.e. the day-4 read, which the brief calls *"mid-test, informational"*, becomes the input
+  to that decision if the line is crossed. The day-7 read (Step 5, 2026-10-11) still happens.
+- If it is 15 % or under, nothing is decided early; Steps 5–6 stand as written.
+- A revert, if ruled, is a **new task** (brief *Notes*: "A revert, if ruled, is a new task").
+
+**Not changed:** status (`🔲 Backlog`), rank, brief steps text, the 15 % line, the windows. No mover run. Nothing
+committed.
+
+### Decision log
+
+- Owner ruling recorded (above). No judgment call by the producer.

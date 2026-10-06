@@ -102,6 +102,14 @@
     "restart": "Restart now",
     "later": "Later"
   },
+  "citizenship_status": {
+    "checking": "Checking your account…",
+    "verified_paid": "✓ Verified — your paid citizenship benefits are on",
+    "unverified": "We couldn't confirm your account this time. If you bought citizenship, it's safe — you may just see ads until it's confirmed. Closing and reopening the game usually helps.",
+    "read_failed": "We couldn't load your profile right now. Nothing is lost — a restart usually helps.",
+    "restart": "Restart game",
+    "still_failing": "Still not working. Please try again a bit later — nothing is lost."
+  },
   "inbox": {
     "empty": "No personal messages yet.",
     "templates": {

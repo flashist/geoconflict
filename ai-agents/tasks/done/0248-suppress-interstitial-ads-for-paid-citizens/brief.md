@@ -423,7 +423,7 @@ session, relayed by `fkit-lead`** (ADR-037 §3). ⛔ Not producer precedent.
      `Citizenship:Earned:XP`).
   2. **One** place switches interstitials off: inside `FlashistFacade.showInterstitial()`, reading (1). **No checks at
      the six call sites.** No placement logic is needed, since all six are off.
-  3. The verified-status display filed as [`0397`](../../backlog/0397-show-players-whether-their-session-is-verified/brief.md)
+  3. The verified-status display filed as [`0397`](../0397-show-players-whether-their-session-is-verified/brief.md)
      must read the **same** place (1). Whichever of the two is built first creates it; the other reuses it. ⛔ Never a
      second paid-status source.
 - **What R1 closes:** open questions 2 (all six or a subset) and 3 (is the data available) — struck above. **No
@@ -454,7 +454,7 @@ session, relayed by `fkit-lead`** (ADR-037 §3). ⛔ Not producer precedent.
 
 - **Owner, verbatim:** *"Yes, deploy together (Recommended)"* — to the question whether `0248` should deploy only
   together with / after the verified-status display
-  ([`0397`](../../backlog/0397-show-players-whether-their-session-is-verified/brief.md)). Reason: a good-faith paid citizen whose
+  ([`0397`](../0397-show-players-whether-their-session-is-verified/brief.md)). Reason: a good-faith paid citizen whose
   session is not verified this load still sees ads, and must be able to see why.
 - **This is a note, not a dependency.** The question put said building `0248` is not blocked either way. **No `Depends
   on` link to `0397` was added**; the `Depends on` line above is unchanged. Same shape as the 2026-10-06 `0396` deploy

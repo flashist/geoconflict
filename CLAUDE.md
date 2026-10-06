@@ -234,6 +234,31 @@ Both are load-bearing: jest's 5000 ms default would make a normal slow harness f
 `Exceeded timeout of 5000 ms`, the exact string the known supertest flake below produces. Do not
 remove them.
 
+### `npm test` runs at most 4 jest workers (task `0399`)
+
+`jest.config.ts` sets `maxWorkers: 4` for the unit run — `npm test`, and `npm run test:coverage`,
+which uses the same config. Jest's own default would be cores − 1 (13 on a 14-core Mac).
+`npm run test:integration` is unaffected (still `--runInBand`).
+
+**Why:** with some apps in front (seen with a game; not with Telegram/Safari), macOS appears to move
+the whole Terminal process tree into a throttled background class that runs only on the efficiency
+cores (4 on the owner's Mac). Thirteen workers plus the shell harnesses then fight over those cores and
+the harnesses hit their 150 s deadline. Measured 2026-10-06: the old setting (13 workers), two runs,
+~295 s and red, front app not recorded; 4 workers, one run, game in front, 99 s and green — not a
+like-for-like comparison. Which apps trigger the throttling, and that it causes the timeouts, are
+likely, not proven.
+
+- **Cost of the cap when nothing is throttled: none measured.** Terminal in front: 42 s vs 44 s
+  (4 workers vs 13, one back-to-back run each, 2026-10-06, both green). One 4-worker run with
+  Telegram/Safari in front, where no throttling happened, also took 42 s.
+- **Override for one run:** `npm test -- --maxWorkers=N`. `--runInBand` also wins over the config,
+  and can't be combined with `--maxWorkers` (jest refuses to start).
+- **Not a flake fix, not a segfault fix.** The `supertest` flake below occurs at the same rate at 4 and
+  13 workers (`0200`) — judge a single `Exceeded timeout of 5000 ms` by the flake rule.
+- **Supersedes `0197`'s amendment A2 ("no `--maxWorkers` cap") for this reason only** (owner ruling
+  2026-10-06). A2 declined a cap on cost — a permanent slowdown on every run, back when the whole suite
+  took ~4 s. This note makes no claim about whether a cap affects `0197`'s `SIGSEGV`.
+
 ### ⚠️ Known flake — `supertest` suites (one shape confirmed; not a bug)
 
 **Where:** every suite that uses `supertest` — the four `tests/profile-server/*Routes.test.ts`,

@@ -163,3 +163,19 @@ and the ⛔ rollback rule below written out in full.
   numbers) · `0248` (ad-free, the first reader of `isPaidCitizen`) · ADR-116 · ADR-122.
 - **Privacy:** true/false answers, counts and dates only. Never paste a token, body, id, host or URL.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+
+> 📌 **2026-10-06 — deploy and rollback rule added by OWNER RULING on `0397` (Q4).** Given live via `AskUserQuestion` in
+> the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent.
+> Owner, verbatim: *"Confirm + rollback rule (Recommended)"*. What it adds to this task:
+> - **The S3b profile server never goes live while a production game client without
+>   [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) is running.** Reason: `0248`'s ad gate is
+>   already committed on `dev` and switches on by itself once the S3b server sends the owner view; owner ruling R3 says
+>   `0248` reaches players only with or after `0397`.
+> - **`0397` may ship in the same slot as this task:** the S3b **server first**, then the owner's DevTools check (§4),
+>   then the game client carrying `0397`. ⚠️ So §2's *"Order: either is safe"* **no longer holds** once `0397` rides in
+>   the same deploy — server first is now required.
+> - **Rollback:** if the S3b server is rolled back (to the `0340` server), **also roll the game client back, or switch
+>   the `citizenship_ui` flag off** (hides the citizenship card). Otherwise every logged-in citizen is shown *"We
+>   couldn't confirm your account this time…"*.
+> Details: [`2026-10-06-0397-step1-product-spec.md`](../../../knowledge-base/reports/2026-10-06-0397-step1-product-spec.md) §11.
+> Nothing above this note was edited (ADR-035); no status, rank or sprint changed.

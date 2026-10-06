@@ -19,6 +19,9 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       CITIZENSHIP_SURFACE_SEEN: "Citizenship:Seen",
       PROFILE_LOGIN_RESTART_REQUESTED: "Profile:Login:Restart:Requested",
       PROFILE_LOGIN_RESTART_CANCELLED: "Profile:Login:Restart:Cancelled",
+      CITIZENSHIP_STATUS_UNVERIFIED: "Citizenship:Status:Unverified",
+      CITIZENSHIP_STATUS_READ_FAILED: "Citizenship:Status:ReadFailed",
+      CITIZENSHIP_STATUS_RESTART: "Citizenship:Status:Restart",
     },
     uiElementIds: {
       citizenshipLoginToEarn: "CitizenshipLoginToEarn",
@@ -42,6 +45,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       getCatalogProduct: jest.fn().mockReturnValue(null),
       whenPaymentsCatalogSettled: jest.fn(),
       whenPlatformRecoveredLate: jest.fn(),
+      whenYandexAuthorizedLate: jest.fn(),
+      reloadApp: jest.fn(),
     },
   },
 }));
@@ -71,6 +76,7 @@ import {
   getApprovedName,
   resetApprovedNameForTests,
 } from "../../src/client/ApprovedName";
+import { resetCitizenshipNoticeReportedForTests } from "../../src/client/CitizenshipNotice";
 import { runCitizenshipPurchase } from "../../src/client/CitizenshipPurchase";
 import {
   CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
@@ -78,6 +84,7 @@ import {
 } from "../../src/client/CitizenshipRestartOffer";
 import {
   getCitizenshipStatus,
+  getProfileVerificationStatus,
   isCurrentPlayerPaidCitizen,
   publishPaidCitizenship,
   resetCitizenshipStatusForTests,
@@ -94,6 +101,10 @@ import {
 } from "../../src/client/NameChangeRequest";
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import {
+  PROFILE_READ_RESTART_MARKER_KEY,
+  resetProfileReadRestartForTests,
+} from "../../src/client/ProfileReadRestart";
 import {
   beginJoiningLobby,
   reportBackOnStartScreen,
@@ -115,6 +126,9 @@ const whenPaymentsCatalogSettled = FlashistFacade.instance
   .whenPaymentsCatalogSettled as jest.Mock;
 const whenPlatformRecoveredLate = FlashistFacade.instance
   .whenPlatformRecoveredLate as jest.Mock;
+const whenYandexAuthorizedLate = FlashistFacade.instance
+  .whenYandexAuthorizedLate as jest.Mock;
+const reloadApp = FlashistFacade.instance.reloadApp as jest.Mock;
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 const loadProfile = loadPlayerProfileView as jest.Mock;
 const runPurchase = runCitizenshipPurchase as jest.Mock;
@@ -168,6 +182,8 @@ describe("CitizenshipCard", () => {
     // Late platform recovery (task 0329): by default the platform never
     // recovers late — the signal never settles.
     whenPlatformRecoveredLate.mockReturnValue(new Promise(() => {}));
+    // Late Yandex login (task 0397): by default the boot answer stands.
+    whenYandexAuthorizedLate.mockReturnValue(new Promise(() => {}));
     runPurchase.mockResolvedValue("error");
     submitNameChange.mockResolvedValue({ status: "ok" });
     cancelNameChange.mockResolvedValue({ status: "ok" });
@@ -176,6 +192,9 @@ describe("CitizenshipCard", () => {
     resetCitizenshipStatusForTests();
     resetApprovedNameForTests();
     resetStartScreenPresenceForTests();
+    resetCitizenshipNoticeReportedForTests();
+    resetProfileReadRestartForTests();
+    sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -496,10 +515,13 @@ describe("CitizenshipCard", () => {
 
   describe("Citizenship:Seen", () => {
     it("fires exactly once when the card is visible, in any state", async () => {
+      // A real (authoritative) read: a fixture without `isAuthoritative` is a
+      // failed read since task 0397 and would also log ReadFailed.
       loadProfile.mockResolvedValue({
         displayName: "Игрок_7734",
         xp: 0,
         isCitizen: false,
+        isAuthoritative: true,
       });
       await appendCard({ visible: true });
 
@@ -2169,6 +2191,535 @@ describe("CitizenshipCard", () => {
         await settle(card);
 
         expect(show).toHaveBeenCalledTimes(1);
+      });
+    });
+  });
+
+  // Task 0397: the session status line (owner rulings Q1–Q3, 2026-10-06) and
+  // the 0278 paths folded into it.
+  describe("session status line (task 0397)", () => {
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    const reconcile = () =>
+      window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+
+    const notice = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-status-notice");
+    const restartButton = (card: CitizenshipCard) =>
+      card.querySelector(
+        "#citizenship-status-restart",
+      ) as HTMLButtonElement | null;
+    const loginButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-login-button");
+    const checkingLine = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-status-checking");
+    const statusEvents = () =>
+      logEventAnalytics.mock.calls
+        .map(([event]) => event as string)
+        .filter((event) => event.startsWith("Citizenship:Status:"));
+
+    /** A read held open by the test. */
+    function pendingRead(): (value: unknown) => void {
+      let resolve: (value: unknown) => void = () => {};
+      loadProfile.mockReturnValueOnce(
+        new Promise((r) => {
+          resolve = r;
+        }),
+      );
+      return (value) => resolve(value);
+    }
+
+    /** The facade's late-login signal, resolved by hand. */
+    function deferredLateLogin(): () => void {
+      let fire: () => void = () => {};
+      whenYandexAuthorizedLate.mockReturnValue(
+        new Promise<void>((resolve) => {
+          fire = () => resolve();
+        }),
+      );
+      return () => fire();
+    }
+
+    const UNVERIFIED_CITIZEN = {
+      ...NON_CITIZEN_PROFILE,
+      xp: 100,
+      isCitizen: true,
+      isVerifiedRead: false,
+    };
+    const VERIFIED_PAID = {
+      ...UNVERIFIED_CITIZEN,
+      isPaidCitizen: true,
+      isVerifiedRead: true,
+    };
+    const VERIFIED_EARNED = { ...UNVERIFIED_CITIZEN, isVerifiedRead: true };
+    // What loadPlayerProfileView returns on a failed or timed-out read.
+    const FAILED_READ = {
+      ...NON_CITIZEN_PROFILE,
+      xp: 0,
+      isAuthoritative: false,
+      isVerifiedRead: false,
+    };
+
+    describe("checking (before the first read lands)", () => {
+      it("shows the checking line — no login button, no buy button", async () => {
+        getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+        const resolve = pendingRead();
+
+        const card = await appendCard({ visible: true });
+
+        expect(checkingLine(card)).not.toBeNull();
+        expect(card.textContent).toContain("citizenship_status.checking");
+        expect(loginButton(card)).toBeNull();
+        expect(card.querySelector("#citizenship-buy-button")).toBeNull();
+        expect(card.textContent).not.toContain(
+          "citizenship_card.guest_subtitle",
+        );
+        expect(getProfileVerificationStatus()).toBe("unknown");
+        expect(statusEvents()).toEqual([]);
+
+        resolve(NON_CITIZEN_PROFILE);
+        await settle(card);
+        expect(checkingLine(card)).toBeNull();
+        expect(card.querySelector("#citizenship-buy-button")).not.toBeNull();
+      });
+
+      it("still fires Citizenship:Seen while checking", async () => {
+        pendingRead();
+        await appendCard({ visible: true });
+        expect(logEventAnalytics).toHaveBeenCalledWith("Citizenship:Seen");
+      });
+    });
+
+    it("guest: the guest card, unchanged, and nothing new", async () => {
+      const card = await appendCard({ visible: true });
+
+      expect(loginButton(card)).not.toBeNull();
+      expect(checkingLine(card)).toBeNull();
+      expect(notice(card)).toBeNull();
+      expect(getProfileVerificationStatus()).toBe("guest");
+      expect(statusEvents()).toEqual([]);
+    });
+
+    describe("couldn't load (failed read)", () => {
+      it("shows the notice and the Restart game button; logs ReadFailed once", async () => {
+        loadProfile.mockResolvedValue(FAILED_READ);
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain("citizenship_status.read_failed");
+        expect(card.textContent).not.toContain(
+          "citizenship_status.still_failing",
+        );
+        expect(restartButton(card)).not.toBeNull();
+        expect(restartButton(card)!.textContent).toContain(
+          "citizenship_status.restart",
+        );
+
+        reconcile();
+        await settle(card);
+        expect(statusEvents()).toEqual(["Citizenship:Status:ReadFailed"]);
+      });
+
+      it("a press on the start screen writes the marker, logs Restart and reloads", async () => {
+        loadProfile.mockResolvedValue(FAILED_READ);
+        const card = await appendCard({ visible: true });
+
+        restartButton(card)!.click();
+
+        expect(reloadApp).toHaveBeenCalledTimes(1);
+        expect(statusEvents()).toEqual([
+          "Citizenship:Status:ReadFailed",
+          "Citizenship:Status:Restart",
+        ]);
+        expect(
+          sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY),
+        ).not.toBe(null);
+
+        // A second tap before the page unloads does nothing.
+        restartButton(card)!.click();
+        expect(reloadApp).toHaveBeenCalledTimes(1);
+      });
+
+      it.each([
+        ["in a lobby or match", () => setStartScreenPresenceSource(() => true)],
+        ["while a join is being set up", () => void beginJoiningLobby()],
+      ])(
+        "a press %s does nothing and logs nothing; the button stays",
+        async (_label, goAway) => {
+          loadProfile.mockResolvedValue(FAILED_READ);
+          const card = await appendCard({ visible: true });
+          goAway();
+
+          restartButton(card)!.click();
+          await settle(card);
+
+          expect(reloadApp).not.toHaveBeenCalled();
+          expect(statusEvents()).toEqual(["Citizenship:Status:ReadFailed"]);
+          expect(sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY)).toBe(
+            null,
+          );
+          expect(restartButton(card)).not.toBeNull();
+
+          // Back on the start screen, the same button works.
+          resetStartScreenPresenceForTests();
+          restartButton(card)!.click();
+          expect(reloadApp).toHaveBeenCalledTimes(1);
+        },
+      );
+
+      it("after a restart from this button, a failed read says still not working", async () => {
+        sessionStorage.setItem(PROFILE_READ_RESTART_MARKER_KEY, "1");
+        loadProfile.mockResolvedValue(FAILED_READ);
+
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain("citizenship_status.still_failing");
+        expect(card.textContent).not.toContain(
+          "citizenship_status.read_failed",
+        );
+        expect(restartButton(card)).not.toBeNull();
+        expect(statusEvents()).toEqual(["Citizenship:Status:ReadFailed"]);
+        // Read once and removed, so it cannot carry past this load.
+        expect(sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY)).toBe(
+          null,
+        );
+      });
+
+      it("a restart that DID help: the marker is consumed and nothing shows", async () => {
+        sessionStorage.setItem(PROFILE_READ_RESTART_MARKER_KEY, "1");
+        loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+        const card = await appendCard({ visible: true });
+
+        expect(notice(card)).toBeNull();
+        expect(sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY)).toBe(
+          null,
+        );
+      });
+
+      // Review R1: the marker is consumed on the load after the restart even
+      // when the card never shows on it, so it cannot reach a later load.
+      it.each([
+        [
+          "killed",
+          () => {
+            flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+          },
+        ],
+        [
+          "hidden by the flag",
+          () => {
+            isCitizenshipUiEnabled.mockResolvedValue(false);
+          },
+        ],
+      ])(
+        "a card %s on the next load still consumes the marker",
+        async (_label, disableCard) => {
+          sessionStorage.setItem(PROFILE_READ_RESTART_MARKER_KEY, "1");
+          disableCard();
+
+          const hiddenCard = await appendCard({ visible: true });
+
+          expect(hiddenCard.classList.contains("hidden")).toBe(true);
+          expect(sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY)).toBe(
+            null,
+          );
+
+          // A much later load whose read fails: no recent restart, so the
+          // plain couldn't-load text, never "still not working".
+          hiddenCard.remove();
+          resetProfileReadRestartForTests();
+          flashistConstants.features.CITIZENSHIP_CARD_ENABLED = true;
+          isCitizenshipUiEnabled.mockResolvedValue(true);
+          loadProfile.mockResolvedValue(FAILED_READ);
+
+          const laterCard = await appendCard({ visible: true });
+
+          expect(laterCard.textContent).toContain(
+            "citizenship_status.read_failed",
+          );
+          expect(laterCard.textContent).not.toContain(
+            "citizenship_status.still_failing",
+          );
+        },
+      );
+
+      it("a card hidden at boot and revealed late on the same load still says still not working", async () => {
+        sessionStorage.setItem(PROFILE_READ_RESTART_MARKER_KEY, "1");
+        let recover: () => void = () => {};
+        whenPlatformRecoveredLate.mockReturnValue(
+          new Promise<void>((resolve) => {
+            recover = () => resolve();
+          }),
+        );
+        isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+        loadProfile.mockResolvedValue(FAILED_READ);
+
+        const card = await appendCard({ visible: true });
+        expect(card.classList.contains("hidden")).toBe(true);
+        expect(sessionStorage.getItem(PROFILE_READ_RESTART_MARKER_KEY)).toBe(
+          null,
+        );
+
+        isCitizenshipUiEnabled.mockResolvedValue(true);
+        recover();
+        await settle(card);
+
+        expect(card.classList.contains("hidden")).toBe(false);
+        expect(card.textContent).toContain("citizenship_status.still_failing");
+      });
+
+      // 0278 Situation B: an authorized player whose read comes back
+      // non-authoritative (failed login, D3 latch) — never a bare 0 XP card
+      // with no action.
+      it("0278 situation B: a failed login gets the notice and the button, not a bare 0 XP card", async () => {
+        getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+        loadProfile.mockResolvedValue(FAILED_READ);
+
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain("citizenship_card.xp_label");
+        expect(card.querySelector("#citizenship-buy-button")).toBeNull();
+        expect(restartButton(card)).not.toBeNull();
+        expect(getProfileVerificationStatus()).toBe("read_failed");
+      });
+    });
+
+    describe("unverified", () => {
+      it("a citizen: the text only, no button; logs Unverified once", async () => {
+        loadProfile.mockResolvedValue(UNVERIFIED_CITIZEN);
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain("citizenship_status.unverified");
+        expect(restartButton(card)).toBeNull();
+        expect(getProfileVerificationStatus()).toBe("unverified");
+
+        reconcile();
+        await settle(card);
+        expect(statusEvents()).toEqual(["Citizenship:Status:Unverified"]);
+      });
+
+      it("a non-citizen: nothing new", async () => {
+        loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+        const card = await appendCard({ visible: true });
+
+        expect(notice(card)).toBeNull();
+        expect(getProfileVerificationStatus()).toBe("unverified");
+        expect(statusEvents()).toEqual([]);
+      });
+
+      it("a confirmed purchase whose re-read is unverified shows the notice", async () => {
+        getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+        loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+        const card = await appendCard({ visible: true });
+        runPurchase.mockResolvedValue("granted");
+        loadProfile.mockResolvedValue(UNVERIFIED_CITIZEN);
+
+        (
+          card.querySelector("#citizenship-buy-button") as HTMLButtonElement
+        ).click();
+        await settle(card);
+
+        expect(card.textContent).toContain("citizenship_status.unverified");
+        expect(isCurrentPlayerPaidCitizen()).toBe(false);
+      });
+    });
+
+    describe("verified", () => {
+      it("paid: the verified line, from the one published paid value", async () => {
+        loadProfile.mockResolvedValue(VERIFIED_PAID);
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain("citizenship_status.verified_paid");
+        expect(isCurrentPlayerPaidCitizen()).toBe(true);
+        expect(restartButton(card)).toBeNull();
+        expect(statusEvents()).toEqual([]);
+      });
+
+      it("not paid: nothing new", async () => {
+        loadProfile.mockResolvedValue(VERIFIED_EARNED);
+        const card = await appendCard({ visible: true });
+
+        expect(notice(card)).toBeNull();
+        expect(getProfileVerificationStatus()).toBe("verified");
+      });
+
+      it("never the verified line on an unverified read claiming paid", async () => {
+        loadProfile.mockResolvedValue({
+          ...UNVERIFIED_CITIZEN,
+          isPaidCitizen: true,
+        });
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).not.toContain(
+          "citizenship_status.verified_paid",
+        );
+        expect(card.textContent).toContain("citizenship_status.unverified");
+      });
+    });
+
+    it("a purchases-reconciled re-read updates the line without a reload", async () => {
+      loadProfile.mockResolvedValue(FAILED_READ);
+      const card = await appendCard({ visible: true });
+      expect(restartButton(card)).not.toBeNull();
+
+      loadProfile.mockResolvedValue(VERIFIED_PAID);
+      reconcile();
+      await settle(card);
+
+      expect(restartButton(card)).toBeNull();
+      expect(card.textContent).toContain("citizenship_status.verified_paid");
+      expect(reloadApp).not.toHaveBeenCalled();
+    });
+
+    it("kill switch off: nothing renders and nothing publishes", async () => {
+      flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+      loadProfile.mockResolvedValue(FAILED_READ);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(getProfileVerificationStatus()).toBe("unknown");
+      expect(statusEvents()).toEqual([]);
+      expect(whenYandexAuthorizedLate).not.toHaveBeenCalled();
+    });
+
+    it("citizenship_ui off: nothing renders and nothing publishes", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      loadProfile.mockResolvedValue(FAILED_READ);
+
+      const card = await appendCard({ visible: true });
+
+      expect(card.textContent!.trim()).toBe("");
+      expect(getProfileVerificationStatus()).toBe("unknown");
+    });
+
+    it("a superseded read publishes nothing", async () => {
+      const resolveFirst = pendingRead();
+      loadProfile.mockResolvedValueOnce(VERIFIED_PAID);
+
+      const card = await appendCard({ visible: true });
+      reconcile();
+      await settle(card);
+      expect(getProfileVerificationStatus()).toBe("verified");
+
+      resolveFirst(FAILED_READ);
+      await settle(card);
+
+      expect(getProfileVerificationStatus()).toBe("verified");
+      expect(statusEvents()).toEqual([]);
+    });
+
+    it("stays the single profile reader: one load per refresh", async () => {
+      loadProfile.mockResolvedValue(UNVERIFIED_CITIZEN);
+      const card = await appendCard({ visible: true });
+      expect(loadProfile).toHaveBeenCalledTimes(1);
+      reconcile();
+      await settle(card);
+      expect(loadProfile).toHaveBeenCalledTimes(2);
+    });
+
+    // 0278 folded in: the Yandex player turns out to be logged in only after
+    // the card's read said guest.
+    describe("late Yandex login (0278)", () => {
+      it("card showing as guest: shows checking, reads exactly once more, ends in the real state", async () => {
+        const fireLateLogin = deferredLateLogin();
+        const card = await appendCard({ visible: true });
+        expect(loginButton(card)).not.toBeNull();
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+
+        const resolve = pendingRead();
+        fireLateLogin();
+        await settle(card);
+
+        expect(checkingLine(card)).not.toBeNull();
+        expect(loginButton(card)).toBeNull();
+        expect(getProfileVerificationStatus()).toBe("unknown");
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+
+        resolve(UNVERIFIED_CITIZEN);
+        await settle(card);
+
+        expect(checkingLine(card)).toBeNull();
+        expect(card.textContent).toContain("citizenship_status.unverified");
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+      });
+
+      it("card showing as guest: a re-read that fails ends in couldn't-load + button", async () => {
+        const fireLateLogin = deferredLateLogin();
+        const card = await appendCard({ visible: true });
+
+        loadProfile.mockResolvedValue(FAILED_READ);
+        fireLateLogin();
+        await settle(card);
+
+        expect(card.textContent).toContain("citizenship_status.read_failed");
+        expect(restartButton(card)).not.toBeNull();
+        expect(loginButton(card)).toBeNull();
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+      });
+
+      it("a signal already fired before the reveal causes no second read", async () => {
+        whenYandexAuthorizedLate.mockReturnValue(Promise.resolve());
+        loadProfile.mockResolvedValue(UNVERIFIED_CITIZEN);
+
+        const card = await appendCard({ visible: true });
+        await settle(card);
+
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+        expect(card.textContent).toContain("citizenship_status.unverified");
+      });
+
+      it("late SDK, card hidden (0329): the reveal shows checking, then the real state; no extra read", async () => {
+        const fireLateLogin = deferredLateLogin();
+        let recover: () => void = () => {};
+        whenPlatformRecoveredLate.mockReturnValue(
+          new Promise<void>((resolve) => {
+            recover = () => resolve();
+          }),
+        );
+        isCitizenshipUiEnabled.mockResolvedValueOnce(false);
+
+        const card = await appendCard({ visible: true });
+        expect(card.classList.contains("hidden")).toBe(true);
+
+        // The late player and the late recovery land while the card is hidden.
+        fireLateLogin();
+        await settle(card);
+        expect(loadProfile).not.toHaveBeenCalled();
+
+        const resolve = pendingRead();
+        isCitizenshipUiEnabled.mockResolvedValue(true);
+        recover();
+        await settle(card);
+        expect(card.classList.contains("hidden")).toBe(false);
+        expect(checkingLine(card)).not.toBeNull();
+
+        resolve(VERIFIED_PAID);
+        await settle(card);
+
+        expect(card.textContent).toContain("citizenship_status.verified_paid");
+        expect(loadProfile).toHaveBeenCalledTimes(1);
+      });
+
+      it("a reconnected card ignores the old connection's subscription", async () => {
+        const fireLateLogin = deferredLateLogin();
+        const card = await appendCard({ visible: true });
+        card.remove();
+        document.body.appendChild(card);
+        await settle(card);
+        // One read per reveal; both connections subscribed to the same signal.
+        expect(loadProfile).toHaveBeenCalledTimes(2);
+
+        fireLateLogin();
+        await settle(card);
+
+        // Only the live connection re-reads.
+        expect(loadProfile).toHaveBeenCalledTimes(3);
       });
     });
   });

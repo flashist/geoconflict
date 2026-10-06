@@ -1,5 +1,6 @@
 import {
   beginJoiningLobby,
+  isOnStartScreen,
   reportBackOnStartScreen,
   resetStartScreenPresenceForTests,
   setStartScreenPresenceSource,
@@ -133,5 +134,32 @@ describe("StartScreenPresence", () => {
 
       expect(await isSettled(whenOnStartScreen())).toBe(true);
     });
+  });
+});
+
+// Task 0397: the read-failed Restart game button asks this synchronously.
+describe("isOnStartScreen", () => {
+  beforeEach(() => {
+    resetStartScreenPresenceForTests();
+  });
+
+  it("is true when no source is registered", () => {
+    expect(isOnStartScreen()).toBe(true);
+  });
+
+  it("is false in a lobby or match, and true again once back", () => {
+    let away = true;
+    setStartScreenPresenceSource(() => away);
+    expect(isOnStartScreen()).toBe(false);
+    away = false;
+    expect(isOnStartScreen()).toBe(true);
+  });
+
+  it("is false while a join is being set up, and true once it ends", () => {
+    setStartScreenPresenceSource(() => false);
+    const endJoin = beginJoiningLobby();
+    expect(isOnStartScreen()).toBe(false);
+    endJoin();
+    expect(isOnStartScreen()).toBe(true);
   });
 });

@@ -777,6 +777,285 @@ describe("FlashistFacade.whenPlatformRecoveredLate (task 0329)", () => {
   });
 });
 
+// Task 0397 (0278 folded in): the "Yandex player logged in only after the
+// boot said no" signal. The citizenship card re-reads on it, so a card already
+// showing is not left on a guest card.
+describe("FlashistFacade.whenYandexAuthorizedLate (task 0397)", () => {
+  type Deferred<T> = { promise: Promise<T>; resolve: (value: T) => void };
+  function deferred<T>(): Deferred<T> {
+    let resolve: (value: T) => void = () => {};
+    const promise = new Promise<T>((r) => {
+      resolve = r;
+    });
+    return { promise, resolve };
+  }
+
+  const guest = { isAuthorized: () => false };
+  const loggedIn = { isAuthorized: () => true };
+
+  type Internals = {
+    runPlatformInit(): Promise<void>;
+    yandexSdkInit(): Promise<void>;
+    markYandexAuthorizedLate(): void;
+    yandexSdkPlayerObject?: unknown;
+  };
+  type TestFacade = Omit<FlashistFacade, keyof Internals> & Internals;
+
+  /** Spy on a promise without blocking on it. */
+  function track(promise: Promise<void>): { settled: () => boolean } {
+    let settled = false;
+    void promise.then(() => {
+      settled = true;
+    });
+    return { settled: () => settled };
+  }
+
+  /**
+   * Stage 2 of platform init on a bare facade: the boot initPlayer() resolves
+   * (or rejects) when the test says, with the player the test names.
+   */
+  function bootFacade(): {
+    facade: TestFacade;
+    finishPlayer: (player: unknown) => void;
+    failPlayer: () => void;
+  } {
+    const player = deferred<unknown>();
+    let failed = false;
+    let fail: () => void = () => {};
+    const facade = Object.assign(Object.create(FlashistFacade.prototype), {
+      yaGamesAvailable: true,
+      yandexGamesSDK: {
+        getPlayer: jest.fn().mockResolvedValue(loggedIn),
+        auth: { openAuthDialog: jest.fn().mockResolvedValue(undefined) },
+      },
+      yandexInitPromise: Promise.resolve(),
+      yandexInitPromiseResolve: jest.fn(),
+      yandexSdkInitPlayerPromise: Promise.resolve(),
+      yandexSdkInitPlayerPromiseResolve: jest.fn(),
+      yandexSdkInit: jest.fn().mockResolvedValue(undefined),
+      waitForSdkLoader: jest.fn().mockResolvedValue(undefined),
+      loadExperimentFlags: jest.fn().mockResolvedValue(undefined),
+      initPayments: jest.fn().mockResolvedValue(undefined),
+      logExperimentEvents: jest.fn(),
+      primeCitizenshipSurfacesSnapshot: jest.fn(),
+      logYandexLoginStatusEvent: jest.fn(),
+      scheduleYandexLoginStatusEvent: jest.fn(),
+      getLanguageCode: jest.fn().mockResolvedValue("ru"),
+      getCurPlayerName: jest.fn().mockResolvedValue(undefined),
+    }) as TestFacade;
+    (facade as unknown as { initPlayer: () => Promise<void> }).initPlayer =
+      () =>
+        new Promise<void>((resolve, reject) => {
+          fail = () => {
+            failed = true;
+            reject(new Error("getPlayer failed"));
+          };
+          void player.promise.then((value) => {
+            if (failed) return;
+            facade.yandexSdkPlayerObject = value;
+            resolve();
+          });
+        });
+    return {
+      facade,
+      finishPlayer: (value) => player.resolve(value),
+      failPlayer: () => fail(),
+    };
+  }
+
+  const flush = () => jest.advanceTimersByTimeAsync(0);
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    delete (window as unknown as { YaGames?: unknown }).YaGames;
+  });
+
+  describe("case (a): the boot getPlayer() lands after the deadline", () => {
+    it("fires once when that late player is logged in", async () => {
+      const { facade, finishPlayer } = bootFacade();
+      const waiter = track(facade.whenYandexAuthorizedLate());
+
+      const run = facade.runPlatformInit();
+      await jest.advanceTimersByTimeAsync(5000);
+      await run;
+      expect(waiter.settled()).toBe(false);
+
+      finishPlayer(loggedIn);
+      await flush();
+
+      expect(waiter.settled()).toBe(true);
+    });
+
+    it("a waiter added after the fire resolves at once", async () => {
+      const { facade, finishPlayer } = bootFacade();
+      const run = facade.runPlatformInit();
+      await jest.advanceTimersByTimeAsync(5000);
+      await run;
+      finishPlayer(loggedIn);
+      await flush();
+
+      const late = track(facade.whenYandexAuthorizedLate());
+      await flush();
+
+      expect(late.settled()).toBe(true);
+    });
+
+    it("does not fire when the late player is a real guest", async () => {
+      const { facade, finishPlayer } = bootFacade();
+      const waiter = track(facade.whenYandexAuthorizedLate());
+      const run = facade.runPlatformInit();
+      await jest.advanceTimersByTimeAsync(5000);
+      await run;
+
+      finishPlayer(guest);
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+
+    it("does not fire, and never throws, when the boot getPlayer() rejects", async () => {
+      const { facade, failPlayer } = bootFacade();
+      const waiter = track(facade.whenYandexAuthorizedLate());
+      const run = facade.runPlatformInit();
+      await jest.advanceTimersByTimeAsync(5000);
+      await run;
+
+      failPlayer();
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+  });
+
+  describe("never on a healthy boot", () => {
+    it.each([
+      ["a logged-in player in time", loggedIn],
+      ["a real guest in time", guest],
+    ])("%s: never fires", async (_label, player) => {
+      const { facade, finishPlayer } = bootFacade();
+      const waiter = track(facade.whenYandexAuthorizedLate());
+      finishPlayer(player);
+
+      await facade.runPlatformInit();
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+
+    it("a guest's own login from the auth dialog fires nothing (0273's restart path)", async () => {
+      const { facade, finishPlayer } = bootFacade();
+      const waiter = track(facade.whenYandexAuthorizedLate());
+      finishPlayer(guest);
+      await facade.runPlatformInit();
+
+      await expect(facade.openYandexAuthDialog()).resolves.toBe(true);
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+  });
+
+  describe("case (b): the late-SDK player recovery", () => {
+    function makeRecoveryFacade(options: {
+      getPlayer: jest.Mock;
+      wasYandexAuthorizedAtBoot?: boolean;
+    }): TestFacade {
+      (
+        window as unknown as { flashist_sdkScriptReadyPromise: Promise<void> }
+      ).flashist_sdkScriptReadyPromise = Promise.resolve();
+      (window as unknown as { YaGames: unknown }).YaGames = {
+        init: jest.fn().mockResolvedValue({
+          getFlags: jest.fn().mockResolvedValue({ citizenship_ui: "enabled" }),
+          getPlayer: options.getPlayer,
+        }),
+      };
+      return Object.assign(Object.create(FlashistFacade.prototype), {
+        yaGamesAvailable: false,
+        yandexInitPromise: Promise.resolve(),
+        yandexSdkInitPlayerPromise: Promise.resolve(),
+        // Stage 2 ran with no SDK: a degraded boot whose answer was "no".
+        playerInitResultPromise: Promise.resolve(),
+        wasYandexAuthorizedAtBoot: options.wasYandexAuthorizedAtBoot,
+        hasLoggedExperimentEvents: true,
+        initPayments: jest.fn().mockResolvedValue(undefined),
+        yandexGamesReadyCallback: jest.fn(),
+        primeCitizenshipSurfacesSnapshot: jest.fn(),
+      }) as TestFacade;
+    }
+
+    it("fires once when the recovered player is logged in", async () => {
+      const facade = makeRecoveryFacade({
+        getPlayer: jest.fn().mockResolvedValue(loggedIn),
+        wasYandexAuthorizedAtBoot: false,
+      });
+      const waiter = track(facade.whenYandexAuthorizedLate());
+
+      await facade.yandexSdkInit();
+      await flush();
+
+      expect(waiter.settled()).toBe(true);
+    });
+
+    it("does not fire when the recovered player is a guest", async () => {
+      const facade = makeRecoveryFacade({
+        getPlayer: jest.fn().mockResolvedValue(guest),
+        wasYandexAuthorizedAtBoot: false,
+      });
+      const waiter = track(facade.whenYandexAuthorizedLate());
+
+      await facade.yandexSdkInit();
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+
+    it("does not fire before the boot recorded its answer", async () => {
+      const facade = makeRecoveryFacade({
+        getPlayer: jest.fn().mockResolvedValue(loggedIn),
+        wasYandexAuthorizedAtBoot: undefined,
+      });
+      const waiter = track(facade.whenYandexAuthorizedLate());
+
+      await facade.yandexSdkInit();
+      await jest.advanceTimersByTimeAsync(10_000);
+
+      expect(waiter.settled()).toBe(false);
+    });
+  });
+
+  it("fires at most once per page", async () => {
+    const { facade, finishPlayer } = bootFacade();
+    const run = facade.runPlatformInit();
+    await jest.advanceTimersByTimeAsync(5000);
+    await run;
+    finishPlayer(loggedIn);
+    await flush();
+    const resolversAfterFire = (
+      facade as unknown as { yandexAuthorizedLateResolvers?: unknown[] }
+    ).yandexAuthorizedLateResolvers;
+    expect(resolversAfterFire).toEqual([]);
+
+    // A second waiter, then a second mark: the waiter is answered from the
+    // latch, and the mark wakes nothing (no second fire).
+    const second = jest.fn();
+    void facade.whenYandexAuthorizedLate().then(second);
+    facade.markYandexAuthorizedLate();
+    await flush();
+
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(
+      (facade as unknown as { yandexAuthorizedLateResolvers?: unknown[] })
+        .yandexAuthorizedLateResolvers,
+    ).toEqual([]);
+  });
+});
+
 // Task 0380: the copy wrapper. The Yandex SDK clipboard is tried first and
 // called synchronously (it only works inside the user's click); the browser
 // clipboard is the fallback; a double failure resolves false and never throws.

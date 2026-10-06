@@ -24,6 +24,14 @@ export function setStartScreenPresenceSource(isAway: () => boolean): void {
   isAwayFromStartScreen = isAway;
 }
 
+/**
+ * True on the start screen: not in a lobby or match, and no join being set up
+ * (task 0397 — the read-failed Restart game button never interrupts any of them).
+ */
+export function isOnStartScreen(): boolean {
+  return !isAwayOrJoining();
+}
+
 /** Main.ts: the player left a lobby or match and is on the start screen again. */
 export function reportBackOnStartScreen(): void {
   const waiters = backOnStartScreenWaiters;

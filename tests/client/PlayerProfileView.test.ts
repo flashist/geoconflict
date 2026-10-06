@@ -99,6 +99,8 @@ const ZERO_STATE = {
   approvedName: null,
   // Fail-closed for entitlement (0250 S3b, ADR-116 Decision 4).
   isPaidCitizen: false,
+  // Never a verified session (task 0397).
+  isVerifiedRead: false,
 };
 
 describe("loadPlayerProfileView", () => {
@@ -145,6 +147,7 @@ describe("loadPlayerProfileView", () => {
       nameChange: null,
       approvedName: "Генерал",
       isPaidCitizen: false,
+      isVerifiedRead: false,
     });
     // The Yandex id is gone from the URL; the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
@@ -170,6 +173,7 @@ describe("loadPlayerProfileView", () => {
       // (task 0321), so the name box never locks to a platform name.
       approvedName: null,
       isPaidCitizen: false,
+      isVerifiedRead: false,
     });
   });
 
@@ -310,6 +314,7 @@ describe("loadPlayerProfileView", () => {
       nameChange: null,
       approvedName: null,
       isPaidCitizen: false,
+      isVerifiedRead: false,
     });
   });
 
@@ -335,6 +340,7 @@ describe("loadPlayerProfileView", () => {
         nameChange: null,
         approvedName: "Commander",
         isPaidCitizen: true,
+        isVerifiedRead: true,
       });
     });
 
@@ -380,6 +386,35 @@ describe("loadPlayerProfileView", () => {
       getYandexUniqueId.mockResolvedValue(null);
       stubFetch(200, ownerProfile({ is_paid_citizen: true }));
       expect((await loadPlayerProfileView())!.isPaidCitizen).toBe(false);
+    });
+  });
+  // Task 0397 — `isVerifiedRead` is true ONLY for the verified owner view
+  // (the paid keys present), whatever it says about paid. Display-only.
+  describe("isVerifiedRead", () => {
+    it("is true for an owner view of a payer and of a non-payer", async () => {
+      stubFetch(200, ownerProfile({ is_citizen: true, is_paid_citizen: true }));
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(true);
+      stubFetch(200, ownerProfile());
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(true);
+    });
+
+    it("is false for an unverified (S1) view, even of a citizen", async () => {
+      stubFetch(200, publicProfile({ xp: 100, is_citizen: true }));
+      const view = await loadPlayerProfileView();
+      expect(view!.isVerifiedRead).toBe(false);
+      expect(view!.isAuthoritative).toBe(true);
+    });
+
+    it("is false on every zero-state path", async () => {
+      stubFetch(404, { error: "not_found" });
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(false);
+      stubFetch(500, ownerProfile({ is_paid_citizen: true }));
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(false);
+      stubFetch(200, ownerProfile({ is_paid_citizen: "yes" }));
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(false);
+      getYandexUniqueId.mockResolvedValue(null);
+      stubFetch(200, ownerProfile({ is_paid_citizen: true }));
+      expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(false);
     });
   });
 });
@@ -468,6 +503,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
         nameChange: null,
         approvedName: "Commander",
         isPaidCitizen: false,
+        isVerifiedRead: false,
       });
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
@@ -589,6 +625,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
         nameChange: null,
         approvedName: "Commander",
         isPaidCitizen: false,
+        isVerifiedRead: true,
       });
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });

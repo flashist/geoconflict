@@ -12,6 +12,11 @@
 //
 // This can only ever run from the player's OWN press of the card's login button,
 // after the Yandex auth dialog reported success. It never fires on its own.
+//
+// D3's one other sanctioned restart (owner ruling Q3, 2026-10-06, task 0397) is
+// the card's "couldn't load your profile" Restart game button. It is a separate
+// helper (ProfileReadRestart.ts) with its own event, NOT this one, so it never
+// touches this funnel's events or latch.
 
 import {
   flashist_logEventAnalytics,

@@ -95,8 +95,79 @@ export function isCurrentPlayerPaidCitizen(): boolean {
   return currentPaidCitizenship;
 }
 
+/**
+ * The page's one answer to "what did the last profile read say about THIS
+ * session?" (task 0397), for the card's status line. Display-only: it never
+ * gates a benefit — `isCurrentPlayerPaidCitizen()` above is the paid answer.
+ * The citizenship card is the only writer, from `refreshProfile()`, like the
+ * two values above.
+ *
+ * - `unknown`: no read applied yet (card still loading or disabled), or the
+ *   card's re-read after a late Yandex login is in flight. Never derived; the
+ *   card publishes it explicitly for that re-read only.
+ * - `guest`: not logged in to Yandex.
+ * - `read_failed`: logged in, but the profile read failed (zero-state).
+ * - `unverified`: a real read, but not the verified owner view (task 0250 S3b).
+ * - `verified`: the verified owner view.
+ */
+export type ProfileVerificationStatus =
+  | "unknown"
+  | "guest"
+  | "read_failed"
+  | "unverified"
+  | "verified";
+
+export function deriveProfileVerificationStatus(
+  profile: PlayerProfileView | null,
+): ProfileVerificationStatus {
+  if (profile === null) {
+    return "guest";
+  }
+  if (!profile.isAuthoritative) {
+    return "read_failed";
+  }
+  // `=== true`: a view built by an older path (or a test stub) can omit it.
+  return profile.isVerifiedRead === true ? "verified" : "unverified";
+}
+
+type ProfileVerificationStatusListener = (
+  status: ProfileVerificationStatus,
+) => void;
+
+let currentVerificationStatus: ProfileVerificationStatus = "unknown";
+const verificationStatusListeners =
+  new Set<ProfileVerificationStatusListener>();
+
+export function publishProfileVerificationStatus(
+  status: ProfileVerificationStatus,
+): void {
+  if (status === currentVerificationStatus) {
+    return;
+  }
+  currentVerificationStatus = status;
+  for (const listener of verificationStatusListeners) {
+    listener(status);
+  }
+}
+
+export function getProfileVerificationStatus(): ProfileVerificationStatus {
+  return currentVerificationStatus;
+}
+
+/** Returns an unsubscribe function. The listener is not called on subscribe. */
+export function subscribeProfileVerificationStatus(
+  listener: ProfileVerificationStatusListener,
+): () => void {
+  verificationStatusListeners.add(listener);
+  return () => {
+    verificationStatusListeners.delete(listener);
+  };
+}
+
 export function resetCitizenshipStatusForTests(): void {
   currentStatus = "unknown";
   listeners.clear();
   currentPaidCitizenship = false;
+  currentVerificationStatus = "unknown";
+  verificationStatusListeners.clear();
 }

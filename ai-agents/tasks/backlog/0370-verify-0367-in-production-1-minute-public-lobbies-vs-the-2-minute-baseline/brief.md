@@ -192,3 +192,7 @@ lone-player share did not rise by more than the Step 3 number. Otherwise revert.
   not delete stored data).
 - **Privacy:** never paste a host, IP, full URL, token or credential into any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
+- 📌 **2026-10-06 — OWNER RULING** *"Wait for day-4, decide by weekend (Recommended)"* (live via `AskUserQuestion` in
+  the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent): after the interim look (lone 20.5 %), no
+  revert now; if the **day-4** lone share (Step 4, 2026-10-08) is still over 15 %, the owner decides keep vs revert in
+  time for the 2026-10-10/11 deploy. Steps above are not edited. Details: `worklog.md`, *2026-10-06 — OWNER RULING*.

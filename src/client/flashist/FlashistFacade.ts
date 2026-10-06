@@ -185,6 +185,17 @@ export const flashistConstants = {
     CITIZENSHIP_RESTART_PROMPT_RESTART: "Citizenship:RestartPrompt:Restart",
     CITIZENSHIP_RESTART_PROMPT_LATER: "Citizenship:RestartPrompt:Later",
 
+    // The citizenship card's session status line (task 0397). Unverified = the
+    // "not confirmed" notice shown to a citizen (paid AND earned — it cannot
+    // count paid alone, on purpose); ReadFailed = the "couldn't load" notice
+    // (including its "still not working" variant). Each at most once per page.
+    // Restart fires right before the reload from that notice's button, never on
+    // a press refused in a lobby or match — separate from Profile:Login:Restart:*.
+    // No ids, no paid flag, no value.
+    CITIZENSHIP_STATUS_UNVERIFIED: "Citizenship:Status:Unverified",
+    CITIZENSHIP_STATUS_READ_FAILED: "Citizenship:Status:ReadFailed",
+    CITIZENSHIP_STATUS_RESTART: "Citizenship:Status:Restart",
+
     // Paid-citizenship purchase funnel (task 0018; spec 0021 §3–5). Started
     // fires as the Yandex payment frame is opened (last client-controlled
     // moment); Completed only after the SERVER confirmed the grant (never on
@@ -943,6 +954,15 @@ export class FlashistFacade {
       deadlinePromise.then(() => null),
     ]);
     this.yandexSdkInitPlayerPromiseResolve();
+    // Task 0397 (0278 folded in): the boot's answer to "is the Yandex player
+    // logged in?" — what isYandexAuthorized(), the citizenship card's first read
+    // and startProfileSession() all see. A boot getPlayer() that lands only after
+    // the deadline can flip it; whenYandexAuthorizedLate() tells the card to read
+    // again. Never awaited; a rejected initPlayer() simply fires nothing.
+    this.wasYandexAuthorizedAtBoot = this.isYandexLoggedIn();
+    void playerInitResultPromise
+      .then(() => this.markYandexAuthorizedLate())
+      .catch(() => {});
     // Experiment cohort events fire when the flags actually settle — possibly
     // after the deadline; logExperimentEvents latches only once flags exist.
     void settledPromise.then(() => this.logExperimentEvents());
@@ -1298,6 +1318,9 @@ export class FlashistFacade {
           }
           try {
             this.yandexSdkPlayerObject = await this.yandexGamesSDK.getPlayer();
+            // Task 0397: a logged-in player recovered late — a card already
+            // showing a guest card reads again.
+            this.markYandexAuthorizedLate();
             // Best-effort OTEL user context, mirroring the boot path
             const name = await this.getCurPlayerName().catch(() => undefined);
             if (name) setOtelUser(name);
@@ -1613,6 +1636,47 @@ export class FlashistFacade {
     this.hasPlatformRecoveredLate = true;
     const resolvers = this.platformRecoveredLateResolvers ?? [];
     this.platformRecoveredLateResolvers = [];
+    resolvers.forEach((resolve) => resolve());
+  }
+
+  // Late Yandex login (task 0397; 0278 folded in). Lazily created, like the
+  // recovery resolvers above, because tests build facades via Object.create.
+  // `wasYandexAuthorizedAtBoot` is undefined until runPlatformInit records it.
+  private wasYandexAuthorizedAtBoot?: boolean;
+  private hasYandexAuthorizedLate?: boolean;
+  private yandexAuthorizedLateResolvers?: Array<() => void>;
+
+  /**
+   * Resolves once the Yandex player turned out to be logged in only AFTER the
+   * boot answered "not logged in": the boot getPlayer() landed after the
+   * platform-init deadline, or the late-SDK player recovery found a logged-in
+   * player. The citizenship card (task 0397) then reads the profile again, so it
+   * is not left on a guest card. Fires at most once per page; resolves at once
+   * for a waiter that arrives after it fired. Never resolves on a healthy boot,
+   * for a real guest, or for a guest's own login from the auth dialog (that keeps
+   * task 0273's restart path) — subscribe with .then(), never block on it.
+   */
+  public whenYandexAuthorizedLate(): Promise<void> {
+    if (this.hasYandexAuthorizedLate) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      (this.yandexAuthorizedLateResolvers ??= []).push(resolve);
+    });
+  }
+
+  /** Sole writer of hasYandexAuthorizedLate — fires only after a "no" boot answer, once. */
+  private markYandexAuthorizedLate(): void {
+    if (
+      this.wasYandexAuthorizedAtBoot !== false ||
+      this.hasYandexAuthorizedLate ||
+      !this.isYandexLoggedIn()
+    ) {
+      return;
+    }
+    this.hasYandexAuthorizedLate = true;
+    const resolvers = this.yandexAuthorizedLateResolvers ?? [];
+    this.yandexAuthorizedLateResolvers = [];
     resolvers.forEach((resolve) => resolve());
   }
 

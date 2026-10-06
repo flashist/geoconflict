@@ -163,7 +163,7 @@ Read the authority before the outcome — these are OWNER rulings, not producer 
 ⚠️ **Consequence of D3 that this task does NOT cover — situation B:** a player who **is** logged into
 Yandex but whose boot login failed sees the logged-in zero-state card (0 XP) with no login button and
 no retry, for the whole page load. Ruled **out of this task** and filed as
-[`0278`](../../backlog/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md), sequenced with
+[`0278`](../../cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md), sequenced with
 the citizenship-card launch (`0054`).
 
 ## ⬇️ ADDENDUM — the D1 deploy-risk caveat is CLOSED (2026-09-16)
@@ -272,7 +272,7 @@ Any user-visible string added goes through `translateText` with `en.json` and `r
 ## Notes
 
 - **Depends on:** [`0271`](../0271-profile-identity-s2-login-endpoint-and-session-token/brief.md) (S2), [`0274`](../0274-profile-identity-s5-monitoring-and-creation-switch/brief.md) (S5 — ruling D2: monitoring live before the S4 game deploy)
-- **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../../backlog/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
+- **Blocks:** [`0253`](../0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) (its rework — route + client logic — starts after this), [`0217`](../0217-profile-p2-wire-game-server-to-profile-box/brief.md) (XP go-live), [`0278`](../../cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md) (the situation-B surface, built on this task's restart path)
 - **Effort (design §9):** 1.5–2 days.
 - ⚠️ **Cannot close inside one deploy — and the shape changed on 2026-09-16 (D1 + D2).** ~~it needs a
   game deploy, a live check, then a profile-box deploy.~~ The order is now **profile-box deploy #1
@@ -282,3 +282,13 @@ Any user-visible string added goes through `translateText` with `en.json` and `r
   `vfy:false` tokens never unlock paid state.
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
+
+> 📌 **2026-10-06 — ruling D3 WIDENED by one button (OWNER RULING on [`0397`](../0397-show-players-whether-their-session-is-verified/brief.md), Q3).**
+> Given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`
+> (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Button on load-fail only (Recommended)"*. D3 named the
+> guest card's **login button** as the only restart trigger. It now has **exactly one more**: a player-pressed
+> **"Restart game"** button on the logged-in card's *couldn't load profile* state (`0397`), **never during a lobby or
+> match**, never automatic. ⛔ Still **no in-page login retry** — the button is a full page reload, as D3 requires.
+> Everything else in D3 stands. Overlap with [`0278`](../../cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md)
+> (same state) is open with the owner. This note is appended to a closed task for traceability only; the task stays
+> done. Nothing above it was edited (ADR-035).

@@ -52,6 +52,15 @@ export type PlayerProfileView = {
    * UI does in S3b.
    */
   isPaidCitizen: boolean;
+  /**
+   * True ONLY when the server answered with the verified OWNER view (task 0250
+   * S3b) — whatever it says about paid. False for every zero-state, every
+   * unverified (equalized S1) view and every server that predates S3b. Task
+   * 0397: display-only, it tells the player whether this session is confirmed.
+   * It never grants anything (ADR-116 Decision 4) — `isPaidCitizen` is the
+   * entitlement.
+   */
+  isVerifiedRead: boolean;
 };
 
 // Bound the profile read so an unreachable/slow profile API can never hang the
@@ -103,6 +112,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     nameChange: null,
     approvedName: null,
     isPaidCitizen: false,
+    isVerifiedRead: false,
   };
 
   const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
@@ -142,6 +152,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     nameChange: profile.name_change ?? null,
     approvedName: profile.display_name ?? null,
     isPaidCitizen: isOwnerView && profile.is_paid_citizen === true,
+    isVerifiedRead: isOwnerView,
   };
 }
 

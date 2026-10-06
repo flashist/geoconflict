@@ -64,7 +64,7 @@ four fire on **entering** a game — public lobby join, Mission, solo start, pri
 
 **Decisions that bear on it:**
 - `0248` owner rulings R1 (all six off, one place) and R3 (*"Yes, deploy together (Recommended)"* — deploy with or
-  after [`0397`](../0397-show-players-whether-their-session-is-verified/brief.md)), both 2026-10-06 — recorded at the
+  after [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md)), both 2026-10-06 — recorded at the
   end of the `0248` brief.
 - [ADR-116](../../../knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)
   Decision 4 — an unverified session still gets served, just without paid facts. So an unverified paid player
@@ -78,7 +78,7 @@ Nothing in source. This is a deploy-and-check task, in order.
 1. **[`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) has
    passed** — a verified paid account's `GET /v1/profile` shows `is_paid_citizen: true` in production. Until then no
    live client learns its player paid, and ad-free reaches no one (`0248` deploy note, 2026-10-06).
-2. **[`0397`](../0397-show-players-whether-their-session-is-verified/brief.md) is live, or ships in the same deploy**
+2. **[`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) is live, or ships in the same deploy**
    (owner ruling R3, 2026-10-06).
 3. **`0248`'s code is committed** — only on the owner's explicit ask.
 4. **A weekend slot** (owner's standing rule, 2026-09-29).
@@ -132,7 +132,7 @@ requested.
 
 - **Depends on:** [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md) (hard — the build,
   built and reviewed), [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md)
-  (hard — the verified owner view live), [`0397`](../0397-show-players-whether-their-session-is-verified/brief.md)
+  (hard — the verified owner view live), [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md)
   (hard — deploy together or after, owner ruling R3 2026-10-06)
 - **Does not block Sprint 7's deploy** (owner rule, 2026-09-29).
 - **Placement:** Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396`, its deploy could fall

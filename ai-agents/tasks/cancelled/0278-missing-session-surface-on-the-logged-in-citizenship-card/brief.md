@@ -17,7 +17,7 @@ affected player, but **invisible to every player until `CITIZENSHIP_CARD_ENABLED
 the owner sequenced it with the card launch rather than into Sprint 4.
 
 ## Status
-🔲 Backlog
+⛔ Cancelled (agent-closed — not owner-verified) (2026-10-06) — superseded by 0397 — owner ruling 2026-10-06 (Fold into 0397)
 
 ## Owner
 fkit-coder
@@ -99,3 +99,11 @@ task is what makes it reachable in situation B.
   owner has already made.
 - 🔒 No secrets, hosts or player ids in any artifact.
 - **Do not invoke the mover skills** — producer-only (ADR-033). No wiki writes.
+
+> ⚠️ **2026-10-06 — OVERLAP with [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) (Sprint 7, in
+> progress), flagged by a spawned `fkit-producer`; not resolved.** The owner approved (2026-10-06, `0397` Q2/Q3) a
+> *"We couldn't load your profile right now. Nothing is lost — a restart usually helps."* message with a player-pressed
+> **"Restart game"** button on the logged-in card when the profile read fails — the same state as this task. Differences:
+> this task also covers the late-SDK recovery path, and says to reuse `0273`'s restart path, where the `0397` architect
+> consult advises a separate helper. Whether this task is folded into `0397` (and later cancelled) or kept is **an open
+> owner question**, returned to `fkit-lead`. Nothing above this note was edited (ADR-035); no status, rank or sprint changed.

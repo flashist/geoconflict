@@ -218,3 +218,13 @@ Built from the design. In outline only — the design decides the shape:
   **build**); no link to `0395` was added, by the owner's ruling. When `0340` closes, the board will stop showing this
   task as waiting — that is about building, not deploying.
 - No status, sprint or rank changed by this note. No mover run.
+
+> 📌 **2026-10-06 — pointer: the player-facing "not confirmed" message lives in
+> [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md).** Added by a spawned `fkit-producer` at
+> `fkit-lead`'s request, after the owner's `0397` Step 1 rulings (2026-10-06). `0397` shows unverified **citizens** a
+> neutral message that today names only one cost: **ads**. **When the owner rules here what an unverified player loses**
+> (XP crediting, the ★ badge, the private-lobby gate, the approved name), the task that implements that ruling must:
+> (1) rewrite `0397`'s *not confirmed* text (EN + RU, owner-approved) to name the new loss, and (2) if the loss also hits
+> **non-citizens** (XP crediting would), switch on a message for unverified non-citizens — `0397` deliberately shows
+> them nothing today. The producer adds that line to the ruling's brief. ⛔ `0397` promises no perk survives an
+> unverified session. Nothing above this note was edited (ADR-035); no status, rank or sprint changed.

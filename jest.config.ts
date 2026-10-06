@@ -45,6 +45,13 @@ const shared = {
 const unitConfig = {
   ...shared,
   testRegex: "/tests/.*\\.(test|spec)?\\.(ts|tsx)$",
+  // At most 4 workers (task 0399). With some apps in front (seen with a game;
+  // not with Telegram/Safari), macOS appears to move the whole Terminal process
+  // tree onto the efficiency cores (4 on the owner's Mac), and jest's default
+  // (cores - 1) then starves the shell harnesses past their 150 s deadline.
+  // Likely, not proven. `npm test -- --maxWorkers=N` overrides this for one run.
+  // Not a supertest-flake fix (0200) and not a SIGSEGV fix (0197).
+  maxWorkers: 4,
   // Integration tests (real Postgres) run only via `npm run test:integration`;
   // keep them out of the default DB-less run.
   testPathIgnorePatterns: ["/node_modules/", "/tests/integration/"],

@@ -7,13 +7,22 @@ import {
   usernameRulesHint,
 } from "../core/validations/username";
 import { publishApprovedName } from "./ApprovedName";
+import {
+  type CitizenshipNotice,
+  deriveCitizenshipNotice,
+  reportCitizenshipNoticeShown,
+} from "./CitizenshipNotice";
 import { runCitizenshipPurchase } from "./CitizenshipPurchase";
 import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   deriveCitizenshipStatus,
   derivePaidCitizenship,
+  deriveProfileVerificationStatus,
+  getProfileVerificationStatus,
+  isCurrentPlayerPaidCitizen,
   publishCitizenshipStatus,
   publishPaidCitizenship,
+  publishProfileVerificationStatus,
 } from "./CitizenshipStatus";
 import { FLAG_STORAGE_KEY } from "./FlagInput";
 import {
@@ -28,7 +37,11 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
-import { whenOnStartScreen } from "./StartScreenPresence";
+import {
+  restartAfterProfileReadFailure,
+  wasRestartedAfterProfileReadFailure,
+} from "./ProfileReadRestart";
+import { isOnStartScreen, whenOnStartScreen } from "./StartScreenPresence";
 import { maybeClaimTenureGrant } from "./TenureGrantClaim";
 import type {
   TenureGrantModal,
@@ -72,13 +85,17 @@ export function resetCitizenshipSeenReportedForTests(): void {
 
 /**
  * Citizenship card on the start screen (s4-start-screen-redesign-impl +
- * s4-citizenship-xp-progress-ui). Renders one of three states from the
+ * s4-citizenship-xp-progress-ui). Renders one of four states from the
  * player profile view:
+ *   checking (no read applied yet, task 0397) — one quiet line, no login CTA,
  *   guest (not Yandex-authorized) — lock + login CTA,
  *   authorized non-citizen — name + XP progress toward the threshold,
  *   citizen — adds the CITIZEN badge, bar full.
- * XP/citizenship values come from PlayerProfileView, which stays a zero-XP
- * stub until the Player Profile Store task lands.
+ * The logged-in states can carry one session status line under the XP bar
+ * (task 0397, CitizenshipNotice.ts): "verified, paid benefits on", "not
+ * confirmed" for an unverified citizen, or "couldn't load" with a player-pressed
+ * Restart game button (and its "still not working" variant).
+ * XP/citizenship values come from PlayerProfileView.
  */
 @customElement("citizenship-card")
 export class CitizenshipCard extends LitElement {
@@ -111,6 +128,11 @@ export class CitizenshipCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Task 0397 (review R1): consume the Restart game marker on every load,
+    // whatever the card's state. A card killed or hidden on this load must not
+    // leave it in sessionStorage for an unrelated failed read many loads later.
+    // The answer is memoized per page, so a late 0329 reveal still sees it.
+    wasRestartedAfterProfileReadFailure(this.sessionStorageOrNull());
     // Local absolute gate (task 0054): while citizenship is unlaunched the card
     // must not exist — this beats the dev experiment-flag override below, and
     // skips analytics and profile loads.
@@ -171,11 +193,54 @@ export class CitizenshipCard extends LitElement {
         this.requestUpdate();
       }
     });
+    // Task 0397 (0278): subscribed before this reveal's own read is issued.
+    this.rereadWhenYandexAuthorizesLate();
     this.requestUpdate();
     await this.updateComplete;
     this.maybeReportSeen();
     await this.refreshProfile();
     this.startTenureClaim();
+  }
+
+  /**
+   * Task 0397 (0278 folded in): the Yandex player can turn out to be logged in
+   * only AFTER the card's read said guest — a boot getPlayer() that landed past
+   * the platform-init deadline, or a late-SDK player recovery. Nothing latched
+   * in that read (ProfileSession only latches a FAILED login), so reading again
+   * logs in. The card shows "checking" meanwhile, never a login button to a
+   * logged-in player, and ends in a real state — or "couldn't load" with its
+   * Restart game button if that login fails.
+   *
+   * Guarded by the connection generation like recheckWhenPlatformRecovers().
+   * A signal that lands before this reveal's own read is issued does nothing:
+   * that read already sees the login (and a hidden card's 0329 reveal does its
+   * own read), so there is never a second read for it.
+   */
+  private rereadWhenYandexAuthorizesLate(): void {
+    const generation = this.connectionGeneration;
+    const readsIssuedBeforeReveal = this.profileReadsIssued;
+    void FlashistFacade.instance
+      .whenYandexAuthorizedLate()
+      .then(() => {
+        if (
+          generation !== this.connectionGeneration ||
+          !this.isConnected ||
+          !this.isEnabled ||
+          this.profileReadsIssued === readsIssuedBeforeReveal
+        ) {
+          return;
+        }
+        publishProfileVerificationStatus("unknown");
+        this.requestUpdate();
+        // The single read path — never a second loadPlayerProfileView() caller.
+        void this.refreshProfile();
+      })
+      .catch((error) => {
+        console.warn(
+          "Failed to re-read the citizenship card after a late Yandex login:",
+          error,
+        );
+      });
   }
 
   /**
@@ -252,8 +317,36 @@ export class CitizenshipCard extends LitElement {
     // open). Verified paid reads only; `paidGrantConfirmed` is deliberately not
     // used here (ADR-116 Decision 4): the post-purchase re-read carries it.
     publishPaidCitizenship(derivePaidCitizenship(profile));
+    // Task 0397: the session status line reads this (display-only).
+    publishProfileVerificationStatus(deriveProfileVerificationStatus(profile));
+    reportCitizenshipNoticeShown(this.currentNotice());
     this.publishApprovedName();
     this.requestUpdate();
+  }
+
+  /**
+   * Task 0397: which status line the card shows now. Paid comes from
+   * `isCurrentPlayerPaidCitizen()` — the same published value the 0248 ad gate
+   * reads, never a second source.
+   */
+  private currentNotice(): CitizenshipNotice {
+    return deriveCitizenshipNotice({
+      verificationStatus: getProfileVerificationStatus(),
+      isCitizen: this.isCitizenNow(),
+      isPaidCitizen: isCurrentPlayerPaidCitizen(),
+      restartedAfterReadFailure: wasRestartedAfterProfileReadFailure(
+        this.sessionStorageOrNull(),
+      ),
+    });
+  }
+
+  // sessionStorage can throw on access inside an iframe with blocked storage.
+  private sessionStorageOrNull(): Storage | null {
+    try {
+      return window.sessionStorage;
+    } catch {
+      return null;
+    }
   }
 
   private isCitizenNow(): boolean {
@@ -440,9 +533,30 @@ export class CitizenshipCard extends LitElement {
     if (!this.isEnabled) {
       return nothing;
     }
+    if (this.currentNotice() === "checking") {
+      return this.renderChecking();
+    }
     return this.profile === null
       ? this.renderGuest()
       : this.renderLoggedIn(this.profile);
+  }
+
+  // Task 0397: before the first read lands (and during the re-read after a late
+  // Yandex login). Replaces the guest card, whose login button would be wrong
+  // for a logged-in player. Quiet tone: this is the normal moment, not an error.
+  private renderChecking() {
+    return html`
+      <div
+        class="w-full flex items-center gap-3 p-3 rounded-[12px] bg-[#1c1c1e]/85"
+      >
+        <div
+          id="citizenship-status-checking"
+          class="flex-1 min-w-0 text-left text-[11px] text-[#98989f] leading-[1.4]"
+        >
+          ${translateText("citizenship_status.checking")}
+        </div>
+      </div>
+    `;
   }
 
   private renderGuest() {
@@ -575,6 +689,7 @@ export class CitizenshipCard extends LitElement {
             style="width: ${barPercent}%"
           ></div>
         </div>
+        ${this.renderStatusNotice()}
         ${isCitizen || !profile.isAuthoritative
           ? // Review R1: the CTA requires an AUTHORITATIVE non-citizen read.
             // A zero-state fallback also reports isCitizen: false — offering
@@ -594,6 +709,66 @@ export class CitizenshipCard extends LitElement {
       </div>
     `;
   }
+
+  // Task 0397: the session status line (CitizenshipNotice.ts). Only the
+  // couldn't-load notice gets a button (owner ruling Q3); "not confirmed" is
+  // text advice only, because a reload does not usually fix it (ADR-121).
+  private renderStatusNotice() {
+    const notice = this.currentNotice();
+    if (notice === "verified_paid") {
+      return this.renderStatusLine("citizenship_status.verified_paid");
+    }
+    if (notice === "unverified") {
+      return this.renderStatusLine("citizenship_status.unverified");
+    }
+    if (notice === "read_failed" || notice === "still_failing") {
+      return this.renderStatusLine(
+        notice === "read_failed"
+          ? "citizenship_status.read_failed"
+          : "citizenship_status.still_failing",
+        html`<button
+          id="citizenship-status-restart"
+          class="mt-1.5 w-full px-3 py-[5px] rounded-lg text-[12px] font-bold text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+          @click=${this.onStatusRestartTap}
+        >
+          ${translateText("citizenship_status.restart")}
+        </button>`,
+      );
+    }
+    return nothing;
+  }
+
+  private renderStatusLine(
+    textKey: string,
+    action: ReturnType<typeof html> | typeof nothing = nothing,
+  ) {
+    return html`
+      <div
+        id="citizenship-status-notice"
+        class="mt-2 p-2 rounded-lg bg-white/[0.06]"
+      >
+        <div class="text-[11px] text-[#98989f] leading-[1.4]">
+          ${translateText(textKey)}
+        </div>
+        ${action}
+      </div>
+    `;
+  }
+
+  // Set once the page is reloading, so a second tap before it unloads does
+  // nothing. A refused press (lobby, join or match) leaves the button working.
+  private isStatusRestartInFlight = false;
+
+  private readonly onStatusRestartTap = (): void => {
+    if (this.isStatusRestartInFlight) {
+      return;
+    }
+    this.isStatusRestartInFlight = restartAfterProfileReadFailure({
+      isOnStartScreen,
+      reload: () => FlashistFacade.instance.reloadApp(),
+      storage: this.sessionStorageOrNull(),
+    });
+  };
 
   // ── Name change (task 0067, citizens only) ───────────────────────────────
   // Four states, all driven by the SERVER's name_change projection except the
