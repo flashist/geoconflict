@@ -58,3 +58,4 @@ it does.
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, ruled out before re-running
 - [[decisions/sprint-4]] — the board it closed on
 - [[decisions/sprint-backlog]] — the board carrying `0299`
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06, built, not deployed): paid citizens' interstitials are suppressed before Yandex is asked, so `Ad:Interstitial` no longer fires for them; the new `Ad:InterstitialSuppressed:PaidCitizen` counts suppressed **requests**

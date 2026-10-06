@@ -3,6 +3,14 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-06 sync (`036a5c8`) — FOUR NEW EVENTS, all committed, none deployed:**
+> - **`Ad:InterstitialSuppressed:PaidCitizen`** (task `0248`, commit `91eb99a`) — one per interstitial **request** the
+>   paid-citizen gate suppressed. ⚠️ Counts requests, not ads shown: some would have been declined by Yandex's own cap
+>   anyway, so read it as an **upper bound** on impressions given up. `Ad:Interstitial` now also does not fire for a
+>   suppressed request. See *Ad Events* below and [[tasks/paid-citizen-ad-free]].
+> - **`Citizenship:Status:{Unverified|ReadFailed|Restart}`** (task `0397`, commit `036a5c8`) — the citizenship card's
+>   new verification line. See *Citizenship Status Line Events* below and [[tasks/session-verified-status-line]].
+>
 > 🆕 **2026-10-06 sync (`6f4ab77`) — three reference-doc changes, no event added or renamed:**
 > - **§A1 (`Profile:Login:SignatureAge:*`) reworded for `0391`** (deployed 2026-10-06): the server window is now 24 h,
 >   but the **client labels stay frozen on `0366`'s 900 s edges** — `Fresh` is "the pre-ADR-121 15-min window, not the
@@ -461,6 +469,24 @@ No value. Dev/staging builds only log it.
 - 🚩 **Owed: the in-Yandex check** — exactly one event per ad shown, none when the SDK declines. Cannot be
   run locally. See [[tasks/analytics-p1-ad-impression-baseline]].
 
+### Paid-citizen suppression (task `0248` — built 2026-10-06, committed `91eb99a`, NOT deployed)
+
+**`Ad:InterstitialSuppressed:PaidCitizen`** (enum `AD_INTERSTITIAL_SUPPRESSED_PAID_CITIZEN`), fired from
+`FlashistFacade.showInterstitial()` once per request when the SDK is present, citizenship surfaces are on (read at ad
+time), and the card's last applied read was a **verified** owner view saying paid. No ad is requested, so
+`Ad:Interstitial` does not fire.
+
+- ⚠️ **Requests, not impressions** — an **upper bound** on ads given up (Yandex's own frequency cap would have declined
+  some).
+- No value and **no placement** (owner default, 2026-10-06 — all six placements are off, so a split decides nothing).
+- Deliberately **outside** the `Ad:Interstitial:*` subtree, which `0299` reserves for **shown** ads.
+- Not fired with no SDK, for an unknown / unverified / non-paid player, or with citizenship surfaces off.
+- 📌 Since `0248`, a verified paid citizen's shown-ad count is nearly always zero — a future `0299` `:PaidCitizen` tier
+  would catch only the cases the gate misses (an unverified session, an ad before the first profile read, citizenship
+  off).
+- It is the **only** way to check `0248`'s revenue cost afterwards: the owner ruled all six placements off with the
+  cost put as a fact, not a figure. See [[tasks/paid-citizen-ad-free]].
+
 ## Tenure Grant Events (task `0253` — built 2026-09-24, not yet live)
 
 Three events under *Citizenship Events* in the reference doc, all behind `CITIZENSHIP_CARD_ENABLED`
@@ -491,6 +517,20 @@ match start closes it.** No event added or renamed. See [[tasks/tenure-popup-nev
 | `Citizenship:RestartPrompt:Later` | The player tapped **Later** — the only way to dismiss it |
 
 See [[tasks/citizenship-restart-prompt]].
+
+## Citizenship Status Line Events (task `0397` — built 2026-10-06, committed `036a5c8`, NOT deployed)
+
+| Event | When |
+|---|---|
+| `Citizenship:Status:Unverified` | The card's *not confirmed* line was shown: an authoritative read of a **citizen** that was not the verified owner view. At most once per page load. ⚠️ Counts unverified citizens **paid and earned together** — it cannot count paid ones alone, on purpose (ADR-116 Decision 4). Unverified non-citizens see and log nothing |
+| `Citizenship:Status:ReadFailed` | The *couldn't load your profile* line was shown (read not authoritative). At most once per page load. **Includes** the "still not working" variant after a restart, and a failed re-read after a late Yandex login (the folded-in `0278` path) |
+| `Citizenship:Status:Restart` | The player pressed **Restart game** on that line, right before the reload. Not fired on a press refused because the player is in a lobby, a join, or a match. Separate from `Profile:Login:Restart:*` and from `Citizenship:RestartPrompt:Restart` on purpose |
+
+All behind the citizenship kill switch; no ids, no paid flag, no value. ⚠️ **Open observation (review, not acted on):**
+`Unverified` / `ReadFailed` fire when the card publishes, **whether or not the card is on screen** — unlike
+`Citizenship:Seen`. ⚠️ **Before `0395` / `0396` are live, every logged-in citizen would read "not confirmed"**, so
+counts from any earlier deploy would be meaningless — `0397`'s deploy rule prevents that. See
+[[tasks/session-verified-status-line]].
 
 ## Locked Feature Events (task `0302` — built 2026-09-27, not yet released)
 
@@ -629,3 +669,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/authenticated-profile-read]] — task `0250`: `Citizenship:Earned:XP` dormant from S1, verified-only from S3b
 - [[tasks/private-lobby-tester-default]] — task `0354`: the `private_lobbies_all` cohort event
 - [[decisions/adr-121-login-signature-24h-window]] — the window change behind the §A1 rewrite
+- [[tasks/paid-citizen-ad-free]] — task `0248`: `Ad:InterstitialSuppressed:PaidCitizen` (committed, not deployed)
+- [[tasks/session-verified-status-line]] — task `0397`: the three `Citizenship:Status:*` events (committed, not deployed)

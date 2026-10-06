@@ -5,6 +5,19 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-06 (latest, `036a5c8`): 12 rows — 2 `✅ Done` · 7 `🔲 Backlog` · 3 `➡️ Moved`; 7 OPEN** (was 10 / 5). ⚠️
+> Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged. Two verify rows appended on
+> the build/verify-split rule (2026-09-29), each ⚠️ an append rank flagged for owner confirmation (ranks 2–4 are closed
+> rows, so "top of the next sprint" could not be honoured):
+> - **11** `0398` — verify `0248` live: paid citizens see no interstitial ads ([[tasks/paid-citizen-ad-free]]). Gates:
+>   `0396` passed → `0397` live or in the same deploy → `0248` committed (✔️ it is, `91eb99a`) → a weekend slot.
+> - **12** `0400` — verify `0397` live: the session-status line shows the right state
+>   ([[tasks/session-verified-status-line]]). Gates: `0395` passed → `0396` passed or same slot, S3b server first → a
+>   weekend slot.
+> - ⚠️ Open to the owner on both: whether they belong on Sprint 7; which paid / earned-only / non-citizen test accounts
+>   exist; whether a short `citizenship_ui` flip-off in production is acceptable (one flip can serve both); how to get an
+>   unverified session once `0395` is live.
+>
 > 🆕 **2026-10-06 (latest, `6f4ab77`): 10 rows — 2 `✅ Done` · 5 `🔲 Backlog` · 3 `➡️ Moved`; 5 OPEN** (was 6 / 3). ⚠️
 > Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged. Four verify rows appended
 > (ADR-035: ranks 2–4 are closed rows, so none could go to the top as the 2026-09-29 build/verify rule says — every
@@ -196,3 +209,5 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/verified-login-enforce]] — task `0340`, verified by `0395` (filed here at 9, moved to Sprint 7)
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — why `0392` was re-scoped and moved
 - [[tasks/stale-login-fix-decision]] — task `0373`, filed here (rank 2), moved to Sprint 7 on 2026-10-04
+- [[tasks/paid-citizen-ad-free]] — task `0248`, verified by `0398` (rank 11)
+- [[tasks/session-verified-status-line]] — task `0397`, verified by `0400` (rank 12)

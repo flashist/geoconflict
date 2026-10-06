@@ -65,6 +65,12 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - **Live check (`0396`):** a verified paid test account's profile read shows `is_paid_citizen: true`; a `vfy:false`
   session shows the S1 view. ⚠️ Which paid and `vfy:false` test sessions exist is open to the owner.
 - `0248` (ad-free for paid citizens) carries a dated note: deploy only after `0396` confirms the owner view live.
+- 📌 **2026-10-06 — two readers of S3b built and closed, neither deployed:** [[tasks/paid-citizen-ad-free]] (`0248`,
+  commit `91eb99a`) switches interstitials off through one page-wide paid value fed from `isPaidCitizen`;
+  [[tasks/session-verified-status-line]] (`0397`, commit `036a5c8`) adds `isVerifiedRead` to the view and shows the
+  player the state. 🚨 **New deploy rule from `0397` (owner ruling Q4):** the S3b profile **server** must never go live
+  while a production client without `0397` is running; `0397` may ship in `0396`'s slot (server first, then the owner's
+  check, then the client), and a server rollback also rolls the client back or switches `citizenship_ui` off.
 
 ## Related
 
@@ -80,3 +86,5 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[systems/analytics]] — `Citizenship:Earned:XP`, dormant from S1, re-enabled for verified reads by S3b
 - [[decisions/sprint-7]] — the board (rank 17)
 - [[decisions/sprint-8]] — `0396`, the S3b verify task (rank 10)
+- [[tasks/paid-citizen-ad-free]] — task `0248` (closed 2026-10-06): the ad gate that reads S3b's `isPaidCitizen` through one page-wide place
+- [[tasks/session-verified-status-line]] — task `0397` (closed 2026-10-06): adds `isVerifiedRead` to the view and shows the player the verified / not-confirmed state; its rule Q4 constrains S3b's deploy

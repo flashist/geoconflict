@@ -93,3 +93,4 @@ window bump — rejected (`past_15m_20m` only ~11 % of stale).
 - [[decisions/sprint-7]] — the board carrying `0373`, `0391`, `0392`, `0340`, `0395`
 - [[decisions/sprint-backlog]] — `0393` (the >24 h residue) and `0394` (Decision 3's unbuilt half)
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which shipped the 900 s window this replaces
+- [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): its *not confirmed* line advises closing and reopening the game, not a reload — the same signed data is handed out for the whole visit

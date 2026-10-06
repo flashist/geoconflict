@@ -110,3 +110,4 @@ timestamp ⇒ paid). The owner ruled that a must-fix in `0250` (authenticated pr
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the HMAC-construction label is built but not deployed; the answer is still owed in `0297`
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the owner-run test-buy (closed 2026-10-05; three checks waived)
 - [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak fix and verified owner view
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): no interstitial ads for paid citizens — built and committed, not deployed (live check `0398`)

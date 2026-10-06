@@ -60,5 +60,6 @@ run. ⚠️ **Which macOS component does the check is inferred, not proven** —
 - [[tasks/profile-deploy-version-tags]] — task `0355`, whose new harness checks multiplied the stub writes
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, the same
 - [[tasks/supertest-profile-server-flake]] — the supertest flake family seen in run 3
+- [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): this task's "~7 % CPU, mostly waiting" fits macOS throttling a background Terminal — likely, never tested; `npm test` is now capped at 4 workers
 - [[decisions/sprint-7]] — the board (rank 34); closed 2026-10-02
 - [[decisions/sprint-backlog]] — where it was first filed, row kept as `➡️ Moved`

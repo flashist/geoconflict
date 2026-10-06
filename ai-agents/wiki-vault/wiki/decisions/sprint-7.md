@@ -5,6 +5,27 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-06 (latest, `036a5c8`) — 48 ROWS, 7 OPEN: `0248` CLOSED, `0397` AND `0399` ADDED AND CLOSED
+>
+> **Re-counted at `HEAD` = `036a5c8`: 48 rows — 36 `✅ Done` · 6 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 7 OPEN** (was 46 / 8). ⚠️ Counted by me this run, by each row's leading status glyph. All three closes
+> are `(agent-closed — not owner-verified)`, by spawned `fkit-producer`s via `/fkit-task-done` at `fkit-lead`'s
+> instruction under `/fkit-sprint-ship-loop`, on owner-approved plans and the build/verify-split rule (2026-09-29). The
+> line-3 banner still reads `🔄 In progress — 2026-09-29`.
+>
+> - ✅ **18** `0248` — no interstitial ads for paid citizens; Step 1 closed by owner ruling R1 (*all six placements off,
+>   one place in the code*); built, committed `91eb99a`, **not deployed** ([[tasks/paid-citizen-ad-free]]). Deploy only
+>   after `0396` passes **and** with or after `0397` (R3). Live check `0398` on Sprint 8.
+> - ➕✅ **46** `0397` — show the player whether the session is verified; filed on R2 (*"Sprint 7, now
+>   (Recommended)"*), `0278` folded in; built, committed `036a5c8`, **not deployed**
+>   ([[tasks/session-verified-status-line]]). Live check `0400` on Sprint 8.
+> - ➕✅ **47** `0399` — `npm test` capped at 4 jest workers; supersedes `0197`'s A2 for this reason only; committed
+>   `036a5c8`, test config only ([[tasks/jest-worker-cap]]).
+> - ⚠️ Ranks 46 and 47 are **append ranks, not merit ranks** — flagged for owner confirmation (on merit `0397` belongs
+>   directly below `0250`; `0399` directly below `0397`, where it already is).
+> - 🚨 Recorded on the `0397` row: the owner's Mac **kernel-panicked** during one diagnostic full test run — cause
+>   **unproven**.
+>
 > # 🆕 2026-10-06 (latest, `6f4ab77`) — 46 ROWS, 8 OPEN: NINE CLOSED, FOUR ADDED; THE STALE-LOGIN CHAIN RAN END TO END
 >
 > **Re-counted at `HEAD` = `6f4ab77`: 46 rows — 33 `✅ Done` · 7 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -597,3 +618,6 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/login-signature-24h-window]] — task `0391` (rank 43), deployed 2026-10-06
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window decision behind `0391`
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — no fixed bar for `0340`'s deploy
+- [[tasks/paid-citizen-ad-free]] — task `0248` (rank 18), closed 2026-10-06; committed, not deployed; live check `0398` on Sprint 8
+- [[tasks/session-verified-status-line]] — task `0397` (rank 46), added and closed 2026-10-06; committed, not deployed; live check `0400` on Sprint 8
+- [[tasks/jest-worker-cap]] — task `0399` (rank 47), added and closed 2026-10-06

@@ -172,3 +172,5 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
 - [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed; deploy in `0395`)
 - [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed)
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): ad-free reads paid only from the verified owner view (Decision 4); unverified sessions see ads (owner-accepted)
+- [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether this session is verified; explains Decision 4, does not soften it

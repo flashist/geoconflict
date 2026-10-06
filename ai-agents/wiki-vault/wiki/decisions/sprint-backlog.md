@@ -3,6 +3,14 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-06 (latest, `036a5c8`): 136 rows, 100 open — `0278` CANCELLED.** Re-counted by me at `HEAD` = `036a5c8`,
+> by each row's leading status glyph: 97 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled`
+> (was 136 / 101). `0278` (the missing-session surface on the logged-in card) now reads `⛔ Cancelled (agent-closed — not
+> owner-verified) (2026-10-06) — superseded by 0397`, on the owner ruling *"Fold into 0397 (Recommended)"* — see
+> [[decisions/cancelled-tasks]] and [[tasks/session-verified-status-line]]. Every other change on this board in the window
+> is a `0248` link repoint (`backlog/` → `done/`). `0399` was **never** filed here: the owner's *"Sprint 7, small task
+> now"* superseded *"File it in the Backlog"* before filing.
+>
 > 🆕 **2026-10-06 (latest, `6f4ab77`): 136 rows, 101 open — two filed.** Re-counted by me at `HEAD` = `6f4ab77`, by each
 > row's leading status glyph: 98 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 2 `⛔ Cancelled` (was
 > 134 / 99). Both filed by spawned `fkit-producer`s on OWNER RULINGS relayed by `fkit-lead` (⛔ not producer precedent):
@@ -853,3 +861,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): the decision behind `0384`–`0388`, filed on this board
 - [[decisions/adr-121-login-signature-24h-window]] — `0393` (the >24 h residue) and `0394` (its unbuilt Decision 3) live here
 - [[tasks/login-signature-24h-window]] — task `0391`, which filed `0394` and feeds `0393`
+- [[tasks/session-verified-status-line]] — task `0397`, into which this board's `0278` was folded (cancelled 2026-10-06)

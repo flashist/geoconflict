@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/tasks/cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -213,6 +213,31 @@ with the player-login caveat added. See [[tasks/hmac-construction-log-label]].
 **If revisited:** do not restart `0310`; work from `0379`. 🚨 A `base64_payload` line ever appearing means Yandex uses
 both (or the other on some path) — stop and ask; dropping either would then reject real purchases.
 
+## Citizenship Card — Missing-Session Surface, "Couldn't Load Your Progress, Tap to Restart" (task 0278)
+
+**Sprint:** Backlog
+**Status:** ⛔ Cancelled 2026-10-06 (agent-closed — not owner-verified) — superseded by `0397`
+
+**Why cancelled:** `0278` was filed 2026-09-16 as the consequence of `0273`'s ruling D3 (no on-demand login retry):
+a player logged into Yandex whose boot login to the profile server failed saw the logged-in **0 XP** card with no
+button and no retry — nothing to do for the whole page load. A second path into the same state was the late-SDK
+recovery, which can authorize a boot after the profile session start already skipped. Task `0397` (the session status
+line) planned **the same state** with its own *couldn't load profile* message and **Restart game** button. Asked whether
+to fold `0278` in or keep both, the owner ruled (live via `AskUserQuestion` in the `fkit lead` session, relayed by
+`fkit-lead`; ⛔ not producer precedent), verbatim: *"Fold into 0397 (Recommended)"*. Nothing had been built.
+
+**What changed on the way:** `0278` said to **reuse `0273`'s login restart path**. The fold-in ruling chose the
+architect's advice instead — a **separate** restart helper with its own `Citizenship:Status:Restart` event, so the button
+does not pollute the `Profile:Login:Restart:*` funnel. `0397` also took on the late-SDK recovery path (the card now
+re-reads when Yandex authorizes late). ⚠️ `0278`'s file pointer (`FlashistFacade.ts` "around lines 736-741") was stale
+by then.
+
+**Where the work lives now:** `0397`, built and committed, **not deployed** (live check `0400`). See
+[[tasks/session-verified-status-line]].
+
+**If revisited:** do not restart `0278`; `0397` covers both paths. Its verification step 5 (a client test driving the
+late-SDK path) became a `0397` verification step.
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -241,3 +266,5 @@ both (or the other on some path) — stop and ask; dropping either would then re
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the config-drift sweep that surfaced `0062` and `0063`
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose first label read (`decoded_json`, n = 1) led to `0310`'s cancellation in favour of `0379`
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 follow-up `0310` was cancelled for `0379`
+- [[tasks/session-verified-status-line]] — task `0397`, which `0278` was folded into and cancelled for (2026-10-06)
+- [[tasks/profile-identity-s4-client-login-session]] — task `0273`, whose ruling D3 created the gap `0278` was filed for

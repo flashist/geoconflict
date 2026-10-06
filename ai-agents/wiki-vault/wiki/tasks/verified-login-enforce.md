@@ -72,3 +72,4 @@ makes "is this the proven owner?" answerable for the tasks that need it — `025
 - [[decisions/sprint-7]] — the board (rank 16; `0395` at rank 45)
 - [[decisions/sprint-8]] — `0395` was filed there (rank 9) before moving to Sprint 7
 - [[systems/weekend-deploy-window]] — the next profile deploy, after `0391`'s mid-week one
+- [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether S3a's `vfy` session is verified; must deploy only after `0395` confirms verified logins live

@@ -146,3 +146,4 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 - [[tasks/postgres-backup-routine]] — T8, the encrypted off-box backup machinery and its restore runbook
 - [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores** (proven twice, non-empty data, live database included) — ⛔ **but the schedule and the data are proven only SEPARATELY, so a SCHEDULED backup capturing REAL DATA is still unproven**
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side citizenship kill switch, and the `0238` launch gate that must clear before the citizenship flag is flipped
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): builds the *"no interstitial ads for paid citizens"* benefit `PROJECT.md` promises — committed, NOT deployed; the store-copy condition stands until it is

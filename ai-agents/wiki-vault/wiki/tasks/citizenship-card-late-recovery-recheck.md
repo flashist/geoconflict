@@ -56,3 +56,4 @@ and because a hidden card publishes no citizenship status, a paying citizen also
 - [[decisions/sprint-6]] — the board carrying this task
 - [[systems/analytics]] — the analytics system page; this task's events are listed there
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, B4 of the same report
+- [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): the card now also re-reads the profile when Yandex authorizes late (folded-in `0278` path)

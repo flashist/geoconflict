@@ -40,6 +40,15 @@ profile-box deploys before the game deploy — later collapsed by the owner into
 run 2026-09-17. ⚠️ D3's gap — a logged-in player whose boot login failed sees a zero-state card with no
 way to retry for that page load — was ruled out of scope and filed as backlog task `0278`.
 
+> 📌 **2026-10-06 — ruling D3 WIDENED by exactly one button; `0278` folded in and cancelled.** OWNER RULING on task
+> `0397` (Q3, live via `AskUserQuestion`, relayed by `fkit-lead`), verbatim *"Button on load-fail only
+> (Recommended)"*: besides the guest card's login button, a player-pressed **Restart game** button on the logged-in
+> card's *couldn't load profile* state is now a sanctioned restart — never during a lobby or match, never automatic.
+> ⛔ Still **no in-page login retry**; the button is a full page reload. It uses its **own** helper and event, not this
+> task's `Profile:Login:Restart:*` funnel. Everything else in D3 stands. The gap above is now covered by `0397`
+> ([[tasks/session-verified-status-line]], built, not deployed); `0278` was cancelled as superseded
+> ([[decisions/cancelled-tasks]]). Recorded on this task's brief as an appended note; the task stays done.
+
 **The D1 deploy-risk caveat was closed by evidence on 2026-09-16** (not retconned): the local card flag
 was never `true` in any commit; the remote console flag was never set (⚠️ **owner-reported** — no agent
 can see that console); the profile DB had never held a row; and zero browser-originated legacy requests
@@ -84,3 +93,4 @@ accepted; S2's own box proof showed that). The **client** stayed undeployed unti
 - [[tasks/profile-identity-s1-database-rekeying]] — S1, task `0270`, the schema under the login
 - [[decisions/sprint-5]] — the board that tracked its close
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the client login now also sends Yandex's player signature when it has one
+- [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): widens ruling D3 by exactly one player-pressed **Restart game** button; folded in and cancelled `0278`

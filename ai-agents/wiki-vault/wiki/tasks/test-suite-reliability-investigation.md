@@ -71,6 +71,12 @@ Node is pinned **for reproducibility only**, so contributors and future build im
 
 ### 5. No mitigation was bought, and the accepted cost is on the record
 
+> 🔁 **2026-10-06 — A2's "no `--maxWorkers` cap" is SUPERSEDED, for a different reason only.** Task `0399` set
+> `maxWorkers: 4` in `jest.config.ts`, on owner ruling *"Yes, replace A2 (Recommended)"*, to stop shell-harness
+> timeouts when macOS throttles a background Terminal — not as a segfault mitigation. ⛔ It makes **no claim** about
+> whether a cap affects the `SIGSEGV` below; that is unmeasured. `workerIdleMemoryLimit` is still unset. The paragraph
+> below is kept as the 2026-08 record. See [[tasks/jest-worker-cap]].
+
 Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorkers` cap, no `workerIdleMemoryLimit`. Capping workers would trade a permanent slowdown on every run for an intermittent flake, and the owner declined.
 
 🔴 **Accepted cost, stated plainly: a red run stays ambiguous.** A reviewer or ship gate still cannot tell this flake from a regression at a glance; the correct response is re-run **and record both results**, never a silent retry. And per §4.2 of the findings, **a green run is not proof no worker died** — jest respawns a killed worker and can retry the suite, so the occurrence count is a floor, not the true frequency.
@@ -103,3 +109,4 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 - [[tasks/supertest-profile-server-flake]] — task `0200`, the split-out flake; its findings corrected the two claims struck above
 - [[decisions/sprint-4]] — the sprint board carrying this task and its `0200` follow-up
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, which ruled out this task's segfault before re-running
+- [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): the 4-worker cap that supersedes A2 for background-throttling timeouts only
