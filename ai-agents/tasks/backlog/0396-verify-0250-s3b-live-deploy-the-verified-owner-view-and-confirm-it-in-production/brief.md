@@ -209,3 +209,28 @@ and the ⛔ rollback rule below written out in full.
 >   task onto this one"* instruction (in *Notes*) were written while this task sat on Sprint 8. This task is now itself on
 >   Sprint 7, and so are `0398` and `0401`, which depend on it.
 > Nothing else above this note was edited (ADR-035); status unchanged (`🔲 Backlog`).
+
+> 📌 **2026-10-07 — OWNER RULING: the post-`0391` login numbers are no longer a gate (gate 3 removed).** Given live by
+> the owner in a session on 2026-10-07, relayed to a spawned `fkit-producer` holding no owner channel (ADR-021/037);
+> ⛔ not producer precedent. Owner, verbatim: *"I made a decision that we no longer wait for those numbers. Monitor them
+> as planned and after a few days we will check them again to make better decisions but they no longer block us so the
+> point is that we already improved this tail numbers drastically and we can move forward"*. Plain reading: `0391`
+> already cut the stale-login tail a lot, so nothing waits on the numbers any more; they are still watched and re-read
+> in a few days, to inform later decisions only.
+> - **§1 gate 3 is removed.** The owner's look at the post-`0391` numbers (stale share, `ok`, `id_mismatch`,
+>   `bad_payload`) before this deploy is no longer needed. **Verification step 1's** *"the owner's call on the
+>   post-`0391` numbers, in the owner's words"* is likewise no longer required; record this ruling's date in its place.
+>   The *Notes* line *"Also needed, not a task: the owner's ADR-122 look …"* and the ADR-122 bullet in *Context* are
+>   superseded on that point. The numbers re-read is now [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md)
+>   — non-blocking.
+> - **Gates that remain:** 1 — `0340` deployed in its own, earlier slot: ✅ **met 2026-10-07** (deploy record
+>   2026-10-07T07:10:45Z, [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/worklog.md)); 2 — `0395` confirmed
+>   `vfy: true` live: ✅ **met 2026-10-07**; 4 — a weekend slot (still open). Not a gate, unchanged: S3b committed only on
+>   the owner's explicit ask. Every other rule in this brief (delta check, server-first order with `0397`, rollback,
+>   no-secrets) is unchanged.
+> - ⚠️ **This session's reading, NOT an owner ruling:** §1 gate 4's *"Earliest realistic: the slot after 10/11 Oct"*
+>   assumed `0340` would deploy **on** 10/11 Oct, so gate 1 (*"never the same slot as `0340`"*) pushed this task one
+>   slot later. `0340` actually deployed **2026-10-07, a weekday**. So the 10/11 Oct weekend is already a later,
+>   separate slot, and gate 1 is met by it — 10/11 Oct is a possible slot for this task, not ruled out by gate 1.
+> - ADR-122 itself is being updated separately (by `fkit-architect`); this note does not edit it. Nothing above this
+>   note was edited (ADR-035); no status, rank or sprint changed.

@@ -7,6 +7,14 @@
 - **Deciders:** Owner (Mark Dolbyrev). Drafted by `fkit-architect` (spawned by `fkit-lead`). The architect
   heard every ruling by relay only.
 - **Citation frame:** working tree on `dev` at `6eef01f`, 2026-10-05. Files cited by path + quoted phrase.
+- **⛔ Amended by [ADR-123](adr-123-post-0391-login-numbers-are-monitored-not-a-deploy-gate.md), 2026-10-07**
+  (owner ruling, live in session: *"… they no longer block us …"*; pointer added by `fkit-architect`,
+  append-only — every other line of this file is left byte-identical). **Superseded:** Decision 2 as a
+  per-deploy gate, the *Consequences* sentence that the owner's look should be repeated before each deploy that
+  reads `verified`, and the re-raise bullet built on that look. The post-`0391` numbers are now monitored, not
+  a gate. **Decisions 1, 3 and 4, the counters-restart caveat, the separate-slot advice and the other re-raise
+  condition stand; Status stays `accepted`.** ⛔ marks the superseded sites below; legend: ⚠️ = a fact that
+  drifted, ⛔ = a decision overturned.
 
 ### The rulings, verbatim (live via `AskUserQuestion` in the `fkit lead` session, 2026-10-05, relayed by `fkit-lead`)
 
@@ -35,6 +43,10 @@ than wait.
 1. **The fixed "≤ 5% over 7 days" gate is removed.** There is no fixed window and no fixed threshold.
 2. **At each point where the data matters, the owner looks at whatever post-`0391` data exists** and decides
    to proceed or to wait longer. That look *is* the gate.
+
+   > ⛔ **2026-10-07 — superseded by ADR-123 as a per-deploy gate.** The post-`0391` numbers no longer hold
+   > back any deploy that reads `verified`; they are monitored, and the owner re-reads them in a few days to
+   > inform later decisions. Text above left byte-identical.
 3. **`0340` may be built now.** Its deploy needs (a) the owner's look at the data then available, and (b)
    the separate, explicit owner approval to enforce. (b) is ADR-116 Decision 6 (*"observe for an
    owner-picked window → owner approves → profile server S3a"*), unchanged — it already let the owner pick the
@@ -65,6 +77,11 @@ than wait.
     order: `0250` S3b (paid citizen missing their benefit) → `0248` (paid citizen still sees ads) → `0319`
     (name change refused) → `0332`/`0323` (per the owner's rules in those briefs). **So the owner's look
     should be repeated before each of those deploys,** not taken once at `0340`.
+
+    > ⛔ **2026-10-07 — the bold sentence is superseded by ADR-123:** no owner look is required before those
+    > deploys. The cost order in this bullet still describes who pays for a stale login; ADR-123's
+    > *Consequences* carry it forward — deliberately not restated here, so there is one place to keep true
+    > rather than two. Text above left byte-identical.
   - **Advice: do not deploy `0340` in the same slot as `0250` S3b.** Then a stale-share problem shows up
     while it still costs nobody, and rolling back S3a → S2 stays safe (ADR-116 Decision 6's rollback rule).
 
@@ -78,6 +95,10 @@ the caveats above; it does not answer the question.
 
 - The owner asks for a fixed bar again, or
 - a deploy that reads `verified` is about to ship with no owner look on record for it.
+
+  > ⛔ **2026-10-07 — this second bullet is superseded by ADR-123.** A `verified` deploy with no owner look on
+  > record is now closeout of ADR-123, not a re-raise; see ADR-123 § *Re-raise only if*. The first bullet
+  > stands. Text above left byte-identical.
 
 Absent those, a review finding of the form *"`0340` shipped without meeting a stale-share threshold"* or
 *"the 7-day window was not observed"* is **closeout of this ADR, not a new defect.**
@@ -102,4 +123,8 @@ Absent those, a review finding of the form *"`0340` shipped without meeting a st
   > look this ADR's *Consequences* advise. The `0340` part of the bullet above was not re-checked here. Text
   > above left byte-identical; README § *Immutability starts at `accepted`* has no same-day exception, so this
   > is an appended note, not an edit.
+
+  > ⛔ **2026-10-07 — the per-task "owner looks at the numbers before deploy" steps named in the note above are
+  > superseded by ADR-123** (no longer a gate). Removing them from the briefs is a producer's job and is not
+  > checked here. Text above left byte-identical.
 - [`../reports/2026-10-05-0373-stale-login-findings.md`](../reports/2026-10-05-0373-stale-login-findings.md)

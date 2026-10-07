@@ -161,3 +161,24 @@ producer before building — the route list above still stands, the mechanism ma
   **build**); no link to `0395` was added, by the owner's ruling. When `0340` closes, the board will stop showing this
   task as waiting — that is about building, not deploying.
 - No status, sprint or rank changed by this note. No mover run.
+
+## 📌 2026-10-07 — OWNER RULING: the post-`0391` login numbers are no longer a gate for this deploy (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given live by the owner in a session on 2026-10-07, relayed to a spawned `fkit-producer`
+with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"I made a decision that we no longer
+wait for those numbers. Monitor them as planned and after a few days we will check them again to make better decisions
+but they no longer block us so the point is that we already improved this tail numbers drastically and we can move
+forward"*. Plain reading: `0391` already cut the stale-login tail a lot, so no deploy that reads `verified` waits on
+the numbers any more.
+
+- **Removed:** the *"Before this task's deploy: the owner looks at the post-`0391` login-signature numbers …"* step in
+  the 2026-10-05 note above (ADR-122's owner-judgment look). This deploy no longer waits on it, and the worklog no
+  longer needs to record a window, numbers and an owner's call on them.
+- **Still happens, non-blocking:** the numbers are monitored, and the owner re-reads them in a few days to inform later
+  decisions — task [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
+  waits on it.
+- **Unchanged:** the `Depends on` line; the 2026-10-05 *"deploy only after `0395` confirms `vfy: true` live"* note
+  (`0395` confirmed `vfy: true` live 2026-10-07); the weekend-slot and commit-on-ask rules. This ruling removes only the
+  numbers look — it is not, by itself, an approval to deploy.
+- ADR-122 is being updated separately (by `fkit-architect`); this note does not edit it. No status, sprint or rank
+  changed. No mover run.
