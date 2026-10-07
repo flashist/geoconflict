@@ -21,7 +21,7 @@
 ADR-122 removed the fixed *"≤ 5% over 7 days"* bar and replaced it with the owner's look at whatever
 post-`0391` data exists (its Decision 2). Its *Consequences* turned that look into a **per-deploy** step:
 *"So the owner's look should be repeated before each of those deploys"* — the deploys that read `verified`:
-`0250` S3b (now verify task `0396`), `0248`, `0319`, `0332`/`0323`.
+`0250` S3b (now verify task `0396`), `0248`, `0319`, `0332`/`0323` (`0323` cancelled 2026-10-07).
 
 What has happened since:
 
@@ -42,7 +42,7 @@ The owner has now ruled that these numbers no longer hold back any deploy.
 ## Decision
 
 1. **The post-`0391` login numbers are not a gate** for any deploy that reads `verified` — `0250` S3b (`0396`),
-   `0248`, `0319`, `0332`/`0323`, or any later one. No owner look at the numbers is required before these
+   `0248`, `0319`, `0332`/`0323` (`0323` cancelled 2026-10-07), or any later one. No owner look at the numbers is required before these
    deploys.
 2. **The numbers keep being monitored** as already planned (the existing server counters). **The owner will
    re-read them in a few days** to inform later decisions. That re-read is information, not a gate; a
@@ -52,7 +52,7 @@ The owner has now ruled that these numbers no longer hold back any deploy.
    `0340` and S3b in separate slots is already met (`0340` deployed alone on 2026-10-07; S3b has not deployed).
 4. **Unchanged by this ADR:** any approval a consumer task needs for reasons *other than* the login numbers
    (for example ADR-116 Decision 6's approval to enforce, already given for `0340` per `0395`; or rules the
-   owner set inside `0332`/`0323`). This ADR removes the numbers gate only.
+   owner set inside `0332`/`0323` (`0323` cancelled 2026-10-07)). This ADR removes the numbers gate only.
 
 ## Options considered
 
@@ -63,13 +63,13 @@ The owner has now ruled that these numbers no longer hold back any deploy.
 
 ## Consequences
 
-- **Positive:** `0396`, `0248`, `0319`, `0332`/`0323` are no longer held back by the login numbers.
+- **Positive:** `0396`, `0248`, `0319`, `0332`/`0323` (`0323` cancelled 2026-10-07) are no longer held back by the login numbers.
 - **Negative / costs — stated so they are accepted knowingly:**
   - **A stale login now costs a paid citizen something, with no look before the deploy that makes it so.** A
     login that comes back `stale` (or any non-`ok` outcome) gets a `vfy:false` session. Once S3b ships, that
     paid citizen gets the S1 view for that session — no `is_paid_citizen: true` (`tasks/backlog/0396-…/brief.md`,
     *"an unverified session still sees the S1 view"*); once `0248` ships, they also see
-    interstitial ads they paid to remove. Later, `0319` refuses their name change, and `0332`/`0323` apply
+    interstitial ads they paid to remove. Later, `0319` refuses their name change, and `0332`/`0323` (`0323` cancelled 2026-10-07) apply
     whatever the owner's rules in those briefs say for an unverified session.
   - **The data the owner judged on is weekday-only.** It has no weekend evening, 20–23 UTC — the worst window
     in `0373`'s data (42–52%). So the stale share that paid citizens meet on a weekend evening is not yet
@@ -89,7 +89,7 @@ The owner has now ruled that these numbers no longer hold back any deploy.
 - a paid citizen is shown to have lost a paid benefit because of a non-`ok` login after S3b or `0248` ships,
   and the owner asks to revisit.
 
-Absent those, a review finding of the form *"`0396` / `0248` / `0319` / `0332` / `0323` deployed with no
+Absent those, a review finding of the form *"`0396` / `0248` / `0319` / `0332` / `0323` (cancelled 2026-10-07) deployed with no
 owner look at the stale-share numbers on record"* is **closeout of this ADR, not a new defect.**
 
 ## Related
@@ -99,5 +99,5 @@ owner look at the stale-share numbers on record"* is **closeout of this ADR, not
 - [ADR-121](adr-121-login-signature-freshness-window-24h-id-checked-first.md) — the `0391` fix; unchanged.
 - [ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md) — Decision 6 unchanged.
 - Tasks: `0391` (fix), `0340` (S3a, deployed 2026-10-07), `0395` (S3a verified live), `0396` (`0250` S3b
-  verify), `0248`, `0319`, `0332`, `0323`; the non-blocking re-read task a producer is filing.
+  verify), `0248`, `0319`, `0332`, `0323` (cancelled 2026-10-07); the non-blocking re-read task a producer is filing.
 - [`../reports/2026-10-05-0373-stale-login-findings.md`](../reports/2026-10-05-0373-stale-login-findings.md)

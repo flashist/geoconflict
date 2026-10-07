@@ -9,7 +9,9 @@
   - *History, kept visible:* until 2026-10-07 this line read *"**proposed — owner sign-off pending.** Drafted for
     task `0332`, phase 1. Nothing in this ADR is decided until the owner signs it off. The per-use policy (Decision
     5) is **blank by design**: it records the owner's answers to Q2–Q5 of the design report once given."*
-- **Date:** 2026-10-07 (drafted and accepted the same day)
+- **Date:** 2026-10-07 (drafted and accepted the same day). **Amended** 2026-10-07 (later the same day) — `0323`
+  cancelled; the start-time counter is now the only planned reader of `verified` (see *Amendment — 2026-10-07, `0323` cancelled*). No
+  decision changed.
 - **Deciders:** Owner (Mark Dolbyrev) — signed off 2026-10-07 (above). Drafted by `fkit-architect`, spawned by
   `fkit-lead` (`/fkit-sprint-ship-loop`, Sprint 7), with no owner channel (ADR-021). The architect heard no ruling
   first-hand; the design run, every ruling below and the acceptance itself arrived by relay. The design run was
@@ -43,6 +45,9 @@ Answers are the owner's chosen option labels unless marked free text. The questi
 | **Q6** | How the game server asks | **"Reuse login pass (Recommended)"** | yes | Option A, Decision 1. Accepted residual 1 accepted |
 | **Q7** | Profile server cannot answer `verified` | **"Treat as unconfirmed (Recommended)"** | yes | Decision 6 confirmed. With Q2–Q5 all open it changes nothing a player sees today; it is **the rule for any future enforcement** |
 | **Q8** | Sign off ADR-124 | **"Accept with answers (Recommended)"** | yes | This status |
+
+> 📝 **2026-10-07 (later) — Q5 row:** `0323` was cancelled, so *"`0323`'s mark needs its own check"* no longer names a
+> planned task. Row left as written. See *Amendment — 2026-10-07, `0323` cancelled*.
 
 ## Context
 
@@ -87,12 +92,68 @@ Three facts from the code shape the decision (report § 3–5):
    same-id rule across a reconnect. The token is held on `Client.profileSession` only until the first successful
    vouch, then dropped. **No code outside the funnel and the resolve path reads either field** (extends ADR-103
    rules 1 and 3).
+   *Clarification, 2026-10-07 — owner follow-up ruling, recorded by `fkit-architect` (spawned by `fkit-lead`,
+   `/fkit-sprint-ship-loop`, Sprint 7; heard by relay, not first-hand). Clarifies wording only; the sentence above
+   is kept as written.* **"Until the first successful vouch" means until the first vouch the profile server
+   answered** — a resolve that carried this token and whose reply carries `verified`, **true or false**. Then the
+   token is dropped. It is **kept** when the resolve failed (no reply), and when the reply carries no `verified`
+   (an old or rolled-back profile server, Decision 6), so a later resolve can still vouch. The drop applies only to
+   the token that resolve carried: **a newer token that arrived meanwhile is never dropped.** Why dropping on
+   `false` loses nothing: every `false` outcome (bad MAC or schema, expired, `vfy:false`, other player, other
+   platform) is permanent for that token. Source: the approved build plan,
+   `ai-agents/tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/plan.md`
+   § 2.1, its open question Q1 (that plan's Q1 — not Q1 of the design report in the rulings table above).
+   - **The ruling, verbatim** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim
+     by `fkit-lead`): asked when the game server should throw away the player's session token after the profile
+     server checks it, the owner chose **"After any answer (Recommended)"** — option text: *"Throw it away as soon
+     as the profile server says yes OR no. The shortest hold, and nothing is lost. The architect adds a clarifying
+     note to ADR-124. If the profile server can't answer at all, the pass is kept for a retry."*
+   - *Not chosen, kept visible:* the literal reading — hold the token until a reply says `verified: true`, so a
+     `false` reply keeps it in memory for the rest of the visit. Never in force; the plan flagged it as the
+     one-line alternative.
 4. **A late token is handled, never waited for.** A token that arrives after join causes one more resolve. If a
    tokenless resolve is in flight, the new one is chained after it. `start()` never waits. A vouch that lands
    after `start()` counts for XP and the lobby gate, but not for that match's frozen ★ or name (ADR-115 Decision 6).
    *2026-10-07, on the rulings:* with every use `allow` (Decision 5), a late vouch changes nothing a player sees. It
    still matters for the start-time counter (a vouch after `start()` counts as `unverified` there) and for `0323`'s
    mark (Decision 5 note).
+   > 📝 *2026-10-07 (later):* `0323` was cancelled — the late vouch now matters only for the start-time counter.
+   > Sentence above left as written. See *Amendment — 2026-10-07, `0323` cancelled*.
+   *Clarification, 2026-10-07 — owner follow-up ruling, recorded by `fkit-architect` (spawned by `fkit-lead`,
+   `/fkit-sprint-ship-loop`, Sprint 7; heard by relay, not first-hand). Clarifies wording only; the sentences above
+   are kept as written. Decision 4 itself stands: a late token is still handled and never waited for.*
+   **"Causes one more resolve" now has two limits**, both from `0332`'s review-R1 fix (owner ruling *"Fix in this
+   build"*, 2026-10-07; ledger `ai-agents/tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/review.md`
+   R1, and R4 for this note):
+   - **A cap per connection.** The game server takes at most `MAX_LATE_PROFILE_SESSIONS_PER_CLIENT` = **2** late
+     tokens per server-side `Client` (`src/server/GameServer.ts`, `export const MAX_LATE_PROFILE_SESSIONS_PER_CLIENT`;
+     counted in `private acceptProfileSession(`, called only from the `case "update_identity":` handler). A token
+     past the cap is ignored: no resolve, and **one** warn line the first time, carrying `clientID` only (never the
+     token). Tokens that are skipped anyway — the client is already verified, or it is the token already held — do
+     not count. The count is keyed by the `Client` object (`lateProfileSessionCounts`, a `WeakMap`), so a reconnect,
+     which gets a new `Client`, starts again at zero.
+   - **No queue of resolves.** At most one resolve waits behind the one in flight. A token that arrives while a
+     resolve is already queued shares that queued resolve (`startProfileResolve`, the `!inFlight.started` check),
+     and the queued resolve reads the client's **newest** held token when it starts (`entry.token =
+     client.profileSession` in `runQueued`). So a late token causes **at most** one more resolve, and may cause none
+     of its own.
+   - **Why 2 is headroom, not a budget:** a real client sends at most **one** late token per socket. The join
+     carries the token when it is already held (`src/client/Transport.ts`, `this.joinCarriedProfileSession =
+     profileSession !== null`); otherwise `private async maybeSendLateProfileSession(` sends it once in an
+     `update_identity`, and returns early when the join already carried it (`if (this.joinCarriedProfileSession)
+     return;`). The other `update_identity` sender, `maybeRefreshYandexIdentity`, sends the id only, never a token.
+   - **Re-raise:** any future client path that sends a refreshed token mid-socket (for example a re-login after a
+     `401`) must revisit this cap first — otherwise its third token on one socket is dropped silently, seen only as
+     a warn line. (Also listed under *Re-raise only if*.)
+   - **The ruling, verbatim** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim
+     by `fkit-lead`): asked *"the new limit (at most 2 extra login passes per connection; real players send at most
+     1) isn't written in the decision record, ADR-124. Add a dated note there, or just record it as a known
+     limit?"*, the owner chose **"Add ADR note (Recommended)"** — option text: *"Docs only. The architect adds one
+     dated note to ADR-124, so a future change doesn't trip over the limit by surprise."*
+   - *Citation frame:* content anchors (per `../conventions/file-line-citations.md`), each grep-checked to one hit
+     in the **uncommitted** working tree on `dev` at `3cee150`, 2026-10-07 — `0332`'s build is not yet committed.
+     Line numbers in that tree, for convenience only: `GameServer.ts` :92, :179, :524, :1528-1555, :1612, :1622-1625;
+     `Transport.ts` :408, :433-435, :450.
 5. **One policy decides what an unverified player loses — and today it is nothing.** The owner ruled every use
    open to unverified players (2026-10-07):
 
@@ -115,6 +176,10 @@ Three facts from the code shape the decision (report § 3–5):
    trust from the name: **it must check `verified` itself, through the funnel**, and freeze it at `start()` with the
    roster (ADR-115 Decision 6), or a late vouch could make the mark and the frozen name disagree. That is `0323`'s
    design, not this build.
+   > 📝 **2026-10-07 (later) — `0323` was cancelled.** After this, **the start-time counter
+   > `geoconflict.server.match.identity` (Decision 8) is the only planned reader of `verified`.** Paragraph above
+   > left as written. A future reader must still check `verified` through the funnel and apply Decision 6. See
+   > *Amendment — 2026-10-07, `0323` cancelled*.
 
    *History, kept visible:* the draft table read **pending — Q2 / Q3 / Q4 / Q5** in every row, with *"Architect's
    recommendation, not a decision: `approvedName` = deny; the other three = allow, for now."* The owner followed the
@@ -171,6 +236,8 @@ changed point.*
   players are verified — the number a later enforcement decision needs (Decision 8). `0323`'s mark gets the
   `verified` bit it needs to be honest (Decision 5 note). The log fix stops today's pre-join log of whole client
   messages, which already writes Yandex ids.
+  > 📝 *2026-10-07 (later):* `0323` was cancelled, so no mark will use the bit; the return is the counters. See
+  > *Amendment — 2026-10-07, `0323` cancelled*.
   *Draft read:* *"The forged-id risk closes for every use the owner denies, with one read each. `0323`'s mark can be
   honest."*
 - **What this ADR does NOT do — stated plainly:** **it closes no forged-id hole.** The owner kept every use open
@@ -182,6 +249,8 @@ changed point.*
   (Decision 6). **And residual 1 below is paid for a build that, today, gates nothing** — its return is the counters,
   `0323`'s mark, the log fix and readiness for a later flip. The owner accepted Q6 in the same batch as Q2–Q5.
   *Draft read:* *"… ~12 metric series; a new rollback rule (Decision 6)."*
+  > 📝 *2026-10-07 (later):* with `0323` cancelled, the return is the counters, the log fix and readiness for a later
+  > flip — `0323`'s mark drops out. Residual 1 is still accepted (Q6). See *Amendment — 2026-10-07, `0323` cancelled*.
 - **Accepted residuals:**
   1. **Bearer tokens pass through game-box memory** (option A; owner ruling Q6). A break-in there could use them at
      the profile server as those players for up to 24 h. This is bounded: that box already holds
@@ -190,6 +259,7 @@ changed point.*
      Verification proves who, not how many.
   3. **A late token does not change that match's frozen ★ or name.** *2026-10-07:* invisible to players while both
      are `allow`; it matters for the counter and for `0323`'s mark.
+     📝 *2026-10-07 (later):* `0323` cancelled — it now matters for the counter only.
   4. **A narrow pre-join race can drop a late token.** The player stays unverified for that match, which is
      fail-soft. The client re-sends on every reconnect.
   5. **Honest unverified players lose whatever the owner denies,** for the whole visit. That is about 3–7 % today
@@ -208,6 +278,9 @@ changed point.*
   report § 6, apply Decision 6, reword `0397`'s *not confirmed* text (EN + RU) to name the loss, and, if the loss hits
   non-citizens (XP would), switch on `0397`'s message for unverified non-citizens. Added 2026-10-07.
 - **Observed abuse of any `allow` use** (XP gifting, forged ★, forged hosts) — then revisit that row of Decision 5.
+- **A client path appears that sends a refreshed session token mid-socket** (e.g. a re-login after a `401`) — then
+  revisit `MAX_LATE_PROFILE_SESSIONS_PER_CLIENT` (= 2 late tokens per connection) before it ships; see the Decision 4
+  clarification. Added 2026-10-07 (owner ruling, `0332` review R4).
 - **A reader of `client.identityVerified`, `client.profileSession` or `client.yandexPlayerId` appears outside the
   funnel and the resolve path** — that is a defect against this ADR.
 - **The token appears in a log, a DB row, an analytics event, a player-bound message or the archive** — that is a
@@ -236,16 +309,44 @@ attributed, append-only notes; every earlier wording in those ADRs is kept. Each
 … If Q5 = allow …"*) and, for ADR-116, *"the mechanism shipped"*. Q2 and Q5 were both *keep*, and nothing has shipped
 yet, so the applied notes follow the table above.
 
+> 📝 **2026-10-07 (later) — ADR-115 row:** *"Its second re-raise trigger (the `0323` mark) is now live for `0323`'s
+> design"* is overtaken: `0323` was cancelled, and ADR-115 now records that trigger as waiting again (ADR-115
+> *Amendment — 2026-10-07, `0323` cancelled*). Row left as written.
+
+## Amendment — 2026-10-07, `0323` cancelled (the counter is the only planned reader of `verified`)
+
+Facts only; **no decision in this ADR changes.** Recorded by `fkit-architect` (spawned by `fkit-lead`,
+`/fkit-sprint-ship-loop`, Sprint 7; heard by relay, not first-hand) under `decisions/README.md`'s carve-out.
+
+**The ruling, verbatim** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim by
+`fkit-lead`): asked *"What should happen to 0323?"*, the owner chose **"Cancel 0323 (Recommended)"** — *"Nothing gets
+built. A producer cancels it with your reason ('players don't care; only admins need it, and 0332's counters cover
+that'). It can be filed again later if you want a per-player admin view."* Earlier the same session, at `0323`'s plan
+gate: *"No need for special mark of "this is really that account", users don't care about this feature, it's only
+important for us (developers/admins of the game)"*.
+
+- **`0323` is cancelled** —
+  [`tasks/cancelled/0323-…`](../../tasks/cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md).
+- **After this, the start-time counter `geoconflict.server.match.identity` (Decision 8) is the only planned reader of
+  `verified`.** Every *"`0323`'s mark"* reference above (Q5 row, Decision 4, Decision 5 note, *Consequences*,
+  residual 3, the ADR-115 row in *Effect on older ADRs*, *Related*) is overtaken and kept visible.
+- **Unchanged:** Decisions 1–8, the per-use table (all `allow`), the accepted residuals and the re-raise list. The
+  rule in the Decision 5 note still binds any **future** reader: check `verified` through the funnel, and apply
+  Decision 6.
+- **Open point carried in ADR-115, not here:** whether a future per-player admin view counts as *"presented to
+  players"* under ADR-115's re-raise trigger is undecided — owner's call if such a view is filed.
+
 ## Related
 
 - Report: [`../reports/2026-10-07-0332-join-token-design.md`](../reports/2026-10-07-0332-join-token-design.md)
-- Task: `ai-agents/tasks/backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md`
+- Task: `ai-agents/tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md`
 - ADR-101 (fail-soft crediting), ADR-103, ADR-111 (1 XP per match), ADR-113, ADR-115, ADR-116, ADR-121, ADR-123
 - Code: `src/server/GameServer.ts` (funnel `:1382-1384`, resolve `:1408-1461`, reconnect `:269-306`,
   `update_identity` `:439-453`), `src/server/Worker.ts` (join `:529-542`, pre-join log `:457-460`),
   `src/server/Client.ts`, `src/server/ProfileApiClient.ts`, `src/core/profile/CreditContract.ts`,
   `src/profile-server/Routes.ts` (resolve `:844-873`), `src/profile-server/SessionToken.ts`,
   `src/client/ProfileSession.ts`, `src/client/Transport.ts`
-- Tasks: `0323` (the mark — depends on slice A; must check `verified` itself under Q5 = keep), `0397` (the *not
+- Tasks: `0323` (the mark — depends on slice A; must check `verified` itself under Q5 = keep; **cancelled
+  2026-10-07**), `0397` (the *not
   confirmed* text — **not** reworded by `0332`, since no use is denied; reworded only by a future flip), `0319`,
   `0267`, `0402`

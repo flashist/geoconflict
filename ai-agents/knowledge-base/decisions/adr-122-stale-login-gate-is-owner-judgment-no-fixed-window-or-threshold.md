@@ -75,7 +75,7 @@ than wait.
   - **Where a high stale share starts to cost players.** `0340` alone costs no one: a stale login stays
     `vfy:false`, as every login is today. The cost appears only as consumers of `verified` ship, in this
     order: `0250` S3b (paid citizen missing their benefit) → `0248` (paid citizen still sees ads) → `0319`
-    (name change refused) → `0332`/`0323` (per the owner's rules in those briefs). **So the owner's look
+    (name change refused) → `0332`/`0323` (`0323` cancelled 2026-10-07) (per the owner's rules in those briefs). **So the owner's look
     should be repeated before each of those deploys,** not taken once at `0340`.
 
     > ⛔ **2026-10-07 — the bold sentence is superseded by ADR-123:** no owner look is required before those
@@ -111,7 +111,7 @@ Absent those, a review finding of the form *"`0340` shipped without meeting a st
   dated clarification added to its 2026-09-29 note.
 - Tasks: `0391` (fix, deploys Tue 6 Oct), `0392` (7-day verify — its brief still carries the old gate),
   `0340` (S3a enforce — its brief still carries the old gate), `0394` (not a gate), `0250` S3b, `0248`,
-  `0319`, `0332`, `0323`.
+  `0319`, `0332`, `0323` (cancelled 2026-10-07).
 
   > ⚠️ **2026-10-05 — `0392` description drifted; the decision is untouched.** Added by `fkit-architect`
   > (spawned by `fkit-lead`) after a later owner ruling the same day (live via `AskUserQuestion`, relayed by
@@ -119,7 +119,7 @@ Absent those, a review finding of the form *"`0340` shipped without meeting a st
   > to Sprint 7 (rank 44), was retitled *"Read the post-0391 login numbers before the 0340 deploy"* (folder
   > `ai-agents/tasks/backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/`), and closes
   > after the owner's first look, before `0340` deploys. Each later task that reads `verified` (`0250` S3b,
-  > `0319`, `0332`, `0323`) now carries its own "owner looks at the numbers before deploy" step — the repeat
+  > `0319`, `0332`, `0323` (cancelled 2026-10-07)) now carries its own "owner looks at the numbers before deploy" step — the repeat
   > look this ADR's *Consequences* advise. The `0340` part of the bullet above was not re-checked here. Text
   > above left byte-identical; README § *Immutability starts at `accepted`* has no same-day exception, so this
   > is an appended note, not an edit.

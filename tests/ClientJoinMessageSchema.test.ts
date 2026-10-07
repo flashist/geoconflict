@@ -8,6 +8,8 @@ import {
 import { generatePrivateLobbyCode } from "../src/core/PrivateLobbyCode";
 import {
   ClientJoinMessageSchema,
+  ClientMessageSchema,
+  ClientUpdateIdentitySchema,
   GameStartInfoSchema,
   ID,
 } from "../src/core/Schemas";
@@ -191,5 +193,97 @@ describe("ID and private-lobby codes (task 0389)", () => {
     });
     expect(result.success).toBe(true);
     expect(ID.safeParse("K7M4PCRX").success).toBe(true);
+  });
+});
+
+// Task 0332 (ADR-124). The profile session token rides the join and the late
+// update_identity. A malformed token must NEVER fail the message — a failed join
+// parse closes the socket (1002) — so it is read as absent instead (report §5.1).
+describe("profileSession on join and update_identity (task 0332)", () => {
+  const TOKEN = "v1.synthetic-payload.synthetic-mac";
+
+  function baseUpdateIdentity(): Record<string, unknown> {
+    return { type: "update_identity", yandexPlayerId: "yandex-unique-id-123" };
+  }
+
+  test("a join with a token parses and keeps it", () => {
+    const result = ClientJoinMessageSchema.safeParse({
+      ...baseJoinMessage(),
+      profileSession: TOKEN,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.profileSession).toBe(TOKEN);
+    }
+  });
+
+  test("an update_identity with a token parses and keeps it", () => {
+    const result = ClientUpdateIdentitySchema.safeParse({
+      ...baseUpdateIdentity(),
+      profileSession: TOKEN,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.profileSession).toBe(TOKEN);
+    }
+  });
+
+  test("a missing token is fine on both messages", () => {
+    const join = ClientJoinMessageSchema.safeParse(baseJoinMessage());
+    const update = ClientUpdateIdentitySchema.safeParse(baseUpdateIdentity());
+    expect(join.success).toBe(true);
+    expect(update.success).toBe(true);
+    if (join.success) expect(join.data.profileSession).toBeUndefined();
+    if (update.success) expect(update.data.profileSession).toBeUndefined();
+  });
+
+  test("the 1024-character boundary is kept", () => {
+    const result = ClientJoinMessageSchema.safeParse({
+      ...baseJoinMessage(),
+      profileSession: "t".repeat(1024),
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.profileSession).toHaveLength(1024);
+    }
+  });
+
+  test.each([
+    ["too long (1025)", "t".repeat(1025)],
+    ["a number", 42],
+    ["empty", ""],
+    ["null", null],
+    ["an object", { token: "x" }],
+  ])(
+    "a token that is %s reads as absent and the message still parses",
+    (_label, profileSession) => {
+      const join = ClientJoinMessageSchema.safeParse({
+        ...baseJoinMessage(),
+        yandexPlayerId: "yandex-unique-id-123",
+        profileSession,
+      });
+      expect(join.success).toBe(true);
+      if (join.success) {
+        expect(join.data.profileSession).toBeUndefined();
+        expect(join.data.yandexPlayerId).toBe("yandex-unique-id-123");
+      }
+      const update = ClientMessageSchema.safeParse({
+        ...baseUpdateIdentity(),
+        profileSession,
+      });
+      expect(update.success).toBe(true);
+      if (update.success && update.data.type === "update_identity") {
+        expect(update.data.profileSession).toBeUndefined();
+        expect(update.data.yandexPlayerId).toBe("yandex-unique-id-123");
+      }
+    },
+  );
+
+  test("an update_identity without yandexPlayerId still fails (old servers need it)", () => {
+    const result = ClientUpdateIdentitySchema.safeParse({
+      type: "update_identity",
+      profileSession: TOKEN,
+    });
+    expect(result.success).toBe(false);
   });
 });

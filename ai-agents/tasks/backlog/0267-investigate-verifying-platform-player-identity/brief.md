@@ -103,7 +103,7 @@ investigate the options.** Two were named by the owner as examples:
   Owner D3 wording: *"0267 (the identity investigation) is closed or narrowed using this report."* ⚠️
   **Closing or narrowing this task is a PENDING producer/owner step — it was NOT done here.** Nothing was
   closed, cancelled or moved.
-- 📌 **2026-10-07 — narrowed: the "game-server path" is now [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) / ADR-124 (append-only; status, priority and owner unchanged).**
+- 📌 **2026-10-07 — narrowed: the "game-server path" is now [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) / ADR-124 (append-only; status, priority and owner unchanged).**
   Added by a spawned `fkit-producer` at `fkit-lead`'s request (no owner channel, ADR-021/037), after the owner signed
   off [ADR-124](../../../knowledge-base/decisions/adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
   on 2026-10-07 live via `AskUserQuestion` in the `fkit lead` session (Q8, verbatim *"Accept with answers

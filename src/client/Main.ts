@@ -52,6 +52,10 @@ import { openHostLobbyFromStartScreen } from "./HostLobbyOpen";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
+import {
+  isLongSessionRefreshShowing,
+  startLongSessionRefreshChecker,
+} from "./LongSessionRefresh";
 import "./Matchmaking";
 import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
@@ -751,6 +755,15 @@ class Client {
   }
 
   private async handleJoinLobby(event: CustomEvent<JoinLobbyEvent>) {
+    // Task 0404 review R1: the forced refresh popup is up and its only exit is
+    // a reload, so a lobby or match started now would be cut off by it. Clicks
+    // cannot reach a join (the popup is topmost), but a join already on its way
+    // can — a Mission click whose ad ends after the popup appeared, or a key
+    // press on a covered window. Drop it; the player refreshes first.
+    if (isLongSessionRefreshShowing()) {
+      console.log("long-session refresh popup is up, not joining");
+      return;
+    }
     // Task 0336: away from the first line, not only once gameStop is set. Keep
     // it before any await: the host and join windows end their own markers
     // right after they send `join-lobby` (0336 review R3).
@@ -1103,6 +1116,10 @@ export async function startClient(): Promise<void> {
 
   const client = new Client();
   client.initialize();
+
+  // The forced "please refresh" popup after 23 h, start screen only (task
+  // 0404). After initialize(), which registers the start-screen source.
+  startLongSessionRefreshChecker();
 
   // Tutorial: auto-launch for first-time players
   if (!localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {

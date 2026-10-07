@@ -85,9 +85,15 @@ export class ProfileApiClient {
    * returns `null` — never an exception and never a delay beyond the retry budget.
    * `null` means "not resolved": the caller may try again later (the credit path
    * does), and must never clear an already-known citizen flag on it.
+   *
+   * Task 0332 (ADR-124): `sessionToken`, when given, is forwarded for the profile
+   * server to vouch for; the reply's `verified` says whether it did. The key is
+   * omitted, never sent empty, when there is no token. ⛔ A credential: the body is
+   * never logged from here.
    */
   public async resolvePlayer(
     platformUserId: string,
+    sessionToken?: string,
   ): Promise<PlayerResolveResponse | null> {
     if (!this.isConfigured()) {
       this.logDisabledOnce("resolvePlayer");
@@ -97,6 +103,7 @@ export class ProfileApiClient {
       const body: PlayerResolveRequest = {
         platform: "yandex_games",
         platformUserId,
+        ...(sessionToken !== undefined ? { sessionToken } : {}),
       };
       // An id accepted at the 256-char join boundary can exceed the 128-char
       // contract; the server would 400 it anyway, so don't spend a request on it.

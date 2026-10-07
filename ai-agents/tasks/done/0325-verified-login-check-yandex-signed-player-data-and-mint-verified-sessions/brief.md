@@ -220,11 +220,11 @@ not close without that sign-off, or an owner ruling that it may.
   case and ADR-103's exit need. See *Out of scope*.
 - 📌 **2026-09-28 — blocks widened, and the second step is now filed (append-only; the two bullets above are
   kept as written).** Added by a spawned `fkit-producer` at `fkit-lead`'s request.
-  - **Now also blocks [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md)** (hard), in
+  - **Now also blocks [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md)** (hard), in
     addition to `0250` slice S3b and `0319` — by an owner ruling on `0323` given 2026-09-28 live via
     `AskUserQuestion` in the `fkit lead` session (*"Wait for verified login (Recommended)"*, recorded verbatim in
     the `0323` brief).
-  - **The second step is filed as [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (Sprint 7, owner ruling 2026-09-28: *"File it, end of Sprint 7
+  - **The second step is filed as [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (Sprint 7, owner ruling 2026-09-28: *"File it, end of Sprint 7
     (Recommended)"*). It is the follow-up that closes ADR-103's forged-id risk and
     [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md)'s
     residual 1. Where this brief says that step is *"not filed"* (above, and in *Out of scope*), read `0332`.

@@ -86,7 +86,7 @@ sends today without undoing a privacy decision.** Step 1 must decide what to sho
   [`0396`](../../backlog/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md). Shipped
   earlier, this display would tell **every** player "not verified". See the deploy note in *Notes*.
 - **`0332` will widen what "unverified" costs.**
-  [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) has the owner
+  [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) has the owner
   rule, per perk, what an unverified player loses in matches: **XP crediting, the ★ badge, the private-lobby gate, the
   approved name**. Those rulings are not made yet. The wording chosen here must be able to grow to cover them without
   promising something they later take away.

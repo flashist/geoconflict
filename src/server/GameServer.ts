@@ -34,6 +34,7 @@ import {
 } from "../core/profile/MatchQualification";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
+import { errorName } from "./Logger";
 import { ProfileApiClient } from "./ProfileApiClient";
 
 export enum GamePhase {
@@ -52,6 +53,51 @@ type AiLobbyPlayer = {
 type PendingAiJoin = {
   joinIndex: number;
   dueAt: number;
+};
+
+/**
+ * Task 0332 (ADR-124). A roster player's identity state when the match starts —
+ * the `state` label of `geoconflict.server.match.identity`. Decided in this order:
+ *  - `guest`      — no Yandex id (the funnel returns null), including an authorized
+ *                   player whose id has not arrived yet;
+ *  - `unresolved` — an id, but no profile resolve has answered for it (still in
+ *                   flight, failed, or the profile API is not configured);
+ *  - `verified`   — the profile server vouched for the player's session;
+ *  - `unverified` — everything else.
+ */
+export type MatchIdentityState =
+  | "guest"
+  | "unresolved"
+  | "verified"
+  | "unverified";
+
+export const MATCH_IDENTITY_STATES: readonly MatchIdentityState[] = [
+  "guest",
+  "unresolved",
+  "verified",
+  "unverified",
+];
+
+export function emptyMatchIdentityCounts(): Record<MatchIdentityState, number> {
+  return { guest: 0, unresolved: 0, verified: 0, unverified: 0 };
+}
+
+/**
+ * Task 0332, review R1. How many profile session tokens one Client may hand in
+ * after its join, via `update_identity`. A real client sends at most ONE per socket
+ * (the join carries it, or one late `update_identity` does), so this is headroom,
+ * not a budget. Without it, every new token in a message drove one more profile
+ * resolve.
+ */
+export const MAX_LATE_PROFILE_SESSIONS_PER_CLIENT = 2;
+
+/** Task 0332. One client's profile resolve — running, or queued behind another. */
+type ProfileResolveEntry = {
+  promise: Promise<string | null>;
+  /** The token this resolve carries (null for none). A queued one sets it when it starts. */
+  token: string | null;
+  /** false while a queued resolve still waits for the one before it. */
+  started: boolean;
 };
 
 export class GameServer {
@@ -122,7 +168,24 @@ export class GameServer {
   // the object, not the clientID: a reconnect's new socket never picks up the old
   // socket's in-flight result. The entry is removed once settled, so a failed
   // resolve can be retried.
-  private profileResolves = new WeakMap<Client, Promise<string | null>>();
+  // Task 0332: the entry also records the session token that resolve carried (null
+  // for none), so a token arriving mid-resolve gets its own resolve, chained after
+  // the one in flight, instead of being lost to the shared tokenless one.
+  private profileResolves = new WeakMap<Client, ProfileResolveEntry>();
+
+  // Task 0332, review R1. How many late session tokens each Client has handed in —
+  // see MAX_LATE_PROFILE_SESSIONS_PER_CLIENT. Keyed by the object, like
+  // profileResolves: a reconnect's new socket starts again at zero.
+  private lateProfileSessionCounts = new WeakMap<Client, number>();
+
+  /**
+   * Task 0332 (ADR-124). How many roster players were in each identity state when
+   * this match started — counted once, in `start()`, after the roster passed its
+   * schema. Late joiners are not counted. Read by GameManager for the
+   * `geoconflict.server.match.identity` counter.
+   */
+  public readonly matchIdentityCounts: Record<MatchIdentityState, number> =
+    emptyMatchIdentityCounts();
 
   public bytesSent: number = 0;
   public bytesReceived: number = 0;
@@ -290,16 +353,25 @@ export class GameServer {
       // Task 0272. Carry the resolved player id too — but ONLY when the rejoining
       // socket presents the very same creditable identity. Carrying it across a
       // different or missing identity would credit the wrong player.
-      const creditableId = this.getCreditableYandexId(client);
+      const identity = this.getCreditableIdentity(client);
+      const existingIdentity = this.getCreditableIdentity(existing);
       if (
-        creditableId !== null &&
-        creditableId === this.getCreditableYandexId(existing)
+        identity !== null &&
+        existingIdentity !== null &&
+        identity.yandexId === existingIdentity.yandexId
       ) {
         client.profilePlayerId = existing.profilePlayerId;
         // Task 0322. The approved name follows the SAME rule, not isCitizen's
         // unconditional carry: carried across a different identity it would show
         // another player's name. The fresh resolve below refreshes it (before start).
         client.approvedName = existing.approvedName;
+        // Task 0332 (ADR-124). A vouch already made for this same id carries too,
+        // and the rejoining socket's token is then not needed: dropped, so the
+        // fresh resolve below goes out without one.
+        if (existingIdentity.verified) {
+          client.identityVerified = true;
+          client.profileSession = null;
+        }
       }
 
       this.activeClients = this.activeClients.filter((c) => c !== existing);
@@ -351,11 +423,13 @@ export class GameServer {
           this.log.error(
             `Failed to parse client message (clientID: ${client.clientID}): ${error}`,
           );
+          // Task 0332: the raw message is NOT echoed back — it may carry the
+          // player's profile session token (a credential). The client shows
+          // `message` only when present (ServerErrorSchema.message is optional).
           client.ws.send(
             JSON.stringify({
               type: "error",
               error,
-              message,
             } satisfies ServerErrorMessage),
           );
           client.ws.close(1002, "ClientMessageSchema");
@@ -440,11 +514,31 @@ export class GameServer {
             // Late Yandex-id resolution for an authorized user who joined while the
             // SDK was still initializing. Apply null→value only (cannot hijack a
             // known id), and resolve the profile player now that we finally know it.
-            if (client.setYandexPlayerIdIfUnset(clientMsg.yandexPlayerId)) {
+            const idChanged = client.setYandexPlayerIdIfUnset(
+              clientMsg.yandexPlayerId,
+            );
+            // Task 0332 (ADR-124). It may also carry the profile session token, when
+            // the client's login finished after the join. A token sent with a
+            // DIFFERENT id leaves the id as it was; the vouch then answers
+            // `other_player`. ⛔ The token itself is never logged.
+            const tokenChanged = this.acceptProfileSession(
+              client,
+              clientMsg.profileSession,
+            );
+            if (idChanged) {
               this.log.info("client Yandex identity resolved post-join", {
                 clientID: client.clientID,
               });
+            }
+            if (tokenChanged) {
+              this.log.info("client profile session received post-join", {
+                clientID: client.clientID,
+              });
+            }
+            if (idChanged || tokenChanged) {
               this.resolveProfileForClient(client);
+            }
+            if (idChanged) {
               // Task 0211. A mid-match participation report that arrived before the
               // id resolved was dropped; retry it now that we can credit.
               this.retryParticipationAfterIdentityRefresh(client);
@@ -459,8 +553,10 @@ export class GameServer {
           }
         }
       } catch (error) {
+        // Task 0332: the error's TYPE only. A JSON parse error quotes the bytes it
+        // failed on, and those may carry the player's profile session token.
         this.log.info(
-          `error handline websocket request in game server: ${error}`,
+          `error handline websocket request in game server: ${errorName(error)}`,
           {
             clientID: client.clientID,
           },
@@ -578,6 +674,11 @@ export class GameServer {
       return;
     }
     this.gameStartInfo = result.data satisfies GameStartInfo;
+    // Task 0332 (ADR-124). Counted once per match, over the same clients that form
+    // the roster, and only once the roster passed its schema.
+    for (const c of this.activeClients) {
+      this.matchIdentityCounts[this.matchIdentityState(c)]++;
+    }
 
     this.endTurnIntervalID = setInterval(
       () => this.endTurn(),
@@ -1369,18 +1470,88 @@ export class GameServer {
   }
 
   /**
-   * IDENTITY-TRUST SEAM (s4-profile-06 / Yandex Payments task). The single place
-   * that decides which Yandex id is trusted enough to credit/resolve. TODAY it
-   * returns the client-asserted id as-is — an epic-accepted risk for *earned* XP
-   * only (the id is a stable store key; paid entitlements are verified separately
-   * by the Payments task). Server-side `getPlayer({ signed: true })` verification is
-   * blocked until the Yandex secret key is issued (after in-app purchases are
-   * enabled). When that lands, verify the signed payload HERE and return only the
-   * verified id (or null) — the resolve / credit / qualification logic downstream
-   * does not change.
+   * THE IDENTITY FUNNEL (ADR-103; verification since task 0332, ADR-124). The single
+   * place that decides who a client is: its Yandex id, and whether the profile
+   * server has vouched for it. Null for a guest (no id).
+   *
+   * `yandexId` is still the CLIENT-ASSERTED id (ADR-103's accepted risk).
+   * `verified` is true only once the profile server vouched that the client's
+   * session token is a valid `vfy:true` session of exactly the player that id
+   * resolves to (ADR-124 D1–D3). Every user of identity — crediting, the ★, the
+   * private-lobby gate, the approved name — reads it through here. Today all four
+   * still allow an unverified player (ADR-124 D5); a per-use policy, when one
+   * exists, goes on top of this, never around it.
+   *
+   * The ONLY reader of `client.yandexPlayerId` and `client.identityVerified`.
    */
+  private getCreditableIdentity(
+    client: Client,
+  ): { yandexId: string; verified: boolean } | null {
+    if (client.yandexPlayerId === null) {
+      return null;
+    }
+    return {
+      yandexId: client.yandexPlayerId,
+      verified: client.identityVerified,
+    };
+  }
+
+  /** The funnel's id alone (ADR-103), for the users that need only the id. */
   private getCreditableYandexId(client: Client): string | null {
-    return client.yandexPlayerId;
+    return this.getCreditableIdentity(client)?.yandexId ?? null;
+  }
+
+  /**
+   * Task 0332 (ADR-124). One roster player's identity state at `start()` — see
+   * MatchIdentityState for the order.
+   */
+  private matchIdentityState(c: Client): MatchIdentityState {
+    const identity = this.getCreditableIdentity(c);
+    if (identity === null) {
+      return "guest";
+    }
+    if (c.profilePlayerId === null) {
+      return "unresolved";
+    }
+    return identity.verified ? "verified" : "unverified";
+  }
+
+  /**
+   * Task 0332 (ADR-124). Take a profile session token from a late `update_identity`.
+   * Returns whether a NEW token was stored (so the caller resolves again). Ignored —
+   * false — when there is none, when the client is already verified (nothing left
+   * to prove), when it is the token already held, or once this client has handed in
+   * MAX_LATE_PROFILE_SESSIONS_PER_CLIENT tokens (review R1: one warn line, the
+   * first time only).
+   * ⛔ The token is a credential: stored on the client only, never logged.
+   */
+  private acceptProfileSession(
+    client: Client,
+    token: string | undefined,
+  ): boolean {
+    if (token === undefined) {
+      return false;
+    }
+    if (this.getCreditableIdentity(client)?.verified === true) {
+      return false;
+    }
+    if (client.profileSession === token) {
+      return false;
+    }
+    const accepted = this.lateProfileSessionCounts.get(client) ?? 0;
+    if (accepted >= MAX_LATE_PROFILE_SESSIONS_PER_CLIENT) {
+      if (accepted === MAX_LATE_PROFILE_SESSIONS_PER_CLIENT) {
+        // One past the limit marks "already warned".
+        this.lateProfileSessionCounts.set(client, accepted + 1);
+        this.log.warn("client sent too many profile session tokens; ignored", {
+          clientID: client.clientID,
+        });
+      }
+      return false;
+    }
+    this.lateProfileSessionCounts.set(client, accepted + 1);
+    client.profileSession = token;
+    return true;
   }
 
   /**
@@ -1415,49 +1586,133 @@ export class GameServer {
     return this.startProfileResolve(client);
   }
 
-  /** Share the in-flight resolve for this client object, or start one. Never rejects. */
+  /**
+   * Share the in-flight resolve for this client object, or start one. Never rejects.
+   *
+   * Task 0332 (ADR-124): the resolve carries the client's session token while the
+   * client is not yet verified. A resolve in flight is shared only when it already
+   * carries what this one would (no token needed, or the same token). Otherwise — a
+   * token that arrived mid-resolve — a new resolve is CHAINED after the one in
+   * flight (ADR-124 D4), so the two never race and the token is never lost.
+   *
+   * Review R1: at most ONE resolve waits. A queued resolve reads the client's
+   * NEWEST token when it starts, so a token arriving while one is queued just
+   * shares it — the queue cannot grow.
+   */
   private startProfileResolve(client: Client): Promise<string | null> {
     // The ONLY reader of the identity on this path (ADR-103).
-    const creditableId = this.getCreditableYandexId(client);
-    if (creditableId === null) {
+    const identity = this.getCreditableIdentity(client);
+    if (identity === null) {
       return Promise.resolve(null);
     }
+    const token = identity.verified ? null : client.profileSession;
     const inFlight = this.profileResolves.get(client);
-    if (inFlight !== undefined) {
-      return inFlight;
+    if (
+      inFlight !== undefined &&
+      (token === null || inFlight.token === token || !inFlight.started)
+    ) {
+      return inFlight.promise;
     }
-    const resolving = this.profileApiClient
-      .resolvePlayer(creditableId)
-      .then((resolved) => {
-        if (resolved === null) {
-          return null;
-        }
-        client.profilePlayerId = resolved.playerId;
-        // Only ever set true. A `false` or a failed resolve means "not a citizen OR
-        // the lookup failed", so clearing on it would let a transient outage blink a
-        // citizen's icon off.
-        if (resolved.isCitizen) {
-          client.isCitizen = true;
-        }
-        // Task 0322. Ignored once the match has started: the roster is frozen, and
-        // the lobby poll after start must agree with it. Absent (an older profile
-        // server) means "unknown", so whatever is held stays.
-        if (!this._hasStarted && resolved.displayName !== undefined) {
-          client.approvedName = this.checkedApprovedName(
-            client,
-            resolved.displayName,
-          );
-        }
-        return resolved.playerId;
-      })
+    const entry: ProfileResolveEntry = {
+      promise: Promise.resolve(null), // replaced just below
+      token,
+      started: inFlight === undefined,
+    };
+    // A queued resolve carries whatever token the client holds when it starts.
+    const runQueued = () => {
+      entry.started = true;
+      entry.token = client.profileSession;
+      return this.runProfileResolve(client, identity.yandexId, entry.token);
+    };
+    const resolving: Promise<string | null> = (
+      inFlight === undefined
+        ? this.runProfileResolve(client, identity.yandexId, token)
+        : inFlight.promise.then(runQueued, runQueued)
+    )
       // Belt-and-braces: resolvePlayer is contractually non-throwing, but this is on
       // the join path — a rejection must not become an unhandled rejection here.
       .catch(() => null)
       .finally(() => {
-        this.profileResolves.delete(client);
+        // Only if the entry is still this one: a resolve chained after this one has
+        // replaced it, and deleting that would let a third resolve start beside it.
+        if (this.profileResolves.get(client) === entry) {
+          this.profileResolves.delete(client);
+        }
       });
-    this.profileResolves.set(client, resolving);
+    entry.promise = resolving;
+    this.profileResolves.set(client, entry);
     return resolving;
+  }
+
+  /**
+   * One resolve call and its result (task 0272; the token since task 0332). The
+   * token is passed only when there is one, so a tokenless resolve is called with
+   * the id alone.
+   */
+  private runProfileResolve(
+    client: Client,
+    yandexId: string,
+    token: string | null,
+  ): Promise<string | null> {
+    const request =
+      token === null
+        ? this.profileApiClient.resolvePlayer(yandexId)
+        : this.profileApiClient.resolvePlayer(yandexId, token);
+    return request.then((resolved) => {
+      if (resolved === null) {
+        // Task 0332: a failed resolve keeps the token, so a later resolve can
+        // still vouch for it.
+        return null;
+      }
+      client.profilePlayerId = resolved.playerId;
+      // Only ever set true. A `false` or a failed resolve means "not a citizen OR
+      // the lookup failed", so clearing on it would let a transient outage blink a
+      // citizen's icon off.
+      if (resolved.isCitizen) {
+        client.isCitizen = true;
+      }
+      // Task 0322. Ignored once the match has started: the roster is frozen, and
+      // the lobby poll after start must agree with it. Absent (an older profile
+      // server) means "unknown", so whatever is held stays.
+      if (!this._hasStarted && resolved.displayName !== undefined) {
+        client.approvedName = this.checkedApprovedName(
+          client,
+          resolved.displayName,
+        );
+      }
+      if (token !== null) {
+        this.applyVouchResult(client, token, resolved.verified);
+      }
+      return resolved.playerId;
+    });
+  }
+
+  /**
+   * Task 0332 (ADR-124). Apply the profile server's answer for a resolve that
+   * carried `carriedToken`. Applied after `start()` too (D4): it changes nothing
+   * already counted or frozen.
+   *  - absent (an older profile server): nothing changes, and the token is KEPT for
+   *    a later resolve;
+   *  - `true`: the client is verified — false → true only, never cleared;
+   *  - `true` or `false`: the token is dropped, because the answer is final for it
+   *    (every `false` outcome is permanent for that token — owner ruling Q1,
+   *    2026-10-07). Only if it is still the token held: a newer one that arrived
+   *    meanwhile is kept.
+   */
+  private applyVouchResult(
+    client: Client,
+    carriedToken: string,
+    verified: boolean | undefined,
+  ): void {
+    if (verified === undefined) {
+      return;
+    }
+    if (verified) {
+      client.identityVerified = true;
+    }
+    if (client.profileSession === carriedToken) {
+      client.profileSession = null;
+    }
   }
 
   /**

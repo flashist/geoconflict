@@ -8,6 +8,7 @@
 | Date | Change |
 |---|---|
 | 2026-04-09 | Initial document — code-confirmed content, awaiting post-deploy verification |
+| 2026-10-07 | Task 0332 (ADR-124): added `geoconflict.server.match.identity` (game server) and `geoconflict.profile.resolve.vouch` (profile server) — code-confirmed, not yet deployed |
 
 ---
 
@@ -86,6 +87,13 @@ All metrics carry a `worker.id` attribute identifying which worker process repor
 | `geoconflict.server.eventloop.lag` | Gauge | ms | Event loop lag (mean over the last export interval) |
 | `geoconflict.server.network.bytes_sent` | Counter | bytes | Cumulative bytes sent via WebSocket since process start |
 | `geoconflict.server.network.bytes_recv` | Counter | bytes | Cumulative bytes received via WebSocket since process start |
+| `geoconflict.server.match.identity` | Counter | — | Players in started matches by identity state at match start, label `state` = `guest` / `unresolved` / `verified` / `unverified` (task 0332, ADR-124). Counted once per match **per player**, at `start()`; late joiners are not counted |
+
+Profile server (`src/profile-server/Telemetry.ts`, service `geoconflict-profile`) — one related counter, listed here because this doc has no profile-metrics section:
+
+| Metric name | Type | Unit | What it measures |
+|---|---|---|---|
+| `geoconflict.profile.resolve.vouch` | Counter | — | Game-server resolves (`POST /internal/v1/players/resolve`) by session-vouch outcome, label `outcome` = `verified` / `absent` / `invalid` / `expired` / `unverified_session` / `other_player` / `other_platform` / `no_secret` (task 0332, ADR-124). ⚠️ Counted **per resolve, not per player** — one player can be resolved several times a match (join, late token, credit time, reconnect); the per-player figure is `geoconflict.server.match.identity` |
 
 [TO VERIFY: Confirm these names appear exactly as listed in Uptrace. The OTEL collector may add a prefix or rename metrics.]
 

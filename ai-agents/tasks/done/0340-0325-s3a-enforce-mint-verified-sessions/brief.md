@@ -99,9 +99,9 @@ No route reads `verified` in this task. These tasks do, and all wait on this one
   view of paid state;
 - [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) — gates the
   name-change routes on a verified caller;
-- [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the
+- [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the
   join token (the game server has the profile server vouch for a verified session);
-- [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) — the confirmed-name mark (via
+- [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) — the confirmed-name mark (via
   `0332`, and directly).
 
 ## What to build
@@ -204,8 +204,8 @@ built and reviewed.)*
   tree.
 - **Blocks:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (slice S3b only — hard),
   [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) (hard),
-  [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) (hard),
-  [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard). Each of those briefs carries a
+  [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) (hard),
+  [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard). Each of those briefs carries a
   dated 2026-09-29 note repointing its dependency here. Also
   [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) (hard — this task's
   deploy and live check, split out 2026-10-05).

@@ -5,6 +5,8 @@
   the time of writing). **Amended** 2026-09-28 — see *Amendment* below. **Amended** 2026-10-01 — `0308` cancelled;
   the D6 revisit now lives in `0365` (see *Amendment — 2026-10-01*).
   **Amended** 2026-10-07 — residual 1 stays open by owner ruling even after `0332` (see *Amendment — 2026-10-07*).
+  **Amended** 2026-10-07 (later the same day) — `0323` cancelled; the second re-raise trigger has no filed
+  candidate again (see *Amendment — 2026-10-07, `0323` cancelled*).
 - **Deciders:** Owner (Mark Dolbyrev). Every ruling below was given live via `AskUserQuestion` in the
   `fkit lead` session and relayed by `fkit-lead`. **This ADR records rulings already given; it makes no new
   decision.** The one exception is marked: the "re-raise only if" conditions are the architect's reading of
@@ -143,7 +145,7 @@ readable without it:
 - **Residual risks / "re-raise only if"** *(architect's reading of the rulings above and ADR-103; not owner
   text)*:
   - **`0325` plus the join-token second step land** (the client sends its session token in the join and the
-    game server has the profile server vouch for it; **filed 2026-09-28 as [`0332`](../../tasks/backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** —
+    game server has the profile server vouch for it; **filed 2026-09-28 as [`0332`](../../tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** —
     at first writing this read "not filed yet"; `0250` design report §6). Then
     verification goes *inside* `getCreditableYandexId` and residual 1 closes with no change here. This is the
     expected exit.
@@ -156,6 +158,10 @@ readable without it:
     > 📝 **2026-10-07 — this trigger is now live for `0323`'s design.** With residual 1 open by owner ruling, the
     > mark cannot borrow trust from the name; per ADR-124 Decision 5 it must check `verified` itself, through the
     > funnel, frozen at `start()`. See *Amendment — 2026-10-07*. Text above left byte-identical.
+    > 📝 **2026-10-07 (later) — `0323` was cancelled; this trigger is waiting again.** Owner ruling: players do not
+    > care about the mark. No mark is planned, so the trigger is back to waiting for **any future** mark presented
+    > to players as confirmed identity. Both texts above left byte-identical. See *Amendment — 2026-10-07, `0323`
+    > cancelled*.
   - **Anything of value is gated on the approved name** (not just display).
   - **Observed impersonation abuse in production.**
   - **A reader of `client.yandexPlayerId` appears outside the funnel** — a defect against ADR-103 and this ADR.
@@ -178,7 +184,7 @@ Facts only; no decision changed.
   cited test moved `:454` → `:501`. Citations before `gameInfo()` (`:280`, `:284-294`, `:433`, `:546`,
   `:558-561`, `:947`, `:968`) did not move.
 - **The join-token step is filed** as `0332`
-  (`ai-agents/tasks/backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md`).
+  (`ai-agents/tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md`).
   The "re-raise only if" condition is unchanged; only its "not filed yet" note is updated.
 
 ## Amendment — 2026-10-01 (`0308` cancelled; the D6 revisit moves to `0365`)
@@ -234,8 +240,40 @@ only"*). The option as put (report § 15): *"(b) Keep for unverified. Residual 1
   it cannot rest on the name: it must check `verified` itself through the funnel and freeze it with the roster at
   `start()`, or a forger would carry the mark (or a late vouch would make mark and name disagree). That is `0323`'s
   decision to make before it ships, as this bullet already required.
+  > 📝 **2026-10-07 (later) — overtaken: `0323` was cancelled the same day.** This bullet is no longer live and
+  > `0323` is no longer a planned reader of `verified`. Bullet left byte-identical. See *Amendment — 2026-10-07,
+  > `0323` cancelled*.
 - **Unchanged:** residuals 2–5, the other re-raise bullets, and the closeout sentence. A finding *"a forged id shows a
   citizen's name"* is still closeout of this ADR.
+
+## Amendment — 2026-10-07, `0323` cancelled (the re-raise trigger has no filed candidate)
+
+Facts only; no decision changed. Recorded by `fkit-architect` (spawned by `fkit-lead`, `/fkit-sprint-ship-loop`,
+Sprint 7) under `decisions/README.md`'s carve-out, on the model of the *Amendment — 2026-10-01* (`0308` cancelled).
+
+**The ruling, verbatim** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim by
+`fkit-lead`): asked *"What should happen to 0323?"*, the owner chose **"Cancel 0323 (Recommended)"** — *"Nothing gets
+built. A producer cancels it with your reason ('players don't care; only admins need it, and 0332's counters cover
+that'). It can be filed again later if you want a per-player admin view."* Earlier the same session, at `0323`'s plan
+gate, the owner wrote: *"No need for special mark of "this is really that account", users don't care about this
+feature, it's only important for us (developers/admins of the game)"*.
+
+- **`0323` is cancelled** — folder moved to
+  [`tasks/cancelled/0323-…`](../../tasks/cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md),
+  marked `⛔ Cancelled (agent-closed — not owner-verified)`.
+- **The second re-raise trigger returns to waiting.** It still reads *"the approved name, or a mark derived from it,
+  is presented to players as confirmed identity"*. It now has **no filed candidate**; it fires again for any future
+  mark of that kind. The 2026-10-07 *"now live for `0323`'s design"* note and the *Amendment — 2026-10-07* bullet
+  *"The `0323` re-raise bullet is now live"* are overtaken and kept visible.
+- **The admin need is met elsewhere, per the ruling:** `0332`'s start-time counter
+  (`geoconflict.server.match.identity`, ADR-124 Decision 8) — aggregate numbers, not per player. Per ADR-124 as
+  amended 2026-10-07, that counter is now the only planned reader of `verified`.
+- ⚠️ **Open point for the owner — carried forward, not decided.** If a **per-player admin view** (who is really who)
+  is ever filed, it is undecided whether it counts as *"presented to players"* under this trigger. Admins are not
+  players, but such a view would still show a "confirmed" label built on the same identity. Ask the owner when such a
+  task is filed; do not settle it in a review or a consult.
+- **Unchanged:** every decision, residuals 1–5 (residual 1 stays open by owner ruling Q5), the other re-raise bullets
+  and the closeout sentence.
 
 ## Related
 
@@ -253,5 +291,5 @@ only"*). The option as put (report § 15): *"(b) Keep for unverified. Residual 1
 - `ai-agents/knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md` §6 — where the
   forged-id case actually closes
 - Tasks: `0317` (source), `0322` (this build), `0068` (R3, same seam), `0302` (lobby gate), `0321` (prefill
-  and lock), `0323` (the mark), `0308` (name rule — **cancelled 2026-10-01**), `0365` (invisible names + look-alike warning — the D6
+  and lock), `0323` (the mark — **cancelled 2026-10-07**), `0308` (name rule — **cancelled 2026-10-01**), `0365` (invisible names + look-alike warning — the D6
   revisit since 2026-10-01), `0325` (verified login), `0332` (join token), `0267`

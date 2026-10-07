@@ -7,6 +7,12 @@ jest.mock("jose", () => ({
 jest.mock("../../src/client/LocalServer", () => ({
   LocalServer: jest.fn(),
 }));
+// Task 0332: Transport now reads the held profile session (ProfileSession.ts), whose
+// module scope needs the real facade constants. Nothing here is about the token.
+jest.mock("../../src/client/ProfileSession", () => ({
+  ensureSession: jest.fn().mockResolvedValue(null),
+  heldSessionTokenFor: jest.fn().mockReturnValue(null),
+}));
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   FlashistFacade: {
     instance: {

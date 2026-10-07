@@ -8,6 +8,7 @@ import * as os from "os";
 import { monitorEventLoopDelay } from "perf_hooks";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameManager } from "./GameManager";
+import { MATCH_IDENTITY_STATES } from "./GameServer";
 import { getOtelResource, getPromLabels } from "./OtelResource";
 
 dotenv.config();
@@ -155,6 +156,24 @@ export function initWorkerMetrics(gameManager: GameManager): void {
 
   turnsActiveGauge.addCallback((result) => {
     result.observe(gameManager.activeMatches(), getPromLabels());
+  });
+
+  // Task 0332 (ADR-124). Roster players by identity state at match start —
+  // counted once per match, per player (the profile server's resolve.vouch is per
+  // resolve). Cumulative; state ∈ guest | unresolved | verified | unverified.
+  const matchIdentityCounter = meter.createObservableCounter(
+    "geoconflict.server.match.identity",
+    {
+      description:
+        "Players in started matches by identity state at match start (guest, unresolved, verified, unverified)",
+    },
+  );
+
+  matchIdentityCounter.addCallback((result) => {
+    const totals = gameManager.matchIdentityTotals();
+    for (const state of MATCH_IDENTITY_STATES) {
+      result.observe(totals[state], { ...getPromLabels(), state });
+    }
   });
 
   console.log("Metrics initialized with GameManager");

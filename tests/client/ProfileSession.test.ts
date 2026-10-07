@@ -39,6 +39,7 @@ import { PROFILE_LOGIN_RESTART_LATCH_KEY } from "../../src/client/GameRestart";
 import {
   ensureSession,
   getLoginOutcome,
+  heldSessionTokenFor,
   profileFetch,
   resetProfileSessionForTests,
   SIGNATURE_TAKE_BACKSTOP_MS,
@@ -789,5 +790,45 @@ describe("the signed player data on the login body (task 0325)", () => {
     await Promise.all([ensureSession(), ensureSession(), ensureSession()]);
     expect(takeYandexPlayerSignature).toHaveBeenCalledTimes(1);
     expect(loginCalls(fetchMock)).toHaveLength(1);
+  });
+});
+
+// Task 0332 (ADR-124). The game server's join reads the token already held — it must
+// never start a login, never wait for one, and never hand out a token minted for a
+// different account.
+describe("heldSessionTokenFor — the join token (task 0332)", () => {
+  it("is null before any login, and makes no call", () => {
+    const fetchMock = routedFetch({});
+
+    expect(heldSessionTokenFor(YANDEX_ID)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(isYandexAuthorized).not.toHaveBeenCalled();
+  });
+
+  it("is the token after a login for the same id, with no further call", async () => {
+    const fetchMock = routedFetch({
+      "/v1/login": () => ({ status: 200, body: loginBody() }),
+    });
+    await ensureSession();
+    expect(loginCalls(fetchMock)).toHaveLength(1);
+
+    expect(heldSessionTokenFor(YANDEX_ID)).toBe(TOKEN);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("is null for a different id than the token was minted for", async () => {
+    routedFetch({
+      "/v1/login": () => ({ status: 200, body: loginBody() }),
+    });
+    await ensureSession();
+
+    expect(heldSessionTokenFor("yandex-0332-other")).toBeNull();
+  });
+
+  it("is null after a failed login", async () => {
+    routedFetch({ "/v1/login": () => ({ status: 500 }) });
+    await ensureSession();
+
+    expect(heldSessionTokenFor(YANDEX_ID)).toBeNull();
   });
 });

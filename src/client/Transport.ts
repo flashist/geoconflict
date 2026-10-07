@@ -30,6 +30,7 @@ import { replacer } from "../core/Util";
 import { LobbyConfig } from "./ClientGameRunner";
 import { FlashistFacade } from "./flashist/FlashistFacade";
 import { LocalServer } from "./LocalServer";
+import { ensureSession, heldSessionTokenFor } from "./ProfileSession";
 
 export class PauseGameEvent implements GameEvent {
   constructor(public readonly paused: boolean) {}
@@ -190,6 +191,9 @@ export class Transport {
 
   private pingInterval: number | null = null;
   public readonly isLocal: boolean;
+  // Task 0332: whether the last join already carried the profile session token, so
+  // the late send after login has nothing to add.
+  private joinCarriedProfileSession = false;
   constructor(
     private lobbyConfig: LobbyConfig,
     private eventBus: EventBus,
@@ -338,6 +342,9 @@ export class Transport {
       }
       onconnect();
       void this.maybeRefreshYandexIdentity();
+      if (this.socket !== null) {
+        void this.maybeSendLateProfileSession(this.socket);
+      }
     };
     this.socket.onmessage = (event: MessageEvent) => {
       try {
@@ -389,6 +396,16 @@ export class Transport {
   }
 
   joinGame(numTurns: number) {
+    const yandexPlayerId = this.lobbyConfig.yandexPlayerId ?? null;
+    // Task 0332 (ADR-124): the profile session token, when one is ALREADY held for
+    // this id, so the game server can have the profile server vouch for it. Never
+    // for a local game, and never waits for a login (that is the late send below).
+    // ⛔ A credential: never logged.
+    const profileSession =
+      !this.isLocal && yandexPlayerId !== null
+        ? heldSessionTokenFor(yandexPlayerId)
+        : null;
+    this.joinCarriedProfileSession = profileSession !== null;
     this.sendMsg({
       type: "join",
       gameID: this.lobbyConfig.gameID,
@@ -397,8 +414,46 @@ export class Transport {
       token: this.lobbyConfig.token,
       username: this.lobbyConfig.playerName,
       cosmetics: this.lobbyConfig.cosmetics,
-      yandexPlayerId: this.lobbyConfig.yandexPlayerId ?? null,
+      yandexPlayerId,
+      ...(profileSession !== null ? { profileSession } : {}),
     } satisfies ClientJoinMessage);
+  }
+
+  /**
+   * Task 0332 (ADR-124). When the join went out without the profile session token —
+   * the login had not finished yet — wait for the login, then send the token ONCE in
+   * an `update_identity`. Kept apart from `maybeRefreshYandexIdentity` so the login
+   * wait (up to ~70 s) never delays the id refresh.
+   *
+   * Sent only on THIS socket while it is open, checked right before the synchronous
+   * send, so the message can never be buffered ahead of a join or reach a replaced
+   * socket. A reconnect's own join carries the token instead. Best-effort.
+   * ⛔ The token is never logged, and the warn line carries no error text.
+   */
+  private async maybeSendLateProfileSession(socket: WebSocket): Promise<void> {
+    if (this.isLocal) return;
+    if (this.joinCarriedProfileSession) return;
+    try {
+      let yandexPlayerId = this.lobbyConfig.yandexPlayerId ?? null;
+      if (yandexPlayerId === null) {
+        if (!(await FlashistFacade.instance.isYandexAuthorized())) return;
+        yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
+      }
+      if (yandexPlayerId === null) return;
+      await ensureSession();
+      const profileSession = heldSessionTokenFor(yandexPlayerId);
+      if (profileSession === null) return;
+      if (this.socket !== socket || socket.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      this.sendMsg({
+        type: "update_identity",
+        yandexPlayerId,
+        profileSession,
+      } satisfies ClientUpdateIdentityMessage);
+    } catch {
+      console.warn("failed to send the late profile session");
+    }
   }
 
   /**

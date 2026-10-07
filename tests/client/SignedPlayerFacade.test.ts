@@ -494,6 +494,17 @@ describe("task 0372 — stale-signature diagnostics", () => {
       ["unset (a test facade)", {}, "FirstBoot"],
       ["false", { bootFollowsMatchExit: false }, "FirstBoot"],
       ["true", { bootFollowsMatchExit: true }, "AfterMatch"],
+      // Task 0404 (§2.9): the boot follows the long-session refresh popup.
+      [
+        "false, after the refresh popup",
+        { bootFollowsMatchExit: false, bootFollowsLongSessionRefresh: true },
+        "AfterRefreshPopup",
+      ],
+      [
+        "true, after the refresh popup too (AfterMatch wins)",
+        { bootFollowsMatchExit: true, bootFollowsLongSessionRefresh: true },
+        "AfterMatch",
+      ],
     ])(
       "bootFollowsMatchExit %s → %s (Ready path)",
       async (_label, fields, bootKind) => {

@@ -25,6 +25,7 @@ import {
   startProfileTelemetry,
   type LoginVerificationOutcome,
   type ProfileMetricsHandle,
+  type ResolveVouchOutcome,
   type StaleSignatureAgeBracket,
 } from "../../src/profile-server/Telemetry";
 
@@ -41,6 +42,7 @@ const ALLOWED_ATTRIBUTE_KEYS: Record<string, readonly string[]> = {
   "geoconflict.profile.login.verification.stale_age": ["bracket"],
   "geoconflict.profile.tenure.claims": ["outcome"],
   "geoconflict.profile.alert.relay": ["result", "keyed"],
+  "geoconflict.profile.resolve.vouch": ["outcome"],
   "geoconflict.profile.db.pool.waiting": [],
   "geoconflict.profile.players.total": [],
   "geoconflict.profile.process.cpu.usage": [],
@@ -252,6 +254,39 @@ describe("createProfileMetrics", () => {
     expect(pastDays?.value).toBe(2);
   });
 
+  // Task 0332 (ADR-124). One counter, label `outcome`, exactly ADR-124's eight values.
+  test("resolve vouch: one counter, label `outcome`, exactly the eight bounded values", async () => {
+    handle = makeHandle(harness);
+    const outcomes: ResolveVouchOutcome[] = [
+      "verified",
+      "absent",
+      "invalid",
+      "expired",
+      "unverified_session",
+      "other_player",
+      "other_platform",
+      "no_secret",
+    ];
+    for (const outcome of outcomes) {
+      handle.metrics.resolveVouch(outcome);
+    }
+    handle.metrics.resolveVouch("absent");
+
+    const collected = await harness.collect();
+    const vouch = find(collected, "geoconflict.profile.resolve.vouch");
+    expect(vouch.dataPoints).toHaveLength(8);
+    expect(
+      vouch.dataPoints.map((point) => point.attributes.outcome).sort(),
+    ).toEqual([...outcomes].sort());
+    for (const point of vouch.dataPoints) {
+      expect(Object.keys(point.attributes)).toEqual(["outcome"]);
+    }
+    const absent = vouch.dataPoints.find(
+      (point) => point.attributes.outcome === "absent",
+    );
+    expect(absent?.value).toBe(2);
+  });
+
   test("no instrument carries an attribute key outside its allowlist", async () => {
     handle = makeHandle(harness);
     handle.metrics.loginRequest("unknown", "bad_request");
@@ -261,6 +296,7 @@ describe("createProfileMetrics", () => {
     handle.metrics.loginStaleSignatureAge("past_over_7d");
     handle.metrics.tenureClaim("below_minimum");
     handle.metrics.alertRelay("malformed", "unkeyed");
+    handle.metrics.resolveVouch("other_player");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);
     await handle.refreshPlayersTotal();
 
@@ -465,6 +501,7 @@ describe("startProfileTelemetry", () => {
       noopProfileMetrics.loginVerification("ok");
       noopProfileMetrics.loginStaleSignatureAge("future_5m_15m");
       noopProfileMetrics.tenureClaim("granted");
+      noopProfileMetrics.resolveVouch("verified");
       noopProfileMetrics.alertRelay("failed", "unkeyed");
     }).not.toThrow();
   });

@@ -232,3 +232,81 @@ describe("PlayerResolveResponseSchema — displayName (task 0322)", () => {
     ).toThrow();
   });
 });
+
+// Task 0332 (ADR-124). The resolve request may carry the session token, and the
+// reply says whether the profile server vouched for it. A malformed value on either
+// side is read as absent — a 4xx is final for the game server, and a reply that
+// fails its schema drops the whole resolve (XP id, the ★, the name).
+describe("resolve vouch fields (task 0332)", () => {
+  const request = { platform: "yandex_games", platformUserId: "yandex-1" };
+  const reply = { playerId: PLAYER_ID, isCitizen: true };
+  const TOKEN = "v1.synthetic-payload.synthetic-mac";
+
+  test("a request parses with and without a token", () => {
+    expect(PlayerResolveRequestSchema.parse(request).sessionToken).toBe(
+      undefined,
+    );
+    expect(
+      PlayerResolveRequestSchema.parse({ ...request, sessionToken: TOKEN })
+        .sessionToken,
+    ).toBe(TOKEN);
+  });
+
+  test.each([[""], ["t".repeat(1025)], [42], [null], [{ t: 1 }]])(
+    "a malformed token (%p) is dropped and the rest of the request is kept",
+    (sessionToken) => {
+      const result = PlayerResolveRequestSchema.safeParse({
+        ...request,
+        sessionToken,
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.sessionToken).toBeUndefined();
+      expect(result.data.platformUserId).toBe("yandex-1");
+      expect(result.data.platform).toBe("yandex_games");
+    },
+  );
+
+  test("a reply without verified gives undefined (an old profile server)", () => {
+    expect(PlayerResolveResponseSchema.parse(reply).verified).toBeUndefined();
+  });
+
+  test("true and false parse as themselves", () => {
+    expect(
+      PlayerResolveResponseSchema.parse({ ...reply, verified: true }).verified,
+    ).toBe(true);
+    expect(
+      PlayerResolveResponseSchema.parse({ ...reply, verified: false }).verified,
+    ).toBe(false);
+  });
+
+  test.each([["yes"], [1], [null], [{}]])(
+    "verified %p reads as undefined and does not fail the reply",
+    (verified) => {
+      const result = PlayerResolveResponseSchema.safeParse({
+        ...reply,
+        verified,
+      });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.verified).toBeUndefined();
+      expect(result.data.playerId).toBe(PLAYER_ID);
+      expect(result.data.isCitizen).toBe(true);
+    },
+  );
+
+  test("the old reply schema accepts a new reply (verified is stripped)", () => {
+    const OldPlayerResolveResponseSchema = z.object({
+      playerId: InternalPlayerIdSchema,
+      isCitizen: z.boolean(),
+      displayName: z.string().nullable().optional().catch(undefined),
+    });
+    const parsed = OldPlayerResolveResponseSchema.parse({
+      ...reply,
+      displayName: null,
+      verified: true,
+    });
+    expect(parsed).toEqual({ ...reply, displayName: null });
+    expect(parsed).not.toHaveProperty("verified");
+  });
+});

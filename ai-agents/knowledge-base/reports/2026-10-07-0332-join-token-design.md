@@ -1,6 +1,6 @@
 # 0332 — Join token: the game server has the profile server vouch for a verified session (phase 1 design)
 
-- **Task:** [`0332`](../../tasks/backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md), phase 1 (design). Owner: `fkit-architect`.
+- **Task:** [`0332`](../../tasks/done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md), phase 1 (design). Owner: `fkit-architect`.
 - **Date:** 2026-10-07. **Citation frame:** working tree on `dev` at `5a70b6f`. Every `path:line` below was read
   in that tree.
 - **Written by:** `fkit-architect`, spawned by `fkit-lead` (`/fkit-sprint-ship-loop`, Sprint 7), with no owner
@@ -10,6 +10,11 @@
   status **proposed — owner sign-off pending**.
   - 📝 **2026-10-07 — ADR-124 is now `accepted`, and the owner answered Q1–Q8.** Where this report recommends
     otherwise, the rulings win — see § 17 (addendum). The body below is kept as written.
+  - 📝 **2026-10-07 (later) — `0323` (the name mark) was cancelled** by owner ruling (*"Cancel 0323
+    (Recommended)"*: players don't care; only admins need it, and `0332`'s counters cover that). Every mention of
+    `0323` below — as a reader of `verified`, a reason for Q5, or a slot to ship with B — is overtaken. The start-time
+    counter is now the only planned reader of `verified`. See ADR-124 and ADR-115, *Amendment — 2026-10-07, `0323`
+    cancelled*. The body below is not edited.
 - **No source code was written.** No stubs were put in the source tree. The interfaces are in § 4 as fenced code.
 
 ---

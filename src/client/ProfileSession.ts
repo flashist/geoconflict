@@ -389,6 +389,17 @@ async function send(
 }
 
 /**
+ * Task 0332 (ADR-124). The session token already held for `yandexId`, or null —
+ * for the game server's join (the "join token"), so the profile server can vouch
+ * for this player there. Synchronous: it NEVER starts a login and never waits for
+ * one (a caller that wants to wait awaits `ensureSession()` first). Null for a
+ * token minted for a different account. ⛔ Never logged by this module.
+ */
+export function heldSessionTokenFor(yandexId: string): string | null {
+  return session?.yandexId === yandexId ? session.token : null;
+}
+
+/**
  * The login's one-off outcome — `created` and the tenure grant check — for task
  * 0253's launch grant. Null when there is no session. Never exposes the token.
  */

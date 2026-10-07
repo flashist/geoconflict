@@ -90,3 +90,44 @@ export function consumeMatchExitMarker(
     return false;
   }
 }
+
+// Task 0404 (§2.9): "this boot follows a press of the long-session refresh
+// popup", so Profile:Login:SignatureAge can tell those boots apart
+// (AfterRefreshPopup). Same shape as the match-exit marker: a bare "1", no ids,
+// read and removed on every boot.
+export const AFTER_LONG_SESSION_REFRESH_KEY =
+  "geoconflict.session.afterLongSessionRefresh";
+const AFTER_LONG_SESSION_REFRESH_VALUE = "1";
+
+/** Written right before the popup's reload. Never throws. */
+export function markLongSessionRefresh(
+  storage: StorageLike | null = readSessionStorage(),
+): void {
+  try {
+    storage?.setItem(
+      AFTER_LONG_SESSION_REFRESH_KEY,
+      AFTER_LONG_SESSION_REFRESH_VALUE,
+    );
+  } catch {
+    // Storage unavailable — this boot will simply not read as after the popup
+  }
+}
+
+/**
+ * Read and remove the marker; true when this boot follows the long-session
+ * popup's refresh. Called on every boot. Never throws — any storage failure
+ * reads as false.
+ */
+export function consumeLongSessionRefreshMarker(
+  storage: StorageLike | null = readSessionStorage(),
+): boolean {
+  if (storage === null) return false;
+  try {
+    const value = storage.getItem(AFTER_LONG_SESSION_REFRESH_KEY);
+    if (value === null) return false;
+    storage.removeItem(AFTER_LONG_SESSION_REFRESH_KEY);
+    return value === AFTER_LONG_SESSION_REFRESH_VALUE;
+  } catch {
+    return false;
+  }
+}

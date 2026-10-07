@@ -16,9 +16,13 @@
 // to die after the body is buffered and before the handler dispatches. It is covered by
 // the Step 0 probe at predicate level (90/90) and by the live wedge run end-to-end.
 import { EventEmitter } from "events";
+import { readFileSync } from "fs";
+import { join } from "path";
 import {
   REQUESTER_SETTLE_MS,
   awaitRequesterSettled,
+  clientFromJoin,
+  preJoinRejectLogLine,
   requesterGone,
 } from "../../src/server/Worker";
 
@@ -159,5 +163,95 @@ describe("REQUESTER_SETTLE_MS", () => {
   it("is three orders of magnitude below the master's create timeout", () => {
     const CREATE_GAME_TIMEOUT_MS = 5_000;
     expect(REQUESTER_SETTLE_MS).toBeLessThan(CREATE_GAME_TIMEOUT_MS / 100);
+  });
+});
+
+// Task 0332 (ADR-124). A message that arrives before `join` used to be logged WHOLE,
+// and an early update_identity carries a Yandex id and — now — a profile session
+// token (a credential). The line names the message type only.
+describe("preJoinRejectLogLine (task 0332)", () => {
+  const SENTINEL_TOKEN = "zz0332-sentinel-session-token";
+  const SENTINEL_ID = "zz0332-sentinel-yandex-id";
+
+  it("names the type, never the token or the Yandex id", () => {
+    const line = preJoinRejectLogLine({
+      type: "update_identity",
+      yandexPlayerId: SENTINEL_ID,
+      profileSession: SENTINEL_TOKEN,
+    });
+    expect(line).toBe("Invalid message before join: update_identity");
+    expect(line).not.toContain(SENTINEL_TOKEN);
+    expect(line).not.toContain(SENTINEL_ID);
+  });
+
+  it("Worker.ts no longer serializes a whole client message into a log line", () => {
+    const source = readFileSync(
+      join(__dirname, "../../src/server/Worker.ts"),
+      "utf8",
+    );
+    expect(source).not.toContain("JSON.stringify(clientMsg");
+  });
+});
+
+// Task 0332, review R3. The one place a join's profile session token reaches the
+// server Client. Every game-side test sets `client.profileSession` by hand, so
+// without this, dropping that line would turn every join-time vouch into `absent`
+// and no unit test would notice.
+describe("clientFromJoin (task 0332)", () => {
+  const SENTINEL_TOKEN = "zz0332-sentinel-session-token";
+
+  function joinMessage(over: Record<string, unknown> = {}) {
+    return {
+      type: "join" as const,
+      gameID: "game1234",
+      clientID: "aaaa1111",
+      lastTurn: 0,
+      token: "persistent-1",
+      username: "player",
+      yandexPlayerId: "yx-1",
+      ...over,
+    } as Parameters<typeof clientFromJoin>[0];
+  }
+
+  const auth = {
+    persistentId: "persistent-1",
+    claims: null,
+    roles: undefined,
+    flares: undefined,
+  };
+
+  it("puts the join's token and Yandex id on the Client", () => {
+    const client = clientFromJoin(
+      joinMessage({ profileSession: SENTINEL_TOKEN }),
+      auth,
+      "127.0.0.1",
+      {} as never,
+      {},
+    );
+    expect(client.profileSession).toBe(SENTINEL_TOKEN);
+    expect(client.yandexPlayerId).toBe("yx-1");
+    expect(client.clientID).toBe("aaaa1111");
+    expect(client.identityVerified).toBe(false);
+  });
+
+  it("leaves the token null when the join carried none", () => {
+    const client = clientFromJoin(
+      joinMessage({ yandexPlayerId: undefined }),
+      auth,
+      "127.0.0.1",
+      {} as never,
+      {},
+    );
+    expect(client.profileSession).toBeNull();
+    expect(client.yandexPlayerId).toBeNull();
+  });
+
+  it("Worker's join handler builds its Client through clientFromJoin", () => {
+    const source = readFileSync(
+      join(__dirname, "../../src/server/Worker.ts"),
+      "utf8",
+    );
+    expect(source.match(/new Client\(/g)).toHaveLength(1);
+    expect(source).toContain("const client = clientFromJoin(");
   });
 });

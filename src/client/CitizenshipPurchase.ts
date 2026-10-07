@@ -14,6 +14,7 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { completePurchase, createPurchaseIntent } from "./PaymentsApiClient";
+import { beginPlatformDialog } from "./PlatformDialogPresence";
 
 /**
  * "granted" == the SERVER confirmed the grant (is_paid_citizen committed) —
@@ -26,6 +27,18 @@ import { completePurchase, createPurchaseIntent } from "./PaymentsApiClient";
 export type CitizenshipPurchaseResult = "granted" | "error";
 
 export async function runCitizenshipPurchase(): Promise<CitizenshipPurchaseResult> {
+  // Task 0404: the whole flow counts as a platform dialog, intent through the
+  // server's /complete, so the forced "please refresh" popup can never cut off
+  // the server-confirm step after the player has paid.
+  const endPlatformDialog = beginPlatformDialog();
+  try {
+    return await purchaseCitizenship();
+  } finally {
+    endPlatformDialog();
+  }
+}
+
+async function purchaseCitizenship(): Promise<CitizenshipPurchaseResult> {
   const facade = FlashistFacade.instance;
 
   // Since S4 (task 0273) the identity is the login session's Bearer token, so

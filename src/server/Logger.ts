@@ -84,5 +84,15 @@ export function formatError(error: unknown): string {
   return String(error);
 }
 
+// The error's TYPE only — `error.name` for an Error, else `typeof error` (task 0332).
+// For a log line on a path whose error text could quote client input (a JSON parse
+// error quotes the bytes it failed on, and that input may carry a credential).
+export function errorName(error: unknown): string {
+  if (error instanceof Error) {
+    return error.name;
+  }
+  return typeof error;
+}
+
 // Export both the main logger and the child logger factory
 export { logger };

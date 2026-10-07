@@ -96,6 +96,7 @@ import {
   verifySessionToken,
   type SessionClaims,
 } from "./SessionToken";
+import { vouchForSession, type ResolveVouchOutcome } from "./SessionVouch";
 import {
   metricPlatform,
   noopProfileMetrics,
@@ -841,6 +842,15 @@ export function createApp(
   // ALWAYS creates, independent of any login-creation switch. A playerId in this
   // internal response is allowed (ADR-113 point 3); it never reaches a client.
   // Never sets xp, citizenship, or paid flags. Never logs the display name.
+  //
+  // Task 0332 (ADR-124): an optional `sessionToken` — the player's own login
+  // session, forwarded by the game server — is vouched for AFTER the resolve: the
+  // reply's `verified` is true only for a valid, unexpired `vfy:true` session of
+  // exactly the player this id resolved to. Counted once per successful resolve
+  // (`geoconflict.profile.resolve.vouch`). The vouch runs in its own try/catch: a
+  // throw answers `verified:false`, counts `invalid`, and never costs the resolve.
+  // ⛔ Never log the token, never pass it to the repository. A malformed token is
+  // already `undefined` from the schema, so it still answers 200.
   app.post("/internal/v1/players/resolve", internalAuth, async (req, res) => {
     const parsed = PlayerResolveRequestSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -853,6 +863,20 @@ export function createApp(
         parsed.data.platformUserId,
         "game_server",
       );
+      let vouch: ResolveVouchOutcome;
+      try {
+        vouch = vouchForSession(sessionSecret, parsed.data.sessionToken, {
+          playerId: resolved.playerId,
+          platform: parsed.data.platform,
+        });
+      } catch {
+        // A fixed line: no error text, which could in principle quote the token.
+        log.warn(
+          "POST /internal/v1/players/resolve: session vouch threw; answered verified:false",
+        );
+        vouch = "invalid";
+      }
+      metrics.resolveVouch(vouch);
       const body: PlayerResolveResponse = {
         playerId: resolved.playerId,
         isCitizen: resolved.profile.is_citizen,
@@ -861,6 +885,7 @@ export function createApp(
         // whatever the citizen status. Already in the row this read returned —
         // no extra query. The game server re-checks it against the join rule.
         displayName: resolved.profile.display_name,
+        verified: vouch === "verified",
       };
       res.status(200).json(body);
     } catch (error) {

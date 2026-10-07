@@ -448,6 +448,11 @@
     "refresh_button": "REFRESH",
     "contact_link": "Contact support"
   },
+  "long_session_refresh_modal": {
+    "title": "Time to refresh",
+    "message": "The game has been open for a long time. Please refresh the page so everything keeps working properly. Your progress is saved.",
+    "refresh_button": "REFRESH"
+  },
   "game_starting_modal": {
     "title": "Game is Starting...",
     "credits": "Credits",

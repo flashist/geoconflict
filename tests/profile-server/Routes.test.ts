@@ -5,6 +5,10 @@ import type { PlayerProfile } from "../../src/core/profile/PlayerProfile";
 import { logger } from "../../src/profile-server/Logger";
 import { toPublicProfile } from "../../src/profile-server/PublicProjection";
 import { createApp, type ProfileRepo } from "../../src/profile-server/Routes";
+import {
+  noopProfileMetrics,
+  type ProfileMetrics,
+} from "../../src/profile-server/Telemetry";
 import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
 const TOKEN = "test-internal-token";
@@ -552,7 +556,8 @@ describe("profile API routes", () => {
       expect(currentRepo.resolveOrCreatePlayer).not.toHaveBeenCalled();
     });
 
-    test("find-or-creates as game_server and returns only { playerId, isCitizen, displayName }", async () => {
+    // Task 0332: `verified` joined the reply; a tokenless resolve answers false.
+    test("find-or-creates as game_server and returns only { playerId, isCitizen, displayName, verified }", async () => {
       const res = await resolve({
         platform: "yandex_games",
         platformUserId: "yandex-1",
@@ -565,6 +570,7 @@ describe("profile API routes", () => {
         playerId: PLAYER_ID,
         isCitizen: true,
         displayName: "Commander",
+        verified: false,
       });
       expect(currentRepo.resolveOrCreatePlayer).toHaveBeenCalledTimes(1);
       expect(currentRepo.resolveOrCreatePlayer).toHaveBeenCalledWith(
@@ -596,6 +602,7 @@ describe("profile API routes", () => {
         playerId: PLAYER_ID,
         isCitizen: false,
         displayName: "Commander",
+        verified: false,
       });
     });
 
@@ -618,6 +625,7 @@ describe("profile API routes", () => {
         playerId: PLAYER_ID,
         isCitizen: true,
         displayName: null,
+        verified: false,
       });
       expect(res.body).toHaveProperty("displayName", null);
     });
@@ -653,6 +661,216 @@ describe("profile API routes", () => {
       expect(logged).toContain("/internal/v1/players/resolve");
       expect(logged).not.toContain(SYNTHETIC_ID);
       expect(logged).not.toContain(PLAYER_ID);
+    });
+  });
+
+  // ── Task 0332 (ADR-124): the resolve vouches for a forwarded session token ──
+  describe("POST /internal/v1/players/resolve — session vouch (task 0332)", () => {
+    const OTHER_PLAYER_ID = "11111111-2222-4333-8444-555555555555";
+    const SENTINEL = "zz0332-sentinel-session-token";
+
+    function vouchApp(repo: ProfileRepo, vouches: string[] = []) {
+      const metrics = {
+        ...noopProfileMetrics,
+        resolveVouch: (outcome: string) => vouches.push(outcome),
+      } as ProfileMetrics;
+      return createApp(
+        repo,
+        undefined,
+        undefined,
+        undefined,
+        TEST_SESSION_CONFIG,
+        { metrics },
+      );
+    }
+
+    function resolveWith(
+      app: ReturnType<typeof vouchApp>,
+      sessionToken?: unknown,
+    ) {
+      return request(app)
+        .post("/internal/v1/players/resolve")
+        .set("authorization", `Bearer ${TOKEN}`)
+        .send({
+          platform: "yandex_games",
+          platformUserId: "yandex-1",
+          ...(sessionToken !== undefined ? { sessionToken } : {}),
+        });
+    }
+
+    /** The bare token (no "Bearer " prefix) the game server forwards. */
+    function sessionTokenFor(
+      playerId: string,
+      options: { verified?: boolean; nowMs?: number; secret?: string } = {},
+    ): string {
+      return bearerFor(playerId, options).slice("Bearer ".length);
+    }
+
+    test("a valid vfy:true token of the resolved player answers verified:true", async () => {
+      const vouches: string[] = [];
+      const res = await resolveWith(
+        vouchApp(mockRepo(), vouches),
+        sessionTokenFor(PLAYER_ID, { verified: true }),
+      );
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        playerId: PLAYER_ID,
+        isCitizen: true,
+        displayName: "Commander",
+        verified: true,
+      });
+      expect(vouches).toEqual(["verified"]);
+    });
+
+    test.each([
+      [
+        "another player's verified token",
+        () => sessionTokenFor(OTHER_PLAYER_ID, { verified: true }),
+        "other_player",
+      ],
+      [
+        "a vfy:false token",
+        () => sessionTokenFor(PLAYER_ID, { verified: false }),
+        "unverified_session",
+      ],
+      [
+        "an expired token",
+        () =>
+          sessionTokenFor(PLAYER_ID, {
+            verified: true,
+            nowMs: Date.now() - 2 * 86_400_000,
+          }),
+        "expired",
+      ],
+      [
+        "a tampered token",
+        () => `${sessionTokenFor(PLAYER_ID, { verified: true })}x`,
+        "invalid",
+      ],
+      [
+        "a token signed with another secret",
+        () =>
+          sessionTokenFor(PLAYER_ID, {
+            verified: true,
+            secret: "0332-other-session-secret-fedcba9876543210",
+          }),
+        "invalid",
+      ],
+    ])(
+      "%s answers verified:false and counts the outcome",
+      async (_label, makeToken, outcome) => {
+        const vouches: string[] = [];
+        const res = await resolveWith(
+          vouchApp(mockRepo(), vouches),
+          makeToken(),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body.verified).toBe(false);
+        expect(res.body.playerId).toBe(PLAYER_ID);
+        expect(vouches).toEqual([outcome]);
+      },
+    );
+
+    test("no token answers verified:false and counts absent", async () => {
+      const vouches: string[] = [];
+      const res = await resolveWith(vouchApp(mockRepo(), vouches));
+      expect(res.status).toBe(200);
+      expect(res.body.verified).toBe(false);
+      expect(vouches).toEqual(["absent"]);
+    });
+
+    test("a box with no session secret answers verified:false and counts no_secret", async () => {
+      const vouches: string[] = [];
+      const metrics = {
+        ...noopProfileMetrics,
+        resolveVouch: (outcome: string) => vouches.push(outcome),
+      } as ProfileMetrics;
+      const res = await resolveWith(
+        createApp(mockRepo(), undefined, undefined, undefined, undefined, {
+          metrics,
+        }),
+        sessionTokenFor(PLAYER_ID, { verified: true }),
+      );
+      expect(res.status).toBe(200);
+      expect(res.body.verified).toBe(false);
+      expect(vouches).toEqual(["no_secret"]);
+    });
+
+    // A 4xx is final for the game server: a bad token must never cost the player
+    // the resolve (their XP id, the ★ and the approved name).
+    test.each([
+      ["over-long", "t".repeat(1025)],
+      ["empty", ""],
+      ["a number", 42],
+      ["an object", { token: "x" }],
+      ["null", null],
+    ])(
+      "a malformed sessionToken (%s) still answers 200 with playerId and isCitizen",
+      async (_label, sessionToken) => {
+        const vouches: string[] = [];
+        const repo = mockRepo();
+        const res = await resolveWith(vouchApp(repo, vouches), sessionToken);
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          playerId: PLAYER_ID,
+          isCitizen: true,
+          displayName: "Commander",
+          verified: false,
+        });
+        expect(vouches).toEqual(["absent"]);
+        expect(repo.resolveOrCreatePlayer).toHaveBeenCalledWith(
+          "yandex_games",
+          "yandex-1",
+          "game_server",
+        );
+      },
+    );
+
+    test("records exactly one outcome per resolve", async () => {
+      const vouches: string[] = [];
+      const app = vouchApp(mockRepo(), vouches);
+      await resolveWith(app);
+      await resolveWith(app, sessionTokenFor(PLAYER_ID, { verified: true }));
+      await resolveWith(app, sessionTokenFor(PLAYER_ID, { verified: false }));
+      expect(vouches).toEqual(["absent", "verified", "unverified_session"]);
+    });
+
+    test("the token never reaches the repository", async () => {
+      const repo = mockRepo();
+      await resolveWith(vouchApp(repo), SENTINEL);
+      const calls = JSON.stringify(
+        (repo.resolveOrCreatePlayer as jest.Mock).mock.calls,
+      );
+      expect(calls).not.toContain(SENTINEL);
+    });
+
+    test("a failed resolve records no outcome and its log line never contains the token", async () => {
+      const chunks: string[] = [];
+      const capture = new winston.transports.Stream({
+        stream: new Writable({
+          write(chunk, _encoding, callback) {
+            chunks.push(String(chunk));
+            callback();
+          },
+        }),
+      });
+      const vouches: string[] = [];
+      logger.add(capture);
+      try {
+        const repo = mockRepo({
+          resolveOrCreatePlayer: jest
+            .fn()
+            .mockRejectedValue(new Error("db down")),
+        });
+        const res = await resolveWith(vouchApp(repo, vouches), SENTINEL);
+        expect(res.status).toBe(500);
+      } finally {
+        logger.remove(capture);
+      }
+      expect(vouches).toEqual([]);
+      const logged = chunks.join("\n");
+      expect(logged).toContain("/internal/v1/players/resolve");
+      expect(logged).not.toContain(SENTINEL);
     });
   });
 

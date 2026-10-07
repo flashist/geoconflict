@@ -325,7 +325,7 @@ only the risk that a label-only change turns every login `bad_payload`.
 
 - **Positive:**
   - the first identity a forger cannot mint: a `vfy:true` session means Yandex signed that id, recently;
-  - unblocks `0250` S3b (verified-only paid state), `0319` (gate name changes) and `0323` (the mark), and is
+  - unblocks `0250` S3b (verified-only paid state), `0319` (gate name changes) and `0323` (the mark; cancelled 2026-10-07), and is
     the foundation `0332` (the join token) builds on;
   - no response change, no new env var, reversible by ceasing to mint.
 - **Negative / costs:** one more client SDK call per load, a new metric, four new client analytics events
@@ -519,7 +519,7 @@ and mark this subsection applied.
   `src/profile-server/Routes.ts` (`CallerResolution`, `resolveCaller`, the login route),
   `src/profile-server/YandexSignature.ts` (`verifySignedPayload`), `src/core/profile/LoginContract.ts`
   (`LoginRequestSchema`), `src/profile-server/Server.ts` (`YANDEX_PAYMENTS_SECRET`)
-- Tasks: `0250` (S1, S3b), `0319`, `0323`, `0332`, `0267` (Yandex half answered), `0309` / `0310`, `0048`
+- Tasks: `0250` (S1, S3b), `0319`, `0323` (cancelled 2026-10-07), `0332`, `0267` (Yandex half answered), `0309` / `0310`, `0048`
 - 📝 Added 2026-09-29: `ai-agents/tasks/done/0339-verify-0325-s2-live-the-login-signature-check-in-production/`
   (verify S2 live) and `ai-agents/tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/` (S3a enforce)
   — see the dated note at the top of this file.

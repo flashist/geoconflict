@@ -5,7 +5,7 @@ import {
 } from "./flashist/FlashistFacade";
 import type { StaleBuildModal } from "./StaleBuildModal";
 
-const PAGE_LOAD_TIMESTAMP = Date.now();
+export const PAGE_LOAD_TIMESTAMP = Date.now();
 const VERSION_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
 let staleDetected = false;

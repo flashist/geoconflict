@@ -211,7 +211,7 @@ first-hand):
   (`Routes.ts:334` — `verified: claims.vfy === true`). The 🔓 *"the token adds NO security"* bullet now
   holds for **`vfy:false` sessions only**. A `vfy:true` session means Yandex signed that id within
   ADR-116's freshness window (as superseded in part by ADR-121: 24 h). At this commit no route reads
-  `verified` yet (ADR-116 Decision 2); the readers (`0250` S3b, `0319`, `0332`, `0323`) are separate
+  `verified` yet (ADR-116 Decision 2); the readers (`0250` S3b, `0319`, `0332`, `0323` (cancelled 2026-10-07)) are separate
   tasks.
 - **Point 9.** At the **profile server**, verification now happens at login (ADR-116). The **game
   server** is still client-asserted — ADR-103's decision still governs it, and its exit is `0332`.

@@ -35,6 +35,11 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import * as os from "os";
 import type { ResolveSource } from "./PlayerIdentityRepository";
+import type { ResolveVouchOutcome } from "./SessionVouch";
+
+// Task 0332: the vouch outcome's home is SessionVouch.ts; re-exported so every
+// metric label type can still be imported from here.
+export type { ResolveVouchOutcome } from "./SessionVouch";
 
 /** Env var name, in one place. Server.ts still reads it literally (parity checker). */
 export const OTLP_ENDPOINT_VAR = "OTEL_EXPORTER_OTLP_ENDPOINT";
@@ -201,6 +206,14 @@ export interface ProfileMetrics {
   /** Once per `POST /v1/profile/tenure-grant` request (task 0253). */
   tenureClaim(outcome: TenureClaimOutcome): void;
   /**
+   * Once per `POST /internal/v1/players/resolve` that SUCCEEDED (task 0332,
+   * ADR-124) — tokenless resolves included, as `absent`. ⚠️ Per RESOLVE, not per
+   * player: one player can be resolved several times a match (join, late token,
+   * credit time, reconnect). The per-player figure is the game server's
+   * `geoconflict.server.match.identity`.
+   */
+  resolveVouch(outcome: ResolveVouchOutcome): void;
+  /**
    * One webhook call through the alert relay (task 0277).
    *
    * ⚠️ A rule on `result="failed"` is CIRCULAR — the alert about the failed alert
@@ -248,6 +261,7 @@ export const noopProfileMetrics: ProfileMetrics = {
   loginVerification: () => {},
   loginStaleSignatureAge: () => {},
   tenureClaim: () => {},
+  resolveVouch: () => {},
   alertRelay: () => {},
 };
 
@@ -338,6 +352,13 @@ export function createProfileMetrics(
     {
       description:
         "Tenure XP grant claims (POST /v1/profile/tenure-grant), by outcome",
+    },
+  );
+  const resolveVouches = meter.createCounter(
+    "geoconflict.profile.resolve.vouch",
+    {
+      description:
+        "Game-server resolves (POST /internal/v1/players/resolve) by session-vouch outcome — per resolve, not per player",
     },
   );
   const alertRelayCalls = meter.createCounter(
@@ -465,6 +486,9 @@ export function createProfileMetrics(
     },
     tenureClaim: (outcome) => {
       tenureClaims.add(1, { outcome });
+    },
+    resolveVouch: (outcome) => {
+      resolveVouches.add(1, { outcome });
     },
     alertRelay: (result, keyed) => {
       alertRelayCalls.add(1, { result, keyed });

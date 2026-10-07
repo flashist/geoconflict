@@ -38,6 +38,10 @@ import {
   completePurchase,
   createPurchaseIntent,
 } from "../../src/client/PaymentsApiClient";
+import {
+  isPlatformDialogOpen,
+  resetPlatformDialogPresenceForTests,
+} from "../../src/client/PlatformDialogPresence";
 
 const purchaseCatalogItem = FlashistFacade.instance
   .purchaseCatalogItem as jest.Mock;
@@ -232,5 +236,81 @@ describe("runCitizenshipPurchase", () => {
     expect(logEventAnalytics.mock.invocationCallOrder[1]).toBeLessThan(
       consumePurchase.mock.invocationCallOrder[0],
     );
+  });
+});
+
+// Task 0404: the whole flow — intent through /complete — counts as an open
+// platform dialog, so the forced "please refresh" popup waits for it.
+describe("runCitizenshipPurchase marks a platform dialog (task 0404)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetPlatformDialogPresenceForTests();
+    createIntent.mockResolvedValue("intent-uuid");
+    purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
+    complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
+    consumePurchase.mockResolvedValue(undefined);
+  });
+
+  it("open while the intent, the payment frame and /complete run", async () => {
+    const seen: boolean[] = [];
+    createIntent.mockImplementation(async () => {
+      seen.push(isPlatformDialogOpen());
+      return "intent-uuid";
+    });
+    purchaseCatalogItem.mockImplementation(async () => {
+      seen.push(isPlatformDialogOpen());
+      return { signature: "sig.payload" };
+    });
+    complete.mockImplementation(async () => {
+      seen.push(isPlatformDialogOpen());
+      return { success: true, purchaseToken: "tok-1" };
+    });
+
+    await expect(runCitizenshipPurchase()).resolves.toBe("granted");
+
+    expect(seen).toEqual([true, true, true]);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it.each<[string, () => void, string]>([
+    ["granted", () => {}, "granted"],
+    [
+      "intent null",
+      () => {
+        createIntent.mockResolvedValue(null);
+      },
+      "error",
+    ],
+    [
+      "frame abandoned",
+      () => {
+        purchaseCatalogItem.mockRejectedValue(new Error("frame closed"));
+      },
+      "error",
+    ],
+    [
+      "complete null",
+      () => {
+        complete.mockResolvedValue(null);
+      },
+      "error",
+    ],
+    [
+      "a hung consume",
+      () => {
+        consumePurchase.mockImplementation(() => new Promise(() => {}));
+      },
+      "granted",
+    ],
+  ])("closed afterwards: %s", async (_label, breakLink, expected) => {
+    breakLink();
+    await expect(runCitizenshipPurchase()).resolves.toBe(expected);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("closed afterwards when a step throws", async () => {
+    complete.mockRejectedValue(new Error("boom"));
+    await expect(runCitizenshipPurchase()).rejects.toThrow("boom");
+    expect(isPlatformDialogOpen()).toBe(false);
   });
 });

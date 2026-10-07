@@ -2,9 +2,12 @@
  * @jest-environment jsdom
  */
 import {
+  AFTER_LONG_SESSION_REFRESH_KEY,
   AFTER_MATCH_EXIT_KEY,
   classifyPlatformDegradedCause,
+  consumeLongSessionRefreshMarker,
   consumeMatchExitMarker,
+  markLongSessionRefresh,
   markMatchExit,
   type PlatformDegradedState,
 } from "../../src/client/PlatformDegradedAnalytics";
@@ -194,5 +197,62 @@ describe("match-exit marker", () => {
       expect(() => markMatchExit()).not.toThrow();
       expect(consumeMatchExitMarker()).toBe(false);
     });
+  });
+});
+
+// Task 0404 (§2.9): the "this boot follows the long-session refresh popup"
+// marker — a twin of the match-exit marker.
+describe("long-session refresh marker", () => {
+  it("mark then consume is true once, then false", () => {
+    const storage = memoryStorage();
+    markLongSessionRefresh(storage);
+    expect(storage.map.get(AFTER_LONG_SESSION_REFRESH_KEY)).toBe("1");
+
+    expect(consumeLongSessionRefreshMarker(storage)).toBe(true);
+    expect(storage.map.has(AFTER_LONG_SESSION_REFRESH_KEY)).toBe(false);
+    expect(consumeLongSessionRefreshMarker(storage)).toBe(false);
+  });
+
+  it('holds only the value "1" under a fixed key, separate from the match-exit marker', () => {
+    const storage = memoryStorage();
+    markLongSessionRefresh(storage);
+    expect([...storage.map.entries()]).toEqual([
+      ["geoconflict.session.afterLongSessionRefresh", "1"],
+    ]);
+    expect(consumeMatchExitMarker(storage)).toBe(false);
+  });
+
+  it("the match-exit marker does not read as this one", () => {
+    const storage = memoryStorage();
+    markMatchExit(storage);
+    expect(consumeLongSessionRefreshMarker(storage)).toBe(false);
+  });
+
+  it("storage failures never throw and read false", () => {
+    const storage = memoryStorage();
+    storage.setItem.mockImplementation(() => {
+      throw new Error("quota");
+    });
+    expect(() => markLongSessionRefresh(storage)).not.toThrow();
+
+    const broken = memoryStorage();
+    broken.getItem.mockImplementation(() => {
+      throw new Error("denied");
+    });
+    expect(consumeLongSessionRefreshMarker(broken)).toBe(false);
+
+    expect(() => markLongSessionRefresh(null)).not.toThrow();
+    expect(consumeLongSessionRefreshMarker(null)).toBe(false);
+  });
+
+  it("round-trips through the real sessionStorage", () => {
+    markLongSessionRefresh();
+    expect(window.sessionStorage.getItem(AFTER_LONG_SESSION_REFRESH_KEY)).toBe(
+      "1",
+    );
+    expect(consumeLongSessionRefreshMarker()).toBe(true);
+    expect(
+      window.sessionStorage.getItem(AFTER_LONG_SESSION_REFRESH_KEY),
+    ).toBeNull();
   });
 });

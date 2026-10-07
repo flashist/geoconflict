@@ -12,9 +12,12 @@ import {
 } from "../SessionMatchAnalytics";
 import {
   classifyPlatformDegradedCause,
+  consumeLongSessionRefreshMarker,
   consumeMatchExitMarker,
+  markLongSessionRefresh,
   markMatchExit,
 } from "../PlatformDegradedAnalytics";
+import { beginPlatformDialog } from "../PlatformDialogPresence";
 import {
   compareIssuedAt,
   isPastStale,
@@ -89,6 +92,23 @@ export const flashistConstants = {
     // SdkLoaderRetryOutcome from the closed list in SdkLoaderRetry.ts, appended
     // at the call site. Value = number of re-downloads made.
     SESSION_SDK_LOADER_RETRY_FIRST_PART: "Session:SdkLoaderRetry:",
+    // The forced "please refresh" popup after 23 h on one page (task 0404).
+    // Each at most once per page load. Due = the threshold passed with the tab
+    // visible (value = minutes since page load); the popup may still wait for
+    // the start screen or a payment/login dialog. Shown = it appeared (value =
+    // minutes since page load). Refresh = the player pressed its button.
+    // Waited = it appeared later than Due (value = whole minutes waited).
+    // DeferredByDialog = a payment/login dialog held it back at least once.
+    // PreemptedByStaleBuild = it was clear to show but the stale-build popup
+    // was already up, so it never appeared.
+    LONG_SESSION_REFRESH_DUE: "Session:LongSessionRefresh:Due",
+    LONG_SESSION_REFRESH_SHOWN: "Session:LongSessionRefresh:Shown",
+    LONG_SESSION_REFRESH_PRESSED: "Session:LongSessionRefresh:Refresh",
+    LONG_SESSION_REFRESH_WAITED: "Session:LongSessionRefresh:Waited",
+    LONG_SESSION_REFRESH_DEFERRED_BY_DIALOG:
+      "Session:LongSessionRefresh:DeferredByDialog",
+    LONG_SESSION_REFRESH_PREEMPTED_BY_STALE_BUILD:
+      "Session:LongSessionRefresh:PreemptedByStaleBuild",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -299,6 +319,29 @@ export const flashistConstants = {
       "Profile:Login:SignatureAge:AfterMatch:PastOver24h",
     PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_UNREADABLE:
       "Profile:Login:SignatureAge:AfterMatch:Unreadable",
+    // Task 0404 (§2.9): the boot follows a press of the long-session refresh
+    // popup. PastOver24h here = Yandex handed back the same old signed data, so
+    // that player came back unverified.
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FRESH:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Fresh",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FUTURE_5M_15M:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Future5m15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FUTURE_OVER_15M:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:FutureOver15m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_15M_20M:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Past15m20m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_20M_30M:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Past20m30m",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_30M_1H:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Past30m1h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_1H_6H:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Past1h6h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_6H_24H:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Past6h24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_OVER_24H:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:PastOver24h",
+    PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_UNREADABLE:
+      "Profile:Login:SignatureAge:AfterRefreshPopup:Unreadable",
 
     // Second signed call (task 0372, A2): only on the page load's FIRST take, only
     // when that signature is past-stale; never retried. Compares the two issuedAt
@@ -428,6 +471,35 @@ export const flashistConstants = {
     },
   },
 };
+
+/** Only what reloadWithoutHash touches, so a test can pass plain objects. */
+export interface ReloadWithoutHashTarget {
+  location: Pick<Location, "pathname" | "search" | "hash" | "reload">;
+  history: Pick<History, "replaceState" | "state">;
+}
+
+/**
+ * Reload the current page without its hash, keeping the path and query string
+ * (task 0404). If `replaceState` throws, it still reloads — the worst case is
+ * today's `reloadApp()`, which keeps the hash.
+ */
+export function reloadWithoutHash(
+  target: ReloadWithoutHashTarget = window,
+): void {
+  const { location, history } = target;
+  if (location.hash !== "") {
+    try {
+      history.replaceState(
+        history.state,
+        "",
+        location.pathname + location.search,
+      );
+    } catch {
+      // Reload anyway (see above)
+    }
+  }
+  location.reload();
+}
 
 /**
  * True only when the tester marker is set to exactly "1" (tasks 0302, 0354).
@@ -603,7 +675,7 @@ const analyticEvents = flashistConstants.analyticEvents;
  * compile error.
  */
 const SIGNATURE_AGE_EVENTS: Record<
-  "FirstBoot" | "AfterMatch",
+  "FirstBoot" | "AfterMatch" | "AfterRefreshPopup",
   Record<SignatureAgeLabel, string>
 > = {
   FirstBoot: {
@@ -645,6 +717,27 @@ const SIGNATURE_AGE_EVENTS: Record<
       analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_PAST_OVER_24H,
     Unreadable:
       analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_MATCH_UNREADABLE,
+  },
+  AfterRefreshPopup: {
+    Fresh: analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FRESH,
+    Future5m15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FUTURE_5M_15M,
+    FutureOver15m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_FUTURE_OVER_15M,
+    Past15m20m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_15M_20M,
+    Past20m30m:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_20M_30M,
+    Past30m1h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_30M_1H,
+    Past1h6h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_1H_6H,
+    Past6h24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_6H_24H,
+    PastOver24h:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_PAST_OVER_24H,
+    Unreadable:
+      analyticEvents.PROFILE_LOGIN_SIGNATURE_AGE_AFTER_REFRESH_POPUP_UNREADABLE,
   },
 };
 /** Task 0372 (A2): the Refetch event for each comparison outcome. */
@@ -706,6 +799,9 @@ export class FlashistFacade {
   // happens. The loader's own failure is read from the template's
   // window.flashist_sdkScriptLoadFailed at check time.
   private bootFollowsMatchExit = false;
+  // Task 0404 (§2.9): this load follows the long-session popup's refresh.
+  // Feeds only the SignatureAge boot kind, never the PlatformDegraded value.
+  private bootFollowsLongSessionRefresh = false;
   // The SDK loader script has loaded or failed (set in yandexSdkInit).
   private sdkScriptSettled = false;
   // Which part of stage 1 the 5 s deadline caught. Stage-2 (player/flags)
@@ -771,6 +867,7 @@ export class FlashistFacade {
     // Read AND remove on every boot, healthy ones included, so a marker never
     // carries over to a later load (task 0328). Never throws.
     this.bootFollowsMatchExit = consumeMatchExitMarker();
+    this.bootFollowsLongSessionRefresh = consumeLongSessionRefreshMarker();
 
     consumePendingSessionEnd((matchesPlayed) => {
       flashist_logEventAnalytics(
@@ -1160,6 +1257,19 @@ export class FlashistFacade {
    */
   public reloadApp() {
     window.location.reload();
+  }
+
+  /**
+   * The long-session refresh popup's reload (task 0404): keeps the query string
+   * Yandex needs (task 0331) but drops the hash, so a leftover #join= /
+   * #refresh is never replayed. Not `changeHref(this.rootPathname)`: that writes
+   * the match-exit marker and would put these reloads into the "after match"
+   * analytics. Writes its own marker instead (§2.9, the AfterRefreshPopup boot
+   * kind). Never throws before the reload.
+   */
+  public reloadAppWithoutHash() {
+    markLongSessionRefresh();
+    reloadWithoutHash();
   }
 
   public readonly yandexInitPromise: Promise<void>;
@@ -2100,7 +2210,13 @@ export class FlashistFacade {
     try {
       const issuedAtSeconds = readSignatureIssuedAtSeconds(signature);
       const label = signatureAgeLabel(issuedAtSeconds, Date.now());
-      const bootKind = this.bootFollowsMatchExit ? "AfterMatch" : "FirstBoot";
+      // AfterMatch wins if both markers are present (normal flow cannot
+      // produce both: each is written right before its own navigation).
+      const bootKind = this.bootFollowsMatchExit
+        ? "AfterMatch"
+        : this.bootFollowsLongSessionRefresh
+          ? "AfterRefreshPopup"
+          : "FirstBoot";
       flashist_logEventAnalytics(SIGNATURE_AGE_EVENTS[bootKind][label]);
       if (isFirstTake && issuedAtSeconds !== null && isPastStale(label)) {
         void this.compareSignatureRefetch(issuedAtSeconds).catch(() => {});
@@ -2156,6 +2272,8 @@ export class FlashistFacade {
     if (!this.yandexGamesSDK) {
       return false;
     }
+    // Task 0404: the forced "please refresh" popup waits while this is open.
+    const endPlatformDialog = beginPlatformDialog();
     try {
       await this.yandexGamesSDK.auth.openAuthDialog();
       // Per Yandex SDK docs the player object must be re-fetched after the
@@ -2164,6 +2282,8 @@ export class FlashistFacade {
     } catch {
       // Player closed the dialog or authorization failed — remains a guest.
       return false;
+    } finally {
+      endPlatformDialog();
     }
     return this.isYandexLoggedIn();
   }

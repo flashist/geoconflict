@@ -109,7 +109,7 @@ using the agenda below. For each item, record one outcome in `worklog.md` in thi
 4. **Trusted identity.** Anything the *game server* must enforce (voting, uploads showing in matches, styled
    names) needs a player identity the server can trust. Today that waits on verified sessions
    ([`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md)) and the join token
-   ([`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md), Sprint 7).
+   ([`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md), Sprint 7).
 5. **Order.** Which one first? The producer's suggestion, for the owner to judge: the cheapest perk that works
    without new trust plumbing goes first.
 
@@ -157,7 +157,7 @@ or as a pack. Only for players who already have the citizen name.
 **Known dependencies / related work.** The prose depends on "Task 8 — verified nickname purchase + centralized
 name rendering". What exists today: the ★ icon (`0068`), name change for citizens (`0067`), and the approved name
 shown in matches (`0317`'s follow-ups, done); the server-confirmed name mark
-[`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) is on Sprint 7. The cosmetics chain
+[`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) is on Sprint 7. The cosmetics chain
 (`0010` flags, `0011` patterns, `0009`) is listed as its foundation on the Backlog board.
 
 **To discuss:**
@@ -184,7 +184,7 @@ but cannot vote (an advert for citizenship).
 
 **Known dependencies / related work.** The server must know who is a citizen **when the vote is cast** — so it waits
 on trusted identity: [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) and
-[`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md). Public
+[`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md). Public
 lobbies and their maps are scheduled by the server master process.
 
 **To discuss:**
@@ -358,7 +358,7 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
 - **Related:** [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (the twin),
   [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (what the popup promises),
   [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
-  [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md),
+  [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md),
   [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md),
   [`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md),
   [`0011`](../0011-re-enable-territory-patterns/brief.md),

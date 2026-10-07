@@ -68,6 +68,18 @@ export type CreditBatchResponse = z.infer<typeof CreditBatchResponseSchema>;
 export const PlayerResolveRequestSchema = z.object({
   platform: PlatformSchema,
   platformUserId: z.string().min(1).max(128),
+  /**
+   * Task 0332 (ADR-124). The player's profile session token, when the game server
+   * holds one, so the profile server can vouch that the session is verified
+   * (`vfy:true`) AND belongs to the player this id resolves to. Absent ⇒ no vouch
+   * (the reply says `verified:false`). ⛔ A credential: never logged, never stored.
+   *
+   * `.catch(undefined)` is load-bearing: a 4xx is final for the game server
+   * (`ProfileApiClient` does not retry it), so a malformed token failing this
+   * schema would cost the player the whole resolve — XP, the ★ and the approved
+   * name. A bad value is read as absent instead, and the resolve still answers 200.
+   */
+  sessionToken: z.string().min(1).max(1024).optional().catch(undefined),
 });
 export type PlayerResolveRequest = z.infer<typeof PlayerResolveRequestSchema>;
 
@@ -92,5 +104,16 @@ export const PlayerResolveResponseSchema = z.object({
   playerId: InternalPlayerIdSchema,
   isCitizen: z.boolean(),
   displayName: z.string().nullable().optional().catch(undefined),
+  /**
+   * Task 0332 (ADR-124). Whether the profile server vouched for the session token the
+   * request carried. THREE states:
+   *  - absent — an older profile server that cannot vouch: read as unverified
+   *             (ADR-124 D6), and the game server keeps the token for a later try;
+   *  - `false` — no token, or the token is not a verified session of this player;
+   *  - `true`  — a valid, unexpired `vfy:true` session of exactly this player.
+   * `.catch(undefined)` for the same reason as `displayName`: a bad value must never
+   * drop the whole resolve.
+   */
+  verified: z.boolean().optional().catch(undefined),
 });
 export type PlayerResolveResponse = z.infer<typeof PlayerResolveResponseSchema>;

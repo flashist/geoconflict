@@ -5,7 +5,13 @@ import {
   FlashistFacade,
   flashistConstants,
   isTesterMarkerSet,
+  reloadWithoutHash,
 } from "../../src/client/flashist/FlashistFacade";
+import { AFTER_LONG_SESSION_REFRESH_KEY } from "../../src/client/PlatformDegradedAnalytics";
+import {
+  isPlatformDialogOpen,
+  resetPlatformDialogPresenceForTests,
+} from "../../src/client/PlatformDialogPresence";
 
 // The facade constructor runs platform detection and analytics wiring, so the
 // formula is tested on a bare prototype instance with just the relevant
@@ -1222,5 +1228,177 @@ describe("FlashistFacade.copyText (task 0380)", () => {
     const facade = makeFacade({ yaGamesAvailable: false });
 
     await expect(facade.copyText("AbC12345")).resolves.toBe(false);
+  });
+});
+
+describe("FlashistFacade.openYandexAuthDialog marks a platform dialog (task 0404)", () => {
+  beforeEach(() => {
+    resetPlatformDialogPresenceForTests();
+  });
+
+  function makeAuthFacade(sdk: {
+    openAuthDialog: jest.Mock;
+    getPlayer: jest.Mock;
+  }): FlashistFacade {
+    return makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: {
+        auth: { openAuthDialog: sdk.openAuthDialog },
+        getPlayer: sdk.getPlayer,
+      },
+    });
+  }
+
+  it("open while the dialog and getPlayer run, closed after a login", async () => {
+    const seen: boolean[] = [];
+    const facade = makeAuthFacade({
+      openAuthDialog: jest.fn(async () => {
+        seen.push(isPlatformDialogOpen());
+      }),
+      getPlayer: jest.fn(async () => {
+        seen.push(isPlatformDialogOpen());
+        return { isAuthorized: () => true };
+      }),
+    });
+
+    await expect(facade.openYandexAuthDialog()).resolves.toBe(true);
+    expect(seen).toEqual([true, true]);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("closed after the player closes the dialog (rejection)", async () => {
+    const facade = makeAuthFacade({
+      openAuthDialog: jest.fn().mockRejectedValue(new Error("closed")),
+      getPlayer: jest.fn(),
+    });
+
+    await expect(facade.openYandexAuthDialog()).resolves.toBe(false);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("closed when getPlayer throws", async () => {
+    const facade = makeAuthFacade({
+      openAuthDialog: jest.fn().mockResolvedValue(undefined),
+      getPlayer: jest.fn().mockRejectedValue(new Error("player")),
+    });
+
+    await expect(facade.openYandexAuthDialog()).resolves.toBe(false);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("no SDK: returns false and never marks a dialog", async () => {
+    const facade = makeFacade({ yaGamesAvailable: true });
+    const result = facade.openYandexAuthDialog();
+    // An async function runs synchronously up to its first await, so a marker
+    // opened before the no-SDK return would still be open here.
+    expect(isPlatformDialogOpen()).toBe(false);
+    await expect(result).resolves.toBe(false);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+});
+
+describe("reloadWithoutHash (task 0404)", () => {
+  function makeTarget(fields: {
+    pathname: string;
+    search: string;
+    hash: string;
+  }) {
+    const order: string[] = [];
+    const target = {
+      location: {
+        ...fields,
+        reload: jest.fn(() => {
+          order.push("reload");
+        }),
+      },
+      history: {
+        state: { some: "state" },
+        replaceState: jest.fn(() => {
+          order.push("replaceState");
+        }),
+      },
+    };
+    return { target, order };
+  }
+
+  it("a hash present: replaceState to pathname + search (query kept), then reload", () => {
+    const { target, order } = makeTarget({
+      pathname: "/game/",
+      search: "?sdk=%2Fsdk.js&lang=ru",
+      hash: "#join=ABCD1234",
+    });
+
+    reloadWithoutHash(target);
+
+    expect(target.history.replaceState).toHaveBeenCalledWith(
+      { some: "state" },
+      "",
+      "/game/?sdk=%2Fsdk.js&lang=ru",
+    );
+    expect(order).toEqual(["replaceState", "reload"]);
+  });
+
+  it("no hash: no replaceState, just reload", () => {
+    const { target, order } = makeTarget({
+      pathname: "/",
+      search: "?a=1",
+      hash: "",
+    });
+
+    reloadWithoutHash(target);
+
+    expect(target.history.replaceState).not.toHaveBeenCalled();
+    expect(order).toEqual(["reload"]);
+  });
+
+  it("replaceState throwing: still reloads", () => {
+    const { target } = makeTarget({
+      pathname: "/",
+      search: "",
+      hash: "#refresh",
+    });
+    target.history.replaceState.mockImplementation(() => {
+      throw new DOMException("denied", "SecurityError");
+    });
+
+    expect(() => reloadWithoutHash(target)).not.toThrow();
+    expect(target.location.reload).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("FlashistFacade.reloadAppWithoutHash (task 0404)", () => {
+  beforeEach(() => {
+    // jsdom cannot navigate: reload() only reports "not implemented".
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    window.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("drops the hash, keeps the query, and writes the AfterRefreshPopup marker (§2.9)", () => {
+    window.history.replaceState(null, "", "/?sdk=x#join=TEST");
+    const facade = makeFacade({ yaGamesAvailable: true });
+
+    facade.reloadAppWithoutHash();
+
+    expect(window.location.hash).toBe("");
+    expect(window.location.search).toBe("?sdk=x");
+    expect(window.sessionStorage.getItem(AFTER_LONG_SESSION_REFRESH_KEY)).toBe(
+      "1",
+    );
+  });
+
+  it("never writes the match-exit marker", () => {
+    const facade = makeFacade({ yaGamesAvailable: true });
+
+    facade.reloadAppWithoutHash();
+
+    expect(
+      window.sessionStorage.getItem("geoconflict.session.afterMatchExit"),
+    ).toBeNull();
   });
 });

@@ -9,21 +9,25 @@ import { WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
 import { GameType } from "../core/game/Game";
+import { TokenPayload } from "../core/ApiSchemas";
 import {
+  ClientJoinMessage,
+  ClientMessage,
   ClientMessageSchema,
   GameID,
   ID,
   PartialGameRecordSchema,
+  PlayerCosmetics,
   PrivateLobbyCodeSchema,
   ServerErrorMessage,
 } from "../core/Schemas";
-import { generateID, replacer } from "../core/Util";
+import { generateID } from "../core/Util";
 import { CreateGameInputSchema, GameInputSchema } from "../core/WorkerSchemas";
 import { archive, finalizeGameRecord } from "./Archive";
 import { Client } from "./Client";
 import { GameManager } from "./GameManager";
 import { getUserMe, verifyClientToken } from "./jwt";
-import { formatError, logger } from "./Logger";
+import { errorName, formatError, logger } from "./Logger";
 
 import { MapPlaylist } from "./MapPlaylist";
 import { PrivilegeRefresher } from "./PrivilegeRefresher";
@@ -110,6 +114,51 @@ export async function awaitRequesterSettled(
 }
 
 // Worker setup
+/**
+ * Task 0332. The log line for a message that arrived before `join`. Names the
+ * message TYPE only: it used to print the whole message, which can carry a Yandex
+ * id and — since ADR-124 — a profile session token (a credential).
+ */
+export function preJoinRejectLogLine(msg: ClientMessage): string {
+  return `Invalid message before join: ${msg.type}`;
+}
+
+/**
+ * The server-side Client for a join that passed every check. Pulled out of the
+ * socket handler (task 0332, review R3) so a test can prove the join's profile
+ * session token reaches the Client — every game-side test sets it by hand.
+ */
+export function clientFromJoin(
+  clientMsg: ClientJoinMessage,
+  auth: {
+    persistentId: string;
+    claims: TokenPayload | null;
+    roles: string[] | undefined;
+    flares: string[] | undefined;
+  },
+  ip: string,
+  ws: WebSocket,
+  cosmetics: PlayerCosmetics,
+): Client {
+  const client = new Client(
+    clientMsg.clientID,
+    auth.persistentId,
+    auth.claims,
+    auth.roles,
+    auth.flares,
+    ip,
+    clientMsg.username,
+    ws,
+    cosmetics,
+    // UNTRUSTED: stored as-is, never signature-verified. See Client.yandexPlayerId.
+    clientMsg.yandexPlayerId ?? null,
+  );
+  // Task 0332 (ADR-124). Written once, here; never read by Worker. ⛔ A
+  // credential — see Client.profileSession.
+  client.profileSession = clientMsg.profileSession ?? null;
+  return client;
+}
+
 export async function startWorker() {
   log.info(`Worker starting...`);
 
@@ -455,9 +504,7 @@ export async function startWorker() {
           // Ignore ping
           return;
         } else if (clientMsg.type !== "join") {
-          log.warn(
-            `Invalid message before join: ${JSON.stringify(clientMsg, replacer)}`,
-          );
+          log.warn(preJoinRejectLogLine(clientMsg));
           return;
         }
 
@@ -527,18 +574,12 @@ export async function startWorker() {
         }
 
         // Create client and add to game
-        const client = new Client(
-          clientMsg.clientID,
-          persistentId,
-          claims,
-          roles,
-          flares,
+        const client = clientFromJoin(
+          clientMsg,
+          { persistentId, claims, roles, flares },
           ip,
-          clientMsg.username,
           ws,
           cosmeticResult.cosmetics,
-          // UNTRUSTED: stored as-is, never signature-verified. See Client.yandexPlayerId.
-          clientMsg.yandexPlayerId ?? null,
         );
 
         const wasFound = gm.addClient(
@@ -555,8 +596,10 @@ export async function startWorker() {
         // Handle other message types
       } catch (error) {
         ws.close(1011, "Internal server error");
+        // Task 0332: the error's TYPE only — a JSON parse error quotes the bytes
+        // it failed on, and a join may carry a profile session token.
         log.warn(
-          `error handling websocket message for ${ipAnonymize(ip)}: ${error}`.substring(
+          `error handling websocket message for ${ipAnonymize(ip)}: ${errorName(error)}`.substring(
             0,
             250,
           ),

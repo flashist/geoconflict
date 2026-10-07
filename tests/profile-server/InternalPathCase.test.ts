@@ -174,6 +174,7 @@ function build(): { app: ReturnType<typeof createApp>; deps: Deps } {
     loginVerification: () => {},
     loginStaleSignatureAge: () => {},
     tenureClaim: () => {},
+    resolveVouch: () => {},
     alertRelay: (result, keyed) => alertRelayMetric(result, keyed),
   };
   const app = createApp(

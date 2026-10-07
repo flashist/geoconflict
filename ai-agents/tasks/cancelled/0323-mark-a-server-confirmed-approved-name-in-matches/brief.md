@@ -19,7 +19,7 @@ board's highest was 4 (`0221`). No row was renumbered (ADR-035). ⚠️ Sprint 7
 not merit; this one is an append. On merit it simply follows `0322`, which it needs.
 
 ## Status
-🔲 Backlog
+⛔ Cancelled (agent-closed — not owner-verified) (2026-10-07) — Owner ruling 2026-10-07: players don't care whether a name is server-confirmed; only developers/admins need to know who is really who, and `0332`'s counters (`geoconflict.server.match.identity`, per match start) cover the admin need. A per-player admin view can be filed later if wanted. ADR-115 residual 1 stays open by owner ruling Q5 (2026-10-07).
 
 ## Owner
 fkit-coder
@@ -66,7 +66,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
 
 ## Notes
 
-- **Depends on:** `0322` (hard — the swap) · [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — verified sessions; `0325`'s slice S3a, split into its own task 2026-09-29) *(repointed 2026-09-29, kept as written: ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login)~~)* · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
+- **Depends on:** `0322` (hard — the swap) · [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — verified sessions; `0325`'s slice S3a, split into its own task 2026-09-29) *(repointed 2026-09-29, kept as written: ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — verified login)~~)* · ~~the **join-token step, NOT YET FILED**~~ [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) — the join-token step, filed 2026-09-28 (hard — the client sends its verified session token in the WebSocket join and the game server asks the profile server to vouch for it; [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md) §6). *(Changed 2026-09-28 by owner ruling — see the dated note below.)*
 - ~~**Depends on:** `0322`~~ *(superseded 2026-09-28 — owner ruling below)*
 - ~~**Soft dependencies (not blocking):** `0267` (makes the mark identity-verified with no change here).~~ *(superseded 2026-09-28 — verified identity is now a hard dependency, via `0325` plus the join-token step)*
 - **Related:** [`0317`](../../done/0317-investigate-show-a-citizens-approved-name-in-matches/brief.md) (source) ·
@@ -91,7 +91,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
   ~~⚠️ **The join-token step has no task yet** (`0250` design report §6). It now blocks this task, and it is also
   what closes `0322`'s forged-id residual. Filing it is left to the owner; **not filed here.**~~ *(struck
   2026-09-28 — filed; see the note below)*
-- 📌 **2026-09-28 — the join-token step is filed as [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (append-only; added by a spawned
+- 📌 **2026-09-28 — the join-token step is filed as [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md)** (append-only; added by a spawned
   `fkit-producer` at `fkit-lead`'s request). Owner ruling given 2026-09-28 live via `AskUserQuestion` in the
   `fkit lead` session, relayed by `fkit-lead` (ADR-021/037); answer, verbatim: **"File it, end of Sprint 7
   (Recommended)"** — *"Sits right after 0323's dependencies; it can't start before 0325 is done anyway."* `0332`
@@ -147,7 +147,7 @@ the numbers any more.
   the 2026-10-05 note above (ADR-122's owner-judgment look). This deploy no longer waits on it, and the worklog no
   longer needs to record a window, numbers and an owner's call on them.
 - **Still happens, non-blocking:** the numbers are monitored, and the owner re-reads them in a few days to inform later
-  decisions — task [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
+  decisions — task [`0402`](../../backlog/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
   waits on it.
 - **Unchanged:** the `Depends on` line; the 2026-10-05 *"deploy only after `0395` confirms `vfy: true` live"* note
   (`0395` confirmed `vfy: true` live 2026-10-07); the weekend-slot and commit-on-ask rules. This ruling removes only the
@@ -167,7 +167,7 @@ design ([report](../../../knowledge-base/reports/2026-10-07-0332-join-token-desi
   residual 1 (a forged Yandex id shows a citizen's approved name) **stays open by owner ruling**.
 - **Consequence for this task.** "The server swapped in the approved name" is therefore **not** enough to set the mark —
   a forged id still gets the swap. The mark must also check that the player is **verified**, using the `verified` bit
-  that [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) adds to the
+  that [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) adds to the
   identity funnel (`GameServer.getCreditableYandexId` returns the Yandex id together with whether it is verified). In
   plain terms: mark = approved name swapped in **and** verified. What step 1 of *What to build* says ("set only where
   `0322` swaps") is to be read with that extra condition; the plan works out the details. (The report §15 Q5 states

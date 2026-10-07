@@ -100,7 +100,7 @@ look-alike, as today (D1, D6). `0267` closes the first case later with no change
 - **Soft dependencies (not blocking):** `0321` (recommended first — graceful fallback), `0267` (verified
   identity; closes the forged-id case with no change here), `0308` (name rule; the swap re-checks, so either
   rule works).
-- **Blocks:** [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (the mark).
+- **Blocks:** [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (the mark).
 - ⚠️ **When this ships, `0316`'s wording ~~must~~ be updated.** The approve message would then truthfully say the
   name shows in matches from the next game. [`0316`](../0316-approve-inbox-message-must-not-promise-the-new-name-is-active-everywhere/brief.md)
   is still open; if it ships first, its text changes again here; if this ships first, fold the new wording

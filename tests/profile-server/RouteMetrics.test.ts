@@ -51,6 +51,7 @@ function recorder() {
     loginVerification: () => {},
     loginStaleSignatureAge: () => {},
     tenureClaim: (outcome) => tenure.push(outcome),
+    resolveVouch: () => {},
     alertRelay: () => {},
   };
   return { metrics, logins, created, http, sessions, tenure };

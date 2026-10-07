@@ -630,6 +630,24 @@ export const ClientPingMessageSchema = z.object({
   type: z.literal("ping"),
 });
 
+/**
+ * Task 0332 (ADR-124). The player's profile-server session token, carried so the
+ * game server can have the profile server vouch for it (the "join token").
+ *
+ * ⛔ A CREDENTIAL (a 24 h bearer token, no revocation). The game server never logs
+ * it, never stores it beyond the resolve that carries it, and never relays it — not
+ * to other players, not in game info, turns or the archive.
+ *
+ * `.catch(undefined)` is load-bearing: a malformed value (wrong type, empty, too
+ * long) is read as ABSENT, so a bad token can never fail — and so close — a join.
+ */
+const ProfileSessionFieldSchema = z
+  .string()
+  .min(1)
+  .max(1024)
+  .optional()
+  .catch(undefined);
+
 // Late identity refresh: an authorized Yandex user can join with a null
 // yandexPlayerId if the Yandex SDK was still initializing at the platform-init
 // deadline (degraded mode). Once it resolves, the client sends this so the server
@@ -637,9 +655,15 @@ export const ClientPingMessageSchema = z.object({
 // overwrites a non-null id) so it cannot be used to hijack another account's id.
 // UNTRUSTED — same posture/risk as the join-time field; safe only as an opaque
 // earned-XP store key until signed-payload verification lands (Payments task).
+//
+// Task 0332 (ADR-124): may also carry the profile session token (`profileSession`)
+// when the client's profile login finished only after the join. `yandexPlayerId`
+// stays REQUIRED: an older game server would close the socket (1002) on a message
+// without it.
 export const ClientUpdateIdentitySchema = z.object({
   type: z.literal("update_identity"),
   yandexPlayerId: z.string().min(1).max(256),
+  profileSession: ProfileSessionFieldSchema,
 });
 
 /**
@@ -689,6 +713,9 @@ export const ClientJoinMessageSchema = z.object({
   // so a retained value can't inflate server memory; generous cap to avoid rejecting
   // a valid authorized ID (a too-tight cap would mis-credit an authorized user).
   yandexPlayerId: z.string().max(256).nullable().optional(),
+  // Task 0332 (ADR-124): the profile session token, when the client already holds
+  // one at join. ⛔ A credential — see ProfileSessionFieldSchema.
+  profileSession: ProfileSessionFieldSchema,
 });
 
 export const ClientMessageSchema = z.discriminatedUnion("type", [

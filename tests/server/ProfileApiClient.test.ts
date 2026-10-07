@@ -394,6 +394,91 @@ describe("ProfileApiClient", () => {
       expect(text).not.toContain(SYNTHETIC_ID);
       expect(text).not.toContain(PLAYER_ID);
     });
+
+    // ── Task 0332 (ADR-124): the session token rides the resolve ──────────────
+    const SENTINEL_TOKEN = "zz0332-sentinel-session-token";
+
+    test("the body carries sessionToken only when one is given", async () => {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, { playerId: PLAYER_ID, isCitizen: false }),
+        );
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const { client } = newClient();
+      await client.resolvePlayer("yx-1");
+      await client.resolvePlayer("yx-1", SENTINEL_TOKEN);
+
+      const withoutToken = JSON.parse(fetchMock.mock.calls[0][1].body);
+      expect(withoutToken).toEqual({
+        platform: "yandex_games",
+        platformUserId: "yx-1",
+      });
+      expect(withoutToken).not.toHaveProperty("sessionToken");
+      expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
+        platform: "yandex_games",
+        platformUserId: "yx-1",
+        sessionToken: SENTINEL_TOKEN,
+      });
+    });
+
+    test.each([[true], [false]])(
+      "passes verified: %p through",
+      async (verified) => {
+        global.fetch = jest
+          .fn()
+          .mockResolvedValue(
+            jsonResponse(200, {
+              playerId: PLAYER_ID,
+              isCitizen: false,
+              verified,
+            }),
+          ) as unknown as typeof fetch;
+
+        const { client } = newClient();
+        await expect(
+          client.resolvePlayer("yx-1", SENTINEL_TOKEN),
+        ).resolves.toEqual({ playerId: PLAYER_ID, isCitizen: false, verified });
+      },
+    );
+
+    test("a reply without verified (an old profile server) has it absent", async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValue(
+          jsonResponse(200, { playerId: PLAYER_ID, isCitizen: false }),
+        ) as unknown as typeof fetch;
+
+      const { client } = newClient();
+      const resolved = await client.resolvePlayer("yx-1", SENTINEL_TOKEN);
+      expect(resolved?.verified).toBeUndefined();
+      expect(resolved?.playerId).toBe(PLAYER_ID);
+    });
+
+    test("no warn line carries the token on a 4xx, a 5xx, a bad reply or a transport failure", async () => {
+      const { client, child } = newClient();
+      const scripted = [
+        jsonResponse(500, {}),
+        jsonResponse(400, {}),
+        jsonResponse(200, { playerId: "not-a-uuid", isCitizen: "no" }),
+      ];
+      for (const response of scripted) {
+        global.fetch = jest
+          .fn()
+          .mockResolvedValue(response) as unknown as typeof fetch;
+        await client.resolvePlayer("yx-1", SENTINEL_TOKEN);
+      }
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(
+          new Error("ECONNREFUSED"),
+        ) as unknown as typeof fetch;
+      await client.resolvePlayer("yx-1", SENTINEL_TOKEN);
+
+      expect(child.warn).toHaveBeenCalled();
+      expect(loggedText(child)).not.toContain(SENTINEL_TOKEN);
+    });
   });
 
   test("isolates a non-UUID playerId so it can't poison the batch (P1)", async () => {

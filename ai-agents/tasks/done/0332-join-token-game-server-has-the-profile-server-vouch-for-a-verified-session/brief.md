@@ -23,7 +23,7 @@ owner-ruled (end of Sprint 7, 2026-09-28 — see *Context*); the number is simpl
 this task. The dependency (see *Notes*) carries that order; the rank number does not.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 > 📌 **2026-10-07 — reset `🔄 In progress` → `🔲 Backlog`.** Phase 1 (design) is finished and its exit is met (see the
 > 2026-10-07 rulings note at the end). The build (phase 2) has **not** started: by the owner's ruling relayed by
@@ -60,7 +60,7 @@ WebSocket join. Nothing checks it — that is [ADR-103](../../../knowledge-base/
 an accepted risk. Anyone who sends another player's Yandex id is treated as that player at the one place the
 game server learns identity (`GameServer.getCreditableYandexId`, ADR-103's single "funnel").
 
-[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) makes the
+[`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) makes the
 **profile server** able to prove who a player is: at login it checks Yandex's signed player data and issues a
 **verified** session (`vfy:true`). But the game server never sees that session — so `0325` alone changes
 nothing for the game server
@@ -77,12 +77,12 @@ The funnel has four users today; each carries an owner-accepted forged-id risk t
 exit for:
 
 1. **XP crediting** — ADR-103's own scope. Its "re-raise only if" names this step as the expected exit.
-2. **The citizen ★ badge** — [`0068`](../../done/0068-citizen-verified-icon/brief.md): a forged id can show
+2. **The citizen ★ badge** — [`0068`](../0068-citizen-verified-icon/brief.md): a forged id can show
    the ★ (cosmetic, accepted).
-3. **The private-lobby gate** — [`0302`](../../done/0302-private-lobby-as-a-locked-citizen-perk/brief.md):
+3. **The private-lobby gate** — [`0302`](../0302-private-lobby-as-a-locked-citizen-perk/brief.md):
    a forged citizen id can pass the gate (owner-accepted 2026-09-26).
 4. **The approved name in matches** —
-   [`0322`](../../done/0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md) /
+   [`0322`](../0322-game-server-shows-a-citizens-approved-name-in-multiplayer-matches/brief.md) /
    [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md)
    **residual 1**: a forged id shows a citizen's approved name. ADR-115 says verification then goes *inside*
    `getCreditableYandexId` and that residual closes with no change to `0322`'s code.
@@ -202,10 +202,10 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 ### Out of scope — named so it is not absorbed
 
 - ⛔ Verified login itself (`vfy:true` sessions) — that is `0325`.
-- ⛔ The server-confirmed name mark — that is [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md),
+- ⛔ The server-confirmed name mark — that is [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md),
   which waits on this task.
 - ⛔ Gating the profile server's own name-change routes — that is
-  [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md).
+  [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md).
 - ⛔ Other platforms (web, email, Apple) — `0267` item 4.
 
 ## Verification steps
@@ -233,9 +233,9 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 
 ## Notes
 
-- **Depends on:** [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — there is no verified session to send until it ships; it is `0325`'s slice S3a, split into its own task 2026-09-29). *Repointed 2026-09-29, kept as written:* ~~[`0325`](../../done/0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)~~
-- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). The verified session this task sends in the join now comes from [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md), ~~which waits on [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where this brief says *"`0325`"* or *"its slice S3a"* for the verified session, read `0340`.
-- **Blocks:** [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard — the mark is only honest once the game server can check who the player is; owner ruling on `0323`, 2026-09-28)
+- **Depends on:** [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — there is no verified session to send until it ships; it is `0325`'s slice S3a, split into its own task 2026-09-29). *Repointed 2026-09-29, kept as written:* ~~[`0325`](../0325-verified-login-check-yandex-signed-player-data-and-mint-verified-sessions/brief.md) (hard — there is no verified session to send until its slice S3a ships)~~
+- 📌 **2026-09-29 — dependency repointed from `0325` to `0340` (append-only).** Added by a spawned `fkit-producer` at `fkit-lead`'s request, on an OWNER RULING given 2026-09-29 live via `AskUserQuestion` in the `fkit lead` session (ADR-021/037): **"Split it (Recommended)"** — *"Close 0325 as the S2 build (agent-closed). File a 'verify S2 live' task … at the top of Sprint 7, and a separate 'S3a enforce' build task after it."* `0325` closed as the S2 build (it checks the signature but still mints only `vfy:false`). The verified session this task sends in the join now comes from [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md), ~~which waits on [`0339`](../0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (verify S2 live) and an explicit owner approval~~ *(stale — struck 2026-10-05: `0340` no longer waits on any task; it may start now and only its deploy is gated, ADR-122 — see the 2026-10-05 note at the end)*. Where this brief says *"`0325`"* or *"its slice S3a"* for the verified session, read `0340`.
+- **Blocks:** [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard — the mark is only honest once the game server can check who the player is; owner ruling on `0323`, 2026-09-28)
 - **Closes (when phase 2 ships and the owner's per-user policy is applied):** ADR-103's forged-id risk for
   XP crediting · the `0068` ★ forged-id case · the `0302` private-lobby-gate forged-id case · ADR-115
   residual 1 (`0322`). ⚠️ *(2026-10-07: by the owner's rulings Q2–Q5 every perk stays open to unverified players, so
@@ -244,9 +244,9 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 - **Related:** [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md)
   §6 (where this step was first named) · [ADR-103](../../../knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md) ·
   [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) ·
-  ADR-113 (internal player id; session notes) · [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md)
-  (the game-server path is its open scope) · [`0319`](../0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) ·
-  [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md).
+  ADR-113 (internal player id; session notes) · [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md)
+  (the game-server path is its open scope) · [`0319`](../../backlog/0319-close-the-forged-login-name-change-hole-once-identity-is-verified/brief.md) ·
+  [`0250`](../0250-authenticated-profile-read-for-paid-entitlement/brief.md).
 - **Effort:** not estimated — phase 1 decides it.
 - **Privacy/secrets:** no player ids, names, tokens, hosts or IPs in the report, tests, worklog or brief.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
@@ -265,8 +265,8 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 - **Before this task's deploy:** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
   `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
   wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
-  worklog. The read is read-only, done the same way as [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
-- **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
+  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+- **Unchanged:** this task still depends on [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
   sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
   needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
   approval of anything beyond this task's deploy.
@@ -278,7 +278,7 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
 *"Note only (Recommended)"*.
 
-- **Deploy this task only after [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+- **Deploy this task only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
   and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
   DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
 - **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the
@@ -287,7 +287,7 @@ verify-live task (filed at this build's close, per the owner's build/verify-spli
 - No status, sprint or rank changed by this note. No mover run.
 
 > 📌 **2026-10-06 — pointer: the player-facing "not confirmed" message lives in
-> [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md).** Added by a spawned `fkit-producer` at
+> [`0397`](../0397-show-players-whether-their-session-is-verified/brief.md).** Added by a spawned `fkit-producer` at
 > `fkit-lead`'s request, after the owner's `0397` Step 1 rulings (2026-10-06). `0397` shows unverified **citizens** a
 > neutral message that today names only one cost: **ads**. **When the owner rules here what an unverified player loses**
 > (XP crediting, the ★ badge, the private-lobby gate, the approved name), the task that implements that ruling must:
@@ -309,7 +309,7 @@ the numbers any more.
   the 2026-10-05 note above (ADR-122's owner-judgment look). This deploy no longer waits on it, and the worklog no
   longer needs to record a window, numbers and an owner's call on them.
 - **Still happens, non-blocking:** the numbers are monitored, and the owner re-reads them in a few days to inform later
-  decisions — task [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
+  decisions — task [`0402`](../../backlog/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
   waits on it.
 - **Unchanged:** the `Depends on` line; the 2026-10-05 *"deploy only after `0395` confirms `vfy: true` live"* note
   (`0395` confirmed `vfy: true` live 2026-10-07); the weekend-slot and commit-on-ask rules. This ruling removes only the
@@ -347,7 +347,7 @@ rulings — **the build is not started.**
   filed now.**
 - **Q5 went against the recommendation:** approved names are **not** limited to verified players. ADR-115 residual 1
   (a forged id shows a citizen's approved name) **stays open by owner ruling**. Consequence for
-  [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md): its "server-confirmed name" mark cannot
+  [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md): its "server-confirmed name" mark cannot
   rely on the name swap alone and needs its own verified check, using the `verified` bit this build provides — a dated
   note was added there. `0323` still depends on this task.
 - **Q6:** the token rides the existing resolve call (ADR-124 option A); the game box briefly holds bearer tokens in
@@ -356,10 +356,51 @@ rulings — **the build is not started.**
   matters only if a later ruling denies a perk.
 - **Q8:** ADR-124 is accepted with these answers. Its file and the dated notes on ADR-103 / ADR-113 / ADR-115 / ADR-116
   are `fkit-architect`'s, in progress in a separate spawn — **not edited here.**
-- [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md): narrowed by a dated note — its "game-server
+- [`0267`](../../backlog/0267-investigate-verifying-platform-player-identity/brief.md): narrowed by a dated note — its "game-server
   path" scope is now this task / ADR-124.
 
 **Changed here:** `## Status` → `🔲 Backlog` (was `🔄 In progress`); `## Owner` → `fkit-coder`; phase-1 exit marked met;
 *Phase 2 — Build* scoped; the open question struck as answered; the *Closes* note annotated (this build closes none of
 the four forged-id risks). Sprint 7 board row updated to match. **Unchanged:** sprint, rank, `Depends on` / `Blocks`
 lines, the deploy notes above. No mover run, nothing committed, no wiki write.
+
+## 📌 2026-10-07 — CLOSED `✅ Done (agent-closed — not owner-verified)`, on an owner ruling, despite a not-clean verify (appended; nothing above edited, ADR-035)
+
+**Provenance.** Closed by a spawned `fkit-producer` with no owner channel (ADR-021/037), routed by `fkit-lead` driving
+`/fkit-sprint-ship-loop` on Sprint 7. ⛔ Not producer precedent. **OWNER RULING given live 2026-10-07 via
+`AskUserQuestion` in the `fkit lead` session**, relayed verbatim. Question: *"Close 0332? The new code passed every
+test, every time (10 out of 10). But the full test suite failed 2 of 3 times on unrelated profile-server tests, and
+those failures have a known flaky pattern. The rate was higher than usual today, and the old code showed about the same
+rate in an earlier side-by-side check. The close would be marked 'closed by an agent, not checked by you'. You deploy it
+in the weekend slot."* Answer: **"Close it (Recommended)"** — *"A producer closes 0332 and files the 'verify it live'
+task for after the deploy. The high flaky-test rate gets noted in the close."*
+
+**What was built.** The owner-approved [`plan.md`](plan.md) (blob `68ec270553e110c9d5c531bdcc7bbb33393969c1`), one
+slice, **no player-visible change**: the token rides the existing resolve call, the profile server vouches, the funnel
+returns `{ yandexId, verified }`, both counters, and the log-leak fix and hardening. Details: [`worklog.md`](worklog.md).
+
+**Verification — NOT clean; recorded plainly.**
+- Post-fix independent verify: full `npm test` **red in 2 of 3 runs**, a different `supertest` suite each time —
+  `AlertRoutes` (unexpected 404), `LoginRoutes` (5000 ms timeout), `TenureGrantRoutes` (socket hang up). Run 3 green,
+  4108 / 4108.
+- Each failing suite: 10 / 10 green alone. The new queue-logic suites: 10 / 10 green. `0197` (the `SIGSEGV`) ruled out.
+  Lint and `tsc` clean.
+- Read as the known `supertest` flake family — **likely, not proven.** ⚠️ **The rate was above the ~4–7 % measured in
+  `0200`.** An earlier side-by-side check (before the review fixes) showed the old code failing at a similar rate.
+- The build's own runs are in the worklog (round 1: one red run, then green; review round 1: 4108 / 4108 in one run).
+- **Integration suite (`gc-0012-it-pg`) NOT run** — the container was down.
+
+**Review.** 2 rounds, `/fkit-stateful-review`; coverage **reasoning-only second opinion** in both rounds (Codex ran and
+found nothing; it ran no tests). R1 ✅ fixed (owner ruling) · R2 accepted residual → task
+[`0404`](../0404-refresh-the-game-popup-after-about-24-hours-start-screen-only/brief.md) (owner ruling) ·
+R3 ✅ fixed · R4 ✅ ADR-124 note (owner ruling). Ledger [`review.md`](review.md) `Status: closed-out`.
+
+**Not done.** Not committed (the owner commits). Not deployed — owner-run, weekend slot: **profile server first, then
+the game image** (plan §6). Not proved live.
+
+**Verify task filed** (owner's build/verify-split rule, 2026-09-29):
+[`0405`](../../backlog/0405-verify-0332-live-read-the-identity-counters-and-confirm-no-session-token-in-the-logs/brief.md),
+on [Sprint 8](../../../sprints/plan-sprint-8.md). It does not block Sprint 7's deploy.
+
+**Unchanged by this close:** the four forged-id risks stay owner-accepted (Q2–Q5); ADR-115 residual 1 stays open;
+`0323`'s dependency on this task is now met as a **build** (not deployed); its other dependencies were not re-checked here.

@@ -9,7 +9,10 @@ import {
   flashist_markGameInitComplete,
   flashistConstants,
 } from "../../src/client/flashist/FlashistFacade";
-import { AFTER_MATCH_EXIT_KEY } from "../../src/client/PlatformDegradedAnalytics";
+import {
+  AFTER_LONG_SESSION_REFRESH_KEY,
+  AFTER_MATCH_EXIT_KEY,
+} from "../../src/client/PlatformDegradedAnalytics";
 import { SDK_LOADER_SCRIPT_ID } from "../../src/client/SdkLoaderRetry";
 
 jest.mock("gameanalytics");
@@ -33,6 +36,7 @@ type Internals = {
   sdkScriptSettled?: boolean;
   platformInitTimeoutStage?: "script" | "init";
   bootFollowsMatchExit?: boolean;
+  bootFollowsLongSessionRefresh?: boolean;
 };
 // Omit drops the class's private members, which would otherwise collapse the
 // intersection with these test-only views of them to `never`.
@@ -337,6 +341,47 @@ describe("the after-match marker", () => {
       facade.initializeImmediate();
 
       expect(facade.bootFollowsMatchExit).toBe(false);
+      expect(facade.bootFollowsLongSessionRefresh).toBe(false);
+    });
+
+    it("task 0404 (§2.9): a boot after the refresh popup reads true, removes its marker, and is not after a match", () => {
+      window.sessionStorage.setItem(AFTER_LONG_SESSION_REFRESH_KEY, "1");
+      const facade = makeFacade();
+
+      facade.initializeImmediate();
+
+      expect(facade.bootFollowsLongSessionRefresh).toBe(true);
+      expect(facade.bootFollowsMatchExit).toBe(false);
+      expect(
+        window.sessionStorage.getItem(AFTER_LONG_SESSION_REFRESH_KEY),
+      ).toBeNull();
+    });
+
+    it("task 0404 (§2.9): both markers are read and removed on the same boot", () => {
+      window.sessionStorage.setItem(AFTER_MATCH_EXIT_KEY, "1");
+      window.sessionStorage.setItem(AFTER_LONG_SESSION_REFRESH_KEY, "1");
+      const facade = makeFacade();
+
+      facade.initializeImmediate();
+
+      expect(facade.bootFollowsMatchExit).toBe(true);
+      expect(facade.bootFollowsLongSessionRefresh).toBe(true);
+      expect(window.sessionStorage.getItem(AFTER_MATCH_EXIT_KEY)).toBeNull();
+      expect(
+        window.sessionStorage.getItem(AFTER_LONG_SESSION_REFRESH_KEY),
+      ).toBeNull();
+    });
+
+    it("task 0404 (§2.9): a degraded boot after the refresh popup logs value 0 (not after a match)", async () => {
+      window.sessionStorage.setItem(AFTER_LONG_SESSION_REFRESH_KEY, "1");
+      const facade = makeFacade();
+      facade.initializeImmediate();
+      process.env.DEPLOY_ENV = "prod";
+      addDesignEvent.mockReset();
+
+      await facade.logPlatformDegradedEvent();
+
+      expect(degradedCalls()).toEqual([[`${DEGRADED}NoSdk`, 0, true]]);
     });
 
     it("storage throwing → boot still completes, value reads false", () => {

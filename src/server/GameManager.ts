@@ -9,7 +9,13 @@ import {
 } from "../core/game/Game";
 import { GameConfig, GameID } from "../core/Schemas";
 import { Client } from "./Client";
-import { GamePhase, GameServer } from "./GameServer";
+import {
+  GamePhase,
+  GameServer,
+  MATCH_IDENTITY_STATES,
+  MatchIdentityState,
+  emptyMatchIdentityCounts,
+} from "./GameServer";
 import { formatError } from "./Logger";
 import { ProfileApiClient } from "./ProfileApiClient";
 
@@ -17,6 +23,9 @@ export class GameManager {
   private games: Map<GameID, GameServer> = new Map();
   private _totalBytesSent: number = 0;
   private _totalBytesReceived: number = 0;
+  // Task 0332 (ADR-124). Start-time identity counts of the games already removed.
+  private _matchIdentityTotals: Record<MatchIdentityState, number> =
+    emptyMatchIdentityCounts();
 
   constructor(
     private config: ServerConfig,
@@ -125,6 +134,22 @@ export class GameManager {
     return total;
   }
 
+  /**
+   * Task 0332 (ADR-124). Roster players by identity state at match start, summed
+   * over every match this worker has started (cumulative — the
+   * `geoconflict.server.match.identity` counter). Removed games' counts are kept in
+   * `_matchIdentityTotals`; live games add their own.
+   */
+  matchIdentityTotals(): Record<MatchIdentityState, number> {
+    const totals = { ...this._matchIdentityTotals };
+    this.games.forEach((game: GameServer) => {
+      for (const state of MATCH_IDENTITY_STATES) {
+        totals[state] += game.matchIdentityCounts[state];
+      }
+    });
+    return totals;
+  }
+
   tick() {
     const active = new Map<GameID, GameServer>();
     for (const [id, game] of this.games) {
@@ -150,6 +175,10 @@ export class GameManager {
         // tick() runs to completion before any OTEL callback can observe totals.
         this._totalBytesSent += game.bytesSent;
         this._totalBytesReceived += game.bytesReceived;
+        // Task 0332: same reason — accumulated before the game leaves this.games.
+        for (const state of MATCH_IDENTITY_STATES) {
+          this._matchIdentityTotals[state] += game.matchIdentityCounts[state];
+        }
         try {
           game.end();
         } catch (error) {

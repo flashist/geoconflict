@@ -53,6 +53,28 @@ export class Client {
    */
   public approvedName: string | null = null;
 
+  /**
+   * Task 0332 (ADR-124). The player's profile-server session token, as sent in the
+   * join or a late `update_identity`; null when none was sent or once a vouch has
+   * answered for it (GameServer.applyVouchResult).
+   *
+   * ⛔ A CREDENTIAL (a 24 h bearer token, no revocation). SERVER-ONLY: never sent to
+   * any client, never logged, never put in game info, a turn or the archive. Written
+   * by Worker at construction and by `GameServer.acceptProfileSession`; read ONLY on
+   * the resolve path (`GameServer.startProfileResolve`), which forwards it to the
+   * profile server to be vouched for.
+   */
+  public profileSession: string | null = null;
+
+  /**
+   * Task 0332 (ADR-124). True once the profile server vouched that this client's
+   * session token is a verified (`vfy:true`) session of the very player its Yandex id
+   * resolves to. false → true only, never cleared, per Client object (a reconnect
+   * carries it only for the same id). SERVER-ONLY, never sent or logged. Read ONLY
+   * through the identity funnel (`GameServer.getCreditableIdentity`).
+   */
+  public identityVerified = false;
+
   constructor(
     public readonly clientID: ClientID,
     public readonly persistentID: string,
