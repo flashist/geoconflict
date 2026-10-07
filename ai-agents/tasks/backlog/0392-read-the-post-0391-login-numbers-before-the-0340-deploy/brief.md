@@ -40,7 +40,11 @@ Sprint 7
 > that renumbers no closed row.
 
 ## Status
-🔲 Backlog
+🚧 Blocked — the read was refused by the session permission system (auto-mode "Production Reads" denial), 2026-10-07
+
+*(2026-10-07 — set by the same spawned `fkit-producer`: SSH to the telemetry box connected (route direct, no VPN in the way) and two read-only schema queries ran; the first query on the login metric was then denied by the Claude Code permission classifier. **No numbers were read.** Unblocks when the owner allows read-only production reads for this session, or runs the read. See [worklog](worklog.md). Earlier value, kept as history:)* ~~🔄 In progress~~
+
+*(2026-10-07 — set by a spawned `fkit-producer` (no owner channel, ADR-021/037) on an OWNER RULING given live 2026-10-07 in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent. Lead: *"Late this week, do `0392`."* Owner, verbatim: *"0392 - do it yoursel"* — an agent runs the read. This confirms the read-only SSH approval the `## Owner` field asks for (earlier approval, 2026-10-05: *"Regarding reading only ssh to a server: I give you my approve."*). Read-only only: `SELECT` / `--readonly=1`, no writes, restarts or config changes. Earlier value, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **MAY BE EXECUTED BY THE OWNER, or by an agent session with the owner's approval for read-only
