@@ -5,6 +5,16 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-06 (latest, `31bfb06`): 13 rows — 2 `✅ Done` · 4 `🔲 Backlog` · 7 `➡️ Moved`; 4 OPEN** (was 12 / 7). ⚠️
+> Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
+> - ➕ **13** `0401` — verify `0301` live ([[tasks/citizenship-explainer-popup]]), filed here at `0301`'s close (append
+>   rank), then ➡️ **moved to [[decisions/sprint-7]] (48)** the same day.
+> - ➡️ **10** `0396`, **11** `0398` moved to Sprint 7 (49, 50) — owner *"Move both to Sprint 7 (Recommended)"*; **12**
+>   `0400` followed (51) — owner *"Move it to Sprint 7 (Recommended)"*. The placement question on each is answered;
+>   the ranks here are kept, not renumbered (ADR-035).
+> - **Still open here:** `0370` (1), `0351` (5), `0343` (6), `0390` (7). `0343`'s brief changed in this window only by
+>   two `0301` link repoints (`backlog/` → `done/`).
+>
 > 🆕 **2026-10-06 (latest, `036a5c8`): 12 rows — 2 `✅ Done` · 7 `🔲 Backlog` · 3 `➡️ Moved`; 7 OPEN** (was 10 / 5). ⚠️
 > Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged. Two verify rows appended on
 > the build/verify-split rule (2026-09-29), each ⚠️ an append rank flagged for owner confirmation (ranks 2–4 are closed
@@ -211,3 +221,4 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/stale-login-fix-decision]] — task `0373`, filed here (rank 2), moved to Sprint 7 on 2026-10-04
 - [[tasks/paid-citizen-ad-free]] — task `0248`, verified by `0398` (rank 11)
 - [[tasks/session-verified-status-line]] — task `0397`, verified by `0400` (rank 12)
+- [[tasks/citizenship-explainer-popup]] — task `0301`, whose verify `0401` was filed here (rank 13) and moved to Sprint 7 (48) the same day

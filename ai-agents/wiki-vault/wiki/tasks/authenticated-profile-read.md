@@ -11,7 +11,7 @@
 >   deploy** (game `0.0.155` + that evening's profile deploy). ⚠️ Deployed, **not verified in use**.
 > - **S3b — the verified owner view:** built 2026-10-06 on top of `0340` (`71efd10`), **committed in `6f4ab77`**
 >   ("Sprint push", checked with `git show --stat`). 🚨 **NOT DEPLOYED.** Its deploy and live check are task **`0396`**
->   (Sprint 8, rank 10). Until `0340` is live (`0395`), no session is verified, so S3b changes nothing anyone sees.
+>   (~~Sprint 8, rank 10~~ → 📌 **2026-10-06, later: moved to [[decisions/sprint-7]], rank 49** — owner ruling *"Move both to Sprint 7 (Recommended)"*, with `0398`). Until `0340` is live (`0395`), no session is verified, so S3b changes nothing anyone sees.
 
 ## Goal
 
@@ -85,6 +85,7 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[decisions/adr-112-free-xp-grants]] — the tenure-grant reply that S1 equalizes (L3)
 - [[systems/analytics]] — `Citizenship:Earned:XP`, dormant from S1, re-enabled for verified reads by S3b
 - [[decisions/sprint-7]] — the board (rank 17)
-- [[decisions/sprint-8]] — `0396`, the S3b verify task (rank 10)
+- [[decisions/sprint-8]] — `0396`, the S3b verify task (rank 10 there; moved to Sprint 7, rank 49, 2026-10-06)
 - [[tasks/paid-citizen-ad-free]] — task `0248` (closed 2026-10-06): the ad gate that reads S3b's `isPaidCitizen` through one page-wide place
 - [[tasks/session-verified-status-line]] — task `0397` (closed 2026-10-06): adds `isVerifiedRead` to the view and shows the player the verified / not-confirmed state; its rule Q4 constrains S3b's deploy
+- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed

@@ -7,7 +7,7 @@
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` via `/fkit-task-done`, at `fkit-lead`'s instruction under
 > `/fkit-sprint-ship-loop`, on the owner-approved `plan.md`, the build/verify-split rule (2026-09-29) and the owner's
 > close condition, verbatim *"Agent runs with 4 workers (Recommended)"*. ⛔ **Nothing was seen on a real build.** The
-> deploy and the live check are task **`0400`** (Sprint 8, rank 12). Re-checked this sync: commit `036a5c8` is in no
+> deploy and the live check are task **`0400`** (~~Sprint 8, rank 12~~ → 📌 **2026-10-06, later: moved to [[decisions/sprint-7]], rank 51** — owner ruling *"Move it to Sprint 7 (Recommended)"*, relayed by `fkit-lead`; the whole citizenship deploy-and-check chain `0396` / `0398` / `0400` / `0401` now sits on Sprint 7). Re-checked this sync: commit `036a5c8` is in no
 > release tag. Task **`0278` was folded in and cancelled** — see [[decisions/cancelled-tasks]].
 
 ## Goal
@@ -101,5 +101,5 @@ unverified.
 - [[decisions/cancelled-tasks]] — `0278`, folded in and cancelled
 - [[systems/analytics]] — the three `Citizenship:Status:*` events
 - [[decisions/sprint-7]] — the board (rank 46)
-- [[decisions/sprint-8]] — its live check `0400` (rank 12)
+- [[decisions/sprint-8]] — its live check `0400` (rank 12 there; moved to Sprint 7, rank 51, 2026-10-06)
 - [[decisions/sprint-backlog]] — the board that carried `0278` until it was folded in here

@@ -3,6 +3,13 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-06 sync (`31bfb06`) — FIVE MORE STRINGS for the citizenship explainer popup (task `0301`), committed
+> `fc3f539`, NOT deployed:** `Citizenship:Explainer:Opened:{CardLink|Instructions|LockedFeature:PrivateLobby}` and the
+> popup tap ids `UI:Tap:PurchaseCitizenshipExplainer` / `UI:Tap:CitizenshipLoginExplainer`. The reference doc also
+> **closes the 0021-era accepted cost** "no researched-but-didn't-buy signal": opening the explainer is now that signal
+> (`UI:Tap:CitizenshipLearnMore` stays dropped). See *Citizenship Explainer Events* below and
+> [[tasks/citizenship-explainer-popup]].
+>
 > 🆕 **2026-10-06 sync (`036a5c8`) — FOUR NEW EVENTS, all committed, none deployed:**
 > - **`Ad:InterstitialSuppressed:PaidCitizen`** (task `0248`, commit `91eb99a`) — one per interstitial **request** the
 >   paid-citizen gate suppressed. ⚠️ Counts requests, not ads shown: some would have been declined by Yandex's own cap
@@ -532,9 +539,32 @@ All behind the citizenship kill switch; no ids, no paid flag, no value. ⚠️ *
 counts from any earlier deploy would be meaningless — `0397`'s deploy rule prevents that. See
 [[tasks/session-verified-status-line]].
 
+## Citizenship Explainer Events (task `0301` — built 2026-10-06, committed `fc3f539`, NOT deployed)
+
+The "What is citizenship?" popup. One *opened* event per source; it fires only when the popup actually opens — never
+while the citizenship kill switch is off (the popup refuses to open). Each opening counts, so re-opening counts again.
+
+| Event | When fired |
+|---|---|
+| `Citizenship:Explainer:Opened:CardLink` | From the "What is citizenship?" link on the card — shown in every card state except *checking* (owner ruling Q2), so guests, non-citizens, citizens and failed reads can all fire it |
+| `Citizenship:Explainer:Opened:Instructions` | From the Citizenship section at the top of Instructions. Shown only when the citizenship surfaces are on at load; a late flag recovery (`0329`) does not reveal it for that load |
+| `Citizenship:Explainer:Opened:LockedFeature:PrivateLobby` | From a tap on the **locked** Create Lobby button, right after `LockedFeature:Tap:PrivateLobby`. Five colon parts — the GameAnalytics maximum. Unreachable in a local dev build (Create is never locked there) |
+| `UI:Tap:PurchaseCitizenshipExplainer` | Buy tapped **inside the popup**, before the purchase starts; the existing `Purchase:*:Citizenship` events follow unchanged. A tap while a purchase is already running fires **nothing** (one shared latch with the card, checked before the event — review R1 corrected the doc to match the code) |
+| `UI:Tap:CitizenshipLoginExplainer` | A guest taps login **inside the popup** — only where a login can work (Yandex context, SDK not degraded). The `Profile:Login:Restart:*` funnel follows as for the card's login button |
+
+**Funnel reading:** Opened → `UI:Tap:PurchaseCitizenshipExplainer` → `Purchase:Started/Completed/Abandoned:Citizenship`.
+The purchase events are **not** split by surface; the tap events are. Fired through
+`FlashistFacade.logCitizenshipExplainerOpenedEvent(sourceSuffix)` from `CitizenshipExplainerModal.show()`; callers open
+the popup only via `openCitizenshipExplainer()` in `src/client/CitizenshipExplainer.ts`. See
+[[tasks/citizenship-explainer-popup]].
+
 ## Locked Feature Events (task `0302` — built 2026-09-27, not yet released)
 
-`LockedFeature:Tap:{FeatureId}` — one event per tap on a citizen perk shown **locked**. Today only `LockedFeature:Tap:PrivateLobby` (the locked "Create Lobby" button; never for a citizen, never while the row is hidden). Fire only through `onLockedFeatureTap(featureId)` in `src/client/LockedFeature.ts`; ids in `flashistConstants.lockedFeatureIds`. The "explainer opened" event belongs to `0301`. See [[tasks/private-lobby-citizen-perk]].
+`LockedFeature:Tap:{FeatureId}` — one event per tap on a citizen perk shown **locked**. Today only `LockedFeature:Tap:PrivateLobby` (the locked "Create Lobby" button; never for a citizen, never while the row is hidden). Fire only through `onLockedFeatureTap(featureId)` in `src/client/LockedFeature.ts`; ids in `flashistConstants.lockedFeatureIds`. The "explainer opened" event belongs to `0301`. See [[tasks/private-lobby-citizen-perk]]. 📌 **2026-10-06:** that
+event is now `Citizenship:Explainer:Opened:LockedFeature:{FeatureId}`, fired right after this one (task `0301`,
+committed, not deployed — *Citizenship Explainer Events* above). Until `0301` deploys, a locked tap still opens
+`0302`'s interim popup. ⚠️ This heading's *"not yet released"* predates the record that `0302`'s code went to
+production in `0.0.155` behind the flags ([[tasks/private-lobby-citizen-perk]]); left as written, flagged here.
 
 > ⚠️ **`Citizenship:Earned:XP` is DORMANT** per the reference doc, from task `0250`'s slice S1 profile-server deploy until its slice S3b — an unverified profile read now carries `citizenship_earned_at: null` for every player (owner ruling D4), so no client can observe the transition. In the committed tree (`68303d5`) the client no longer calls `reportEarnedCitizenshipTransition` at all (`src/client/PlayerProfileView.ts`, the "deliberately NOT called (task 0250" comment). ⚠️ `0250` itself is still **🚧 Blocked** (S1 built and reviewed; S3b waits on `0325`), ~~and no S1 deploy is recorded in the repo~~. See [[systems/player-profile-store]]. 📌 **2026-10-02 correction:** S1 **went live in the 2026-09-29 deploy** (commit `68303d5` is in game tag `0.0.155`; the `0250` brief and Sprint 7 row now say so — [[systems/weekend-deploy-window]]), so this event is dormant in production now, not only in the tree. Deployed, **not verified in use**. S3b now waits on `0340`, not `0325`.
 
@@ -671,3 +701,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[decisions/adr-121-login-signature-24h-window]] — the window change behind the §A1 rewrite
 - [[tasks/paid-citizen-ad-free]] — task `0248`: `Ad:InterstitialSuppressed:PaidCitizen` (committed, not deployed)
 - [[tasks/session-verified-status-line]] — task `0397`: the three `Citizenship:Status:*` events (committed, not deployed)
+- [[tasks/citizenship-explainer-popup]] — task `0301`: the three `Citizenship:Explainer:Opened:*` events and the two popup tap ids (committed, not deployed)

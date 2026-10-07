@@ -134,3 +134,4 @@ unknown** — backlog follow-ups `0309` → `0310`. A snapshot at about 14:47 UT
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): closed on local proof; which construction matched is still unknown
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the test-buy split out of this task (closed 2026-10-05)
 - [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak this page flagged at launch
+- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the "nothing explains citizenship" follow-up — committed, not deployed

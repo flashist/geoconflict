@@ -58,3 +58,4 @@ Inventory what does not update after a purchase, then choose live update vs a re
 - [[tasks/citizenship-card-vanishes-investigation]] — task `0318` (2026-09-28): why the citizenship card vanished after a match on a shaky connection
 - [[tasks/tenure-popup-never-over-match]] — task `0336` (2026-09-30): the tenure popup follows this task's "never interrupt a lobby or match" rule
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): its *couldn't load profile* **Restart game** helper is a separate sibling of this task's player-tapped reload, with its own event
+- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): a purchase from the explainer popup goes through the card, so it follows the same restart path

@@ -5,6 +5,30 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-06 (latest, `31bfb06`) — 52 ROWS, 10 OPEN: `0301` CLOSED; THE WHOLE CITIZENSHIP VERIFY CHAIN MOVED IN AT 48–51
+>
+> **Re-counted at `HEAD` = `31bfb06`: 52 rows — 37 `✅ Done` · 9 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 10 OPEN** (was 48 / 7). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`.
+>
+> - ✅ **19** `0301` — the "What is citizenship?" explainer popup; `(agent-closed — not owner-verified)`; built,
+>   committed `fc3f539`, **not deployed** ([[tasks/citizenship-explainer-popup]]). ⚠️ The local look in a real browser
+>   was **not done**. Deploying it also deploys `0248`. The row says *"Not committed"* — stale against `fc3f539`.
+> - ➕ **48** `0401` — verify `0301` live (filed on Sprint 8 at 13, moved in; owner *"Move it to Sprint 7"*).
+> - ➕ **49** `0396` (verify `0250` S3b) and **50** `0398` (verify `0248`) — moved in from Sprint 8 (10, 11); owner
+>   *"Move both to Sprint 7 (Recommended)"*. **51** `0400` (verify `0397`) — moved in from Sprint 8 (12); owner
+>   *"Move it to Sprint 7 (Recommended)"*. The whole citizenship deploy-and-check chain is now on this board.
+> - ⚠️ All four are **ADR-035 append ranks, not merit ranks** — flagged for owner confirmation. On merit: `0396` right
+>   after `0395` (45); `0398`, `0400` and `0401` in the same slot right after `0396`. All wait on weekend deploy slots,
+>   earliest after 10/11 Oct — some may run past the sprint's end (the option text said so).
+> - `0401` questions (a)–(e) all answered 2026-10-06: agent local look first, then the owner; Console snippets; the test
+>   payment on the owner's currently paid account; and (e) — the locked Create Lobby tap cannot show on a dev build
+>   (`isCreateLocked()` is `false` there) — ✅ OWNER RULING *"Accept the half test"*: no local production-build attempt,
+>   Snippet B half-tested on `npm run dev`, the owner's live check 4 in Yandex is the first full test of the locked look
+>   and tap. ⚠️ The board's own `0401` addendum still reads *"New open question (e)"* — stale against the `0401` brief
+>   (the brief carries the ruling). *(Corrected 2026-10-06: this page first said (e) was open.)*
+> - **Still open:** `0219` (Blocked), `0323`, `0332`, `0213`, `0392`, `0395`, `0401`, `0396`, `0398`, `0400`.
+>
 > # 🆕 2026-10-06 (latest, `036a5c8`) — 48 ROWS, 7 OPEN: `0248` CLOSED, `0397` AND `0399` ADDED AND CLOSED
 >
 > **Re-counted at `HEAD` = `036a5c8`: 48 rows — 36 `✅ Done` · 6 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -621,3 +645,4 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/paid-citizen-ad-free]] — task `0248` (rank 18), closed 2026-10-06; committed, not deployed; live check `0398` on Sprint 8
 - [[tasks/session-verified-status-line]] — task `0397` (rank 46), added and closed 2026-10-06; committed, not deployed; live check `0400` on Sprint 8
 - [[tasks/jest-worker-cap]] — task `0399` (rank 47), added and closed 2026-10-06
+- [[tasks/citizenship-explainer-popup]] — task `0301` (rank 19), closed 2026-10-06; committed `fc3f539`, not deployed; verify `0401` at rank 48

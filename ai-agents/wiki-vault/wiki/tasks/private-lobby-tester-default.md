@@ -53,3 +53,4 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[systems/flashist-init]] — the flag read and the degraded boot
 - [[systems/analytics]] — the `Experiment:private_lobbies_all:*` cohort event
 - [[decisions/sprint-7]] — the board (rank 37)
+- [[tasks/citizenship-explainer-popup]] — task `0301`, release-gate item 5: built and committed (`fc3f539`) 2026-10-06; met only on deploy

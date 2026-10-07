@@ -229,3 +229,4 @@ Source: `ai-agents/sprints/done/plan-sprint-6.md` *(moved from ~~`ai-agents/spri
 - [[tasks/match-exit-keeps-query-string]] — task `0331`, closed on this board 2026-09-29
 - [[decisions/adr-116-verified-login]] — the ADR carried by this board's `0325`
 - [[tasks/player-name-lost-space]] — task `0308`, filed, ranked and parked here; cancelled on Sprint 7 2026-10-01
+- [[tasks/citizenship-explainer-popup]] — task `0301`, filed and ranked here 2026-09-26; moved to Sprint 7, closed there 2026-10-06

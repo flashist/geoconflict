@@ -7,7 +7,7 @@
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` via `/fkit-task-done`, at `fkit-lead`'s instruction under
 > `/fkit-sprint-ship-loop`, on the owner-approved `plan.md` and the owner's build/verify-split rule (2026-09-29): it
 > closes once built and reviewed. ⛔ **Nothing was seen live.** The deploy and the live check are task **`0398`**
-> (Sprint 8, rank 11). Re-checked this sync: the build is in commit `91eb99a`, which no release tag contains.
+> (~~Sprint 8, rank 11~~ → 📌 **2026-10-06, later: moved to [[decisions/sprint-7]], rank 50** — owner ruling *"Move both to Sprint 7 (Recommended)"*, with `0396`). 📌 **2026-10-06: `0301` ([[tasks/citizenship-explainer-popup]]) is built on top of this task and committed in `fc3f539`; any `0301` deploy also deploys this one, so these gates bind it — its live check `0401` runs in the same slot as `0398`.** Re-checked this sync: the build is in commit `91eb99a`, which no release tag contains.
 
 ## Goal
 
@@ -105,5 +105,6 @@ everybody the moment the profile server had a bad minute.
 - [[decisions/adr-116-verified-login]] — Decision 4: an unverified read never grants a paid benefit
 - [[tasks/citizenship-paid]] — task `0018`, the paid citizenship being rewarded here
 - [[decisions/sprint-7]] — the board (rank 18), closed 2026-10-06
-- [[decisions/sprint-8]] — its live check `0398` (rank 11)
+- [[decisions/sprint-8]] — its live check `0398` (rank 11 there; moved to Sprint 7, rank 50, 2026-10-06)
 - [[systems/project-brief]] — the `PROJECT.md` claim this task makes true
+- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): lists this perk (*paid* only) and ships in the same deploy

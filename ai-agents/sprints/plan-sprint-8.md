@@ -93,7 +93,8 @@ coin economy, clans). The name (ruling D) is not a goal.
 >   above is now `➡️ Moved to Sprint 7 — priority 48`; its rank 13 kept (ADR-035). On [Sprint 7](plan-sprint-7.md) it is
 >   **appended at 48 — append rank, not a merit rank**. The brief's `## Sprint` / `## Priority` are updated (old values struck).
 > - The brief records the rulings and adds a step: an agent writes and tests the two Console snippets on the local dev
->   build before the owner's live checks. ⚠️ New open question (e): the locked tap cannot show on a dev build at all.
+>   build before the owner's live checks. ~~⚠️ New open question (e): the locked tap cannot show on a dev build at all.~~
+>   📌 *answered 2026-10-06 — OWNER RULING "Accept the half test" (relayed by `fkit-lead`): no local prod-build attempt; Snippet B is tested on `npm run dev` only for the half dev can show; the owner's live check 4 in Yandex is the first full test of the locked look and the locked tap.*
 >
 > ⛔ **WHAT DID NOT HAPPEN.** Line-3 banner not touched (still `🔲 Backlog`); no other row moved or renumbered; no mover
 > run; nothing committed or pushed; nothing under `ai-agents/wiki-vault/` touched.

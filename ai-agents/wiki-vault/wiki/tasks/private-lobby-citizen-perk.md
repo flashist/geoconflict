@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 📌 **2026-10-06 sync (`31bfb06`) — `0301` DONE (agent-closed — not owner-verified), committed `fc3f539`, ⚠️ NOT
+> DEPLOYED** ([[tasks/citizenship-explainer-popup]]). It **deletes this task's interim "citizens only" popup**
+> (`CitizensOnlyModal.ts`, its keys and template tags) and points the locked Create Lobby tap at the full explainer,
+> which now fires `Citizenship:Explainer:Opened:LockedFeature:PrivateLobby` after `LockedFeature:Tap:PrivateLobby`.
+> The interim popup is **still what production shows** (it went live alone in `0.0.155`). **Gate item 5 is met only on
+> deploy**; the live check is `0401` (Sprint 7, rank 48).
+>
 > 📌 **2026-10-06 sync (`6f4ab77`) — the five Sprint 7 private-lobby tasks plus `0389` are DONE (agent-closed — not
 > owner-verified), all committed in `8d74090` (2026-10-05) and ⚠️ NOT DEPLOYED** (no game deploy since `0.0.156`):
 > [[tasks/private-lobby-tester-default]] (`0354`, gate item 1 ✅), [[tasks/yandex-invite-copies-code]] (`0380`, half of
@@ -139,3 +146,4 @@ of the perks would depend on it."*
 - [[tasks/host-window-poll-before-lobby]] — task `0353`, host-window poll fix
 - [[tasks/lobby-window-joining-mark]] — task `0374`, the joining mark ends on close
 - [[tasks/private-lobby-code-format]] — task `0389`, the new private-lobby code
+- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06, not deployed): replaces the interim popup; gate item 5
