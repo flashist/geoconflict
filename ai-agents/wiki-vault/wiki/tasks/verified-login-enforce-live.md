@@ -86,3 +86,4 @@ Nothing in source. The record, by Verification step:
 - [[tasks/stale-login-fix-decision]] — task `0373`, the decision that led to the 24 h window
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 check this chain answered
 - [[tasks/verified-login-shadow-mode]] — task `0325`, S0 + S2 — the slices before S3a
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07, after this deploy: the login numbers stop gating later `verified` deploys

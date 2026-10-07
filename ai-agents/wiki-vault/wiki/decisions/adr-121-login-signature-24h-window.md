@@ -52,7 +52,8 @@ after `ACCOUNT_SELECTION_DIALOG_CLOSED` and `openAuthDialog`.
 3. **Re-login on account switch** — after `ACCOUNT_SELECTION_DIALOG_CLOSED` and after `openAuthDialog`.
 4. ⛔ ~~**Acceptance gate:** server-side `stale` share ≤ 5 % over 7 days after the fix ships.~~ **Superseded by
    ADR-122** — no fixed window or threshold; the owner looks at the data at hand. ADR-116's separate requirement of an
-   explicit owner approval to enforce is **unchanged**.
+   explicit owner approval to enforce is **unchanged**. ⛔ *2026-10-07: that look is itself no longer a per-deploy gate —
+   [[decisions/adr-123-login-numbers-monitored-not-gate]]; the numbers are monitored. (No change to the canonical ADR-121.)*
 
 **Superseded in ADR-116:** Decision 3's 900 s; residual 8 (*"up to ~15 min"*) → R1 below; and by consequence the 900 s
 in *Points settled at build* A4 / B4. **Unchanged:** the 300 s future limit, `issuedAt` required, failure ⇒ unverified
@@ -101,3 +102,4 @@ window bump — rejected (`past_15m_20m` only ~11 % of stale).
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): its *not confirmed* line advises closing and reopening the game, not a reload — the same signed data is handed out for the whole visit
 - [[tasks/post-24h-window-login-read]] — task `0392`: the first post-change reading (stale 3.25 %, 2026-10-07)
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 — this window now decides `vfy:true`
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the post-`0391` numbers are monitored, not a deploy gate (amends ADR-122)

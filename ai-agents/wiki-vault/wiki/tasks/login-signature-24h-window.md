@@ -85,3 +85,4 @@ counted; every session stays `vfy:false` until `0340`.
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which shipped the 900 s window
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-deploy read (stale 3.25 %)
 - [[tasks/verified-login-enforce-live]] — task `0395`, the next profile deploy; this image is its rollback target
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the owner judges this fix cut the stale tail enough that the numbers stop gating deploys

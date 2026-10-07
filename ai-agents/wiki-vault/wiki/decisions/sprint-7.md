@@ -5,7 +5,29 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-07 (latest, `03d027b`) — 52 ROWS, 8 OPEN: `0392` AND `0395` CLOSED — S3a (`0340`) IS LIVE
+> # 🆕 2026-10-07 (latest, `c24b132`) — 53 ROWS, 9 OPEN: THE LOGIN NUMBERS ARE NO LONGER A DEPLOY GATE; `0402` ADDED
+>
+> **Re-counted at `HEAD` = `c24b132`: 53 rows — 39 `✅ Done` · 8 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 9 OPEN** (was 52 / 8). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`.
+>
+> - ⛔ **OWNER RULING, live in session 2026-10-07, relayed to a spawned `fkit-producer` with no owner channel (not
+>   producer precedent):** the post-`0391` login numbers (stale share, `ok`, `id_mismatch`, `bad_payload`) are **no
+>   longer a gate** for any deploy that reads `verified` — recorded as [[decisions/adr-123-login-numbers-monitored-not-gate]]
+>   (amends [[decisions/adr-122-stale-login-gate-owner-judgment]]). Verbatim: *"I made a decision that we no longer
+>   wait for those numbers. Monitor them as planned and after a few days we will check them again …"*.
+> - 📌 **49** `0396` (verify `0250` S3b) — **gate 3 (the owner's ADR-122 look) removed**; gates 1 and 2 met
+>   2026-10-07; the weekend slot is still open. Dated pointer only; the row's history is unchanged.
+> - 📝 Per the board, dated append-only notes were added to the `0396`, `0319`, `0332` and `0323` briefs; `0398`, `0400`
+>   and `0401` never carried the gate. ⚠️ Those briefs are backlog and were not ingested here.
+> - ➕ **52** `0402` — *"Re-read the post-0340 login-verification numbers in a few days"*: read-only, same method as
+>   `0392` ([[tasks/post-24h-window-login-read]]), from the first point after the latest profile deploy (counters
+>   restart at each profile deploy); **blocks nothing**. ⚠️ **Append rank, not a merit rank — flagged for owner
+>   confirmation**; on merit its rank barely matters (time-gated, non-blocking). No vault task page yet (backlog).
+> - No other row moved, was renumbered, or changed status.
+> - **Still open:** `0219` (Blocked), `0323`, `0332`, `0213`, `0401`, `0396`, `0398`, `0400`, `0402`.
+>
+> # 🆕 2026-10-07 (`03d027b`) — 52 ROWS, 8 OPEN: `0392` AND `0395` CLOSED — S3a (`0340`) IS LIVE
 >
 > **Re-counted at `HEAD` = `03d027b`: 52 rows — 39 `✅ Done` · 7 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 8 OPEN** (was 52 / 10). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
@@ -669,3 +691,4 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/citizenship-explainer-popup]] — task `0301` (rank 19), closed 2026-10-06; committed `fc3f539`, not deployed; verify `0401` at rank 48
 - [[tasks/post-24h-window-login-read]] — task `0392` (rank 44): the post-`0391` login read, closed 2026-10-07
 - [[tasks/verified-login-enforce-live]] — task `0395` (rank 45): S3a deployed and `vfy: true` confirmed, closed 2026-10-07
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers stop gating `0396` and the other `verified` deploys; `0402` (rank 52) is the non-blocking re-read

@@ -11,6 +11,10 @@
 > still NOT deployed** (`6f4ab77`, in no release tag) — its deploy and check are `0396`, still open on
 > [[decisions/sprint-7]] (rank 49), with its own owner look at the login numbers before deploy (ADR-122). The
 > *"Until `0340` is live"* line below is history.
+> ⛔ **Same day, later — the owner look is no longer a gate** ([[decisions/adr-123-login-numbers-monitored-not-gate]],
+> owner ruling live in session 2026-10-07): `0396` lost its gate 3; gates 1 and 2 are met; the weekend slot is still
+> open (per the Sprint 7 board). Cost accepted knowingly: a paid citizen whose login comes back non-`ok` gets a
+> `vfy:false` session and sees the S1 view once S3b ships. The *"with its own owner look"* wording above is history.
 >
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-06 (brief moved `backlog/` → `done/`), on build + review
 > of its last slice, per the owner's build/verify-split rule (2026-09-29).
@@ -98,3 +102,4 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[tasks/session-verified-status-line]] — task `0397` (closed 2026-10-06): adds `isVerifiedRead` to the view and shows the player the verified / not-confirmed state; its rule Q4 constrains S3b's deploy
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed
 - [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): S3a live, `vfy: true` confirmed — the precondition for S3b's deploy
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: S3b's deploy (`0396`) is no longer held by an owner look at the login numbers

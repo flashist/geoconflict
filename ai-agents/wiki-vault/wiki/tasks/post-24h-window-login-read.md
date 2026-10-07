@@ -28,6 +28,10 @@ needed, no bar"* (ADR-122) → narrowed to **one look before `0340`'s deploy, th
 (Rec)"*). Moved Sprint 8 → Sprint 7 (*"Move to Sprint 7 (Recommended)"*); folder renamed by `git mv`. The later
 `verified` readers (`0250` S3b, `0319`, `0332`, `0323`) each carry their **own** owner-look step — they are no longer
 this task's.
+⛔ **2026-10-07 — those later owner-look steps are no longer gates** ([[decisions/adr-123-login-numbers-monitored-not-gate]],
+owner ruling): the numbers are monitored, and the owner re-reads them *"after a few days"* in task `0402` (Sprint 7,
+non-blocking, same method as this task). ⚠️ This task's ≈ 22.75 h sample is weekday-only; the weekend-evening window is
+not yet measured after `0391`.
 
 ## Key Changes
 
@@ -80,3 +84,4 @@ Nothing in source. The read, same method as `0373`'s server step (ClickHouse `SE
 - [[systems/weekend-deploy-window]] — the 2026-10-07 mid-week profile deploy record
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 check (~32 % stale) this chain answered
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S2 shadow mode whose counter this reads
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the numbers this task read are no longer a deploy gate; `0402` re-reads them non-blocking

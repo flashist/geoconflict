@@ -578,3 +578,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the owner-judgment gate before each `verified` deploy
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07 as `0.0.156-profile.3`, `vfy: true` live
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` login numbers (stale 3.25 %)
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login-verification counters are monitored, not a deploy gate

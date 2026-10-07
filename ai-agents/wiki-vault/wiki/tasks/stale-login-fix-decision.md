@@ -72,3 +72,4 @@ No code. What the readings showed (approximate; client figures are GameAnalytics
 - [[decisions/sprint-8]] — where it was filed (moved out 2026-10-04)
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-fix read (3.25 % vs the ~2.5 % predicted here)
 - [[tasks/verified-login-enforce-live]] — task `0395`, S3a live 2026-10-07
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: carries this task's weekend-evening caveat (20–23 UTC not yet re-measured after `0391`)

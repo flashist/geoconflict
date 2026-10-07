@@ -82,3 +82,4 @@ makes "is this the proven owner?" answerable for the tasks that need it — `025
 - [[tasks/verified-login-enforce-live]] — task `0395`, which deployed this and confirmed `vfy: true` live (2026-10-07)
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-`0391` numbers the owner looked at (stale 3.25 %)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether S3a's `vfy` session is verified; must deploy only after `0395` confirms verified logins live
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers stop gating the `verified` readers after S3a

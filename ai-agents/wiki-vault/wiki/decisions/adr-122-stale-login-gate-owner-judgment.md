@@ -11,6 +11,15 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md`
 >
+> ⛔ **2026-10-07 sync — AMENDED BY [[decisions/adr-123-login-numbers-monitored-not-gate]]** (owner ruling, live in
+> session: *"… they no longer block us …"*; the canonical ADR got dated, append-only ⛔ pointers, every older line
+> byte-identical). **Superseded:** Decision 2 *as a per-deploy gate*, the *Consequences* sentence that the owner's look
+> should be repeated before each deploy that reads `verified`, and the re-raise bullet built on that look. The
+> post-`0391` numbers are now **monitored, not a gate**; the owner re-reads them in a few days (task `0402`,
+> non-blocking). **Decisions 1, 3 and 4, the counters-restart caveat, the separate-slot advice and the other re-raise
+> condition stand; Status stays `accepted`.** ⛔ marks the superseded sites below. The *"each carry their own owner-look
+> step"* lines on this page are history.
+>
 > 🆕 **2026-10-07 sync — the gate was used once, out of order.** No canonical-ADR change. For `0340`: `0392` read
 > ≈ 22.75 h of post-`0391` data (stale **3.25 %**, [[tasks/post-24h-window-login-read]]); the owner deployed `0340`
 > **mid-week** on 2026-10-07 (another owner exception to the weekend slot) and then answered both halves of the gate —
@@ -39,6 +48,8 @@ window starting at a Tuesday deploy cannot finish before the 10/11 Oct weekend s
 1. **The fixed "≤ 5 % over 7 days" gate is removed.** No fixed window, no fixed threshold.
 2. **At each point where the data matters, the owner looks at whatever post-`0391` data exists** and decides to
    proceed or wait. That look *is* the gate.
+   ⛔ *2026-10-07 — superseded by ADR-123 as a per-deploy gate: the numbers no longer hold back any deploy that reads
+   `verified`; they are monitored and re-read non-blocking.*
 3. **`0340` may be built now.** Its deploy needs (a) the owner's look at the data then available, and (b) the
    separate, explicit owner approval to enforce (ADR-116 Decision 6, unchanged).
 4. **`0394` is not a gate** for `0340` or anything else. It stays on the Backlog board.
@@ -56,6 +67,8 @@ Rejected: keeping ADR-121 D4 — it holds `0340` back at least one slot whatever
     as every login is today). The cost appears as readers of `verified` ship, in this order: `0250` S3b (paid citizen
     missing their benefit) → `0248` (paid citizen still sees ads) → `0319` (name change refused) → `0332` / `0323`. **So
     the look should be repeated before each of those deploys.**
+    ⛔ *2026-10-07 — this bold sentence is superseded by ADR-123: no owner look is required before those deploys. The
+    cost order still describes who pays for a stale login; ADR-123's Consequences now carry it.*
   - **Advice: do not deploy `0340` in the same slot as `0250` S3b.**
 - 🚨 **Residual, stated plainly: there is no pre-set number.** No bar exists that a reviewer or an agent can check a
   deploy against. An agent asked *"is the stale share good enough?"* reports the numbers and the caveats above; **it
@@ -63,10 +76,15 @@ Rejected: keeping ADR-121 D4 — it holds `0340` back at least one slot whatever
 - **Re-raise only if** the owner asks for a fixed bar again, or a deploy that reads `verified` is about to ship with
   no owner look on record for it. Otherwise *"`0340` shipped without meeting a stale-share threshold"* is closeout of
   this ADR, not a new defect.
+  ⛔ *2026-10-07 — the second re-raise condition ("a `verified` deploy with no owner look on record") is superseded by
+  ADR-123: that case is now closeout of ADR-123, not a re-raise. The first ("the owner asks for a fixed bar again")
+  stands.*
 - ⚠️ **Appended note (2026-10-05, same day):** `0392` is no longer a "7-day verify" — it moved to Sprint 7 (rank 44),
   was renamed *"Read the post-0391 login numbers before the 0340 deploy"*, and closes after the owner's first look,
   before `0340` deploys. Each later `verified` reader (`0250` S3b, `0319`, `0332`, `0323`) carries its own owner-look
   step — the repeat look this ADR advises.
+  ⛔ *2026-10-07 — those per-task owner-look steps are superseded by ADR-123 (no longer a gate). Removing them from the
+  briefs is a producer's job; the Sprint 7 board records dated notes on `0396`, `0319`, `0332`, `0323`.*
 
 ## Related
 
@@ -74,7 +92,8 @@ Rejected: keeping ADR-121 D4 — it holds `0340` back at least one slot whatever
 - [[decisions/adr-116-verified-login]] — Decision 6 unchanged; dated clarification added there
 - [[tasks/verified-login-enforce]] — task `0340`, built now, deploy gated by this ADR
 - [[tasks/login-signature-24h-window]] — task `0391`, deployed Tue 2026-10-06 by the ruling above
-- [[tasks/authenticated-profile-read]] — task `0250`, whose S3b deploy needs its own owner look
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — amends this ADR (2026-10-07): the numbers are monitored, not a gate
+- [[tasks/authenticated-profile-read]] — task `0250`, whose S3b deploy needed its own owner look (⛔ no longer, ADR-123)
 - [[tasks/stale-login-fix-decision]] — task `0373`, the data behind the caveats
 - [[decisions/sprint-7]] — the board carrying `0340`, `0391`, `0392`, `0395`
 - [[systems/weekend-deploy-window]] — the mid-week exception and the 10/11 Oct slot

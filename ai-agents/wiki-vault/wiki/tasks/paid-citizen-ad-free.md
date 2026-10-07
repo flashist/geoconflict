@@ -108,3 +108,4 @@ everybody the moment the profile server had a bad minute.
 - [[decisions/sprint-8]] — its live check `0398` (rank 11 there; moved to Sprint 7, rank 50, 2026-10-06)
 - [[systems/project-brief]] — the `PROJECT.md` claim this task makes true
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): lists this perk (*paid* only) and ships in the same deploy
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: not held by the login numbers; a non-`ok` login now means a paid citizen sees ads once this ships

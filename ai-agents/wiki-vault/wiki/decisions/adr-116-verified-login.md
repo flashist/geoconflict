@@ -184,3 +184,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed)
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): ad-free reads paid only from the verified owner view (Decision 4); unverified sessions see ads (owner-accepted)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether this session is verified; explains Decision 4, does not soften it
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers no longer gate `verified` deploys; Decision 6 unchanged
