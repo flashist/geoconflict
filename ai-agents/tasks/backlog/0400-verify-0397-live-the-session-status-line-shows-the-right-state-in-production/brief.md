@@ -91,7 +91,7 @@ wording*. Use that table as the answer key; this brief does not copy it, so ther
 Nothing in source. This is a deploy-and-check task, in order.
 
 ### 1. Gates — before deploying
-1. **[`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) has passed** —
+1. **[`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) has passed** —
    verified logins (`vfy: true`) are live.
 2. **[`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) has
    passed, or runs in the same slot, server first** (owner ruling Q4).
@@ -156,7 +156,7 @@ Use a **fresh page load** for each check. Compare every shown text with the *App
 ## Notes
 
 - **Depends on:** [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) (hard — the build,
-  built and reviewed), [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)
+  built and reviewed), [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)
   (hard — verified logins live), [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md)
   (hard — the S3b owner view live, or the same slot server-first per owner ruling Q4)
 - **Blocks:** nothing

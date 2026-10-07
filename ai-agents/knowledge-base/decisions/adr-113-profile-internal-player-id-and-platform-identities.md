@@ -77,6 +77,9 @@ migration later.
      - the session a second login method will need anyway.
    - **A token counts as "proven owner" (e.g. for paid state, `0250`) only once a verified login issues
      `vfy:true`.**
+
+   > 📝 **2026-10-07 — this condition is now met; the 🔓 bullet above holds for `vfy:false` sessions only.**
+   > See § *Note, 2026-10-07 — the verification trigger fired* below. Text above left byte-identical.
 6. **Game server:** the WS join still carries the platform id through ADR-103's seam
    (`getCreditableYandexId`).
    - It calls `/internal/v1/players/resolve` (which **replaces** `/internal/v1/profile/upsert`) and stores
@@ -92,6 +95,10 @@ migration later.
    No second marker table.
 9. **Identity is still client-asserted.** ADR-103's decision stands; login is where verification goes
    (research: `0267`).
+
+   > 📝 **2026-10-07 — at the profile server, verification now happens at login (ADR-116); the game server
+   > is still client-asserted (ADR-103).** See § *Note, 2026-10-07 — the verification trigger fired* below.
+   > Text above left byte-identical.
 10. **No per-IP rate limit** on login or claim routes (owner). **Before XP go-live** (`0217`) these must
     land as their own slice:
     - Uptrace metrics;
@@ -160,6 +167,8 @@ migration later.
 ### Re-raise only if
 
 - Identity verification lands (`0267`) — then verify at login and issue `vfy:true`.
+  - 📝 **2026-10-07 — this trigger fired** (via `0325`'s S3a slice, carried by `0340`, not via `0267`). See §
+    *Note, 2026-10-07 — the verification trigger fired* below. Bullet above left byte-identical.
 - A second login method is scheduled — then design account linking.
 - Observed junk-profile creation or login overload that the switch cannot contain.
 - `0217` goes live before slice 1 lands — then `006` becomes a data migration; re-plan, don't bypass the
@@ -169,9 +178,58 @@ migration later.
 Absent those, *"the id could be sequential"*, *"the token adds no security"*, *"why no rate limit on
 login"* and *"why not link accounts now"* are closeout of this ADR, not new findings.
 
+## Note, 2026-10-07 — the verification trigger fired: the profile server mints `vfy:true` in production
+
+**Added 2026-10-07 by `fkit-architect`, spawned by `fkit-lead`, under `decisions/README.md` §
+*Immutability starts at `accepted`* — the carve-out for recording that a pre-committed trigger fired.**
+Append-only: every wording above is kept as written; the three 📝 pointers above (point 5, point 9, the
+re-raise list) lead here. **No decision in this ADR changes; Status stays `accepted`.** The content is
+the amendment drafted in advance in
+[ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md) § *Amendments to older
+ADRs* → *ADR-113*, applied by task `0395`, § 7.
+
+**The trigger, and how it was confirmed** (all relayed by `fkit-lead`; the architect saw none of it
+first-hand):
+- Task `0340` (ADR-116's S3a slice) was deployed on 2026-10-07 at 07:10:45Z as profile `0.0.156-profile.3`,
+  from commit `71efd10`.
+- The owner's live check on 2026-10-07 returned **`vfy: true`** (task `0395`, Verification step 5).
+- The owner approved verified logins being on — verbatim **"Yes to both"** — given **after** the deploy.
+  Asked by `fkit-lead` on 2026-10-07 via `AskUserQuestion` in the lead session, after the deploy;
+  question, verbatim: *"For the record (the project's rules need it in your words): were the post-0391
+  login numbers (stale 33.8% → 3.25%) good enough to deploy 0340, and do you approve verified logins
+  (vfy:true) being on in production? You deployed before I asked, and I'll record that honestly."* Chosen
+  option's description, verbatim: *"Numbers good enough, verified logins approved, mid-week deploy by
+  choice. 0392 closes; 0395 gets its record and closes."*
+
+**What changes in how this ADR reads** (code citations are at the deployed commit `71efd10`):
+- **Point 5.** From S3a, a verified login issues `vfy:true` — the session claim is a boolean
+  (`src/profile-server/SessionToken.ts:63`), minted from the login's verification result
+  (`SessionToken.ts:97`; `src/profile-server/Routes.ts:762`). `resolveCaller` carries `verified`
+  (`Routes.ts:334` — `verified: claims.vfy === true`). The 🔓 *"the token adds NO security"* bullet now
+  holds for **`vfy:false` sessions only**. A `vfy:true` session means Yandex signed that id within
+  ADR-116's freshness window (as superseded in part by ADR-121: 24 h). At this commit no route reads
+  `verified` yet (ADR-116 Decision 2); the readers (`0250` S3b, `0319`, `0332`, `0323`) are separate
+  tasks.
+- **Point 9.** At the **profile server**, verification now happens at login (ADR-116). The **game
+  server** is still client-asserted — ADR-103's decision still governs it, and its exit is `0332`.
+- **Re-raise list** — *"Identity verification lands (`0267`) — then verify at login and issue
+  `vfy:true`"*: this is that trigger firing, via `0325`'s S3a slice (carried by `0340`) rather than via
+  `0267`.
+- **Key rotation** (point 5's *"A restore or secret rotation just makes clients log in again"*): rotating
+  `PROFILE_SESSION_SECRET` now **also drops every verified session** (ADR-116 residual 1;
+  `SessionToken.ts:24-25`). The client's relogin makes a **fresh signed call**, so it re-verifies: a 401
+  triggers one relogin (`src/client/ProfileSession.ts:302`), whose login takes a new signature
+  (`ProfileSession.ts:231`), and that take is take-once — every call after the boot pre-fetch makes a new
+  signed call (`src/client/flashist/FlashistFacade.ts:1881`). If that signed call fails, the relogin
+  still succeeds, unverified (ADR-116 Decision 4). ADR-116's re-raise still applies: if
+  `PROFILE_SESSION_SECRET` **must** be rotated, do the key id / dual key first.
+
 ## Related
 
 - `../reports/2026-09-15-profile-identity-design.md` (slices in §9)
 - [ADR-101](adr-101-fail-soft-xp-crediting-no-durable-queue.md), [ADR-103](adr-103-identity-trust-seam-client-asserted-yandex-id.md),
   [ADR-112](adr-112-free-xp-grants-capped-server-clamped-acked-once-per-account.md)
 - Tasks `0266` (this), `0217`, `0250`, `0253`, `0267`, `0268`, `0219`, `0263`
+- 📝 Added 2026-10-07: [ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)
+  (verified login, `vfy:true`) and tasks `0340` (S3a build) and `0395` (its live verification) — see §
+  *Note, 2026-10-07* above.

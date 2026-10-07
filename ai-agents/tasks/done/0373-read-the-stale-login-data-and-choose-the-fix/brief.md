@@ -230,7 +230,7 @@ five Output items: the [worklog](worklog.md), *2026-10-05 — Step 4: owner's ch
 - **Fix:** *"24 hours (Recommended)"* →
   [`0391`](../0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) (Sprint 7).
 - **Threshold:** *"At most 5% (Recommended)"* → the S2-exit re-check
-  [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (Sprint 8).
+  [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (Sprint 8).
 - **Watch task:** *"File it (Recommended)"* →
   [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md) (Backlog
   board).

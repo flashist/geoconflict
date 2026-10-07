@@ -1858,10 +1858,10 @@ Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) on facts c
 - **Rollback target:** `0.0.156-profile.1` (commit `f712263`) — safe (no migration, all sessions `vfy:false`) but
   brings back the 900 s window.
 - ⚠️ Counters restarted at deploy — never compare cumulative values across it. **2026-10-06T08:09:49Z is the start of
-  [`0392`](../tasks/backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
+  [`0392`](../tasks/done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
 - **Not yet checked:** login metrics in Uptrace; game-server `failed after retries` count.
 - Next profile deploy planned: `0340` from commit `71efd10` (checkout, deploy, return); its rollback target is
-  `0.0.156-profile.2` — see [`0395`](../tasks/backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).
+  `0.0.156-profile.2` — see [`0395`](../tasks/done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).
 
 ### 📌 2026-10-06 — profile deploy `0391`: post-deploy checks (appended; the note above is not edited, ADR-035)
 
@@ -1876,13 +1876,44 @@ the owner's 2026-10-05 read-only SSH approval. Resolves the note above's *"Not y
   02:00Z**.
 - **Login metric** (version `.2`, 08:09–08:14Z, ~5 min): `ok` 45, `stale` 1 (~2 %), `id_mismatch` 0; no `absent` /
   `no_secret`. The one `stale` is in the new `past_48h_7d` bracket (new brackets recording). ⚠️ Early sign only — the
-  real read is [`0392`](../tasks/backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).
+  real read is [`0392`](../tasks/done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).
 - **Game server since 07:30Z:** 50 "credited" lines, last 08:15:05Z — credits flowing. One `player resolve failed
   after retries` (`warn`) at 08:10:48Z during the profile restart — the retried-later kind, **not** a
   `credit batch … dropped` line (0 of those in the 30 h before either) ⇒ restart blip, **no XP lost**.
 - **Telegram:** owner confirmed the name-change digest message arrived at deploy (~08:10Z).
 - **Gates for the next profile deploy (`0340`,
-  [`0395`](../tasks/backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)):**
+  [`0395`](../tasks/done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)):**
   gate 1 (`0391` live) **MET**; gate 2 (owner's look via `0392`) and gate 3 (owner's separate OK to enforce) **open**.
 - Still to watch: the 2026-10-07 02:00Z backup and the 2026-10-07 08:00Z `profile-checks` run — the first on the new
   version.
+
+### 📌 2026-10-07 — profile deploy `0340` (S3a, mid-week, owner ruling): rollback target (appended; the sections above are not edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) on facts relayed by `fkit-lead`; ⛔ not producer
+precedent. Full record:
+[`0395` worklog](../tasks/done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/worklog.md).
+
+- **Owner-run profile deploy, Wed 2026-10-07** — a mid-week exception to the weekend-slot rule (owner, verbatim:
+  *"I can deploy the profile server now, if needed, wihout waiting for the weekend slot"*). Profile only, alone; no game
+  deploy, no `0250` S3b. Deploy record **07:10:45Z** · version **`0.0.156-profile.3`** · commit **`71efd10`**
+  ([`0340`](../tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) only). Owner's live check: `vfy: true`.
+- ⚠️ **Updates § *Never roll back to*, "after this slot", and the 2026-10-03 § *Rollback targets after this window*:**
+  `0340`'s rollback target is now **`0.0.156-profile.2`** — the
+  [`0391`](../tasks/done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) image
+  (commit `0aef613`). It keeps the 24 h signature window. An older S2 image (`0.0.156-profile.1`) is token-safe but
+  brings back the 900 s window and its ~32 % stale share.
+- ⛔ **Never roll S3a back to a pre-S2 build.** S3a → S2 is safe: any image built after the 2026-09-29 S2 deploy parses
+  a `vfy:true` token. A pre-S2 server only accepts `vfy:false`, so every live verified token turns invalid and every
+  client logs in again once — survivable but noisy.
+- ⚠️ Counters restarted at deploy — never compare cumulative values across 07:10:45Z.
+
+### 📌 2026-10-07, later — `0340`'s rollback target: digest recorded (appended; the note above is not edited, ADR-035)
+
+Facts read read-only by `fkit-lead`, relayed to a spawned `fkit-producer` (no owner channel, ADR-021/037).
+
+- **`0.0.156-profile.2`** (the `0391` image, `0340`'s rollback target) = commit
+  `0aef613641e410a6228c0f5244f19d5545267bad`, image
+  **`sha256:4972040c50956cd3a17c4fab71e1f2ec28393fbd82e3280abc89443667b812be`**, deployed 2026-10-06T08:09:49Z —
+  from the owner's local profile deploy record.
+- Confirmed **still present on the profile box** (read-only, 2026-10-07), alongside the new `0.0.156-profile.3` image
+  (`sha256:ea35fe69…3114`).

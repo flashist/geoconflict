@@ -77,6 +77,17 @@
     `0340` deployed, not merely built or closed. The reminder now also lives in `0340`'s brief (§ *The
     ADR-113 note — shipping this task triggers it*), which makes the note a close condition for `0340`:
     applied by `fkit-architect` after the S3a deploy, or deferred by an owner ruling.
+
+    > 📝 **2026-10-07 — that close condition moved from `0340` to task `0395`** (added by `fkit-architect`,
+    > spawned by `fkit-lead`; the bullet above is left byte-identical). On the owner's **2026-10-05 Q1
+    > ruling** at `0340`'s plan gate — **"Split it (Recommended)"**, option text *"Close 0340 once it's built
+    > and reviewed. A new task 'verify 0340 live' covers the deploy, the live check and the ADR-113 note."*
+    > (relayed by `fkit-lead`; recorded in `0340` `plan.md` § *Owner rulings*, Q1, and `0395` `brief.md` §
+    > *Context*) — `0340` closed once built and reviewed, and the deploy, the live check and the ADR-113
+    > note became task `0395` (`ai-agents/tasks/done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/`).
+    > So read *"a close condition for `0340`"* above as **a close condition for `0395`** (its Verification
+    > step 6). The trigger itself is unchanged. **It fired on 2026-10-07** and the note is applied — see §
+    > *Amendments to older ADRs* → *ADR-113* below.
 - **⛔ Superseded in part by [ADR-121](adr-121-login-signature-freshness-window-24h-id-checked-first.md),
   2026-10-05** (owner ruling *"24 hours (Recommended)"*, relayed by `fkit-lead`; pointer added by
   `fkit-architect`, append-only — every line above and below is left byte-identical). **Superseded:** Decision
@@ -411,6 +422,9 @@ identity"* is **closeout of this ADR, not a new defect.**
 > also lives in `0340`'s brief. The trigger is unchanged (S3a minting `vfy:true` in production). See the dated
 > note under *Citation frame* at the top of this file.
 
+> ✅ **2026-10-07:** the ADR-113 row's *"NOT applied"* is now history — **ADR-113 applied 2026-10-07** (see the
+> ADR-113 subsection below). Table and heading left byte-identical.
+
 *History, kept visible:* this heading first read *"Amendments to older ADRs — recorded HERE, not yet written
 into them"*, and the paragraph below was written while this ADR was `proposed`.
 
@@ -449,6 +463,15 @@ and mark this subsection applied.
 > 📝 **2026-09-29:** read "`0325` S3a" here as **task `0340`** (moved there on the owner's ruling — dated note
 > under *Citation frame* at the top of this file). Still ⛔ not applied; apply after `0340`'s S3a deploy.
 
+> ✅ **APPLIED 2026-10-07** by `fkit-architect` (spawned by `fkit-lead`, task `0395` § 7). The trigger fired:
+> `0340` was deployed 2026-10-07 at 07:10:45Z as profile `0.0.156-profile.3` from commit `71efd10`, and the
+> owner's live check that day returned `vfy: true` (relayed by `fkit-lead`). ADR-113 now carries § *Note,
+> 2026-10-07 — the verification trigger fired*, plus three 📝 pointers (point 5, point 9, the re-raise
+> list) and a `## Related` line; nothing already written in ADR-113 was changed. The four points below were
+> applied as drafted, with two additions: the key-rotation point also says the client's relogin re-verifies
+> with a fresh signed call (and falls back to unverified if that call fails, Decision 4), and point 5 says no
+> route reads `verified` at the deployed commit. The ⛔ lines above are kept as history.
+
 - **Point 5** (*"A token counts as 'proven owner' … only once a verified login issues `vfy:true`"*): from
   S3a, a verified login issues `vfy:true`; `resolveCaller` carries `verified`. The 🔓 *"the token adds NO
   security"* bullet then holds for `vfy:false` sessions only.
@@ -470,6 +493,7 @@ and mark this subsection applied.
 - [ADR-113](adr-113-profile-internal-player-id-and-platform-identities.md) — the session and `resolveCaller`;
   to be updated by this ADR **once `0325` S3a ships** (not yet applied)
   - 📝 2026-09-29: S3a is now task `0340` — see the dated note at the top of this file.
+  - ✅ 2026-10-07: applied — ADR-113 § *Note, 2026-10-07 — the verification trigger fired*.
 - [ADR-115](adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) — residual 1 closes with `0332`,
   not with this ADR
 - [ADR-112](adr-112-free-xp-grants-capped-server-clamped-acked-once-per-account.md) — the tenure claim a

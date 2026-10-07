@@ -40,7 +40,9 @@ Sprint 7
 > that renumbers no closed row.
 
 ## Status
-🚧 Blocked — the read was refused by the session permission system (auto-mode "Production Reads" denial), 2026-10-07
+✅ Done (agent-closed — not owner-verified)
+
+*(2026-10-07, later — closed by a spawned `fkit-producer` (no owner channel, ADR-021/037) via `/fkit-task-done`, on OWNER RULINGS given live 2026-10-07 in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent. The owner chose *"You run it here, I OK it (Recommended)"*; `fkit-lead` ran the read-only read in the owner's session (stale share **3.25 %**, 241 / 7,426, window 2026-10-06T08:10:30Z → 2026-10-07T06:55Z, ≈22.75 h). Owner's call, verbatim: **"Yes to both"** — ⚠️ given **after** the owner had already deployed `0340` (07:10:45Z). See [worklog](worklog.md) § *2026-10-07 — the read*. Earlier value, lifted and kept as history:)* ~~🚧 Blocked — the read was refused by the session permission system (auto-mode "Production Reads" denial), 2026-10-07~~
 
 *(2026-10-07 — set by the same spawned `fkit-producer`: SSH to the telemetry box connected (route direct, no VPN in the way) and two read-only schema queries ran; the first query on the login metric was then denied by the Claude Code permission classifier. **No numbers were read.** Unblocks when the owner allows read-only production reads for this session, or runs the read. See [worklog](worklog.md). Earlier value, kept as history:)* ~~🔄 In progress~~
 
@@ -54,7 +56,7 @@ this task before an agent runs it. **The pass/fail call is recorded against the 
 fail is the owner's.**
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0370`](../0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
+[`0370`](../../backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
 
 ## Context
 
@@ -132,7 +134,7 @@ Nothing — this is a check. Same method as `0373`'s Step 1 (its worklog, *INTER
 - **Related:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (the decision and the baseline
   readings), [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) (the first S2
   reading), `0366` (the brackets),
-  [`0393`](../0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md) (the
+  [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md) (the
   watch task on the >24 h residue), [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md) (Decision 4: the gate).
 - **Does not block Sprint 7's deploy** (the build/verify rule).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
@@ -222,3 +224,17 @@ spawned `fkit-producer` (no owner channel, ADR-021/037).
   retried-later kind, no `credit batch … dropped` line, no XP lost. Details:
   [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *post-deploy checks*.
 - **`## Status` unchanged (`🔲 Backlog`). No mover run.**
+
+## 📌 2026-10-07 — read done, owner's call recorded, closed (appended; nothing above edited except `## Status`, ADR-035)
+
+**Provenance.** OWNER RULINGS given live 2026-10-07 in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+`fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+
+- **Read:** by `fkit-lead` in the owner's session, read-only, on the owner's *"You run it here, I OK it
+  (Recommended)"*. Window 2026-10-06T08:10:30Z → 2026-10-07T06:55Z (≈22.75 h, weekday-only, under one day). `ok`
+  7,181 · `stale` 241 (**3.25 %**, was 33.8 %) · `id_mismatch` 4 (0.054 %) · no `bad_payload`, no `absent`. Full
+  tables, brackets and per-hour split: [worklog](worklog.md).
+- **Owner's call, verbatim:** *"Yes to both"* (deploy `0340`; approve `vfy:true` in production). ⚠️ Given **after**
+  the `0340` deploy (2026-10-07T07:10:45Z), not before it. The approval-to-enforce half belongs to
+  [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)'s gate.
+- **Closed** per the 2026-10-05 *"After the first look (Rec)"* ruling: `✅ Done (agent-closed — not owner-verified)`.

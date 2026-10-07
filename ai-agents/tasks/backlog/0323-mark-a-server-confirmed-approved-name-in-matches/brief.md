@@ -113,7 +113,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
 - **Before this task's deploy (the confirmed-name mark reads `verified`):** the owner looks at the post-`0391` login-signature numbers that exist at the time (stale share,
   `ok`, `id_mismatch`, `bad_payload`, read from the first post-`0391`-deploy point) and decides whether to deploy or
   wait longer. No fixed window, no fixed bar. Record the window, the numbers and the owner's call in this task's
-  worklog. The read is read-only, done the same way as [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
+  worklog. The read is read-only, done the same way as [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (which covers only `0340`'s deploy and closes after it).
 - **Unchanged:** this task still depends on [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (verified
   sessions). `0340` itself no longer waits on any task — it may start now (`🔄 In progress` 2026-10-05); its own deploy
   needs the owner's look plus a separate, explicit owner approval to enforce. The owner's look here is **not** an
@@ -126,7 +126,7 @@ Yandex id gets the mark too (the accepted risk recorded by `0322`'s ADR, D3).
 `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
 *"Note only (Recommended)"*.
 
-- **Deploy this task only after [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
+- **Deploy this task only after [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) confirms `vfy: true` live** in production. `0340` now closes once built
   and reviewed (owner ruling, 2026-10-05); verified sessions are live only after `0395`'s deploy and the owner's
   DevTools check. Until then no player is verified, so a route that reads `verified` would see none.
 - **This is a note, not a dependency.** The `Depends on` line is unchanged (it names `0340`, which covers the

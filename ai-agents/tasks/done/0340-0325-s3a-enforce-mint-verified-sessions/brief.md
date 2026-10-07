@@ -132,12 +132,12 @@ numbers (the tree has moved since), but not widen scope.
 
 ### Deploy and rollback — carry these
 
-> 📌 **2026-10-05, Q1 ruling — this subsection MOVED to [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).**
+> 📌 **2026-10-05, Q1 ruling — this subsection MOVED to [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).**
 > The deploy, the rollback rule's worklog entry and the live check are no longer part of this task; it closes once built
 > and reviewed. Text below kept as written, struck in meaning (see the 2026-10-05 **Q1 split** note at the end).
 
 - ~~**Deploy:**~~ *(moved to `0395`)* profile server only, after ~~`0339`'s S2 exit~~ the owner's look at whatever post-`0391` login data
-  exists (read by [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md); owner
+  exists (read by [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md); owner
   ruling 2026-10-05) and the owner's separate approval to enforce. Record the deploy in the worklog (date, order).
   Architect advice (2026-10-05): **deploy this task alone, not together with `0250` S3b** — see the 2026-10-05 later
   note at the end.
@@ -154,7 +154,7 @@ keeping every earlier wording visible; then mark that ADR-116 subsection applied
 **ADR edits are `fkit-architect`'s** — the coder routes it; the producer or lead spawns the architect after the
 deploy. ~~This task does not close until that note is applied or the owner rules otherwise.~~ *(Struck 2026-10-05 —
 the owner ruled otherwise (Q1, *"Split it (Recommended)"*): routing the ADR-113 note moved to
-[`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md). This task closes once
+[`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md). This task closes once
 built and reviewed.)*
 
 ## Verification steps
@@ -175,7 +175,7 @@ built and reviewed.)*
    still passes and covers the S3a path.
 8. **Optional (plan):** one real-Postgres integration case with a synthetic key ⇒ `vfy:true`.
 9. ~~**Deploy recorded** in the worklog, with the rollback rule.~~ *(Moved 2026-10-05 to
-   [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md), Q1 ruling.)*
+   [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md), Q1 ruling.)*
 10. ~~**The ADR-113 note** is applied by `fkit-architect` after the deploy (or an owner ruling defers it), and
     ADR-116's subsection is marked applied.~~ *(Moved 2026-10-05 to `0395`, Q1 ruling.)*
 11. Tests are mandatory for any `src/core/` change (CLAUDE.md). `npm test` green; if a known supertest flake or
@@ -191,7 +191,7 @@ built and reviewed.)*
   start — needs the owner's look at whatever post-`0391` data exists, plus the owner's separate explicit approval to
   enforce.
 - *Earlier `Depends on` values — struck 2026-10-05 and moved off the line above so the status dashboard reads only the
-  live value; kept as written:* ~~[`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (hard — the
+  live value; kept as written:* ~~[`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (hard — the
   S2-exit re-check: server stale share ≤5% over 7 days after the fix [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   ships) plus an explicit owner approval to enforce.~~ *Repointed 2026-10-05 (see the dated note at the end), kept as
   written:* ~~[`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — read the stale-login data and
@@ -207,7 +207,7 @@ built and reviewed.)*
   [`0332`](../../backlog/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) (hard),
   [`0323`](../../backlog/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard). Each of those briefs carries a
   dated 2026-09-29 note repointing its dependency here. Also
-  [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) (hard — this task's
+  [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) (hard — this task's
   deploy and live check, split out 2026-10-05).
 - **Related:** ADR-116 (the design), ADR-103 (amended 2026-09-29; the game-server seam stays asserted until
   `0332`), ADR-113 (the note above), `0267` (this is the Yandex half of its scope).
@@ -256,7 +256,7 @@ the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, che
 
 - **The gate's chain is now:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
   (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/plan-sprint-7.md)) →
-  [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (~~the S2-exit re-check, pass =
+  [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (~~the S2-exit re-check, pass =
   ≤5% over 7 days~~ *superseded 2026-10-05 by ADR-122: reads whatever post-`0391` data exists when the owner needs it,
   no fixed bar, gates nothing on its own*; [Sprint 8](../../../sprints/plan-sprint-8.md)) → this task. *(ADR-122:
   → this task's **deploy**, not its start.)* `0373` produced the decision and stays
@@ -289,7 +289,7 @@ the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, che
 Recorded in [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md)
 (accepted 2026-10-05; supersedes ADR-121 Decision 4).
 
-- **This task may start now.** The hard dependency on [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)
+- **This task may start now.** The hard dependency on [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)
   is removed (the `Depends on` line above is rewritten; old values kept struck).
 - **Its deploy is gated on two things:** (1) the owner looks at whatever post-`0391` login data exists by then
   (`0392` reads it: stale share, `ok`, `id_mismatch`, `bad_payload`) and judges by eye whether to deploy or wait longer
@@ -318,7 +318,7 @@ plan gate, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawne
 
 - **New close condition:** this task closes once it is **built and reviewed** (agent-closed, per ADR-033). The earlier
   *"does not close until that note is applied"* condition is struck above.
-- **Moved to [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)**
+- **Moved to [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)**
   (~~[Sprint 8](../../../sprints/plan-sprint-8.md)~~ [Sprint 7](../../../sprints/plan-sprint-7.md) — moved the same day by owner ruling *"Move to Sprint 7 (Recommended)"*): the deploy gate (`0391` live; the owner's look via `0392`; the
   separate approval to enforce), the deploy itself, the delta check, the post-deploy watch, the worklog deploy entry, the
   ⛔ one-way rollback rule (target = the `0391` image; never pre-S2), the owner's DevTools `vfy` check, routing the

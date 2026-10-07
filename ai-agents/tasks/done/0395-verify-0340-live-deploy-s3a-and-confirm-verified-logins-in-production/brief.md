@@ -40,7 +40,11 @@ Sprint 7
 > active sprint) is working toward, while Sprint 8 is not started. See *Notes*.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+*(2026-10-07, later — closed by a spawned `fkit-producer` (no owner channel, ADR-021/037) via `/fkit-task-done`, routed by `fkit-lead`, on the owner's choice of an option whose text read *"0395 gets its record and closes"*; ⛔ not producer precedent. Steps 1–8 recorded in [worklog](worklog.md): `vfy: true` live; ADR-113 note applied by `fkit-architect` 2026-10-07 (step 6). ⚠️ **Gate-timing deviation:** the owner's call on the numbers and the approval to enforce (*"Yes to both"*) were given **after** the 07:10:45Z deploy, not before it as Verification step 1 required. Earlier value, kept as history:)* ~~🔄 In progress~~
+
+*(2026-10-07 — set by a spawned `fkit-producer` (no owner channel, ADR-021/037) on OWNER RULINGS given live 2026-10-07 in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent. `0340` deployed by the owner 2026-10-07T07:10:45Z as `0.0.156-profile.3` — mid-week, owner, verbatim: *"I can deploy the profile server now, if needed, wihout waiting for the weekend slot"*. Gates 2 and 3: owner, verbatim, *"Yes to both"* — ⚠️ given **after** the deploy, so the *"before the deploy entry's time"* condition was **not met as to timing**. Owner's live check: `vfy: true`. Steps 1–5, 7 and 8 recorded in [worklog](worklog.md); step 6 (ADR-113 note) is with `fkit-architect` — not closed. Earlier value, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The deploy (`npm run deploy:profile`), the explicit
@@ -50,7 +54,7 @@ ADR-113 note is `fkit-architect`'s; routing it is the producer's or lead's.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
 [`0339`](../../done/0339-verify-0325-s2-live-the-login-signature-check-in-production/brief.md) and
-[`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).)*
+[`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).)*
 
 ## Context
 
@@ -90,7 +94,7 @@ Nothing in source. This is a deploy-and-check task, in order:
 1. **`0391` is live in production** (planned Tue 6 Oct). ⚠️ **If `0391` has not deployed by the slot, do not deploy
    `0340`:** a `0340` build would carry `0391` too, and no post-`0391` data would exist to look at.
 2. **The owner has looked at whatever post-`0391` login data exists** — read by
-   [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md): stale share, `ok`,
+   [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md): stale share, `ok`,
    `id_mismatch`, `bad_payload`. Counters restarted at the `0391` deploy, so never compare across it; it is
    weekday-only data. The owner judges by eye whether to deploy or wait longer — no fixed bar (ADR-122).
 3. **A separate, explicit owner approval to enforce.** Looking at the numbers is **not** that approval (ADR-116,
@@ -172,7 +176,7 @@ as `0340`'s rollback target, and the never-pre-S2 rule. Append-only; do not rewr
 ## Notes
 
 - **Depends on:** [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md) (hard — the S3a build, built and
-  reviewed), [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (hard — the owner's
+  reviewed), [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (hard — the owner's
   look at the post-`0391` numbers, ADR-122)
 - **Also needed, not a task:** `0391` live in production (Tue 6 Oct planned;
   [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md) is built), and
@@ -227,8 +231,28 @@ channel, ADR-021/037).
 | § 1 gate | State |
 |---|---|
 | 1. `0391` is live in production | ✅ **MET 2026-10-06T08:09:49Z** — profile `0.0.156-profile.2`, commit `0aef613`; healthy at the 08:22Z re-check. Record: [`0391` worklog](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/worklog.md) § *Deploy* |
-| 2. The owner has looked at the post-`0391` login data (via [`0392`](../0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)) | 🔲 **Open.** Only an early ~5-minute sample exists (`ok` 45, `stale` 1, `id_mismatch` 0), read by `fkit-lead` — **not** `0392`'s reading and **not** the owner's look |
+| 2. The owner has looked at the post-`0391` login data (via [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)) | 🔲 **Open.** Only an early ~5-minute sample exists (`ok` 45, `stale` 1, `id_mismatch` 0), read by `fkit-lead` — **not** `0392`'s reading and **not** the owner's look |
 | 3. The owner's separate, explicit approval to enforce (ADR-116, ADR-122) | 🔲 **Open** |
 
 - The § 2 slot rule is unchanged: the 10/11 Oct weekend at the earliest, profile only, alone, not 02:00–03:15 UTC.
 - **`## Status` unchanged (`🔲 Backlog`). No mover run.**
+
+## 📌 2026-10-07 — deployed mid-week; `vfy: true` live; ADR-113 note pending (appended; nothing above edited except `## Status`, ADR-035)
+
+**Provenance.** OWNER RULINGS given live 2026-10-07 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+
+- **Deployed:** owner-run, profile only, alone, 2026-10-07T07:10:45Z, `0.0.156-profile.3` from `71efd10` — **before** the 10/11 Oct slot, by the owner's mid-week exception. The § 2 *"10/11 Oct weekend at the earliest"* line above is left as written; this note supersedes it on that point.
+- **Gates:** all three now on record ([worklog](worklog.md) § 1); ⚠️ gates 2 and 3 arrived **after** the deploy.
+- **Owner's live check:** `vfy: true` (token issued 07:14:31Z, after the deploy). ⚠️ The owner pasted the token into the lead's chat, against § 4; it is in no artifact; owner ruled *"Let it expire (Recommended)"* (expires 2026-10-08 07:14 UTC).
+- **Rollback target:** `0.0.156-profile.2` (the `0391` image); runbook note appended (step 7).
+- **Open:** step 6, the ADR-113 note — with `fkit-architect`. The four `verified` readers (`0250` S3b, `0319`, `0332`, `0323`) carry a *"deploy only after this task confirms `vfy: true` live"* note; `vfy: true` is now observed, but whether that note counts as met before this task closes is **not decided here** (open question to the owner).
+
+## 📌 2026-10-07, later — closed (appended; nothing above edited except `## Status`, ADR-035)
+
+**Provenance.** Facts and the owner's choice relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. The owner chose an option whose text read *"0395 gets its record and closes"*.
+
+- **Step 6 done:** `fkit-architect` appended the dated 2026-10-07 note to ADR-113 and marked ADR-116's ADR-113 subsection ✅ APPLIED 2026-10-07 (files named in the [worklog](worklog.md) § 6).
+- **Rollback digest recorded:** `0.0.156-profile.2` image digest added to the worklog § 3 and the runbook; the image is still on the profile box (read-only check, 2026-10-07).
+- **The four `verified` readers:** their *"deploy only after `0395` confirms `vfy: true` live"* notes refer to the live check, which is now recorded (per `fkit-lead`); their briefs were not edited beyond link repair.
+- ⚠️ **Gate-timing deviation, stated plainly:** gates 2 and 3 (*"Yes to both"*) came **after** the deploy. The content is on record; the order the brief required did not happen.
+- **Closed:** `✅ Done (agent-closed — not owner-verified)`.

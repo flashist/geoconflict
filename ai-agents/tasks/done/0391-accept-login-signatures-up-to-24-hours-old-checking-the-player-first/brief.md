@@ -41,7 +41,7 @@ fkit-coder
   player switches Yandex accounts.
 
 Other rulings the same day: the S2-exit "good enough" threshold is **"At most 5% (Recommended)"** — stale share on
-the server, over 7 days after this fix ships (checked by [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md));
+the server, over 7 days after this fix ships (checked by [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md));
 placement **"Fix: Sprint 7, check: Sprint 8 (Recommended)"**.
 
 **The problem, in plain terms.** About 1 login in 3 (≈34% on the server, 3–5 Oct) fails the freshness part of the
@@ -144,7 +144,7 @@ The coder's plan may re-ground line numbers (they are from 2026-10-05) but not w
 9. Deploy recorded in the worklog (date, first post-deploy UTC time, rollback note).
 10. No secret, key, real player id, signature, token, host or IP in any artifact; fixtures use synthetic keys.
 
-**This task's production proof is [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)**
+**This task's production proof is [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)**
 (the owner's build/verify rule, 2026-09-29): this task closes when built, reviewed and deployed; the 7-day share is
 read there.
 
@@ -153,7 +153,7 @@ read there.
 - **Depends on:** [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (hard — the owner's choice
   of fix and threshold). The design record, [ADR-121](../../../knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md),
   is already accepted (2026-10-05).
-- **Blocks:** [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (the S2-exit
+- **Blocks:** [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (the S2-exit
   re-check) → [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md). Also feeds
   [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md)
   (the watch task starts after this ships).

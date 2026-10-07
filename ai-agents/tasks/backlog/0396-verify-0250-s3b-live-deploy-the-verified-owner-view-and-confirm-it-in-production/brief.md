@@ -46,7 +46,7 @@ the owner's. The read-only delta check and post-deploy watch can be run by an ag
 read-only SSH approval (confirm it still covers this task first).
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).)*
+[`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md).)*
 
 ## Context
 
@@ -87,7 +87,7 @@ Nothing in source. This is a deploy-and-check task, in order.
 ### 1. The gates — all four, in this order, before deploying
 1. **`0340` is deployed in its own, EARLIER slot** (architect advice 2026-10-05; ADR-122 *Consequences*). **Never in
    the same slot as `0340`** — a minting bug plus S3b would hand raw paid facts to the wrong session.
-2. **[`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) has confirmed
+2. **[`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) has confirmed
    `vfy: true` live** in production (owner ruling 2026-10-05, *"Note only (Recommended)"*). Until then no player is
    verified, and S3b changes nothing anyone can see.
 3. **The owner has looked at the post-`0391` login numbers** that exist at the time — stale share, `ok`,
@@ -153,7 +153,7 @@ and the ⛔ rollback rule below written out in full.
 ## Notes
 
 - **Depends on:** [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) (hard — the S3b
-  build, built and reviewed), [`0395`](../0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)
+  build, built and reviewed), [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)
   (hard — `0340` deployed and `vfy: true` confirmed live)
 - **Also needed, not a task:** the owner's ADR-122 look at the post-`0391` numbers; S3b committed (owner's explicit
   ask only); a weekend slot.

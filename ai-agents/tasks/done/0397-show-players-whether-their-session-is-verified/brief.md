@@ -82,7 +82,7 @@ sends today without undoing a privacy decision.** Step 1 must decide what to sho
   reuses it. ⛔ Never a second paid-status source, never a second profile read.
 - **Before `0395` and `0396` are live, every session is unverified.** S3a (`0340`, verified sessions) and S3b (`0250`,
   owner view) are built but not deployed; their live checks are
-  [`0395`](../../backlog/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) and
+  [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md) and
   [`0396`](../../backlog/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md). Shipped
   earlier, this display would tell **every** player "not verified". See the deploy note in *Notes*.
 - **`0332` will widen what "unverified" costs.**

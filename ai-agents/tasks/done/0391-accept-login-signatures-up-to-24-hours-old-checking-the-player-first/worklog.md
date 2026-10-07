@@ -162,7 +162,7 @@ Facts checked read-only by `fkit-lead` on 2026-10-06 and relayed here; not re-ch
 - **Rollback target:** `0.0.156-profile.1`, commit `f712263`. Safe (no migration; every session stays `vfy:false`
   either way) but **brings back the 900 s window**.
 - ⚠️ **Counters restart at deploy — never compare cumulative values across it.**
-- **First post-deploy UTC time = 2026-10-06T08:09:49Z — the start of [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
+- **First post-deploy UTC time = 2026-10-06T08:09:49Z — the start of [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md)'s reading window.**
 - ~~**Not yet checked:** login metrics in Uptrace (whether `stale` actually fell toward ≈ 2.5 %); the game server's
   `failed after retries` count.~~ *(2026-10-06: both looked at — see § "post-deploy checks" below. The game-server
   count is resolved: one restart blip, no XP lost. The login metric has only an early ~5-minute sample; whether
@@ -184,7 +184,7 @@ here; not re-checked by this producer.
 - **Login metric (Uptrace/ClickHouse, version `.2`, 08:09–08:14Z, ~5 min):** `ok` 45, `stale` 1 (~2 %),
   `id_mismatch` 0; no `absent` / `no_secret` seen. The one `stale` fell in the new `past_48h_7d` bracket, so the new
   brackets are recording. ⚠️ **Far too little data to judge — an early sign only. The real read is
-  [`0392`](../../backlog/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).**
+  [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md).**
 - **Game server (`geoconflict-prod`), since 07:30Z:** 50 "credited" lines, last at 08:15:05Z — **credits are flowing
   after the deploy.** One `player resolve failed after retries` (`warn`) at 08:10:48Z, during the profile restart. That
   is the retried-later kind, **not** a `credit batch … dropped` line; there were 0 `dropped` lines in the 30 h before
