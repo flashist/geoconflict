@@ -11,6 +11,11 @@
 > Yandex id the client *claims*. **Someone who sends another citizen's Yandex id gets that citizen's approved
 > name.** See [[decisions/adr-115-approved-name-in-matches]].
 >
+> 🆕 **2026-10-07 sync:** `0340` (S3a) is **live** at the profile server (`vfy: true` confirmed,
+> [[tasks/verified-login-enforce-live]]). The forged-id case here is **still open**: the game server is still
+> client-asserted until `0332` (the join token — `🔲 Backlog` on Sprint 7), and `0323` (mark a server-confirmed name) is
+> also still open.
+>
 > 📌 **2026-09-30:** `0325` (verified login) closed 2026-09-29 as its **shadow-mode** build only — it proves identity
 > at the **profile** login, not on the game server ([[tasks/verified-login-shadow-mode]],
 > [[decisions/adr-116-verified-login]]). This forged-id case still closes only with `0332` (the join token), which
@@ -73,3 +78,4 @@ name reaches other players in multiplayer, with no client change.
 - [[systems/player-profile-store]] — the profile store, updated 2026-09-28 with this task's change
 - [[tasks/citizenship-name-change]] — task `0067`, the name-change feature this follow-up extends
 - [[tasks/name-change-operator-decide-command]] — task `0312` (2026-09-27): a working operator Approve/Reject command run on the profile box
+- [[tasks/verified-login-enforce-live]] — task `0395` (2026-10-07): S3a live at the profile server; this page's forged-id case still waits on `0332`

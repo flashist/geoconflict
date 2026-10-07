@@ -18,6 +18,14 @@
 > 📝 **2026-10-05 clarification** on the S3a gate (*"the owner's watch window and threshold"*): **it has no fixed value**
 > — the owner looks at whatever post-`0391` data exists ([[decisions/adr-122-stale-login-gate-owner-judgment]]). The
 > separate owner approval to enforce, and Decision 6, are unchanged.
+> 🆕 **2026-10-07 sync — S3a IS LIVE; the ADR-113 note is APPLIED.** `0340` deployed 2026-10-07 (07:10:45Z,
+> `0.0.156-profile.3`); owner's live check **`vfy: true`** ([[tasks/verified-login-enforce-live]], `0395`). The canonical
+> ADR gained, by `fkit-architect`: a § *Status* note that the ADR-113 note's close condition **moved from `0340` to
+> `0395`** (owner Q1 *"Split it (Recommended)"*, 2026-10-05); the ADR-113 subsection marked **✅ APPLIED 2026-10-07**,
+> with two additions beyond the draft (the relogin re-verifies with a fresh signed call; no route reads `verified` at the
+> deployed commit); two ✅ pointers. Every older line byte-identical. The post-`0391` stale share the owner looked at
+> first: **3.25 %** ([[tasks/post-24h-window-login-read]]). ⚠️ The owner's approval to enforce came **after** the deploy.
+> `0250` S3b — the first reader of `verified` — is still **not deployed**. The 2026-10-06 note below is history.
 > 🆕 **2026-10-06 sync — where the slices stand:** the 24 h window is **live** since the 2026-10-06 profile deploy
 > (`0391`, [[tasks/login-signature-24h-window]]); **S3a is built, not deployed** — `0340` closed as built + reviewed
 > (`71efd10`), its deploy and live check are `0395` ([[tasks/verified-login-enforce]]); `0250` S3b (the first reader of
@@ -144,13 +152,13 @@ to the client — ADR-103 already says do not re-propose it).
 | Older ADR | Applied? |
 |---|---|
 | ADR-103 | ✅ **Applied 2026-09-29** — a dated, append-only note: its key-issued trigger fired; verification is being built at the **profile login**, not in `getCreditableYandexId()`; the game-server seam stays client-asserted, so ADR-103 is **amended, not superseded**; its exit is now `0332`. |
-| ADR-113 | ⛔ **NOT applied — do not edit it yet.** Only once S3a (`0340`) mints `vfy:true` **in production**. The reminder lives in `0340`'s brief. |
+| ADR-113 | ✅ **Applied 2026-10-07** by `fkit-architect` (task `0395` § 7): S3a deployed, `vfy: true` confirmed live. *(Was, kept as history: ~~⛔ NOT applied — do not edit it yet. Only once S3a (`0340`) mints `vfy:true` in production. The reminder lives in `0340`'s brief.~~ — the reminder moved to `0395` on the 2026-10-05 Q1 ruling.)* |
 
 ## Related
 
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S0 spike and the S2 build
 - [[decisions/adr-103-identity-trust-seam]] — amended by this ADR (note applied 2026-09-29)
-- [[decisions/adr-113-internal-player-id]] — the session and `resolveCaller`; its note waits for S3a in production
+- [[decisions/adr-113-internal-player-id]] — the session and `resolveCaller`; its note ~~waits for S3a in production~~ applied 2026-10-07
 - [[decisions/adr-115-approved-name-in-matches]] — its residual 1 closes with `0332`, not with this ADR
 - [[decisions/adr-112-free-xp-grants]] — the tenure claim a verified caller could later gate
 - [[systems/player-profile-store]] — the profile server, login route and session token
@@ -170,7 +178,9 @@ to the client — ADR-103 already says do not re-propose it).
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S3a gate's watch window and threshold have no fixed value
 - [[tasks/stale-login-fix-decision]] — task `0373`, the data that overturned the 900 s window
 - [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
-- [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed; deploy in `0395`)
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built; ~~not deployed~~ deployed 2026-10-07 via `0395`)
+- [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed and `vfy: true` confirmed live, 2026-10-07; applied the ADR-113 note
+- [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` stale share (3.25 %) the owner looked at
 - [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed)
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): ad-free reads paid only from the verified owner view (Decision 4); unverified sessions see ads (owner-accepted)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether this session is verified; explains Decision 4, does not soften it

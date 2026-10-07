@@ -5,6 +5,25 @@
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
 >
+> 🆕 **2026-10-07 — ADR-116's NOTE IS APPLIED: the verification trigger fired.** `0340` (S3a) was deployed 2026-10-07
+> (07:10:45Z, profile `0.0.156-profile.3`, commit `71efd10`) and the owner's live check returned **`vfy: true`**
+> ([[tasks/verified-login-enforce-live]], task `0395`). `fkit-architect` appended to the canonical ADR a section
+> *"Note, 2026-10-07 — the verification trigger fired"* plus three 📝 pointers and one Related line, under the
+> README's carve-out for recording a pre-committed trigger. **No decision changes; Status stays `accepted`.** What now
+> reads differently:
+> - **Point 5:** a verified login issues `vfy:true`; `resolveCaller` carries `verified` (`src/profile-server/Routes.ts`
+>   — `verified: claims.vfy === true`). The 🔓 *"the token adds NO security"* bullet now holds for **`vfy:false`
+>   sessions only**. ⚠️ At the deployed commit **no route reads `verified` yet** — the readers are `0250` S3b, `0319`,
+>   `0332`, `0323`.
+> - **Point 9:** verification now happens at the **profile-server** login (ADR-116); the **game server** is still
+>   client-asserted — [[decisions/adr-103-identity-trust-seam]] still governs it, exit `0332`.
+> - **Re-raise list:** *"Identity verification lands (`0267`)"* — this is that trigger firing, via `0325`'s S3a slice
+>   (carried by `0340`), not via `0267`.
+> - **Key rotation:** rotating the session secret now **also drops every verified session**; the client's relogin makes
+>   a fresh signed call, so it re-verifies (and falls back to unverified if that call fails, ADR-116 Decision 4). If the
+>   secret **must** be rotated, do the key id / dual key first (ADR-116's re-raise).
+> - ⚠️ The owner's approval (*"Yes to both"*) was given **after** the deploy. The two 📌 *pending* notes below are history.
+>
 > 📌 **2026-10-06 sync — ADR-116's note to this ADR is STILL PENDING.** `0340` (S3a) is built (commit `71efd10`) and
 > closed as built + reviewed, but **not deployed**; applying the note after S3a is live moved to its verify task `0395`.
 > See [[tasks/verified-login-enforce]].
@@ -167,5 +186,6 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[decisions/adr-115-approved-name-in-matches]] — ADR-115 (2026-09-28): a citizen's approved name is shown in matches at ADR-103 trust level; forged-id and look-alike cases are owner-accepted risks
 - [[decisions/adr-116-verified-login]] — the verified login that will update point 5, point 9 and the re-raise list once `0340` ships
 - [[tasks/verified-login-shadow-mode]] — task `0325`, S2 shadow mode: `vfy` widened, still minted `false`
-- [[tasks/verified-login-enforce]] — task `0340`, S3a; the dated note here waits for its deploy (`0395`)
+- [[tasks/verified-login-enforce]] — task `0340`, S3a; ~~the dated note here waits for its deploy (`0395`)~~ deployed 2026-10-07, note applied
+- [[tasks/verified-login-enforce-live]] — task `0395`, the deploy and `vfy: true` live check that fired this ADR's trigger (2026-10-07)
 - [[tasks/authenticated-profile-read]] — task `0250`: S3b branches the profile read on the session's `verified` claim

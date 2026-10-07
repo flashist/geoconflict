@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 36 (append rank — ⚠️ read it as worked **before `0340`**, whatever the number says; moved in from Sprint 8 on 2026-10-04 by owner ruling) / task `0373`
 
+> 🆕 **2026-10-07 sync — the prediction was checked.** After `0391`'s 24 h window went live, `0392` read **3.25 %**
+> stale (241 / 7,426, ≈ 22.75 h, weekday-only) against this task's **~2.5 %** prediction and its **33.8 %** baseline;
+> `id_mismatch` 0.054 % (baseline ~0.04 %); no stale note under 24 h old. See [[tasks/post-24h-window-login-read]].
+> `0340` then went live 2026-10-07 ([[tasks/verified-login-enforce-live]]).
+>
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05 (brief moved `backlog/` → `done/`). A reading and
 > decision task — no code. **The decision is the owner's**; GameAnalytics numbers were owner-read, server numbers were
 > read read-only for the owner.
@@ -65,3 +70,5 @@ No code. What the readings showed (approximate; client figures are GameAnalytics
 - [[decisions/adr-116-verified-login]] — the 900 s window this task's data overturned
 - [[decisions/sprint-7]] — the board (rank 36)
 - [[decisions/sprint-8]] — where it was filed (moved out 2026-10-04)
+- [[tasks/post-24h-window-login-read]] — task `0392`, the post-fix read (3.25 % vs the ~2.5 % predicted here)
+- [[tasks/verified-login-enforce-live]] — task `0395`, S3a live 2026-10-07

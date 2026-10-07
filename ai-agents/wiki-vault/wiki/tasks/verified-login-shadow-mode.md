@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as the S2 build only**
 **Sprint/Tag**: Sprint 6, rank 38 (append rank; owner ruled it *"directly above 0250"*) / task `0325`
 
+> 🆕 **2026-10-07 sync — S3a is now LIVE.** `0340` was deployed 2026-10-07 (`0.0.156-profile.3`) and the owner's live
+> check returned `vfy: true` — [[tasks/verified-login-enforce-live]] (`0395`). The post-`0391` stale share the owner
+> looked at first was **3.25 %** (was ≈ 34 %) — [[tasks/post-24h-window-login-read]] (`0392`). The note below was true
+> until then.
+>
 > 📌 **2026-10-06 sync — S3a is BUILT, not live.** `0340` closed 2026-10-06 (agent-closed — not owner-verified) as
 > **built and reviewed only** (commit `71efd10`); its deploy and live check moved to `0395`
 > ([[tasks/verified-login-enforce]]). The freshness window this task shipped (900 s) is now **24 h with the id checked
@@ -105,3 +110,5 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that replaced this task's 900 s
 - [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
 - [[tasks/authenticated-profile-read]] — task `0250`, whose ruling D3 filed this task; its S3b reads `verified`
+- [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07, `vfy: true` confirmed live
+- [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` stale share (3.25 %)

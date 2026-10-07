@@ -3,6 +3,23 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-10-07 sync (`03d027b`) — S3a IS LIVE: the profile server mints `vfy:true`.**
+> - ✅ **DEPLOYED Wed 2026-10-07 (owner-run, a second mid-week exception): `0.0.156-profile.3`**, commit `71efd10`
+>   (tagged; **`0340` only** — the delta from `.2` was exactly that one commit; `0250` S3b deliberately kept out).
+>   Deploy record 07:10:45Z. Watch (~3 min, read-only): `/health` reports `.3`, `/ready` 200, `profile-api` healthy with
+>   0 restarts / 0 error lines, `postgres` untouched, `/v1/login` 2xx only, no `sessionRejected`. **Owner's live check:
+>   `vfy: true`.** Existing `vfy:false` tokens stay valid, so players become verified at their **next** login.
+>   [[tasks/verified-login-enforce-live]] (`0395`), [[tasks/verified-login-enforce]] (`0340`).
+> - ⛔ **Rollback target `0.0.156-profile.2`** (the `0391` image, keeps the 24 h window; confirmed still on the box).
+>   **Never roll back to a pre-S2 build** — every verified token would turn invalid. ⚠️ Counters restarted at 07:10:45Z.
+> - 📊 Before it, `0392` read ≈ 22.75 h of `.2` data: **stale 3.25 %** (was 33.8 %), `id_mismatch` 0.054 % —
+>   [[tasks/post-24h-window-login-read]]. ⚠️ The owner's look and approval to enforce came **after** the deploy.
+> - 🔑 **Session-secret rotation now also drops every verified session** (ADR-113's 2026-10-07 note); the client's
+>   relogin re-verifies with a fresh signed call.
+> - 🔨 **Still built, NOT deployed:** `0250` S3b (`6f4ab77`, in no release tag) — **no route reads `verified` in
+>   production yet**; its deploy and check are `0396`. ⚠️ The first backup / `profile-checks` run on a new version
+>   (2026-10-07 02:00Z / 08:00Z) are not recorded in this window's sources.
+>
 > 🆕 **2026-10-06 sync (`6f4ab77`) — one profile deploy, two builds waiting.**
 > - ✅ **DEPLOYED Tue 2026-10-06 (owner-run, mid-week exception — ADR-122): `0.0.156-profile.2`**, commit `0aef613`
 >   (code = `6eef01f`, **`0391` only**). The login signature window is now **24 h with the player id checked first**
@@ -559,3 +576,5 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the live payments checks (closed 2026-10-05)
 - [[decisions/adr-121-login-signature-24h-window]] — the login window decision
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the owner-judgment gate before each `verified` deploy
+- [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07 as `0.0.156-profile.3`, `vfy: true` live
+- [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` login numbers (stale 3.25 %)

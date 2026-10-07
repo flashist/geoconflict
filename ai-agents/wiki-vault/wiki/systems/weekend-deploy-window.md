@@ -5,6 +5,25 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
 
+> # 🆕 2026-10-07 — A SECOND MID-WEEK PROFILE DEPLOY RAN: `0340` (S3a) IS LIVE; ROLLBACK TARGET NOW `0.0.156-profile.2`
+>
+> - **Owner-run profile deploy, Wed 2026-10-07** — a mid-week exception to the weekend-slot rule (owner, verbatim: *"I
+>   can deploy the profile server now, if needed, wihout waiting for the weekend slot"*). Profile only, **alone** — no
+>   game deploy, no `0250` S3b (deployed from `71efd10`, not `dev` HEAD). Deploy record **07:10:45Z**, outside the
+>   02:00–03:15 UTC backup window; version **`0.0.156-profile.3`**, commit `71efd10` (`0340` only). Owner's live check:
+>   **`vfy: true`**. See [[tasks/verified-login-enforce-live]] (`0395`).
+> - ⚠️ **Gates out of order:** the owner's look at the post-`0391` numbers ([[tasks/post-24h-window-login-read]], stale
+>   3.25 %) and the approval to enforce (*"Yes to both"*) came **after** the deploy.
+> - **Runbook (append-only, 2026-10-07):** a dated section updates *Never roll back to*, "after this slot", and the
+>   2026-10-03 *Rollback targets after this window*: `0340`'s rollback target is **`0.0.156-profile.2`** (the `0391`
+>   image; keeps the 24 h window; image digest recorded in the runbook and confirmed still on the profile box).
+>   ⛔ **Never roll S3a back to a pre-S2 build.** `0.0.156-profile.1` is token-safe but brings back the 900 s window.
+>   Counters restarted at 07:10:45Z.
+> - **The 10/11 Oct slot no longer carries `0340`.** Still waiting: `0396` (`0250` S3b — server first), then `0398` /
+>   `0400` / `0401` (`0248`, `0397`, `0301` client deploys) — all on [[decisions/sprint-7]], all **not deployed**.
+>
+> ---
+>
 > # 🆕 2026-10-06 — A MID-WEEK PROFILE DEPLOY RAN (`0391`, OWNER-RULED EXCEPTION); NEXT PROFILE DEPLOY IS `0340`
 >
 > - **Owner-run profile deploy, Tue 2026-10-06** — a mid-week exception to the weekend-slot rule (owner *"Yes, Tuesday
@@ -801,3 +820,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/verified-login-enforce]] — task `0340`, the next profile deploy (via `0395`)
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the ruling behind the Tuesday exception
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 read lifted the profile freeze (closed 2026-10-05)
+- [[tasks/verified-login-enforce-live]] — task `0395`, the 2026-10-07 mid-week profile deploy (`0340`, `0.0.156-profile.3`)
+- [[tasks/post-24h-window-login-read]] — task `0392`, the numbers read before (and judged after) that deploy

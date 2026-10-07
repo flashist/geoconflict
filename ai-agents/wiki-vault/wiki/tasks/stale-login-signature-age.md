@@ -116,3 +116,4 @@ board to Sprint 7 the same day.
 - [[tasks/stale-login-fix-decision]] — task `0373`, which read these brackets
 - [[tasks/login-signature-24h-window]] — task `0391`, which re-cut them (deployed 2026-10-06)
 - [[decisions/adr-121-login-signature-24h-window]] — the decision that retired the sub-24 h brackets
+- [[tasks/post-24h-window-login-read]] — task `0392` (2026-10-07): the re-cut brackets after `0391` — `past_24h_48h` 137, `past_48h_7d` 106, 0 under 24 h

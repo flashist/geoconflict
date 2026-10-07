@@ -1,9 +1,16 @@
 # Verified Login S3a — Mint Verified (`vfy:true`) Sessions at Login (task 0340)
 
 **Source**: `ai-agents/tasks/done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md` (what was built: the same folder's `worklog.md` and `review.md`)
-**Status**: done (agent-closed — not owner-verified) — **closed as BUILT and REVIEWED only; NOT deployed**
+**Status**: done (agent-closed — not owner-verified) — **closed as BUILT and REVIEWED only** · 🆕 **DEPLOYED 2026-10-07 via `0395`** *(was: ~~NOT deployed~~)*
 **Sprint/Tag**: Sprint 7, rank 16 (append rank; on merit the top of Sprint 7's open work) / task `0340`
 
+> 🆕 **2026-10-07 sync — S3a IS LIVE.** The owner deployed `71efd10` mid-week on **2026-10-07 at 07:10:45Z** as profile
+> **`0.0.156-profile.3`** (tagged on `71efd10`; profile only, alone — `0250` S3b kept out). Owner's live check:
+> **`vfy: true`**. Its verify task `0395` closed the same day — see [[tasks/verified-login-enforce-live]]. ⚠️ The
+> owner's call on the numbers and the approval to enforce (*"Yes to both"*) came **after** the deploy. Rollback target
+> `0.0.156-profile.2` (never pre-S2). The ADR-113 note is applied ([[decisions/adr-113-internal-player-id]]). The
+> 🚨 block and the *Outcome* gate list below are kept as history — they were true until this deploy.
+>
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-06; code committed in **`71efd10`** (*"0340: login mints
 > vfy:true for a verified signature; resolveCaller reports verified (S3a)"*).
 >
@@ -72,4 +79,6 @@ makes "is this the proven owner?" answerable for the tasks that need it — `025
 - [[decisions/sprint-7]] — the board (rank 16; `0395` at rank 45)
 - [[decisions/sprint-8]] — `0395` was filed there (rank 9) before moving to Sprint 7
 - [[systems/weekend-deploy-window]] — the next profile deploy, after `0391`'s mid-week one
+- [[tasks/verified-login-enforce-live]] — task `0395`, which deployed this and confirmed `vfy: true` live (2026-10-07)
+- [[tasks/post-24h-window-login-read]] — task `0392`, the post-`0391` numbers the owner looked at (stale 3.25 %)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether S3a's `vfy` session is verified; must deploy only after `0395` confirms verified logins live

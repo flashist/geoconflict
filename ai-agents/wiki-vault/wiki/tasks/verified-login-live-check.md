@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as a FAILED verification**
 **Sprint/Tag**: Sprint 7, rank 25 (append rank; owner-ruled first of the three rows moved from Sprint 6) / task `0339`
 
+> 🆕 **2026-10-07 sync — the chain reached its end:** `0392` read the post-`0391` numbers — stale **3.25 %** (was
+> ≈ 32–34 %) — [[tasks/post-24h-window-login-read]]; `0340` (S3a) was deployed 2026-10-07 and the owner's live check
+> returned `vfy: true` — [[tasks/verified-login-enforce-live]]. This task's own result is still a failed verification.
+>
 > 📌 **2026-10-06 sync — the chain this failure started has run:** `0373` read the data and the owner chose a 24 h
 > window with the id checked first ([[tasks/stale-login-fix-decision]], [[decisions/adr-121-login-signature-24h-window]]);
 > `0391` built it and it was **deployed 2026-10-06** ([[tasks/login-signature-24h-window]]). The S2 exit no longer has a
@@ -113,3 +117,5 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that answers this failure
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S2 exit is now the owner's look, no fixed bar
 - [[tasks/verified-login-enforce]] — task `0340`, S3a, the gate this check failed (built 2026-10-05, not deployed)
+- [[tasks/post-24h-window-login-read]] — task `0392`, the post-`0391` re-read (stale 3.25 %, 2026-10-07)
+- [[tasks/verified-login-enforce-live]] — task `0395`, S3a deployed and `vfy: true` confirmed live (2026-10-07)

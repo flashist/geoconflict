@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified) — **S1 live since 2026-09-29; S3b built, committed, NOT deployed**
 **Sprint/Tag**: Sprint 7, rank 17 (append rank; on merit directly below `0340`) / task `0250`
 
+> 🆕 **2026-10-07 sync — `0340` is LIVE, so S3b now has verified sessions to read.** `0340` (S3a) was deployed
+> 2026-10-07 (`0.0.156-profile.3`) and the owner's live check returned `vfy: true` — [[tasks/verified-login-enforce-live]]
+> (`0395`, closed). This brief's *"deploy S3b only after `0395` confirms `vfy: true` live"* note refers to that check,
+> now recorded (per `fkit-lead`, recorded in `0395`'s brief; this brief changed only by link repair). **S3b itself is
+> still NOT deployed** (`6f4ab77`, in no release tag) — its deploy and check are `0396`, still open on
+> [[decisions/sprint-7]] (rank 49), with its own owner look at the login numbers before deploy (ADR-122). The
+> *"Until `0340` is live"* line below is history.
+>
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-06 (brief moved `backlog/` → `done/`), on build + review
 > of its last slice, per the owner's build/verify-split rule (2026-09-29).
 >
@@ -89,3 +97,4 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[tasks/paid-citizen-ad-free]] — task `0248` (closed 2026-10-06): the ad gate that reads S3b's `isPaidCitizen` through one page-wide place
 - [[tasks/session-verified-status-line]] — task `0397` (closed 2026-10-06): adds `isVerifiedRead` to the view and shows the player the verified / not-confirmed state; its rule Q4 constrains S3b's deploy
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed
+- [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): S3a live, `vfy: true` confirmed — the precondition for S3b's deploy

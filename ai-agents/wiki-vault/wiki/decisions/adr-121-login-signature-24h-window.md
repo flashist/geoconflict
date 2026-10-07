@@ -18,6 +18,11 @@
 > ✅ **Built and deployed:** task `0391` built it (commit `6eef01f`); the profile deploy of **2026-10-06** (version
 > `0.0.156-profile.2`, owner-run, mid-week exception) put it live. See [[tasks/login-signature-24h-window]]. Decision 3
 > (re-login on account switch) is **only partly built** — see *Consequences*.
+>
+> 🆕 **2026-10-07 sync — first real reading after the change** (task `0392`, [[tasks/post-24h-window-login-read]]):
+> **stale 3.25 %** (241 / 7,426; was 33.8 %; the `0373` prediction was ~2.5 %), `id_mismatch` 0.054 %, **0** stale notes
+> in any under-24 h bracket. ⚠️ ≈ 22.75 h, weekday-only. No canonical-ADR change. S3a then went live 2026-10-07
+> ([[tasks/verified-login-enforce-live]]), so the window this ADR set is now the one that decides `vfy:true`.
 
 ## Context
 
@@ -94,3 +99,5 @@ window bump — rejected (`past_15m_20m` only ~11 % of stale).
 - [[decisions/sprint-backlog]] — `0393` (the >24 h residue) and `0394` (Decision 3's unbuilt half)
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which shipped the 900 s window this replaces
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): its *not confirmed* line advises closing and reopening the game, not a reload — the same signed data is handed out for the whole visit
+- [[tasks/post-24h-window-login-read]] — task `0392`: the first post-change reading (stale 3.25 %, 2026-10-07)
+- [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 — this window now decides `vfy:true`

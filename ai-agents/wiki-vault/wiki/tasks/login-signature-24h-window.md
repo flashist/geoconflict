@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 43 (append rank — on merit directly below `0373`) / task `0391`
 
+> 🆕 **2026-10-07 sync — PROVEN IN USE, on under a day of data.** `0392` read the post-deploy login numbers:
+> **stale 3.25 %** (was 33.8 %), `id_mismatch` 0.054 %, and **0** stale notes in any under-24 h bracket — the window
+> works as built. ⚠️ ≈ 22.75 h, weekday-only, no weekend evening; night hours ran higher on tiny counts. See
+> [[tasks/post-24h-window-login-read]]. The next profile deploy (`0340`, `0.0.156-profile.3`) followed on 2026-10-07 —
+> [[tasks/verified-login-enforce-live]] — and **this task's image `0.0.156-profile.2` is now its rollback target**
+> (still on the profile box). The *"whether `stale` really fell"* caveat below is answered.
+>
 > ✅ Done (agent-closed — not owner-verified). Built 2026-10-05 to the owner-approved plan and
 > [[decisions/adr-121-login-signature-24h-window]]; committed in `6eef01f`. ✅ **DEPLOYED 2026-10-06** (owner-run
 > profile deploy, Tuesday — a mid-week exception by owner ruling, ADR-122): version **`0.0.156-profile.2`**, commit
@@ -76,3 +83,5 @@ counted; every session stays `vfy:false` until `0340`.
 - [[decisions/sprint-backlog]] — `0393` and `0394`, the two follow-ups filed there
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 check this answers
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which shipped the 900 s window
+- [[tasks/post-24h-window-login-read]] — task `0392`, the post-deploy read (stale 3.25 %)
+- [[tasks/verified-login-enforce-live]] — task `0395`, the next profile deploy; this image is its rollback target

@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`), NOT deployed**
 **Sprint/Tag**: Sprint 7, rank 46 (append rank, not a merit rank; on merit directly below `0250`) / task `0397`
 
+> 🆕 **2026-10-07 sync — first gate of its live check passed.** `0400`'s gates begin with *"`0395` passed"*: `0395`
+> closed 2026-10-07 with `vfy: true` live ([[tasks/verified-login-enforce-live]]). Still ahead: `0396` (S3b server) →
+> this task committed and deployed (it is committed, `036a5c8`, in no release tag) → a slot. **Not deployed.**
+>
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` via `/fkit-task-done`, at `fkit-lead`'s instruction under
 > `/fkit-sprint-ship-loop`, on the owner-approved `plan.md`, the build/verify-split rule (2026-09-29) and the owner's
 > close condition, verbatim *"Agent runs with 4 workers (Recommended)"*. ⛔ **Nothing was seen on a real build.** The
@@ -103,3 +107,4 @@ unverified.
 - [[decisions/sprint-7]] — the board (rank 46)
 - [[decisions/sprint-8]] — its live check `0400` (rank 12 there; moved to Sprint 7, rank 51, 2026-10-06)
 - [[decisions/sprint-backlog]] — the board that carried `0278` until it was folded in here
+- [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): the first gate of this task's live check `0400`

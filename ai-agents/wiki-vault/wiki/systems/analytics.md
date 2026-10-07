@@ -537,7 +537,8 @@ All behind the citizenship kill switch; no ids, no paid flag, no value. ⚠️ *
 `Unverified` / `ReadFailed` fire when the card publishes, **whether or not the card is on screen** — unlike
 `Citizenship:Seen`. ⚠️ **Before `0395` / `0396` are live, every logged-in citizen would read "not confirmed"**, so
 counts from any earlier deploy would be meaningless — `0397`'s deploy rule prevents that. See
-[[tasks/session-verified-status-line]].
+[[tasks/session-verified-status-line]]. 📌 *2026-10-07: `0395` is done — `vfy: true` live
+([[tasks/verified-login-enforce-live]]); `0396` (S3b) is **not** deployed, so the caveat still holds.*
 
 ## Citizenship Explainer Events (task `0301` — built 2026-10-06, committed `fc3f539`, NOT deployed)
 
@@ -702,3 +703,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/paid-citizen-ad-free]] — task `0248`: `Ad:InterstitialSuppressed:PaidCitizen` (committed, not deployed)
 - [[tasks/session-verified-status-line]] — task `0397`: the three `Citizenship:Status:*` events (committed, not deployed)
 - [[tasks/citizenship-explainer-popup]] — task `0301`: the three `Citizenship:Explainer:Opened:*` events and the two popup tap ids (committed, not deployed)
+- [[tasks/verified-login-enforce-live]] — task `0395` (2026-10-07): verified logins live; the `Citizenship:Status:*` caveat still waits on `0396`

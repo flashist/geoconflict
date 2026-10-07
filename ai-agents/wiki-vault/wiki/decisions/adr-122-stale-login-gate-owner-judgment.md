@@ -10,6 +10,14 @@
 > and ADR-121's re-raise bullet that restates it. [[decisions/adr-116-verified-login]] Decision 6 is unchanged.
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md`
+>
+> 🆕 **2026-10-07 sync — the gate was used once, out of order.** No canonical-ADR change. For `0340`: `0392` read
+> ≈ 22.75 h of post-`0391` data (stale **3.25 %**, [[tasks/post-24h-window-login-read]]); the owner deployed `0340`
+> **mid-week** on 2026-10-07 (another owner exception to the weekend slot) and then answered both halves of the gate —
+> the look and the separate approval to enforce — with one reply, *"Yes to both"*. ⚠️ **That reply came AFTER the
+> deploy**, so the gate's content is on record but not its order ([[tasks/verified-login-enforce-live]]). Both halves
+> were put in one two-part question, and the 0392/0395 records keep them as two gates. The later `verified` readers
+> (`0250` S3b, `0319`, `0332`, `0323`) each carry their own owner-look step.
 
 ## Context
 
@@ -75,3 +83,5 @@ Rejected: keeping ADR-121 D4 — it holds `0340` back at least one slot whatever
 - [[systems/player-profile-store]] — the profile box whose deploys this gate governs
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 exit whose bar this ADR removed
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S2 shadow mode the gate reads
+- [[tasks/post-24h-window-login-read]] — task `0392`: the one owner look this gate has had (2026-10-07)
+- [[tasks/verified-login-enforce-live]] — task `0395`: the `0340` deploy this gate governed; approval given after the deploy

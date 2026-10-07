@@ -8,6 +8,11 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md`
 
+> 🆕 **2026-10-07 sync — verified logins are live at the PROFILE server; THIS ADR STILL GOVERNS THE GAME SERVER.**
+> `0340` (S3a) deployed 2026-10-07 and mints `vfy:true` ([[tasks/verified-login-enforce-live]]). ADR-113's 2026-10-07
+> note restates it: the game server is still client-asserted, and this ADR's exit is still `0332` (the join token). No
+> change to the canonical ADR-103 in this window.
+>
 > 🆕 **2026-09-29 — THIS ADR'S KEY-ISSUED TRIGGER FIRED; the ADR is AMENDED, NOT SUPERSEDED.** The canonical ADR
 > gained a dated, append-only note (by `fkit-architect`, on the owner's acceptance of
 > [[decisions/adr-116-verified-login]], relayed by `fkit-lead`) under its *"re-raise only if"* key-issued bullet, plus
@@ -104,4 +109,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[decisions/adr-116-verified-login]] — the first verified identity (profile login); **amends, does not supersede** this ADR — the key-issued trigger fired, the exit moved to `0332`
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which built verification at the profile login, not in this seam
 - [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: a citizen-gated archive read needs a trust level; this seam is one candidate (open point 1, an owner question)
-- [[tasks/verified-login-enforce]] — task `0340`, S3a built; the game-server seam stays client-asserted until `0332`
+- [[tasks/verified-login-enforce]] — task `0340`, S3a built (deployed 2026-10-07); the game-server seam stays client-asserted until `0332`
+- [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 at the profile server only — not in this seam

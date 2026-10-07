@@ -5,6 +5,12 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 📌 **2026-10-07 (latest, `03d027b`): 13 rows — 2 `✅ Done` · 4 `🔲 Backlog` · 7 `➡️ Moved`; 4 OPEN — unchanged.**
+> Counted by me this run. Only link repoints (`backlog/` → `done/`) for `0392` and `0395`, whose ➡️ Moved rows here
+> (ranks 8 and 9) point at Sprint 7, where both **closed 2026-10-07** — [[tasks/post-24h-window-login-read]],
+> [[tasks/verified-login-enforce-live]]. `df36b95` struck the stale *"New open question (e)"* in this board's `0401`
+> move addendum (answered 2026-10-06, *"Accept the half test"*). Line-3 banner unchanged.
+>
 > 🆕 **2026-10-06 (latest, `31bfb06`): 13 rows — 2 `✅ Done` · 4 `🔲 Backlog` · 7 `➡️ Moved`; 4 OPEN** (was 12 / 7). ⚠️
 > Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
 > - ➕ **13** `0401` — verify `0301` live ([[tasks/citizenship-explainer-popup]]), filed here at `0301`'s close (append
@@ -222,3 +228,5 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/paid-citizen-ad-free]] — task `0248`, verified by `0398` (rank 11)
 - [[tasks/session-verified-status-line]] — task `0397`, verified by `0400` (rank 12)
 - [[tasks/citizenship-explainer-popup]] — task `0301`, whose verify `0401` was filed here (rank 13) and moved to Sprint 7 (48) the same day
+- [[tasks/post-24h-window-login-read]] — task `0392`, filed here (rank 8), moved to Sprint 7, closed 2026-10-07
+- [[tasks/verified-login-enforce-live]] — task `0395`, filed here (rank 9), moved to Sprint 7, closed 2026-10-07

@@ -5,6 +5,27 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-07 (latest, `03d027b`) — 52 ROWS, 8 OPEN: `0392` AND `0395` CLOSED — S3a (`0340`) IS LIVE
+>
+> **Re-counted at `HEAD` = `03d027b`: 52 rows — 39 `✅ Done` · 7 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 8 OPEN** (was 52 / 10). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`. Both closes are `(agent-closed — not owner-verified)`, by spawned
+> `fkit-producer`s via `/fkit-task-done`, on owner rulings relayed by `fkit-lead`.
+>
+> - ✅ **44** `0392` — the post-`0391` login read: stale **3.25 %** (241 / 7,426, ≈ 22.75 h; was 33.8 %),
+>   `id_mismatch` 0.054 %. Its row history keeps a `🚧 Blocked` step (the first read attempt was refused by the session
+>   permission system) before the owner had the read run in their own session — [[tasks/post-24h-window-login-read]].
+> - ✅ **45** `0395` — `0340` deployed by the owner **mid-week, 2026-10-07 07:10:45Z**, `0.0.156-profile.3`; owner's live
+>   check **`vfy: true`**; ADR-113 note applied; rollback target `0.0.156-profile.2` — [[tasks/verified-login-enforce-live]].
+> - ⚠️ **Gate-timing deviation, on both rows:** the owner's *"Yes to both"* (numbers good enough + approval to enforce)
+>   came **after** the deploy.
+> - 📌 `df36b95` (a "Wiki sync" commit that also touched the boards) **struck** the stale *"New open question (e)"* in
+>   the `0401` row and addendum, with a dated *"answered — Accept the half test"* note. This page already carried the
+>   ruling (below); the board now agrees with the `0401` brief.
+> - Link repoints only otherwise (`backlog/` → `done/` for `0392`, `0395`).
+> - **Still open:** `0219` (Blocked), `0323`, `0332`, `0213`, `0401`, `0396`, `0398`, `0400`. Next on merit: `0396`
+>   (S3b server deploy), whose precondition `0395` is now met.
+>
 > # 🆕 2026-10-06 (latest, `31bfb06`) — 52 ROWS, 10 OPEN: `0301` CLOSED; THE WHOLE CITIZENSHIP VERIFY CHAIN MOVED IN AT 48–51
 >
 > **Re-counted at `HEAD` = `31bfb06`: 52 rows — 37 `✅ Done` · 9 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -646,3 +667,5 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/session-verified-status-line]] — task `0397` (rank 46), added and closed 2026-10-06; committed, not deployed; live check `0400` on Sprint 8
 - [[tasks/jest-worker-cap]] — task `0399` (rank 47), added and closed 2026-10-06
 - [[tasks/citizenship-explainer-popup]] — task `0301` (rank 19), closed 2026-10-06; committed `fc3f539`, not deployed; verify `0401` at rank 48
+- [[tasks/post-24h-window-login-read]] — task `0392` (rank 44): the post-`0391` login read, closed 2026-10-07
+- [[tasks/verified-login-enforce-live]] — task `0395` (rank 45): S3a deployed and `vfy: true` confirmed, closed 2026-10-07
