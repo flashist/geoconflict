@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 36 (append rank — ⚠️ read it as worked **before `0340`**, whatever the number says; moved in from Sprint 8 on 2026-10-04 by owner ruling) / task `0373`
 
+> 📌 **2026-10-07 (later) sync — a measurement of "after-match reloads give stale signatures" is coming.** `0404`
+> ([[tasks/long-session-refresh-popup]]) cites this task's finding to explain why a page refresh may not give fresh Yandex signed data, and adds an
+> `AfterRefreshPopup` boot kind to the `SignatureAge` events to measure it (verify `0406`, not deployed).
+>
 > 🆕 **2026-10-07 sync — the prediction was checked.** After `0391`'s 24 h window went live, `0392` read **3.25 %**
 > stale (241 / 7,426, ≈ 22.75 h, weekday-only) against this task's **~2.5 %** prediction and its **33.8 %** baseline;
 > `id_mismatch` 0.054 % (baseline ~0.04 %); no stale note under 24 h old. See [[tasks/post-24h-window-login-read]].
@@ -73,3 +77,4 @@ No code. What the readings showed (approximate; client figures are GameAnalytics
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-fix read (3.25 % vs the ~2.5 % predicted here)
 - [[tasks/verified-login-enforce-live]] — task `0395`, S3a live 2026-10-07
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: carries this task's weekend-evening caveat (20–23 UTC not yet re-measured after `0391`)
+- [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup; measures whether a refresh gets new signed data

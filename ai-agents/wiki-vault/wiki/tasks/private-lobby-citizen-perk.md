@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 📌 **2026-10-07 (later) sync — the private-lobby gate stays open to unverified citizens, by owner ruling.** On
+> `0332`'s Q4 the owner chose **"Keep it open (Recommended)"**, so a forged citizen id can still host. `0332`
+> ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the funnel a `verified` bit (built, not deployed) that the gate does not read.
+>
 > 📌 **2026-10-06 sync (`31bfb06`) — `0301` DONE (agent-closed — not owner-verified), committed `fc3f539`, ⚠️ NOT
 > DEPLOYED** ([[tasks/citizenship-explainer-popup]]). It **deletes this task's interim "citizens only" popup**
 > (`CitizensOnlyModal.ts`, its keys and template tags) and points the locked Create Lobby tap at the full explainer,
@@ -147,3 +151,5 @@ of the perks would depend on it."*
 - [[tasks/lobby-window-joining-mark]] — task `0374`, the joining mark ends on close
 - [[tasks/private-lobby-code-format]] — task `0389`, the new private-lobby code
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06, not deployed): replaces the interim popup; gate item 5
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the private-lobby gate stays open to unverified citizens (Q4)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed)

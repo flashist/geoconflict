@@ -3,6 +3,11 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-07 sync (`077c9e3`) — 16 NEW STRINGS for the 23 h refresh popup (task `0404`), committed, NOT
+> deployed:** six `Session:LongSessionRefresh:{Due|Shown|Refresh|Waited|DeferredByDialog|PreemptedByStaleBuild}` and a
+> new `AfterRefreshPopup` boot kind for the ten `Profile:Login:SignatureAge:*` labels (A1's `<BootKind>` is now
+> three-way). See *Long-Session Refresh Events* below and [[tasks/long-session-refresh-popup]].
+>
 > 🆕 **2026-10-06 sync (`31bfb06`) — FIVE MORE STRINGS for the citizenship explainer popup (task `0301`), committed
 > `fc3f539`, NOT deployed:** `Citizenship:Explainer:Opened:{CardLink|Instructions|LockedFeature:PrivateLobby}` and the
 > popup tap ids `UI:Tap:PurchaseCitizenshipExplainer` / `UI:Tap:CitizenshipLoginExplainer`. The reference doc also
@@ -405,6 +410,13 @@ arriving**.
   server's ~32 % `stale` share.
 - `<BootKind>`: `AfterMatch` when this page load follows a match exit (`bootFollowsMatchExit`, the same flag as
   `Session:PlatformDegraded`, task `0328`), else `FirstBoot`.
+  - 🆕 **2026-10-07 (task `0404`, committed `077c9e3`, not deployed):** a third kind, **`AfterRefreshPopup`** —
+    when the boot follows a press of the long-session refresh popup (its own `sessionStorage` marker, read and removed
+    on every boot); order `AfterMatch` → `AfterRefreshPopup` → `FirstBoot` (`AfterMatch` wins if both, which normal
+    flow cannot produce). Ten more strings, `Profile:Login:SignatureAge:AfterRefreshPopup:<Label>`. **What it answers:**
+    whether a refresh inside the same Yandex tab gets new signed data — `PastOver24h` there means the same old data, so
+    that player came back **unverified**; `Past6h24h` or younger means inside ADR-121's 24 h window. Before the `0404`
+    deploy such boots read as `FirstBoot`.
 - `<Label>`: device now − `issuedAt`, bracketed with **exactly the server's edges** (task `0366`,
   [[tasks/stale-login-signature-age]]); a test sweeps every edge against the server's function.
 - Five colon parts — the GameAnalytics maximum (each part ≤ 64 chars).
@@ -559,6 +571,28 @@ The purchase events are **not** split by surface; the tap events are. Fired thro
 the popup only via `openCitizenshipExplainer()` in `src/client/CitizenshipExplainer.ts`. See
 [[tasks/citizenship-explainer-popup]].
 
+## Long-Session Refresh Events (task `0404` — built 2026-10-07, committed `077c9e3`, NOT deployed)
+
+The forced "please refresh the game" popup after **23 h** since page load (`LONG_SESSION_REFRESH_AFTER_MS`), start
+screen only. Everyone, guests included; no ids. Enum keys `LONG_SESSION_REFRESH_*` in
+`flashistConstants.analyticEvents`.
+
+| Event | When fired |
+|---|---|
+| `Session:LongSessionRefresh:Due` | At most once per page load: 23 h reached and the check ran with the tab visible (60 s timer + every return to visible). **Value:** whole minutes since page load (≥ 1380) |
+| `Session:LongSessionRefresh:Shown` | At most once per page load: the popup actually appeared — start screen only, never in a lobby / join / match, never while a Yandex payment flow or login dialog is open. **Value:** minutes since page load. Not fired if the stale-build popup was already up |
+| `Session:LongSessionRefresh:Refresh` | REFRESH pressed, right before the reload (keeps the query string, drops the hash, writes no match-exit marker, writes the `AfterRefreshPopup` marker). No value |
+| `Session:LongSessionRefresh:Waited` | Only when the popup could not show at once at `Due`. **Value:** whole minutes `Due` → `Shown` |
+| `Session:LongSessionRefresh:DeferredByDialog` | At most once per page load: held back at least once by a payment/login dialog. No value |
+| `Session:LongSessionRefresh:PreemptedByStaleBuild` | At most once per page load: due and clear, but the stale-build popup (`Build:StaleDetected`) was already up — not shown. No value |
+
+**Readings (per the reference doc):** `Due − Shown − PreemptedByStaleBuild` ≈ pages that reached 23 h but never got
+the popup (a match exit reloaded the page, or the tab closed while waiting); `Shown − Refresh` ≈ tabs closed instead of
+refreshed (plus popups switched to the stale message — that press logs `UI:ClickStaleBuildRefresh`). The four extra
+events (`Due`, `Waited`, `DeferredByDialog`, `PreemptedByStaleBuild`) were added under the owner's plan-gate ruling
+*"also add any other analytic metrics that can be useful here"*. Live read: verify task `0406`. See
+[[tasks/long-session-refresh-popup]].
+
 ## Locked Feature Events (task `0302` — built 2026-09-27, not yet released)
 
 `LockedFeature:Tap:{FeatureId}` — one event per tap on a citizen perk shown **locked**. Today only `LockedFeature:Tap:PrivateLobby` (the locked "Create Lobby" button; never for a citizen, never while the row is hidden). Fire only through `onLockedFeatureTap(featureId)` in `src/client/LockedFeature.ts`; ids in `flashistConstants.lockedFeatureIds`. The "explainer opened" event belongs to `0301`. See [[tasks/private-lobby-citizen-perk]]. 📌 **2026-10-06:** that
@@ -704,3 +738,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/session-verified-status-line]] — task `0397`: the three `Citizenship:Status:*` events (committed, not deployed)
 - [[tasks/citizenship-explainer-popup]] — task `0301`: the three `Citizenship:Explainer:Opened:*` events and the two popup tap ids (committed, not deployed)
 - [[tasks/verified-login-enforce-live]] — task `0395` (2026-10-07): verified logins live; the `Citizenship:Status:*` caveat still waits on `0396`
+- [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): six `Session:LongSessionRefresh:*` events and the `AfterRefreshPopup` boot kind (committed, not deployed)

@@ -4,6 +4,11 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 — test-reliability track (`0197` → `0200`)
 
+> ⚠️ **2026-10-07 sync — a higher-than-measured rate was seen.** At `0332`'s close ([[tasks/join-token-identity-vouch]]) the post-fix verify was red in
+> **2 of 3** full `npm test` runs on three different `supertest` suites (unexpected 404, 5000 ms timeout, socket hang
+> up), each 10 / 10 green alone; read as this family, **likely, not proven** — **above the ~4–7 % measured here**. An
+> earlier side-by-side showed the old code failing at a similar rate. No re-measurement filed.
+>
 > ✅ **Closed 2026-09-01 by a spawned producer — agent-closed, not owner-verified.**
 >
 > 🚨 **Closed with NO CODE FIX — a recognition note only (owner ruling 2026-09-01, the findings' §3.4 branch). This is not "flake fixed."** No source, test or config file was touched, in either phase.
@@ -94,3 +99,4 @@ The four `tests/profile-server/*` suites were **never** "the only suites in the 
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, whose first full run hit a `socket hang up` of this family (likely, not proven)
 - [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): a `NameChangeRoutes` `socket hang up` of this family hit one of its five full runs; re-run per the flake rule
 - [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): `npm test` now capped at 4 workers for background-throttling timeouts; ⛔ explicitly **not** a fix for this flake, which this task measured at the same rate at 4 and 13 workers
+- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): closed on a 2-of-3-red verify read as this flake, at a rate above this task's measurement

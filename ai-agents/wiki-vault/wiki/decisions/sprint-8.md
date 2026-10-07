@@ -5,6 +5,19 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-07 (latest, `077c9e3`): 16 rows — 2 `✅ Done` · 6 `🔲 Backlog` · 8 `➡️ Moved`; 6 OPEN** (was 13 / 4).
+> Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
+> - ➕ **14** `0404` (refresh popup after ~24 h) — filed here on the owner's free-text answer to `0332`'s review R2
+>   (*"… brief it to the next sprint. The popup shouldn't break active matches, probably should be shown only on the
+>   main screen."*), then **moved to [[decisions/sprint-7]] at 53** the same day (*"Move the refresh popup task to the
+>   Sprint 7"*); this row is now `➡️ Moved`, rank 14 kept. Done there — [[tasks/long-session-refresh-popup]].
+> - ➕ **15** `0405` — verify `0332` live: read the two identity counters and confirm no session token reaches the logs
+>   ([[tasks/join-token-identity-vouch]]). Filed at `0332`'s close on the owner's *"Close it (Recommended)"*.
+> - ➕ **16** `0406` — verify `0404` live: read the long-session refresh events and the after-refresh login split. Filed
+>   at `0404`'s close under the owner's standing build/verify rule (no new ruling).
+> - ⚠️ **15 and 16 are ADR-035 append ranks, flagged for owner confirmation:** on merit both belong with the other verify
+>   tasks at the top, but ranks 2–4 and 8–14 are closed rows that may not be renumbered.
+>
 > 📌 **2026-10-07 (latest, `03d027b`): 13 rows — 2 `✅ Done` · 4 `🔲 Backlog` · 7 `➡️ Moved`; 4 OPEN — unchanged.**
 > Counted by me this run. Only link repoints (`backlog/` → `done/`) for `0392` and `0395`, whose ➡️ Moved rows here
 > (ranks 8 and 9) point at Sprint 7, where both **closed 2026-10-07** — [[tasks/post-24h-window-login-read]],
@@ -230,3 +243,6 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/citizenship-explainer-popup]] — task `0301`, whose verify `0401` was filed here (rank 13) and moved to Sprint 7 (48) the same day
 - [[tasks/post-24h-window-login-read]] — task `0392`, filed here (rank 8), moved to Sprint 7, closed 2026-10-07
 - [[tasks/verified-login-enforce-live]] — task `0395`, filed here (rank 9), moved to Sprint 7, closed 2026-10-07
+- [[tasks/join-token-identity-vouch]] — task `0332`, whose verify-live task `0405` sits here at 15
+- [[tasks/long-session-refresh-popup]] — task `0404`, filed here at 14 and moved to Sprint 7; its verify `0406` sits here at 16
+- [[decisions/adr-124-join-token]] — ADR-124, the design `0405` checks live

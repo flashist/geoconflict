@@ -4,6 +4,9 @@
 **Status**: done (agent-closed — not owner-verified) — **S1 live since 2026-09-29; S3b built, committed, NOT deployed**
 **Sprint/Tag**: Sprint 7, rank 17 (append rank; on merit directly below `0340`) / task `0250`
 
+> 📌 **2026-10-07 (later) sync — the step this task's design report §6 first named is built.** `0332`, the join token
+> ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]), committed `077c9e3`, **not deployed**. It changes nothing in S3b; the S3b server is still not deployed.
+>
 > 🆕 **2026-10-07 sync — `0340` is LIVE, so S3b now has verified sessions to read.** `0340` (S3a) was deployed
 > 2026-10-07 (`0.0.156-profile.3`) and the owner's live check returned `vfy: true` — [[tasks/verified-login-enforce-live]]
 > (`0395`, closed). This brief's *"deploy S3b only after `0395` confirms `vfy: true` live"* note refers to that check,
@@ -103,3 +106,4 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed
 - [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): S3a live, `vfy: true` confirmed — the precondition for S3b's deploy
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: S3b's deploy (`0396`) is no longer held by an owner look at the login numbers
+- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): the join token first named in this task's design report §6 (built, not deployed)

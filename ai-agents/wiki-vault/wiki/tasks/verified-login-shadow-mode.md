@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as the S2 build only**
 **Sprint/Tag**: Sprint 6, rank 38 (append rank; owner ruled it *"directly above 0250"*) / task `0325`
 
+> 📌 **2026-10-07 (later) sync — the "second step" this task named is built.** The join token `0332` ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) carries
+> the verified session to the game server (committed `077c9e3`, not deployed). By owner ruling every perk stays open to
+> unverified players, so ADR-116 residual 7 stays open.
+>
 > 🆕 **2026-10-07 sync — S3a is now LIVE.** `0340` was deployed 2026-10-07 (`0.0.156-profile.3`) and the owner's live
 > check returned `vfy: true` — [[tasks/verified-login-enforce-live]] (`0395`). The post-`0391` stale share the owner
 > looked at first was **3.25 %** (was ≈ 34 %) — [[tasks/post-24h-window-login-read]] (`0392`). The note below was true
@@ -112,3 +116,5 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[tasks/authenticated-profile-read]] — task `0250`, whose ruling D3 filed this task; its S3b reads `verified`
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07, `vfy: true` confirmed live
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` stale share (3.25 %)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the second step (join token), built 2026-10-07 (not deployed)
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07)

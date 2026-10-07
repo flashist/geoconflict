@@ -11,6 +11,13 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-121-login-signature-freshness-window-24h-id-checked-first.md`
 >
+> 📌 **2026-10-07 (later) sync — no canonical change; a related build.** Task `0404`
+> ([[tasks/long-session-refresh-popup]]) forces a page refresh after 23 h on the start screen so a stale **session
+> token** is not sent at join (`0332`'s review R2, [[decisions/adr-124-join-token]]). Whether that refresh also gets
+> **new Yandex signed data** — or the same data for the whole visit, as this ADR records — is **unknown**; `0404` adds
+> an `AfterRefreshPopup` boot kind to the `Profile:Login:SignatureAge:*` events to measure it (verify task `0406`, not
+> deployed). The 3–7 % unverified share ADR-124 quotes rests on this ADR's window.
+>
 > ⛔ **Decision 4 (the *"≤ 5 % `stale` over 7 days"* acceptance gate) and the re-raise bullet that restates it are
 > SUPERSEDED by ADR-122 (2026-10-05).** The canonical file keeps both lines byte-identical and marks them with ⛔. Do
 > not follow the 5 % / 7-day gate. Decisions 1–3, residuals R1 and R2, and the other re-raise conditions stand.
@@ -103,3 +110,5 @@ window bump — rejected (`past_15m_20m` only ~11 % of stale).
 - [[tasks/post-24h-window-login-read]] — task `0392`: the first post-change reading (stale 3.25 %, 2026-10-07)
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 — this window now decides `vfy:true`
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the post-`0391` numbers are monitored, not a deploy gate (amends ADR-122)
+- [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup; its `AfterRefreshPopup` boot kind measures whether a refresh gets new signed data
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the join token; its unverified-share estimate rests on this window

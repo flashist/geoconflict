@@ -3,6 +3,16 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-07 (latest, `077c9e3`): 137 rows, 101 open — `0403` filed.** Re-counted by me at `HEAD` = `077c9e3`, by
+> each row's leading status glyph: 98 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was
+> 136 / 100). `0403` — **Telegram and VK links in the feedback popup**, so players who want a reply can get one; filed on
+> an owner request typed in the `fkit lead` session. Owner rulings 2026-10-07: reuse the existing `0141`/`0145` URLs and
+> the `telegram_link` / `vk_link` flags; **feedback popup only** (the thank-you screen keeps its 2 s auto-close, no
+> links); the moderation-answer gate **removed** (*"No need to, we already show the links."*) — moderation risk
+> owner-accepted. Still open, non-blocking: Russian wording, why the April 2026 footer link was removed. Related: `0300`
+> ([[features/feedback-button]]). The `0267` brief also got a dated note (its game-server path is now `0332` /
+> [[decisions/adr-124-join-token]]); its row did not change. Backlog briefs — not ingested.
+>
 > 🆕 **2026-10-06 (latest, `036a5c8`): 136 rows, 100 open — `0278` CANCELLED.** Re-counted by me at `HEAD` = `036a5c8`,
 > by each row's leading status glyph: 97 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled`
 > (was 136 / 101). `0278` (the missing-session surface on the logged-in card) now reads `⛔ Cancelled (agent-closed — not

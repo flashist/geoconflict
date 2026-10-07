@@ -5,6 +5,30 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-07 (latest, `077c9e3`) — 54 ROWS, 7 OPEN: `0332` BUILT AND CLOSED (ADR-124); `0323` CANCELLED; `0404` MOVED IN, BUILT AND CLOSED
+>
+> **Re-counted at `HEAD` = `077c9e3`: 54 rows — 41 `✅ Done` · 6 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 2 `⛔ Cancelled`; 7 OPEN** (was 53 / 9). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`. Window commits: `3cee150`, `077c9e3` ("Sprint push").
+>
+> - **9** `0332` (join token) — **phase 1:** design report + [[decisions/adr-124-join-token]] accepted on owner rulings
+>   Q1–Q8 (every perk kept open to unverified players; Q5 *"Keep for unconfirmed"* against the recommendation) → reset
+>   `🔄 In progress` → `🔲 Backlog`, owner `fkit-coder`. **Phase 2:** built in one slice, then **`✅ Done (agent-closed —
+>   not owner-verified)`** on the owner's *"Close it (Recommended)"*, with a **not-clean verify** (full `npm test` red 2 of
+>   3 on `supertest` suites, above the measured flake rate; integration suite not run). Verify-live `0405` on
+>   [[decisions/sprint-8]]. See [[tasks/join-token-identity-vouch]].
+> - **8** `0323` (server-confirmed name mark) — **`⛔ Cancelled (agent-closed — not owner-verified)`**: owner *"Cancel 0323
+>   (Recommended)"* — players don't care; admins' need met by `0332`'s counter. See [[decisions/cancelled-tasks]].
+> - **53** `0404` (refresh popup after 23 h, start screen only — `0332` review R2's exit) — **moved in from Sprint 8**
+>   (rank 14) on the owner's typed *"Move the refresh popup task to the Sprint 7"*, **appended at 53 (ADR-035 append
+>   rank, flagged for owner confirmation)**, then built and **`✅ Done (agent-closed — not owner-verified)`**; browser
+>   check 7 / 7 pass (relayed, not in the worklog). Verify-live `0406` on Sprint 8. See [[tasks/long-session-refresh-popup]].
+> - 🔧 **Both close cells say "Not committed"; that is stale against the repo** — the code of both is in `077c9e3`
+>   (`git show --stat`), in no release tag ⇒ committed, **not deployed**.
+> - `0267` (Backlog board) got a dated note: its "game-server path" scope is now `0332` / ADR-124 (backlog brief, not
+>   ingested).
+> - **Still open:** `0219` (Blocked), `0213`, `0401`, `0396`, `0398`, `0400`, `0402`.
+>
 > # 🆕 2026-10-07 (latest, `c24b132`) — 53 ROWS, 9 OPEN: THE LOGIN NUMBERS ARE NO LONGER A DEPLOY GATE; `0402` ADDED
 >
 > **Re-counted at `HEAD` = `c24b132`: 53 rows — 39 `✅ Done` · 8 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -692,3 +716,6 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/post-24h-window-login-read]] — task `0392` (rank 44): the post-`0391` login read, closed 2026-10-07
 - [[tasks/verified-login-enforce-live]] — task `0395` (rank 45): S3a deployed and `vfy: true` confirmed, closed 2026-10-07
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers stop gating `0396` and the other `verified` deploys; `0402` (rank 52) is the non-blocking re-read
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): `0332`'s design, accepted on owner rulings Q1–Q8
+- [[tasks/join-token-identity-vouch]] — task `0332` (rank 9), built and closed 2026-10-07 (not deployed)
+- [[tasks/long-session-refresh-popup]] — task `0404` (rank 53), moved in from Sprint 8, built and closed 2026-10-07 (not deployed)

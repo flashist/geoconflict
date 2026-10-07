@@ -8,6 +8,23 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md`
 
+> ⛔ **2026-10-07 (later) sync — DESIGN RULE 2 ONLY SUPERSEDED IN PART by [[decisions/adr-124-join-token]]; THE
+> EARNED-XP DECISION STANDS, by owner ruling.** `fkit-architect` appended to the canonical ADR ⛔ pointers at the Status
+> line and at design rule 2, a ⚠️ note under the key-issued trigger, a *"Note, 2026-10-07"* section and a Related line
+> (append-only; all older text kept). What now reads differently:
+> - **Rule 2:** the funnel will **not** return `null` for unverified players; it gains
+>   `getCreditableIdentity(client) → { yandexId, verified } | null` (`verified` from the profile server's vouch);
+>   `getCreditableYandexId` stays. Only reader of `verified` in the build: a start-time counter.
+> - **The decision stands for the game server, after `0332` too** — owner Q2 *"Keep XP (Recommended)"*. Risk **R1**
+>   (a forger gifts XP to a victim) **stays open**, by owner ruling, not by external blocker.
+> - **Rules 1, 3, 4, 5 stand** and extend to `Client.identityVerified` and `Client.profileSession`.
+> - **The exit is revised:** not `0332` any more — **an owner ruling that flips ADR-124's `xpCredit` row to `deny`**.
+>   The re-raise list (paid citizenship through an unverified identity; observed farming; a second reader of
+>   `client.yandexPlayerId`) is unchanged and is where such a ruling would come from.
+> - 🔧 The canonical note says *"Not built yet"*; `0332`'s build closed later the same day
+>   ([[tasks/join-token-identity-vouch]]), committed in `077c9e3`, **not deployed** (no release tag) — so the game
+>   server in production is still exactly as this ADR describes.
+>
 > 🆕 **2026-10-07 sync — verified logins are live at the PROFILE server; THIS ADR STILL GOVERNS THE GAME SERVER.**
 > `0340` (S3a) deployed 2026-10-07 and mints `vfy:true` ([[tasks/verified-login-enforce-live]]). ADR-113's 2026-10-07
 > note restates it: the game server is still client-asserted, and this ADR's exit is still `0332` (the join token). No
@@ -111,3 +128,5 @@ The design rules that make this a seam rather than just a shortcut:
 - [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: a citizen-gated archive read needs a trust level; this seam is one candidate (open point 1, an owner question)
 - [[tasks/verified-login-enforce]] — task `0340`, S3a built (deployed 2026-10-07); the game-server seam stays client-asserted until `0332`
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 at the profile server only — not in this seam
+- [[decisions/adr-124-join-token]] — 2026-10-07: supersedes **design rule 2 only**; the earned-XP decision stands (owner Q2); exit now an owner flip of `xpCredit`
+- [[tasks/join-token-identity-vouch]] — task `0332`: the funnel now carries `{ yandexId, verified }` (built, committed, not deployed)

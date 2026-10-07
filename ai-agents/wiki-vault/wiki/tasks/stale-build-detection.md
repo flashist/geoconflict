@@ -4,6 +4,11 @@
 **Status**: done
 **Sprint/Tag**: Sprint 3 / HF-11
 
+> 📌 **2026-10-07 sync — the stale-build popup now has a sibling message.** `0404` ([[tasks/long-session-refresh-popup]]) reuses `StaleBuildModal` for a
+> forced "please refresh" popup after 23 h on the **start screen only**. One popup at a time: the stale-build reason
+> wins. **This task's mid-match rule is unchanged** — the stale-build popup still shows mid-match. Built, committed
+> `077c9e3`, not deployed.
+
 ## Goal
 
 Detect clients running an outdated JavaScript bundle and force a page reload with a non-dismissible modal. Resolves zombie tab sessions confirmed by HF-11a investigation.
@@ -56,3 +61,4 @@ The implementation is present in the repo: `Master.ts` serves `GET /api/version`
 - [[decisions/stale-build-zombie-tabs]] — HF-11a investigation findings (root cause: zombie tabs confirmed)
 - [[decisions/sprint-3]] — sprint containing this work
 - [[systems/analytics]] — `Build:StaleDetected` analytics event
+- [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): reuses `StaleBuildModal` for the 23 h start-screen-only refresh popup; the mid-match rule here unchanged

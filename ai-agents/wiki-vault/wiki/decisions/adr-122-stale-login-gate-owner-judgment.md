@@ -11,6 +11,9 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-122-stale-login-gate-is-owner-judgment-no-fixed-window-or-threshold.md`
 >
+> 📌 **2026-10-07 (later) sync — canonical ADR annotated only:** its three `0332`/`0323` mentions now carry *"(`0323`
+> cancelled 2026-10-07)"*; no decision changed. See [[decisions/cancelled-tasks]].
+>
 > ⛔ **2026-10-07 sync — AMENDED BY [[decisions/adr-123-login-numbers-monitored-not-gate]]** (owner ruling, live in
 > session: *"… they no longer block us …"*; the canonical ADR got dated, append-only ⛔ pointers, every older line
 > byte-identical). **Superseded:** Decision 2 *as a per-deploy gate*, the *Consequences* sentence that the owner's look

@@ -14,6 +14,22 @@
 > 📌 The source ADR cites `file:line` against the 2026-09-28 working tree. Per the vault's citation rule this
 > page names functions instead; read the source ADR for the line frame.
 >
+> 📌 **Amended twice on 2026-10-07 (canonical ADR; facts and owner rulings only, no decision changed).**
+> 1. **ADR-124 accepted — residual 1 STAYS OPEN BY OWNER RULING, also after `0332`.** Asked Q5 (*"Approved name: show a
+>    citizen's approved name in matches only when verified?"*), the owner chose **"Keep for unconfirmed"** — **not** the
+>    architect's recommendation (*verified only*). So the expectation that residual 1 closes when *"`0325` plus the
+>    join-token second step land"* **will not happen**; a forged id keeps showing a citizen's approved name, as accepted
+>    under D3. The *Consequences* forecast *"needs no change to this code"* is **corrected**: a future verified-only fix
+>    would be **one read** of the funnel's `verified` bit in `matchDisplayName` (freezing at `start()`, D6, unchanged).
+>    See [[decisions/adr-124-join-token]].
+> 2. **`0323` cancelled (later the same day)** — owner *"Cancel 0323 (Recommended)"* (players don't care about a
+>    confirmed-name mark; admins' need met by `0332`'s counter `geoconflict.server.match.identity`). The second re-raise
+>    trigger (*a mark presented to players as confirmed identity*), briefly "live for `0323`'s design", is **waiting
+>    again with no filed candidate**. ⚠️ **Open point for the owner, not decided:** whether a future **per-player admin
+>    view** counts as *"presented to players"* — ask when such a task is filed. See [[decisions/cancelled-tasks]].
+> - Unchanged: every decision, residuals 2–5, the other re-raise bullets, the closeout sentence. 🔧 The amendments say
+>   `0332` is *"not yet built"*; it closed later that day ([[tasks/join-token-identity-vouch]]), committed, not deployed.
+>
 > 📌 **Amended 2026-10-01 — `0308` cancelled; the D6 revisit moves to `0365`.** Facts only; **no decision changed.**
 > Recorded by the architect on an owner ruling given live via `AskUserQuestion`, relayed by `fkit-lead`: *"New task
 > for the 2 safety parts (Recommended)"*. `0308` was cancelled as not reproduced ([[tasks/player-name-lost-space]]), so
@@ -113,3 +129,6 @@ is **closeout of this ADR, not a new defect.**
 - [[tasks/verified-login-shadow-mode]] — task `0325`, closed as the S2 build; S3a is `0340`
 - [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced); the D6 revisit moved to `0365`
 - [[decisions/sprint-backlog]] — the Backlog board, where `0365` (the D6 revisit since 2026-10-01) sits
+- [[decisions/adr-124-join-token]] — 2026-10-07: provides the `verified` bit; residual 1 stays open by owner ruling Q5 (*"Keep for unconfirmed"*)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed) — no longer this ADR's residual-1 exit
+- [[decisions/cancelled-tasks]] — `0323` (the mark), cancelled 2026-10-07; the second re-raise trigger has no filed candidate

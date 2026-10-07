@@ -66,3 +66,4 @@ A number at or above 101 is always this project's; a number below 100 is always 
 - [[decisions/adr-121-login-signature-24h-window]] — project ADR-121 (2026-10-05)
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — project ADR-122 (2026-10-05)
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — project ADR-123 (2026-10-07)
+- [[decisions/adr-124-join-token]] — project ADR-124 (2026-10-07)

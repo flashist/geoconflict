@@ -5,6 +5,23 @@
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
 >
+> 📝 **2026-10-07 (later) sync — point 6 CLARIFIED by [[decisions/adr-124-join-token]]** (accepted 2026-10-07; owner
+> *"Accept with answers (Recommended)"*). `fkit-architect` appended a 📝 pointer at point 6, a *"Note, 2026-10-07 —
+> ADR-124"* section and a Related line; **no decision changes, Status stays `accepted`.** From `0332`'s build:
+> - the client also sends its profile session token — optional `profileSession` on the WebSocket `join`, or on the
+>   existing `update_identity` if login finishes later; no new message type;
+> - the game server passes it as an optional `sessionToken` on the resolve; the **profile server** checks it
+>   (signature, expiry, `vfy === true`, platform `yandex_games`, token `pid` = the player the Yandex id resolves to via
+>   `player_identities`) and replies an optional `verified`;
+> - the game server holds the token **in memory only**, until the first answered vouch, never logged, stored or relayed;
+> - **"the game server does not hold the session secret" still holds** — the owner chose this over the game server
+>   checking tokens itself (ADR-124 Q6, *"Reuse login pass (Recommended)"*);
+> - **new accepted residual:** a broken-into game box could reuse tokens in its memory at the profile server for up to
+>   24 h — bounded, since that box already holds `PROFILE_INTERNAL_TOKEN`;
+> - `verified` changes nothing the game server grants today (every use kept open, ADR-124 Decision 5).
+> 🔧 The note says *"Not built yet"*; the build closed later that day ([[tasks/join-token-identity-vouch]]), committed
+> `077c9e3`, **not deployed**. Also: the point-5 reader list now marks `0323` *(cancelled 2026-10-07)*.
+>
 > 🆕 **2026-10-07 — ADR-116's NOTE IS APPLIED: the verification trigger fired.** `0340` (S3a) was deployed 2026-10-07
 > (07:10:45Z, profile `0.0.156-profile.3`, commit `71efd10`) and the owner's live check returned **`vfy: true`**
 > ([[tasks/verified-login-enforce-live]], task `0395`). `fkit-architect` appended to the canonical ADR a section
@@ -189,3 +206,5 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/verified-login-enforce]] — task `0340`, S3a; ~~the dated note here waits for its deploy (`0395`)~~ deployed 2026-10-07, note applied
 - [[tasks/verified-login-enforce-live]] — task `0395`, the deploy and `vfy: true` live check that fired this ADR's trigger (2026-10-07)
 - [[tasks/authenticated-profile-read]] — task `0250`: S3b branches the profile read on the session's `verified` claim
+- [[decisions/adr-124-join-token]] — 2026-10-07: point 6 clarified — the game server relays the session token on resolve, holds it in memory only, never the secret
+- [[tasks/join-token-identity-vouch]] — task `0332`, the build of that relay (committed, not deployed)

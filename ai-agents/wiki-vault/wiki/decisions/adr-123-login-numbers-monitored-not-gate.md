@@ -14,6 +14,11 @@
 > ADR-122 stays `accepted`. [[decisions/adr-116-verified-login]] Decision 6 is unchanged.
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-123-post-0391-login-numbers-are-monitored-not-a-deploy-gate.md`
+>
+> 📌 **2026-10-07 (later) sync — canonical ADR annotated only:** every `0332`/`0323` mention now carries *"(`0323`
+> cancelled 2026-10-07)"*; no decision changed. `0332` was then built and closed the same day without a numbers look,
+> as this ADR allows ([[tasks/join-token-identity-vouch]]; its ADR is [[decisions/adr-124-join-token]]). `0323` was
+> cancelled — see [[decisions/cancelled-tasks]].
 
 ## Context
 
@@ -94,3 +99,5 @@ change nothing.
 - [[tasks/login-signature-24h-window]] — task `0391`, the fix
 - [[tasks/stale-login-fix-decision]] — task `0373`, the weekend-evening data behind the caveat
 - [[systems/player-profile-store]] — the profile box whose counters are monitored
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): `0332`'s design; its deploy is not held by the login numbers
+- [[tasks/join-token-identity-vouch]] — task `0332`, built and closed 2026-10-07 (not deployed)

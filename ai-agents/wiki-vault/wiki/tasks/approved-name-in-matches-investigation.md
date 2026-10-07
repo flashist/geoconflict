@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 8 / task `0317` (investigation — no code)
 
+> 📌 **2026-10-07 sync — two of this investigation's follow-ups resolved.** Brief B3 (`0323`, the server-confirmed
+> mark) was **cancelled** — owner: players don't care; admins' need met by `0332`'s counter
+> ([[decisions/cancelled-tasks]]). The join token `0332` was built (not deployed), but on Q5 the owner kept the approved
+> name for unverified players, so the forged-id case (R1 / ADR-115 residual 1) stays open by owner ruling ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]).
+>
 > ✅ Done (agent-closed — not owner-verified). Findings report:
 > `ai-agents/knowledge-base/reports/2026-09-27-0317-approved-name-in-matches.md` (written by
 > `fkit-architect`, no owner channel; its approach weighting was *assumed*, open to owner correction).
@@ -65,3 +70,6 @@ is unchanged.
 - [[tasks/name-change-approved-message-wording]] — task `0316`, the wording this would have changed
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/player-name-lost-space]] — task `0308`, where D6 was answered (R2); cancelled 2026-10-01, R2 carried to `0365`
+- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): the join token, built; approved names stay open to unverified players (Q5)
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07)
+- [[decisions/cancelled-tasks]] — `0323` (brief B3, the mark), cancelled 2026-10-07

@@ -10,6 +10,17 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-116-first-verified-identity-yandex-signed-player-data-at-login.md`
 >
+> 📝 **2026-10-07 (later) sync — residual 7 STAYS OPEN BY OWNER RULING; [[decisions/adr-124-join-token]] accepted.**
+> `fkit-architect` added a dated note under residual 7 (*"closes only with `0332`"*), a Related line, and *"(cancelled
+> 2026-10-07)"* beside `0323` in the unblocks and Tasks lists. Once `0332` ships, the game server **will** see the
+> profile session (the client sends its token; the profile server vouches on the resolve) — so the mechanism this
+> residual waited for exists. **But the owner kept every use open to unverified players**, verbatim: XP *"Keep XP
+> (Recommended)"*, ★ *"Keep the ★ (Recommended)"*, private lobby *"Keep it open (Recommended)"*, approved name *"Keep
+> for unconfirmed"*. So a forged id still earns XP, shows the ★, hosts, and shows an approved name; **each part closes
+> only if the owner flips that use to verified-only**. A missing `verified` reads as unverified (Q7) — the rule for any
+> such flip. 🔧 The note says `0332` is *"accepted, not yet built"*; it closed later that day
+> ([[tasks/join-token-identity-vouch]]), committed, **not deployed**.
+>
 > ⛔ **2026-10-05 — SUPERSEDED IN PART by [[decisions/adr-121-login-signature-24h-window]]** (owner *"24 hours
 > (Recommended)"*; append-only pointers added to the canonical ADR, every older line byte-identical). **Superseded:**
 > Decision 3's 900 s freshness window (now **86,400 s**; the 300 s future limit is unchanged), residual 8 (now ADR-121
@@ -185,3 +196,5 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): ad-free reads paid only from the verified owner view (Decision 4); unverified sessions see ads (owner-accepted)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether this session is verified; explains Decision 4, does not soften it
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers no longer gate `verified` deploys; Decision 6 unchanged
+- [[decisions/adr-124-join-token]] — 2026-10-07: the game server learns `verified` through the join token; residual 7 stays open by owner ruling
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed)

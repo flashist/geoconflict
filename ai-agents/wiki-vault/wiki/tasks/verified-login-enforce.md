@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified) — **closed as BUILT and REVIEWED only** · 🆕 **DEPLOYED 2026-10-07 via `0395`** *(was: ~~NOT deployed~~)*
 **Sprint/Tag**: Sprint 7, rank 16 (append rank; on merit the top of Sprint 7's open work) / task `0340`
 
+> 📌 **2026-10-07 (later) sync — `0332`, which hard-depended on this build, is built too** ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]; committed,
+> not deployed). Of the four readers once listed (`0250` S3b, `0319`, `0332`, `0323`), `0323` was cancelled
+> ([[decisions/cancelled-tasks]]).
+>
 > 🆕 **2026-10-07 sync — S3a IS LIVE.** The owner deployed `71efd10` mid-week on **2026-10-07 at 07:10:45Z** as profile
 > **`0.0.156-profile.3`** (tagged on `71efd10`; profile only, alone — `0250` S3b kept out). Owner's live check:
 > **`vfy: true`**. Its verify task `0395` closed the same day — see [[tasks/verified-login-enforce-live]]. ⚠️ The
@@ -83,3 +87,4 @@ makes "is this the proven owner?" answerable for the tasks that need it — `025
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-`0391` numbers the owner looked at (stale 3.25 %)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether S3a's `vfy` session is verified; must deploy only after `0395` confirms verified logins live
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers stop gating the `verified` readers after S3a
+- [[tasks/join-token-identity-vouch]] — task `0332`, which depended on this build; built 2026-10-07 (not deployed)

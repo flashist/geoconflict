@@ -3,6 +3,12 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-10-07 (later) sync (`077c9e3`) — the resolve route can now vouch for a session (task `0332`), committed,
+> NOT deployed.** `POST /internal/v1/players/resolve` takes an optional `sessionToken` and replies an optional
+> `verified` (new `src/profile-server/SessionVouch.ts`; ADR-124). The session secret stays on this box; the game box
+> relays the token and holds it in memory only. New counter `geoconflict.profile.resolve.vouch{outcome}`. Deploy order:
+> **this profile server first, then the game image.** Every perk stays open to unverified players. See [[tasks/join-token-identity-vouch]] and [[decisions/adr-124-join-token]].
+>
 > 🆕 **2026-10-07 sync (`03d027b`) — S3a IS LIVE: the profile server mints `vfy:true`.**
 > - ✅ **DEPLOYED Wed 2026-10-07 (owner-run, a second mid-week exception): `0.0.156-profile.3`**, commit `71efd10`
 >   (tagged; **`0340` only** — the delta from `.2` was exactly that one commit; `0250` S3b deliberately kept out).
@@ -579,3 +585,5 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07 as `0.0.156-profile.3`, `vfy: true` live
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` login numbers (stale 3.25 %)
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login-verification counters are monitored, not a deploy gate
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the resolve route vouches for a session token; the secret stays on this box
+- [[tasks/join-token-identity-vouch]] — task `0332`, the vouch build (committed, not deployed; profile first)

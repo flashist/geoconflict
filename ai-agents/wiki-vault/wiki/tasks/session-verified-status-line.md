@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`), NOT deployed**
 **Sprint/Tag**: Sprint 7, rank 46 (append rank, not a merit rank; on merit directly below `0250`) / task `0397`
 
+> 📌 **2026-10-07 (later) sync — `0332` does NOT reword this line's *not confirmed* text.** The join token
+> ([[tasks/join-token-identity-vouch]]) was built with every perk kept open to unverified players, so nothing new is lost; ADR-124 makes the reword
+> (EN + RU) and a message for unverified non-citizens the duty of any **future** flip of a perk to verified-only
+> ([[decisions/adr-124-join-token]]). Separately, `0404` ([[tasks/long-session-refresh-popup]]) is another start-screen-only build that cites this task as precedent.
+>
 > 🆕 **2026-10-07 sync — first gate of its live check passed.** `0400`'s gates begin with *"`0395` passed"*: `0395`
 > closed 2026-10-07 with `vfy: true` live ([[tasks/verified-login-enforce-live]]). Still ahead: `0396` (S3b server) →
 > this task committed and deployed (it is committed, `036a5c8`, in no release tag) → a slot. **Not deployed.**
@@ -108,3 +113,6 @@ unverified.
 - [[decisions/sprint-8]] — its live check `0400` (rank 12 there; moved to Sprint 7, rank 51, 2026-10-06)
 - [[decisions/sprint-backlog]] — the board that carried `0278` until it was folded in here
 - [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): the first gate of this task's live check `0400`
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the *not confirmed* text is reworded only by a future flip of a perk
+- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): built with every perk open; this line's text unchanged
+- [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup, another start-screen-only build

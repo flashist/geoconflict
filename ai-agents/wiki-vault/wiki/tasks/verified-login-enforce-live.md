@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 45 (append rank, not a merit rank; moved in from Sprint 8 rank 9 on 2026-10-05) / task `0395`
 
+> 📌 **2026-10-07 (later) sync — the `vfy: true` this task confirmed is now relayed to the game server in code.**
+> `0332` ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) was designed and built the same day, committed `077c9e3`, **not deployed**; its deploy precondition
+> *"only after `0395` confirms `vfy: true` live"* is met by this task.
+>
 > ✅ Done (agent-closed — not owner-verified), closed **2026-10-07** by a spawned `fkit-producer` via `/fkit-task-done`,
 > routed by `fkit-lead`, on the owner's choice of an option reading *"0395 gets its record and closes"*.
 >
@@ -87,3 +91,5 @@ Nothing in source. The record, by Verification step:
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 check this chain answered
 - [[tasks/verified-login-shadow-mode]] — task `0325`, S0 + S2 — the slices before S3a
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07, after this deploy: the login numbers stop gating later `verified` deploys
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the join token; this task's live check was its precondition
+- [[tasks/join-token-identity-vouch]] — task `0332`, built 2026-10-07 (not deployed)

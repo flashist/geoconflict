@@ -36,6 +36,15 @@ Exported every **15 seconds** via `PeriodicExportingMetricReader`. All metrics c
 | `geoconflict.server.eventloop.lag` | Gauge (ms) | Event loop lag mean |
 | `geoconflict.server.network.bytes_sent` | Counter (bytes) | Cumulative WebSocket bytes sent |
 | `geoconflict.server.network.bytes_recv` | Counter (bytes) | Cumulative WebSocket bytes received |
+| `geoconflict.server.match.identity` | Counter | 🆕 2026-10-07 (task `0332`, ADR-124; committed `077c9e3`, **not deployed**). Players in started matches by identity state at match start, label `state` = `guest` / `unresolved` / `verified` / `unverified`; counted once per match **per player** at `start()`; late joiners not counted |
+
+**Profile-server counter, same task** (`src/profile-server/Telemetry.ts`, service `geoconflict-profile`):
+`geoconflict.profile.resolve.vouch`, label `outcome` = `verified` / `absent` / `invalid` / `expired` /
+`unverified_session` / `other_player` / `other_platform` / `no_secret`. ⚠️ Counted **per resolve, not per player** — one
+player can be resolved several times a match (join, late token, credit time, reconnect); the per-player figure is
+`geoconflict.server.match.identity`. Both are read after the `0332` deploy by verify task `0405`; they gate nothing
+(ADR-124 Decision 8). Source: `ai-agents/knowledge-base/uptrace-knowledge-base.md` (2026-10-07 rows).
+See [[decisions/adr-124-join-token]] and [[tasks/join-token-identity-vouch]].
 
 ### Slow Turn Spans (`OtelTracing.ts` + `GameServer.ts`)
 Emitted only when a turn exceeds `SLOW_TURN_THRESHOLD_MS` (100ms). Zero overhead on normal turns.
@@ -294,3 +303,5 @@ The actionable server-side gap was map manifests: `nginx.conf` cached and served
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363` (closed 2026-10-03): the first tagged telemetry deploy, `0.0.155-telemetry.1` at `204f931` — tag, box marker and local record agree; the Uptrace UI loads with post-deploy data
 - [[tasks/client-null-id-errors]] — task `0032` (closed 2026-10-04): item 5 of the 2026-05-07 priority table, fixed at the origin; its re-check proved client ingest live with data and that `service_version` holds the commit SHA
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): all five outside images on this box are to be pinned by digest (`0386`/`0387`)
+- [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the two identity counters (`geoconflict.server.match.identity`, `geoconflict.profile.resolve.vouch`)
+- [[tasks/join-token-identity-vouch]] — task `0332`, which added them (committed, not deployed)

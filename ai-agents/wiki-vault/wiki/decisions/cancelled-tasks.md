@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/tasks/cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/tasks/cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md`, `ai-agents/tasks/cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
 
 ---
 
@@ -238,6 +238,37 @@ by then.
 **If revisited:** do not restart `0278`; `0397` covers both paths. Its verification step 5 (a client test driving the
 late-SDK path) became a `0397` verification step.
 
+## Matches — Mark a Server-Confirmed Approved Name (task 0323)
+
+**Sprint:** Sprint 7 (rank 8)
+**Status:** ⛔ Cancelled 2026-10-07 (agent-closed — not owner-verified)
+
+**What it was:** brief B3 of the `0317` investigation ([[tasks/approved-name-in-matches-investigation]]) — a mark in
+matches showing that a citizen's approved name was swapped in **by the server**, so players could tell a real citizen
+from someone who merely typed the same name. Filed 2026-09-27 on the owner's D5 (*"Not now, but create a brief for this
+task and add it to the end of the end of the next sprint."*). It hard-depended on `0322` and on the join token `0332`.
+
+**Why cancelled:** at `0323`'s plan gate the owner wrote, verbatim: *"No need for special mark of "this is really that
+account", users don't care about this feature, it's only important for us (developers/admins of the game)"*. Then, asked
+*"What should happen to 0323?"* (live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`), the owner
+chose **"Cancel 0323 (Recommended)"** — reason recorded: players don't care; only admins need to know who is really who,
+and `0332`'s start-time counter (`geoconflict.server.match.identity`) covers that. Nothing was built.
+
+**What changed on the way:** the same morning, `0332`'s Q5 ruling (*"Keep for unconfirmed"*) kept approved names for
+**unverified** players too, so the mark could no longer lean on the name swap — it would have needed its own `verified`
+check through the funnel, frozen at `start()` ([[decisions/adr-124-join-token]] Decision 5 note). Those notes are
+overtaken and kept visible in ADR-124 and ADR-115.
+
+**Consequences recorded in the ADRs:** ADR-115's second re-raise trigger (*"the approved name, or a mark derived from it,
+is presented to players as confirmed identity"*) has **no filed candidate** again ([[decisions/adr-115-approved-name-in-matches]]);
+the start-time counter is now the **only planned reader of `verified`** (ADR-124). ADR-115 residual 1 (a forged id shows
+a citizen's approved name) stays open by owner ruling Q5.
+
+**If revisited:** the owner said a **per-player admin view** can be filed later. ⚠️ Open point, undecided (carried in
+ADR-115): whether such an admin view counts as *"presented to players"* under that re-raise trigger — ask the owner when
+it is filed; do not settle it in a review. Any future reader of `verified` must check it through the funnel and apply
+ADR-124 Decision 6 (missing `verified` = unverified).
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -268,3 +299,12 @@ late-SDK path) became a `0397` verification step.
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 follow-up `0310` was cancelled for `0379`
 - [[tasks/session-verified-status-line]] — task `0397`, which `0278` was folded into and cancelled for (2026-10-06)
 - [[tasks/profile-identity-s4-client-login-session]] — task `0273`, whose ruling D3 created the gap `0278` was filed for
+- [[tasks/join-token-identity-vouch]] — task `0332`, whose counters met the admin need `0323` was cancelled for (2026-10-07)
+- [[decisions/adr-124-join-token]] — ADR-124: after `0323`'s cancellation the start-time counter is the only planned reader of `verified`
+- [[decisions/adr-115-approved-name-in-matches]] — its second re-raise trigger has no filed candidate again after `0323`'s cancellation
+- [[tasks/approved-name-in-matches-investigation]] — task `0317`, whose brief B3 became `0323`
+- [[decisions/adr-122-stale-login-gate-owner-judgment]] — annotates its `0332`/`0323` mentions with `0323`'s cancellation (2026-10-07)
+- [[decisions/adr-123-login-numbers-monitored-not-gate]] — annotates its `0332`/`0323` mentions with `0323`'s cancellation (2026-10-07)
+- [[decisions/sprint-7]] — the board where `0323` (rank 8) was cancelled 2026-10-07
+- [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, the name swap `0323`'s mark would have marked
+- [[tasks/verified-login-enforce]] — task `0340`, whose listed `verified` readers included `0323` until its cancellation
