@@ -1,6 +1,10 @@
 # ADR-103: One identity-trust seam — client-asserted Yandex IDs are accepted for earned XP; signed verification is deferred
 
 - **Status:** accepted
+  - ⛔ **2026-10-07 — design rule 2 only is superseded in part by
+    [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)** (accepted
+    2026-10-07). The decision itself — accept the asserted id for earned XP — **is NOT superseded** and still governs
+    the game server. See § *Note, 2026-10-07* at the end. The word `accepted` above is left as written.
 - **Date:** 2026-08-08 (retro-recorded; decision made **2026-06-28**, commit `7c82d8d`
   "s4-profile-06-match-end-crediting")
 - **Deciders:** Owner (Mark Dolbyrev). The comment names it an "epic-accepted risk", so the
@@ -43,6 +47,11 @@ The design rules that make this a seam rather than just a shortcut:
 2. **Signature is already the post-verification signature.** It returns `string | null`. When
    verification lands, it verifies the signed payload *there* and returns the verified id or `null` —
    downstream upsert / credit / qualification logic does not change at all.
+   > ⛔ **2026-10-07 — superseded in part by ADR-124 (Decision 3, Decision 5).** The funnel will **not** return
+   > `null` for an unverified player. It gains `getCreditableIdentity(client) → { yandexId, verified } | null`, with
+   > `verified` learned from the profile server's vouch on the resolve; `getCreditableYandexId` stays. The *"downstream
+   > … does not change"* half still holds in effect: the owner kept every use open to unverified players, so no
+   > crediting, ★, lobby or name code reads `verified`. See § *Note, 2026-10-07*. Text above left byte-identical.
 3. **The raw field is marked untrusted at its source** (`src/server/Client.ts:23-27`): "UNTRUSTED:
    client-asserted, NOT identity-verified. Do not use for profile lookup, crediting, or entitlements
    without verification."
@@ -98,6 +107,9 @@ The design rules that make this a seam rather than just a shortcut:
       the game server** and is **amended, not superseded** (owner-approved with the `0325` plan,
       2026-09-28). **Its exit is now `0332`** (the join token: the game server has the profile server
       vouch for a verified session).
+    - ⚠️ **2026-10-07 — the exit above is revised** (dated note, append-only; the note above is left as written).
+      `0332` delivers the mechanism, but **by owner ruling it does not end this ADR's acceptance for XP**. See §
+      *Note, 2026-10-07* at the end.
   - **Paid citizenship ships before the key arrives**, so paid value is reachable through an
     unverified identity (open question 5 in `../architecture.md` §13).
   - **Observed XP-farming or identity-collision abuse in production.**
@@ -106,6 +118,36 @@ The design rules that make this a seam rather than just a shortcut:
 
   Absent those, a review finding of the form "the Yandex id is client-asserted / unverified / can be
   spoofed" is **closeout of this ADR, not a new defect.**
+
+## Note, 2026-10-07 — ADR-124 accepted: the game server will learn `verified`, and the owner kept XP open to unverified players
+
+**Added 2026-10-07 by `fkit-architect`, spawned by `fkit-lead` (`/fkit-sprint-ship-loop`, Sprint 7), on the
+acceptance of [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md).**
+Append-only: every wording above is kept; the ⛔ pointers at the Status line and at design rule 2, and the ⚠️ note
+under the key-issued trigger, lead here. Under `decisions/README.md`, design rule 2 changes by **supersession**
+(ADR-124 supersedes it in part); the rest of this note records an owner follow-up ruling on this ADR's exit.
+
+**Not built yet.** ADR-124 is accepted; `0332`'s build is not written or deployed at this writing. Until it ships,
+the game server is exactly as this ADR describes.
+
+**The rulings** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim by
+`fkit-lead`; full table in ADR-124 § *Owner rulings — verbatim*):
+- **Q2 (XP for unverified players): "Keep XP (Recommended)"** — unverified players still earn match XP.
+- **Q8 (sign off ADR-124): "Accept with answers (Recommended)".**
+
+**What this means for this ADR:**
+- **The decision stands — for the game server, after `0332` too.** The client-asserted id stays accepted for earned
+  XP, by owner ruling, not by external blocker. Risk R1 (a forger gifts XP to a victim's account) **stays open.**
+- **Design rule 2 is superseded in part** (ADR-124 Decisions 3 and 5): the funnel will carry `{ yandexId, verified }`
+  instead of returning `null` for unverified players. In `0332`'s build the only reader of `verified` is a start-time
+  counter.
+- **Rules 1, 3, 4 and 5 stand** and extend to the two new server-only fields, `Client.identityVerified` and
+  `Client.profileSession`: nothing outside the funnel and the resolve path reads them (ADR-124 Decision 3).
+- **The exit is revised.** The 2026-09-29 note said *"Its exit is now `0332`."* `0332` gives the game server the
+  `verified` bit, but closes nothing here. **This ADR's exit for XP is now an owner ruling that flips ADR-124's
+  `xpCredit` row to `deny`** (ADR-124 § *Re-raise only if*). The re-raise list above (paid citizenship through an
+  unverified identity; observed farming or abuse; a second reader of `client.yandexPlayerId`) is unchanged, and is
+  where such a ruling would come from.
 
 ## Related
 
@@ -118,3 +160,6 @@ The design rules that make this a seam rather than just a shortcut:
 - `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md` — the rejected hashing approach
 - [ADR-115](adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) (2026-09-28, task `0322`) — widens this seam's scope to a third user: after crediting/resolve and the `0302` private-lobby gate, the funnel now also decides which approved name other players see in a match; the forged-id case is an owner-accepted risk (D3) there, closed by `0325` plus the join-token second step with no change to that code.
 - [ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md) (accepted 2026-09-29, task `0325`) — the first verified identity: Yandex signed player data checked once at the profile login, carried as `vfy:true`. It **amends, does not supersede** this ADR: this ADR's key-issued trigger fired (dated note above), the game-server seam stays client-asserted, and the exit moves to `0332` (join token).
+- 📝 Added 2026-10-07: [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
+  (accepted 2026-10-07, task `0332`) — supersedes **design rule 2 only**; XP stays open to unverified players by owner
+  ruling (Q2), so this ADR's decision stands. See § *Note, 2026-10-07*.

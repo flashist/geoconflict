@@ -154,3 +154,23 @@ the numbers any more.
   numbers look — it is not, by itself, an approval to deploy.
 - ADR-122 is being updated separately (by `fkit-architect`); this note does not edit it. No status, sprint or rank
   changed. No mover run.
+
+## 📌 2026-10-07 — OWNER RULING (`0332` Q5): approved names are NOT limited to verified players, so this mark needs its own verified check (appended; nothing above edited, ADR-035)
+
+**Provenance.** OWNER RULING given 2026-10-07 live via `AskUserQuestion` in the `fkit lead` session, on the `0332`
+design ([report](../../../knowledge-base/reports/2026-10-07-0332-join-token-design.md) §15 Q5), relayed verbatim by
+`fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+*"Keep for unconfirmed"* — **not** the design's recommendation (*verified only*).
+
+- **What it means.** The game server keeps swapping in a citizen's approved name for players whose session is **not**
+  verified. [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md)
+  residual 1 (a forged Yandex id shows a citizen's approved name) **stays open by owner ruling**.
+- **Consequence for this task.** "The server swapped in the approved name" is therefore **not** enough to set the mark —
+  a forged id still gets the swap. The mark must also check that the player is **verified**, using the `verified` bit
+  that [`0332`](../0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md) adds to the
+  identity funnel (`GameServer.getCreditableYandexId` returns the Yandex id together with whether it is verified). In
+  plain terms: mark = approved name swapped in **and** verified. What step 1 of *What to build* says ("set only where
+  `0322` swaps") is to be read with that extra condition; the plan works out the details. (The report §15 Q5 states
+  the same: *"`0323`'s mark would need its own check."*)
+- **Unchanged:** the dependency on `0332` (hard — it now supplies exactly the bit this mark needs); status, sprint and
+  rank; the mark's look is still an owner decision at the plan gate. No mover run.

@@ -355,6 +355,19 @@ only the risk that a label-only change turns every login `bad_payload`.
    were closed by Q-A.
 7. **ADR-103 / `0322`'s forged id stays open.** The game server learns the id from the WebSocket join and
    never sees the profile session. It closes only with `0332` (the join token).
+
+   > 📝 **2026-10-07 — `0332` will not close it: it stays open by owner ruling.** Added by `fkit-architect`
+   > (spawned by `fkit-lead`, Sprint 7) on the acceptance of
+   > [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md) (owner ruling
+   > 2026-10-07, verbatim **"Accept with answers (Recommended)"**, relayed by `fkit-lead`). `0332` is **accepted, not
+   > yet built**. Once built, the game server *will* see the profile session — the client sends its token, and the
+   > profile server vouches for it on the resolve call (ADR-124 Decisions 1–3) — so the mechanism this residual waited
+   > for exists. But the owner kept every use open to unverified players, verbatim: XP **"Keep XP (Recommended)"**,
+   > ★ **"Keep the ★ (Recommended)"**, private lobby **"Keep it open (Recommended)"**, approved name **"Keep for
+   > unconfirmed"** (ADR-124 Decision 5). So a forged id still earns XP, shows the ★, hosts, and shows an approved
+   > name: **this residual stays open by owner ruling**, and each part closes only if the owner flips that use to
+   > verified-only. A missing `verified` (old or rolled-back profile server) reads as unverified (ADR-124 Q7, **"Treat
+   > as unconfirmed (Recommended)"**) — the rule for any such flip. Text above left byte-identical.
 8. **Replay within the freshness window.** A captured signature logs in as its owner for up to ~15 min
    (plus 5 min of future skew). Same class as a stolen token (residual 1). *Settled 2026-09-29 (amendment
    D, approved):* `requestPayload` is **not** used as a nonce — Yandex documents no `getPlayer` payload
@@ -496,6 +509,10 @@ and mark this subsection applied.
   - ✅ 2026-10-07: applied — ADR-113 § *Note, 2026-10-07 — the verification trigger fired*.
 - [ADR-115](adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) — residual 1 closes with `0332`,
   not with this ADR
+  - 📝 2026-10-07: overtaken — ADR-115 residual 1 stays open by owner ruling even after `0332` (ADR-124 Q5).
+- 📝 Added 2026-10-07: [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
+  (join token, accepted 2026-10-07, task `0332`) — the game server learns `verified`; residual 7 stays open by owner
+  ruling (dated note under residual 7).
 - [ADR-112](adr-112-free-xp-grants-capped-server-clamped-acked-once-per-account.md) — the tenure claim a
   verified caller could later gate
 - Code today: `src/profile-server/SessionToken.ts` (`vfy: z.literal(false)`, key-rotation note),

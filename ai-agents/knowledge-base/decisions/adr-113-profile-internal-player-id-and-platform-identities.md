@@ -86,6 +86,9 @@ migration later.
      the returned player id.
    - It credits by `playerId`; the ledger key is `(game_id, player_id)`.
    - The internal id never reaches a client. The game server does not hold the session secret.
+   > 📝 **2026-10-07 — clarified by ADR-124** (accepted, not yet built): the join will also carry the session token,
+   > relayed on resolve; the game server still does not hold the secret. See § *Note, 2026-10-07 — ADR-124*. Text
+   > above left byte-identical.
 7. **Schema ships as a new migration `006`, guarded** — it raises and changes nothing if any affected
    table has rows. `001`–`004` stay byte-identical. The never-deployed, untracked
    `005_player_xp_grants.sql` is **deleted**, and `player_xp_grants` is created by `006`, keyed by
@@ -224,6 +227,33 @@ first-hand):
   still succeeds, unverified (ADR-116 Decision 4). ADR-116's re-raise still applies: if
   `PROFILE_SESSION_SECRET` **must** be rotated, do the key id / dual key first.
 
+## Note, 2026-10-07 — ADR-124: the game server relays the session token; it still does not hold the secret
+
+**Added 2026-10-07 by `fkit-architect`, spawned by `fkit-lead` (`/fkit-sprint-ship-loop`, Sprint 7), on the
+acceptance of [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)** (owner
+ruling 2026-10-07, verbatim **"Accept with answers (Recommended)"**, relayed by `fkit-lead`), under
+`decisions/README.md`'s clarification carve-out. Append-only; the 📝 pointer at point 6 leads here. **No decision in
+this ADR changes; Status stays `accepted`.**
+
+**Not built yet.** `0332`'s build (ADR-124 slice A) is not written or deployed at this writing. Until it ships, point
+6 reads exactly as written.
+
+**Point 6, clarified.** From `0332`'s build:
+- The client also sends its profile session token, as an optional `profileSession` field on the WebSocket `join`, or
+  on the existing `update_identity` message when its login finishes after the join. No new message type.
+- The game server passes it as an optional `sessionToken` on `POST /internal/v1/players/resolve`. The **profile
+  server** checks it (signature, expiry, `vfy === true`, platform `yandex_games`, and token `pid` = the player the
+  asserted Yandex id resolves to through `player_identities`) and replies with an optional `verified`.
+- The game server holds the token **in memory only**, until the first successful vouch, and never logs, stores or
+  relays it to players (ADR-124 Decision 7).
+- **"The game server does not hold the session secret" still holds.** The owner chose this option over the game
+  server checking tokens itself (ADR-124 Q6: **"Reuse login pass (Recommended)"**), precisely to keep the secret on
+  the profile box only.
+- **New accepted residual** (ADR-124 residual 1): a broken-into game box could reuse tokens passing through its
+  memory at the profile server for up to 24 h. Bounded: that box already holds `PROFILE_INTERNAL_TOKEN`.
+- `verified` changes nothing the game server grants today — the owner kept every use open to unverified players
+  (ADR-124 Decision 5).
+
 ## Related
 
 - `../reports/2026-09-15-profile-identity-design.md` (slices in §9)
@@ -233,3 +263,5 @@ first-hand):
 - 📝 Added 2026-10-07: [ADR-116](adr-116-first-verified-identity-yandex-signed-player-data-at-login.md)
   (verified login, `vfy:true`) and tasks `0340` (S3a build) and `0395` (its live verification) — see §
   *Note, 2026-10-07* above.
+- 📝 Added 2026-10-07: [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
+  (join token, task `0332`) — point 6 clarified; see § *Note, 2026-10-07 — ADR-124*.

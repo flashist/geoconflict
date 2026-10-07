@@ -4,6 +4,7 @@
 - **Date:** 2026-09-28 (rulings given 2026-09-27 and 2026-09-28; code as built by task `0322`, uncommitted at
   the time of writing). **Amended** 2026-09-28 — see *Amendment* below. **Amended** 2026-10-01 — `0308` cancelled;
   the D6 revisit now lives in `0365` (see *Amendment — 2026-10-01*).
+  **Amended** 2026-10-07 — residual 1 stays open by owner ruling even after `0332` (see *Amendment — 2026-10-07*).
 - **Deciders:** Owner (Mark Dolbyrev). Every ruling below was given live via `AskUserQuestion` in the
   `fkit lead` session and relayed by `fkit-lead`. **This ADR records rulings already given; it makes no new
   decision.** The one exception is marked: the "re-raise only if" conditions are the architect's reading of
@@ -117,10 +118,15 @@ readable without it:
 
 - **Positive:** honest citizens are shown under their approved name on every multiplayer screen, with no
   client change and no new trust path. The later fix for residual 1 needs **no change to this code**.
+  > 📝 **2026-10-07 — corrected forecast:** under ADR-124 a later fix for residual 1 would need **one read** of the
+  > funnel's `verified` bit in `matchDisplayName`; and the owner ruled that no such fix is made now (see *Amendment —
+  > 2026-10-07*). Text above left byte-identical.
 - **Negative / costs — accepted residuals, each owner-ruled:**
   1. **Forged id (D3).** Someone who sends a citizen's Yandex id gets that citizen's approved name. A forger
      and the victim in the same match both show it. The trust note sits on the field
      (`src/server/Client.ts:40-54`).
+     > 📝 **2026-10-07 — stays open by owner ruling, also after `0332`.** Q5: **"Keep for unconfirmed"** (see
+     > *Amendment — 2026-10-07*). Text above left byte-identical.
   2. **Typed copies and look-alikes (D1, D6).** Anyone can still type the same string, or a look-alike.
      Revisited in `0308`. *(Amended 2026-10-01:)* `0308` was **cancelled** 2026-10-01; the revisit now lives in
      [`0365`](../../tasks/backlog/0365-block-invisible-character-names-and-warn-the-moderator-about-look-alike-names/brief.md) (warn the moderator about look-alike names, owner ruling R2 of 2026-09-29). The residual
@@ -141,9 +147,15 @@ readable without it:
     at first writing this read "not filed yet"; `0250` design report §6). Then
     verification goes *inside* `getCreditableYandexId` and residual 1 closes with no change here. This is the
     expected exit.
+    > 📝 **2026-10-07 — this exit will not happen as written.** `0332` (ADR-124, accepted 2026-10-07, not yet built)
+    > gives the game server a `verified` bit, but the owner ruled the approved name stays shown for unverified players
+    > (Q5). Residual 1 stays open by owner ruling. See *Amendment — 2026-10-07*. Text above left byte-identical.
   - **The approved name, or a mark derived from it, is presented to players as confirmed identity.** `0323`
     (the mark) is the filed candidate: under residual 1 a forger would carry that mark too. Decide before it
     ships.
+    > 📝 **2026-10-07 — this trigger is now live for `0323`'s design.** With residual 1 open by owner ruling, the
+    > mark cannot borrow trust from the name; per ADR-124 Decision 5 it must check `verified` itself, through the
+    > funnel, frozen at `start()`. See *Amendment — 2026-10-07*. Text above left byte-identical.
   - **Anything of value is gated on the approved name** (not just display).
   - **Observed impersonation abuse in production.**
   - **A reader of `client.yandexPlayerId` appears outside the funnel** — a defect against ADR-103 and this ADR.
@@ -193,10 +205,45 @@ line."*
   original *"Revisited in `0308`."* is kept visible, with the 2026-10-01 note after it (per `decisions/README.md`:
   keep every superseded wording visible).
 
+## Amendment — 2026-10-07 (ADR-124 accepted; the owner kept the approved name for unverified players)
+
+Recorded by `fkit-architect` (spawned by `fkit-lead`, `/fkit-sprint-ship-loop`, Sprint 7) on the acceptance of
+[ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md), under
+`decisions/README.md`'s carve-out for **an owner's follow-up ruling that clarifies wording already in the ADR**.
+**No decision in this ADR changes** — the owner's ruling *keeps* Decision D3's trust level. Every earlier wording is
+kept; the 📝 pointers above lead here.
+
+**The ruling, verbatim** (2026-10-07, live via `AskUserQuestion` in the `fkit lead` session, relayed verbatim by
+`fkit-lead`): asked Q5 of the `0332` design report (*"Approved name: show a citizen's approved name in matches only
+when verified?"*), the owner chose **"Keep for unconfirmed"** — **not** the architect's recommendation (*"Verified
+only"*). The option as put (report § 15): *"(b) Keep for unverified. Residual 1 stays open by your ruling, and
+`0323`'s mark would need its own check."* The owner then accepted ADR-124: **"Accept with answers (Recommended)"**.
+
+**Not built yet.** ADR-124 is accepted; `0332`'s build is not written or deployed at this writing.
+
+**What this clarifies:**
+- **Residual 1 stays open by owner ruling — also after `0332` ships.** The first re-raise bullet expected residual 1
+  to close when *"`0325` plus the join-token second step land"*. That expectation is overtaken: the join token
+  (`0332`) will give the game server a `verified` bit, and the owner chose not to use it for the name. A forged id
+  keeps showing a citizen's approved name, as accepted under D3.
+- **What a future fix would take** (should the owner later rule the name verified-only): one read of the funnel's
+  `verified` bit in `matchDisplayName`, through ADR-124's policy table (report § 6 of the `0332` design). So the
+  *"needs no change to this code"* forecast in *Consequences* is corrected — the change is small, not zero. Freezing
+  at `start()` (Decision 6) is unchanged; a vouch after `start()` would not change that match's name.
+- **The `0323` re-raise bullet is now live.** `0323`'s mark is the next planned reader of `verified`. Under residual 1
+  it cannot rest on the name: it must check `verified` itself through the funnel and freeze it with the roster at
+  `start()`, or a forger would carry the mark (or a late vouch would make mark and name disagree). That is `0323`'s
+  decision to make before it ships, as this bullet already required.
+- **Unchanged:** residuals 2–5, the other re-raise bullets, and the closeout sentence. A finding *"a forged id shows a
+  citizen's name"* is still closeout of this ADR.
+
 ## Related
 
 - ADR-103 — the identity-trust seam this ADR extends to a third user
 - ADR-113 — the internal player id the resolve returns
+- 📝 Added 2026-10-07: [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
+  (join token, accepted 2026-10-07) — provides the `verified` bit; residual 1 stays open by owner ruling Q5. See
+  *Amendment — 2026-10-07*.
 - `src/server/GameServer.ts:1350-1352` (funnel), `:1387-1429` (resolve), `:1439-1455`, `:1470-1476`
   (check and swap), `:1041-1056` (`gameInfo`, frozen roster first), `:284-294` (reconnect)
 - `src/core/profile/CreditContract.ts:74-95` — the three-state contract

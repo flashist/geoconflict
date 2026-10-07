@@ -25,8 +25,19 @@ this task. The dependency (see *Notes*) carries that order; the rank number does
 ## Status
 🔲 Backlog
 
+> 📌 **2026-10-07 — reset `🔄 In progress` → `🔲 Backlog`.** Phase 1 (design) is finished and its exit is met (see the
+> 2026-10-07 rulings note at the end). The build (phase 2) has **not** started: by the owner's ruling relayed by
+> `fkit-lead` (*"Run 0332 design (Recommended)"*), the sprint loop stops after the design rulings. The task is parked
+> for `fkit-coder`. Set by a spawned `fkit-producer` (no owner channel, ADR-021/037). Earlier values, kept as history:
+> ~~🔄 In progress~~ (2026-10-07, phase 1 start) ← ~~🔲 Backlog~~.
+
 ## Owner
-fkit-architect
+fkit-coder
+
+> 📌 **2026-10-07 — re-assigned `fkit-architect` → `fkit-coder`** for phase 2 (the build), per this brief's own phase-1
+> exit. The design keeps the build as **one slice** (all four perks stay open to unverified players, so the design's
+> enforcement slice B is not needed — report §10); no new briefs were filed. Earlier value, kept as history:
+> ~~fkit-architect~~.
 
 📌 **Phase 1 (the design) is the architect's.** When the design is settled and the owner has ruled on its
 open questions, re-assign this field to `fkit-coder` for phase 2 (the build) — the same hand-over `0250`
@@ -125,14 +136,68 @@ code:
 **Exit:** the report exists, the owner has ruled its open questions, and this brief's `## Owner` is
 re-assigned to `fkit-coder` (or the build is split into new briefs).
 
+> ✅ **2026-10-07 — Phase 1 exit MET.** Report:
+> [`2026-10-07-0332-join-token-design.md`](../../../knowledge-base/reports/2026-10-07-0332-join-token-design.md).
+> ADR: [ADR-124](../../../knowledge-base/decisions/adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
+> — signed off by the owner 2026-10-07 (Q8 *"Accept with answers (Recommended)"*); the ADR file itself and the dated
+> notes on older ADRs are being updated by `fkit-architect` in a separate spawn, not here. Owner rulings Q1–Q8: recorded
+> verbatim in the 2026-10-07 note at the end of this brief. `## Owner` re-assigned to `fkit-coder`; the build stays one
+> slice (no split). Note: the phase-1 premise *"`0325` is blocked on an owner-run test"* is stale — verified sessions
+> have been live since 2026-10-07 (`0395`; report §0 point 1).
+
 ### Phase 2 — Build (owner: `fkit-coder`, after phase 1)
 
 Built from the design. In outline only — the design decides the shape:
 - the client sends its profile session token in the join (and wherever else phase 1 says identity enters);
 - the game server has the profile server vouch for it, and the funnel returns the Yandex id together with
   whether it is verified;
-- each of the four users applies the policy the owner ruled in phase 1;
-- the ADR is written and, where owner-signed, ADR-103 / ADR-115 are updated to point at it.
+- ~~each of the four users applies the policy the owner ruled in phase 1;~~ *(2026-10-07: the owner kept all four
+  perks open to unverified players — nothing to apply; see the scope below)*
+- the ADR is written and, where owner-signed, ADR-103 / ADR-115 are updated to point at it. *(2026-10-07: ADR-124 is
+  written and signed off; the ADR-103/113/115/116 notes are `fkit-architect`'s, in progress separately — not a coder
+  step.)*
+
+#### 📌 2026-10-07 — the build scope, fixed by the design and the owner's rulings (supersedes the outline above)
+
+**Source of truth:** the design report
+([`2026-10-07-0332-join-token-design.md`](../../../knowledge-base/reports/2026-10-07-0332-join-token-design.md)) —
+its **slice A** (§10), with §3 (entry points, late token, reconnect carry), §4 option A (the token rides the existing
+resolve call), §5 (what "vouched" means — all five conditions), §6 (the funnel), §8 (credential handling), §9
+(compatibility, deploy order) and §14 (testing strategy) — and
+[ADR-124](../../../knowledge-base/decisions/adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md).
+Read both before planning. Where the report recommends something the owner ruled otherwise (Q1, Q5), **the ruling
+wins** — see the rulings note at the end.
+
+**One slice. No player-visible change.** In plain terms:
+
+1. **Client** sends its profile session token in the WebSocket join when it already has it, or in the existing
+   `update_identity` message once a slow login finishes — **no new message type** (report §3.3). Sent only over an open
+   socket, never buffered ahead of a join, none for local games.
+2. **Game server** adds the token to the resolve call it already makes to the profile server (Q6, option A). It holds
+   the token in memory only until the first vouch. Reconnect carries the result (§3.4).
+3. **Profile server** checks the token on that resolve call and replies `verified: true|false` (report §5: signature,
+   not expired, `vfy:true`, platform `yandex_games`, same player as the joined Yandex id). The session secret stays on
+   the profile box only.
+4. **The funnel** (`GameServer.getCreditableYandexId`) returns the Yandex id **together with** whether it is verified.
+   A missing `verified` (old profile server, or a profile server that cannot answer) ⇒ **unverified** (Q7).
+5. **Every perk stays open to unverified players** (Q2–Q5): XP, the ★ badge, the private lobby, the approved name. If
+   the build adds the report's policy table, all four uses are set to *allow*. The design's enforcement slice B is
+   **not** filed.
+6. **Counters** (Q1 — *"add some metrics to the code and check them after"*): the profile-side vouch-outcome counter
+   and the game-side count of match players by identity state at match start (report §9.4), so the verified share
+   among real match players can be read after deploy. They are read **after** deploy by the verify task filed at this
+   build's close — **no** separate measuring-only weekend slot (Q1).
+7. **Log-leak fix and hardening, in the same build** (report §8.1): `src/server/Worker.ts:457-460` must log only the
+   message type for a pre-join message, never the whole message (today it can write a token — and already writes a
+   Yandex id — into the logs); stop echoing the raw message on a parse failure (`GameServer.ts:350-360`); the two
+   catch-alls (`GameServer.ts:461-467`, `Worker.ts:556-563`) log the error name only. Line numbers are from the report's
+   citation frame (`dev` at `5a70b6f`) — re-check them.
+8. **Deploy order:** profile server first, then the game image (report §9.2). Weekend slot; commit only on the
+   owner's ask.
+
+**Not in this build:** enforcement (slice B); `0397`'s text change (no perk is lost, so the 2026-10-06 `0397` pointer
+below is **not** triggered); the server-confirmed name mark (`0323`, which needs this build's `verified` bit); the
+verify-live task (filed at this build's close, per the owner's build/verify-split rule).
 
 ### Out of scope — named so it is not absorbed
 
@@ -173,7 +238,9 @@ Built from the design. In outline only — the design decides the shape:
 - **Blocks:** [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (hard — the mark is only honest once the game server can check who the player is; owner ruling on `0323`, 2026-09-28)
 - **Closes (when phase 2 ships and the owner's per-user policy is applied):** ADR-103's forged-id risk for
   XP crediting · the `0068` ★ forged-id case · the `0302` private-lobby-gate forged-id case · ADR-115
-  residual 1 (`0322`).
+  residual 1 (`0322`). ⚠️ *(2026-10-07: by the owner's rulings Q2–Q5 every perk stays open to unverified players, so
+  this build closes **none** of these four — each stays an owner-accepted risk, now measurable. The build supplies
+  the `verified` bit a later ruling, or `0323`, can use. ADR-115 residual 1 stays open by owner ruling Q5.)*
 - **Related:** [`0250` design report](../../../knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md)
   §6 (where this step was first named) · [ADR-103](../../../knowledge-base/decisions/adr-103-identity-trust-seam-client-asserted-yandex-id.md) ·
   [ADR-115](../../../knowledge-base/decisions/adr-115-approved-name-in-matches-runs-at-adr-103-trust-level.md) ·
@@ -185,9 +252,9 @@ Built from the design. In outline only — the design decides the shape:
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
 
 ### Open questions for the owner
-1. For a player whose session is **not** verified: should XP still be credited, the ★ still shown, the
+1. ~~For a player whose session is **not** verified: should XP still be credited, the ★ still shown, the
    private lobby still open, and the approved name still swapped in? (Asked after phase 1 lays out the cost
-   of each.)
+   of each.)~~ *(answered 2026-10-07 — yes to all four, Q2–Q5; see the rulings note at the end)*
 
 ## 📌 2026-10-05 — deploy step: the owner looks at the post-`0391` login numbers first (appended; the stale *"`0340` waits on `0339`"* wording above is struck, not deleted, ADR-035)
 
@@ -249,3 +316,50 @@ the numbers any more.
   numbers look — it is not, by itself, an approval to deploy.
 - ADR-122 is being updated separately (by `fkit-architect`); this note does not edit it. No status, sprint or rank
   changed. No mover run.
+
+## 📌 2026-10-07 — OWNER RULINGS on the phase-1 design (Q1–Q8); phase 1 exit met; parked for `fkit-coder` (appended; nothing above deleted, ADR-035)
+
+**Provenance.** OWNER RULINGS given 2026-10-07 live via `AskUserQuestion` in the `fkit lead` session, relayed
+verbatim by `fkit-lead` (driving `/fkit-sprint-ship-loop`, Sprint 7) to a spawned `fkit-producer` with no owner
+channel (ADR-021/037); ⛔ not producer precedent. Questions as put: design report
+[§15](../../../knowledge-base/reports/2026-10-07-0332-join-token-design.md). Answers, verbatim:
+
+| # | Question (short) | Owner's answer, verbatim | Recommended? |
+|---|---|---|---|
+| Q1 | Measure first, or switch on at once? | FREE TEXT: *"No, we're not spending another weekend slot for counting only, but we can add some metrics to the code and check them after."* | — (free text) |
+| Q2 | XP for unverified players | *"Keep XP (Recommended)"* | yes |
+| Q3 | ★ badge for unverified citizens | *"Keep the ★ (Recommended)"* | yes |
+| Q4 | Private lobby for unverified citizens | *"Keep it open (Recommended)"* | yes |
+| Q5 | Approved name in matches for unverified citizens | *"Keep for unconfirmed"* | **no** — the design recommended *verified only* |
+| Q6 | How the game server asks | *"Reuse login pass (Recommended)"* | yes |
+| Q7 | Profile server cannot answer | *"Treat as unconfirmed (Recommended)"* | yes |
+| Q8 | Sign off ADR-124 | *"Accept with answers (Recommended)"* | yes |
+
+**Also relayed, earlier the same session** (option *"Run 0332 design (Recommended)"*): the loop stops after the design
+rulings — **the build is not started.**
+
+**What follows, in plain terms:**
+- **Every perk stays open to unverified players** (Q2–Q5). So the design's enforcement slice B is not needed, and the
+  build is **one slice**: vouch + counters + the log-leak fix and hardening, with **no player-visible change** — scoped
+  in *Phase 2 — Build* above.
+- **Q1:** no measuring-only weekend slot. The counters ship inside the build, and the owner reads them after deploy —
+  through the verify task filed at this build's close (owner's build/verify-split rule, 2026-09-29). **No verify task is
+  filed now.**
+- **Q5 went against the recommendation:** approved names are **not** limited to verified players. ADR-115 residual 1
+  (a forged id shows a citizen's approved name) **stays open by owner ruling**. Consequence for
+  [`0323`](../0323-mark-a-server-confirmed-approved-name-in-matches/brief.md): its "server-confirmed name" mark cannot
+  rely on the name swap alone and needs its own verified check, using the `verified` bit this build provides — a dated
+  note was added there. `0323` still depends on this task.
+- **Q6:** the token rides the existing resolve call (ADR-124 option A); the game box briefly holds bearer tokens in
+  memory (accepted, report §4.2; upgrade path = the short-lived match ticket, option C).
+- **Q7:** a missing `verified` reads as unverified. With every perk open this changes nothing a player sees today; it
+  matters only if a later ruling denies a perk.
+- **Q8:** ADR-124 is accepted with these answers. Its file and the dated notes on ADR-103 / ADR-113 / ADR-115 / ADR-116
+  are `fkit-architect`'s, in progress in a separate spawn — **not edited here.**
+- [`0267`](../0267-investigate-verifying-platform-player-identity/brief.md): narrowed by a dated note — its "game-server
+  path" scope is now this task / ADR-124.
+
+**Changed here:** `## Status` → `🔲 Backlog` (was `🔄 In progress`); `## Owner` → `fkit-coder`; phase-1 exit marked met;
+*Phase 2 — Build* scoped; the open question struck as answered; the *Closes* note annotated (this build closes none of
+the four forged-id risks). Sprint 7 board row updated to match. **Unchanged:** sprint, rank, `Depends on` / `Blocks`
+lines, the deploy notes above. No mover run, nothing committed, no wiki write.
