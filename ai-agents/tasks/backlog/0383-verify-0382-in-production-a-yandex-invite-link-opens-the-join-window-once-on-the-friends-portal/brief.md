@@ -20,7 +20,7 @@ Sprint 7
 > 📌 **Placement note.** No sprint was named, so this is on the Backlog board for now. The owner's standing
 > build/verify rule (2026-09-29) puts a verify task **at the top of the next sprint after its build ships**, and it
 > must not block the build's own sprint deploy. When
-> [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) closes, that
+> [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) closes, that
 > placement is the producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
@@ -87,7 +87,7 @@ how the host saw the row.
 
 ## Notes
 
-- **Depends on:** [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) (done and deployed to production)
+- **Depends on:** [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) (done and deployed to production)
 - **Blocks:** nothing
 - 🚦 Bears on release-gate item 6 in
   [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships

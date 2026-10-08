@@ -44,7 +44,7 @@ code"**, verbatim:
 
 **This task is "the code part"** — option B of the
 [architect's evaluation](../../../knowledge-base/reports/2026-10-03-eval-yandex-invite-links.md) §4. The link part is
-[`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md), which builds on
+[`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md), which builds on
 this one. **ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md)** *(accepted — "Accept as written", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent)*. *(Was: "ADR pending (architect, 2026-10-04)".)*
 
 **Why it is split from the link.** This piece ships and is checked alone, and it removes the rules problem by itself:
@@ -115,7 +115,7 @@ can copy today's link, so this is not an outage fix.
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md), [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+- **Blocks:** [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md), [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 - 🚦 **Release gate:** half of item 6 in
   [`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) —
   the item is met by the link + code build (`0380` + `0382`).

@@ -214,7 +214,9 @@ export class HostLobbyModal extends LitElement {
                 id="host-lobby-invite-code-hint"
                 class="text-sm text-center mt-2 opacity-80"
               >
-                ${translateText("host_modal.invite_code_hint")}
+                ${this.copiesInviteLink()
+                  ? translateText("host_modal.invite_link_hint")
+                  : translateText("host_modal.invite_code_hint")}
               </div>`
             : ""
         }
@@ -707,6 +709,16 @@ export class HostLobbyModal extends LitElement {
     // Task 0336: however create settles, this window's join mark ends (a no-op
     // if a close already ended it, task 0374).
     joined.catch(() => {}).finally(endJoining);
+    // Task 0382: fetch this game's portal link now, so it is ready before the
+    // host taps copy (the copy must not wait for it). Yandex only; a no-op
+    // once known. Re-render when it lands so the hint switches.
+    if (FlashistFacade.instance.yaGamesAvailable) {
+      void FlashistFacade.instance.loadPortalGameUrl().then(() => {
+        if (generation === this.openGeneration) {
+          this.requestUpdate();
+        }
+      });
+    }
     this.modalEl?.open();
     this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
   }
@@ -1055,10 +1067,12 @@ export class HostLobbyModal extends LitElement {
   }
 
   // Task 0380: on the Yandex build this copies the bare lobby code, never a
-  // link; standalone keeps today's `#join=` link (see PrivateLobbyInvite.ts).
-  // copyText() is the first call, with nothing awaited before it: the Yandex
-  // SDK clipboard only works inside the click. Copying never changes
-  // lobbyIdVisible — a hidden code stays hidden.
+  // `geoconflict.ru` link; standalone keeps today's `#join=` link (see
+  // PrivateLobbyInvite.ts). Task 0382: once the SDK gave this game's portal
+  // link (read synchronously — fetched in open()), Yandex copies that link with
+  // the code as `payload`. copyText() is the first call, with nothing awaited
+  // before it: the Yandex SDK clipboard only works inside the click. Copying
+  // never changes lobbyIdVisible — a hidden code stays hidden.
   private async copyToClipboard() {
     const facade = FlashistFacade.instance;
     const generation = this.openGeneration;
@@ -1067,6 +1081,7 @@ export class HostLobbyModal extends LitElement {
         this.lobbyId,
         facade.yaGamesAvailable,
         facade.windowOrigin,
+        facade.portalGameUrl ?? null,
       ),
     );
     // Review R1: the window closed (or reopened) while the copy settled — its
@@ -1090,6 +1105,19 @@ export class HostLobbyModal extends LitElement {
       this.copySuccess = false;
       this.requestUpdate();
     }, 2000);
+  }
+
+  /** Task 0382: true when the copy button would copy the portal link, not the bare code. */
+  private copiesInviteLink(): boolean {
+    const lobbyId = this.lobbyId ?? "";
+    return (
+      inviteCopyText(
+        lobbyId,
+        true,
+        "",
+        FlashistFacade.instance.portalGameUrl ?? null,
+      ) !== lobbyId
+    );
   }
 
   private async pollPlayers() {

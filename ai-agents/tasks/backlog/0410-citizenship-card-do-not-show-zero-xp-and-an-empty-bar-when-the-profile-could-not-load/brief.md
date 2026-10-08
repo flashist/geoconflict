@@ -80,9 +80,9 @@ must say what that case shows.
   by this task.**
 - [`0400`](../../done/0400-verify-0397-live-the-session-status-line-shows-the-right-state-in-production/brief.md) — the live
   check that found this.
-- [`0407`](../0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md),
-  [`0408`](../0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md),
-  [`0409`](../0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
+- [`0407`](../../done/0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md),
+  [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md),
+  [`0409`](../../done/0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
   — same card / popup area, on Sprint 7. **This task does not wait on them.** ⚠️ **Sequencing note:** `0407` also
   changes the card (`renderLoggedIn()` area). If both are in flight, build one after the other, or expect a merge
   conflict in `CitizenshipCard.ts` and its tests.

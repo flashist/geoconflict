@@ -234,7 +234,7 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 >   proper Yandex Games link (via the SDK, works on every portal) AND the code is still shown. ~150–250 lines + the code
 >   part. Fixes the rule problem; easiest for friends."*
 > - **Filed (Backlog board, unscheduled):** [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
->   (code part) → [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+>   (code part) → [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 >   (link part), each with an owner-run production verify task —
 >   [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
 >   [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).

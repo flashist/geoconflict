@@ -389,12 +389,18 @@ export const flashistConstants = {
     tutorialSkipBtnInline: "TutorialSkipBtnInline",
     multiplayerTab: "MultiplayerTab",
     singleplayerTab: "SingleplayerTab",
+    // The start screen's Private tab (task 0412); exists only when the
+    // private-lobby rule is on.
+    privateTab: "PrivateTab",
     citizenshipLoginToEarn: "CitizenshipLoginToEarn",
     // Fired by 0018's "Buy Citizenship" CTA (via logUiTapEvent) — no UI in 0019.
     purchaseCitizenship: "PurchaseCitizenship",
     // The Buy and Login buttons inside the citizenship explainer popup (task
     // 0301) — separate from the card's own, so the popup's share is countable.
     purchaseCitizenshipExplainer: "PurchaseCitizenshipExplainer",
+    // An earned citizen's Buy in the explainer popup (task 0409) — counts
+    // upgrades apart from first purchases.
+    purchasePaidCitizenshipExplainer: "PurchasePaidCitizenshipExplainer",
     citizenshipLoginExplainer: "CitizenshipLoginExplainer",
   },
 
@@ -1407,6 +1413,7 @@ export class FlashistFacade {
       const sdk = await (window as any).YaGames.init();
       console.log("FlashistFacade | Main | yandexInit > then __ sdk: ", sdk);
       this.yandexGamesSDK = sdk;
+      this.markYandexSdkAvailable();
       // If the SDK arrived only after the gate (degraded boot that recovered
       // late), the template's one-shot reveal handler has already run without
       // an SDK and Yandex never got its LoadingAPI.ready() signal — deliver it
@@ -1988,6 +1995,119 @@ export class FlashistFacade {
       console.error(`FlashistFacade | copyText | copy failed: ${error}`);
       return false;
     }
+  }
+
+  // Task 0382 (ADR-119): this game's own Yandex Games link, from the SDK, for
+  // the host's invite. Read synchronously inside the copy click, so it is
+  // fetched beforehand (loadPortalGameUrl) — the click must not await it.
+  public portalGameUrl: string | null = null;
+  private portalGameUrlLoad?: Promise<string | null>;
+
+  /**
+   * Fetches this game's portal URL once per page via
+   * `GamesAPI.getGameByID(Number(environment.app.id))` — nothing hardcoded, no
+   * `getAllGames()`. Null when there is no SDK, `isAvailable` is not true, the
+   * URL is not https, the call fails, or it takes over 5 s. A real answer is
+   * kept; an error, timeout or missing SDK is not, so a later call retries.
+   * Never throws.
+   */
+  public loadPortalGameUrl(): Promise<string | null> {
+    if (this.portalGameUrlLoad) {
+      return this.portalGameUrlLoad;
+    }
+    const load = this.fetchPortalGameUrl().then(({ url, isFinal }) => {
+      if (isFinal) {
+        this.portalGameUrl = url;
+      } else {
+        this.portalGameUrlLoad = undefined;
+      }
+      return url;
+    });
+    this.portalGameUrlLoad = load;
+    return load;
+  }
+
+  private async fetchPortalGameUrl(): Promise<{
+    url: string | null;
+    isFinal: boolean;
+  }> {
+    const gamesApi = this.yandexGamesSDK?.features?.GamesAPI;
+    const rawAppId = this.yandexGamesSDK?.environment?.app?.id;
+    const appId =
+      typeof rawAppId === "number" ||
+      (typeof rawAppId === "string" && /^[0-9]+$/.test(rawAppId))
+        ? Number(rawAppId)
+        : NaN;
+    if (
+      typeof gamesApi?.getGameByID !== "function" ||
+      !Number.isSafeInteger(appId) ||
+      appId <= 0
+    ) {
+      return { url: null, isFinal: false };
+    }
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let answer: any;
+    try {
+      answer = await Promise.race([
+        Promise.resolve(gamesApi.getGameByID(appId)),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error("timed out after 5 s")),
+            5000,
+          );
+        }),
+      ]);
+    } catch (error) {
+      console.warn(`FlashistFacade | loadPortalGameUrl | failed: ${error}`);
+      return { url: null, isFinal: false };
+    } finally {
+      clearTimeout(timeout);
+    }
+    const url = answer?.isAvailable === true ? answer.game?.url : undefined;
+    if (!this.isHttpsUrl(url)) {
+      console.warn("FlashistFacade | loadPortalGameUrl | no usable game URL");
+      return { url: null, isFinal: true };
+    }
+    return { url, isFinal: true };
+  }
+
+  private isHttpsUrl(url: unknown): url is string {
+    try {
+      return typeof url === "string" && new URL(url).protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  /** Task 0382: the invite payload the friend's link carried, read-only; null without an SDK. */
+  public getInvitePayload(): string | null {
+    const payload = this.yandexGamesSDK?.environment?.payload;
+    return typeof payload === "string" ? payload : null;
+  }
+
+  // Task 0382: lazily created, like the recovery resolvers, because tests
+  // build facades via Object.create.
+  private yandexSdkAvailableResolvers?: Array<() => void>;
+
+  /**
+   * Resolves once `yandexGamesSDK` is set — at once if it already is, else when
+   * initLoadedYandexSdk() assigns it (a normal boot, a late-recovered degraded
+   * boot, or a background loader retry). Unlike whenPlatformRecoveredLate() it
+   * does not wait for experiment flags. Never resolves without an SDK.
+   */
+  public whenYandexSdkAvailable(): Promise<void> {
+    if (this.yandexGamesSDK) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      (this.yandexSdkAvailableResolvers ??= []).push(resolve);
+    });
+  }
+
+  private markYandexSdkAvailable(): void {
+    const resolvers = this.yandexSdkAvailableResolvers ?? [];
+    this.yandexSdkAvailableResolvers = [];
+    resolvers.forEach((resolve) => resolve());
   }
 
   public logExperimentEvent(name: string, value: string): void {

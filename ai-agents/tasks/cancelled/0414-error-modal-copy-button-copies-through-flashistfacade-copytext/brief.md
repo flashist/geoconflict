@@ -99,7 +99,7 @@ Client-only, small.
 - **Blocks:** nothing
 - **Split from one owner request (2026-10-08):** the owner's "How it could be fixed" covered the join-modal paste fix
   **and** this copy button. Different files, separate tests, separately shippable — so the producer filed two tasks
-  under the skill's smallest-shippable-unit rule: [`0413`](../../backlog/0413-join-private-lobby-modal-replace-the-paste-button-that-cannot-read-the-clipboard-inside-yandex/brief.md)
+  under the skill's smallest-shippable-unit rule: [`0413`](../../done/0413-join-private-lobby-modal-replace-the-paste-button-that-cannot-read-the-clipboard-inside-yandex/brief.md)
   and this one. Neither waits on the other. The owner's words were *"brief a task"*; if the owner wants them as one
   task, fold this one into `0413`.
 - Related: `0380` (built `copyText`), `0381` (`0380`'s open live check), `0413` (paste side, same day), `0398` (the live check during which the paste bug

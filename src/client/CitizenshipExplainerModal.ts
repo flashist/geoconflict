@@ -27,7 +27,11 @@ import { translateText } from "./Utils";
  * buy rule exists once and the card ends in the same state either way.
  *
  * The benefit list names only what is built (owner ruling Q4, 2026-10-06). A
- * perk adds its line in the task that ships it.
+ * perk adds its line in the task that ships it. Paid-only perks sit under their
+ * own sub-heading (task 0408).
+ *
+ * An earned citizen whose verified read says "not paid" gets a Buy button at
+ * the bottom, above Close (task 0409) — the card's `citizen_buy` offer.
  */
 @customElement("citizenship-explainer-modal")
 export class CitizenshipExplainerModal extends LitElement {
@@ -80,12 +84,34 @@ export class CitizenshipExplainerModal extends LitElement {
       border-radius: 12px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
       color: white;
-      width: 360px;
+      /* Task 0417: grows with the screen up to a comfortable reading width. */
+      width: 600px;
       max-width: 90vw;
       max-height: 90vh;
       overflow-y: auto;
       box-sizing: border-box;
       text-align: left;
+    }
+
+    /* The app's dark scrollbar (styles.css), copied: page styles do not reach
+       into this component. No scrollbar-color here — in Chromium it turns
+       these rules off. */
+    .modal-box::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .modal-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+    }
+
+    .modal-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .modal-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     .modal-box h2 {
@@ -99,6 +125,13 @@ export class CitizenshipExplainerModal extends LitElement {
       margin: 16px 0 6px;
       font-size: 15px;
       font-weight: bold;
+    }
+
+    .modal-box h4 {
+      margin: 4px 0 6px;
+      font-size: 13px;
+      font-weight: bold;
+      color: rgba(255, 255, 255, 0.85);
     }
 
     .modal-box p,
@@ -258,22 +291,31 @@ export class CitizenshipExplainerModal extends LitElement {
     return this.findCard()?.getCitizenshipOffer() ?? { kind: "checking" };
   }
 
-  private readonly onBuyTap = async (): Promise<void> => {
+  private readonly onBuyTap = (): Promise<void> =>
+    this.buyThroughCard(
+      flashistConstants.uiElementIds.purchaseCitizenshipExplainer,
+    );
+
+  // Task 0409: an earned citizen's Buy, counted under its own tap id.
+  private readonly onCitizenBuyTap = (): Promise<void> =>
+    this.buyThroughCard(
+      flashistConstants.uiElementIds.purchasePaidCitizenshipExplainer,
+    );
+
+  private async buyThroughCard(tapElementId: string): Promise<void> {
     const card = this.findCard();
     if (card === null) {
       return;
     }
     this.purchaseError = false;
     this.requestUpdate();
-    const result = await card.buyCitizenship(
-      flashistConstants.uiElementIds.purchaseCitizenshipExplainer,
-    );
+    const result = await card.buyCitizenship(tapElementId);
     // "busy": a purchase from the card is already running — nothing to show.
     if (result === "error") {
       this.purchaseError = true;
       this.requestUpdate();
     }
-  };
+  }
 
   private readonly onLoginTap = (): void => {
     void this.findCard()?.logIn(
@@ -313,7 +355,14 @@ export class CitizenshipExplainerModal extends LitElement {
                   )}
                 </li>`
               : nothing}
-            <li>${translateText("citizenship_explainer.benefit_no_ads")}</li>
+          </ul>
+          <h4 id="citizenship-explainer-paid-only-title">
+            ${translateText("citizenship_explainer.paid_only_title")}
+          </h4>
+          <ul id="citizenship-explainer-paid-only">
+            <li id="citizenship-explainer-benefit-no-ads">
+              ${translateText("citizenship_explainer.benefit_no_ads")}
+            </li>
           </ul>
 
           <h3>${translateText("citizenship_explainer.free_title")}</h3>
@@ -359,11 +408,7 @@ export class CitizenshipExplainerModal extends LitElement {
           >
             ${translateText("citizenship_paid.buy_cta")} — ${offer.price}
           </button>
-          ${this.purchaseError
-            ? html`<p id="citizenship-explainer-purchase-error" class="error">
-                ${translateText("citizenship_paid.purchase_error")}
-              </p>`
-            : nothing}
+          ${this.renderPurchaseError()}
         `;
       case "guest":
         return html`
@@ -386,6 +431,26 @@ export class CitizenshipExplainerModal extends LitElement {
         return html`<p id="citizenship-explainer-already-citizen">
           ${translateText("citizenship_explainer.already_citizen")}
         </p>`;
+      case "citizen_buy":
+        // Task 0409: verified "not paid" only — the rule fails closed on every
+        // unknown, so this case never draws for an unverified session.
+        return html`
+          <p id="citizenship-explainer-already-citizen">
+            ${translateText("citizenship_explainer.already_citizen")}
+          </p>
+          <h3 id="citizenship-explainer-citizen-buy-title">
+            ${translateText("citizenship_explainer.citizen_buy_title")}
+          </h3>
+          <button
+            id="citizenship-explainer-citizen-buy"
+            class="primary-btn"
+            @click=${this.onCitizenBuyTap}
+          >
+            ${translateText("citizenship_explainer.citizen_buy_cta")} —
+            ${offer.price}
+          </button>
+          ${this.renderPurchaseError()}
+        `;
       case "read_failed":
         return html`<p id="citizenship-explainer-read-failed" class="muted">
           ${translateText("citizenship_status.read_failed")}
@@ -398,5 +463,14 @@ export class CitizenshipExplainerModal extends LitElement {
           ${translateText("citizenship_status.checking")}
         </p>`;
     }
+  }
+
+  // Under either Buy button, for the popup's own tap only.
+  private renderPurchaseError() {
+    return this.purchaseError
+      ? html`<p id="citizenship-explainer-purchase-error" class="error">
+          ${translateText("citizenship_paid.purchase_error")}
+        </p>`
+      : nothing;
   }
 }

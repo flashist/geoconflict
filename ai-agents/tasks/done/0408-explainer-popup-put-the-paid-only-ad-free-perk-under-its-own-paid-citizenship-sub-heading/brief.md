@@ -24,7 +24,7 @@ Sprint 7
 — its place on that board is **append order, not a merit ranking**. Needing a rank is the signal to pull it into a sprint.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

@@ -109,9 +109,9 @@ Given live via `AskUserQuestion` in the `fkit lead` session (a custom answer), r
   same card, the read-failed header. ⚠️ **Sequence with it:** both change how the card looks in a "couldn't load"
   state. Build one after the other, and make the flags-timeout shell agree with whatever `0410`'s owner ruling picks
   (no "0 / 100", no empty bar).
-- [`0407`](../0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md),
-  [`0408`](../0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md),
-  [`0409`](../0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
+- [`0407`](../../done/0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md),
+  [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md),
+  [`0409`](../../done/0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
   — Sprint 7, same card / popup area. **This task does not wait on them**; expect merge conflicts in
   `CitizenshipCard.ts` and its tests if in flight together.
 

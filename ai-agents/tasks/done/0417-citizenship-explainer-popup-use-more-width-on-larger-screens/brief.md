@@ -19,7 +19,7 @@ built right after them so the three changes do not collide; it blocks nothing an
 sprint, not a rank.)
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -66,8 +66,8 @@ the file only to scope this brief. **The coder confirms before changing anything
 ### Dependencies and conflicts
 
 - **None blocking.** `0301` (the popup) is built and closed.
-- [`0408`](../0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md)
-  and [`0409`](../0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
+- [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md)
+  and [`0409`](../../done/0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md)
   (both Sprint 7) change this same popup's content and render. **Sequence with them** — build this after they land, or
   rebase onto them — to avoid edit conflicts in the same file. No hard dependency: this task does not wait on them.
 - `0408` and `0409` may ship in a same-day deploy by owner ruling; **this task is not covered by that exception** (see

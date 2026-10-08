@@ -308,23 +308,6 @@
         <div>
           <matchmaking-button class="w-[20%] md:w-[15%]"></matchmaking-button>
         </div>
-
-        <!-- Flashist Adaptation -->
-        <!-- <div class="container__row container__row--equal"> -->
-        <!-- Tasks 0302/0354: hidden by default; PrivateLobbyAccess.ts shows it only
-             when citizenship surfaces are on AND (tester OR private_lobbies_all). -->
-        <div id="private-lobby-row" class="container__row container__row--equal" style="display: none;">
-          <o-button id="host-lobby-button" title="Create Lobby" translationKey="main.create_lobby" block
-            secondary></o-button>
-          <o-button id="join-private-lobby-button" title="Join Lobby" translationKey="main.join_lobby" block
-            secondary></o-button>
-          <!-- <o-button
-              id="chat-button"
-              title="Chat Test"
-              block
-              secondary
-            ></o-button> -->
-        </div>
       </div>
 
       <div id="singleplayer-tab-content" class="flex flex-col gap-2.5 hidden">
@@ -334,6 +317,29 @@
           subtitleTranslationKey="main.single_player_subtitle" icon="🗺️" chevron menurow block></o-button>
         <o-button id="single-play-mission" title="" subtitleTranslationKey="main.play_mission_subtitle" icon="🎯"
           chevron menurow block></o-button>
+      </div>
+
+      <!-- Flashist Adaptation: task 0412 — the third start-screen tab ("Приватная").
+           StartScreenTabs.ts adds its tab button only when PrivateLobbyAccess.ts
+           decides the private-lobby rule is on. -->
+      <div id="private-tab-content" class="flex flex-col gap-2.5 hidden">
+        <!-- <div class="container__row container__row--equal"> -->
+        <!-- Tasks 0302/0354/0412: hidden by default; PrivateLobbyAccess.ts shows it only
+             when citizenship surfaces are on AND (tester OR private_lobbies_all).
+             Task 0412: menu rows like the Solo tab, and no title attribute (it made
+             a browser tooltip). -->
+        <div id="private-lobby-row" class="flex flex-col gap-2.5" style="display: none;">
+          <o-button id="host-lobby-button" translationKey="main.create_lobby"
+            subtitleTranslationKey="main.create_lobby_subtitle" icon="🏠" chevron menurow block></o-button>
+          <o-button id="join-private-lobby-button" translationKey="main.join_lobby"
+            subtitleTranslationKey="main.join_lobby_subtitle" icon="🚪" chevron menurow block></o-button>
+          <!-- <o-button
+              id="chat-button"
+              title="Chat Test"
+              block
+              secondary
+            ></o-button> -->
+        </div>
       </div>
 
       <!-- Flashist Adaptation -->

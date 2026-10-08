@@ -1,4 +1,6 @@
-export type StartScreenTab = "multiplayer" | "singleplayer";
+// "private" (task 0412) is a plain stored value here; whether the Private tab is
+// allowed at all is decided by StartScreenTabs, not by storage.
+export type StartScreenTab = "multiplayer" | "singleplayer" | "private";
 
 export const ACTIVE_TAB_STORAGE_KEY = "geoconflict_active_tab";
 export const DEFAULT_TAB: StartScreenTab = "multiplayer";
@@ -6,7 +8,7 @@ export const DEFAULT_TAB: StartScreenTab = "multiplayer";
 export function getActiveTab(): StartScreenTab {
   try {
     const raw = localStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
-    if (raw === "multiplayer" || raw === "singleplayer") {
+    if (raw === "multiplayer" || raw === "singleplayer" || raw === "private") {
       return raw;
     }
     return DEFAULT_TAB;

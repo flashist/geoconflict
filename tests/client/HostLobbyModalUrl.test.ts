@@ -625,3 +625,152 @@ describe("HostLobbyModal invite copy (task 0380)", () => {
     );
   });
 });
+
+// Task 0382 (ADR-119): once the SDK gave this game's portal link (fetched when
+// the window opens), Yandex copies that link with the code as `payload`, still
+// inside the click; until then, the bare code. Fake portal URL only.
+describe("HostLobbyModal invite link (task 0382)", () => {
+  type FacadeMock = {
+    yaGamesAvailable?: boolean;
+    portalGameUrl?: string | null;
+    loadPortalGameUrl?: jest.Mock;
+    copyText: jest.Mock;
+  };
+  const facade = FlashistFacade.instance as unknown as FacadeMock;
+  const originalCopyText = facade.copyText;
+  const PORTAL = "https://portal.example/games/app/111111";
+  const CODE = "K7M4PCRX";
+  const LINK = "https://portal.example/games/app/111111?payload=K7M4PCRX";
+  let modal: HostLobbyModal;
+
+  const copy = () =>
+    (
+      modal as unknown as { copyToClipboard: () => Promise<void> }
+    ).copyToClipboard();
+  const hintLine = () => modal.querySelector("#host-lobby-invite-code-hint");
+  const openModal = () => {
+    modal.open();
+    clearInterval(
+      (modal as unknown as { playersInterval: NodeJS.Timeout }).playersInterval,
+    );
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    // The lobby create never answers here: only the link fetch matters.
+    global.fetch = jest.fn(
+      () => new Promise(() => {}),
+    ) as unknown as typeof fetch;
+    facade.yaGamesAvailable = true;
+    facade.portalGameUrl = null;
+    facade.loadPortalGameUrl = jest.fn().mockResolvedValue(null);
+    facade.copyText = jest.fn().mockResolvedValue(true);
+    modal = new HostLobbyModal();
+    (modal as unknown as { lobbyId: string }).lobbyId = CODE;
+    document.body.appendChild(modal);
+  });
+
+  afterEach(() => {
+    delete facade.yaGamesAvailable;
+    delete facade.portalGameUrl;
+    delete facade.loadPortalGameUrl;
+    facade.copyText = originalCopyText;
+    jest.restoreAllMocks();
+  });
+
+  it("with the link ready, copies the link synchronously, inside the click", async () => {
+    facade.portalGameUrl = PORTAL;
+
+    const pending = copy();
+    // Checked before awaiting: nothing was awaited ahead of the copy.
+    expect(facade.copyText).toHaveBeenCalledWith(LINK);
+    await pending;
+    expect(facade.loadPortalGameUrl).not.toHaveBeenCalled();
+  });
+
+  it("with the link not ready yet, copies the bare code", async () => {
+    await copy();
+
+    expect(facade.copyText).toHaveBeenCalledWith(CODE);
+  });
+
+  it("before the lobby code exists, copies no link", async () => {
+    facade.portalGameUrl = PORTAL;
+    (modal as unknown as { lobbyId: string }).lobbyId = "";
+
+    await copy();
+
+    expect(facade.copyText).toHaveBeenCalledWith("");
+  });
+
+  it("on standalone ignores the portal link and copies today's link", async () => {
+    facade.yaGamesAvailable = false;
+    facade.portalGameUrl = PORTAL;
+
+    await copy();
+
+    expect(facade.copyText).toHaveBeenCalledWith(
+      "https://geoconflict.ru/yandex-games_iframe.html#join=K7M4PCRX",
+    );
+  });
+
+  it("copying the link leaves a hidden code hidden", async () => {
+    facade.portalGameUrl = PORTAL;
+    (modal as unknown as { lobbyIdVisible: boolean }).lobbyIdVisible = false;
+    modal.requestUpdate();
+
+    await copy();
+    await modal.updateComplete;
+
+    expect(
+      (modal as unknown as { lobbyIdVisible: boolean }).lobbyIdVisible,
+    ).toBe(false);
+    expect(modal.querySelector(".lobby-id")!.textContent).not.toContain("K7M4");
+  });
+
+  it("open() starts the link fetch on Yandex", () => {
+    openModal();
+
+    expect(facade.loadPortalGameUrl).toHaveBeenCalledTimes(1);
+  });
+
+  it("open() does not fetch on standalone", () => {
+    facade.yaGamesAvailable = false;
+
+    openModal();
+
+    expect(facade.loadPortalGameUrl).not.toHaveBeenCalled();
+  });
+
+  it("the hint switches from the code to the link when the link lands", async () => {
+    let land: (url: string | null) => void = () => {};
+    facade.loadPortalGameUrl = jest.fn(
+      () =>
+        new Promise<string | null>((resolve) => {
+          land = resolve;
+        }),
+    );
+    // open() resets the code; this opening's code, as the create would set it.
+    openModal();
+    (modal as unknown as { lobbyId: string }).lobbyId = CODE;
+    modal.requestUpdate();
+    await modal.updateComplete;
+    expect(hintLine()!.textContent!.trim()).toBe("host_modal.invite_code_hint");
+
+    facade.portalGameUrl = PORTAL;
+    land(PORTAL);
+    await Promise.resolve();
+    await modal.updateComplete;
+
+    expect(hintLine()!.textContent!.trim()).toBe("host_modal.invite_link_hint");
+  });
+
+  it("keeps the code hint when the SDK has no link", async () => {
+    openModal();
+    await Promise.resolve();
+    await modal.updateComplete;
+
+    expect(hintLine()!.textContent!.trim()).toBe("host_modal.invite_code_hint");
+  });
+});

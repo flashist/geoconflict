@@ -2,6 +2,9 @@
 // non-empty, in BOTH en.json and ru.json (project rule: the two files stay in
 // sync), and must equal the owner-approved wording exactly (2026-10-06,
 // brief verification step 8) — an edit to either file is an owner decision.
+// Task 0407: `verified_paid` is now the paid-citizen thank-you line; its text
+// below is the owner's 0407 ruling (2026-10-08), which replaced the 0397
+// wording ("✓ Verified — …") and dropped the ✓.
 
 import fs from "fs";
 import path from "path";
@@ -14,15 +17,16 @@ function load(file: string): Record<string, Record<string, string>> {
 }
 
 // Kept explicit (not derived from en.json) so deleting a key from BOTH files
-// still fails. Owner-approved text, verbatim (0397 brief, "Approved wording").
+// still fails. Owner-approved text, verbatim (0397 brief, "Approved wording";
+// `verified_paid` from the 0407 brief, "Design approval (Step 1 gate)").
 const APPROVED: Record<string, { en: string; ru: string }> = {
   checking: {
     en: "Checking your account…",
     ru: "Проверяем ваш аккаунт…",
   },
   verified_paid: {
-    en: "✓ Verified — your paid citizenship benefits are on",
-    ru: "✓ Подтверждено — преимущества платного гражданства включены",
+    en: "Thank you for supporting the game! Your paid citizenship benefits are on.",
+    ru: "Спасибо, что поддерживаете игру! Преимущества платного гражданства включены.",
   },
   unverified: {
     en: "We couldn't confirm your account this time. If you bought citizenship, it's safe — you may just see ads until it's confirmed. Closing and reopening the game usually helps.",

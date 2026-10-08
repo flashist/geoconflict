@@ -64,7 +64,7 @@ the private-lobby row (record how).
    reloads — otherwise they do not see the Join Lobby button and cannot enter the code. **Interim limit, accepted —
    OWNER RULING 2026-10-04**, given live via `AskUserQuestion` in the `fkit lead` session during `0380` review
    (finding R3), relayed by `fkit-lead`; ⛔ not producer precedent. Lifted when
-   [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
+   [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
    `private_lobbies_all` console flag is turned on.
 4. **Old link ignored.** Open an old-form link (`…/yandex-games_iframe.html#join=<code>`) in a plain browser tab. The
    join window does **not** open.

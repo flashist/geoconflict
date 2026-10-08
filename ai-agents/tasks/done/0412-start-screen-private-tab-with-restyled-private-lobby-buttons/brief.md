@@ -25,7 +25,7 @@ Sprint 7
 `0407`–`0409` carry the owner's same-day deploy intent while this task does not.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

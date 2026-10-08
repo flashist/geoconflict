@@ -28,7 +28,7 @@ browser box that appears on hover, e.g. "Join Lobby" in English over a Russian b
 - **No link to Yandex Games' own pages — by owner ruling** (quote 2). The exact wording of the Yandex
   rule is **not cited here, by owner choice**; the owner's statement is the source.
 - **Work:**
-  - [`0412`](../tasks/backlog/0412-start-screen-private-tab-with-restyled-private-lobby-buttons/brief.md)
+  - [`0412`](../tasks/done/0412-start-screen-private-tab-with-restyled-private-lobby-buttons/brief.md)
     — removes the native tooltip from the two private-lobby buttons ("Создать лобби",
     "Присоединиться к лобби"). 🔲 Backlog.
   - [`0415`](../tasks/backlog/0415-no-native-browser-tooltips-anywhere-in-the-ui/brief.md) — app-wide

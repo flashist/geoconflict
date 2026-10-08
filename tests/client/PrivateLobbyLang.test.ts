@@ -17,6 +17,10 @@ function load(file: string): Record<string, Record<string, string>> {
 const REQUIRED_KEYS: Array<[string, string]> = [
   ["locked_feature", "citizens_only"],
   ["host_modal", "start_failed"],
+  // Task 0412: the Private tab and the two menu-row subtitles.
+  ["main", "tab_private"],
+  ["main", "create_lobby_subtitle"],
+  ["main", "join_lobby_subtitle"],
 ];
 
 describe("private-lobby perk localization (task 0302)", () => {
@@ -45,6 +49,11 @@ describe("private-lobby perk localization (task 0302)", () => {
   it.each(REQUIRED_KEYS)("%s.%s does not name the game", (section, key) => {
     expect(en[section][key].toLowerCase()).not.toContain("geoconflict");
     expect(ru[section][key].toLowerCase()).not.toContain("geoconflict");
+  });
+
+  it("names the Private tab exactly (task 0412)", () => {
+    expect(en.main.tab_private).toBe("Private");
+    expect(ru.main.tab_private).toBe("Приватная");
   });
 
   it.each(REQUIRED_KEYS)(

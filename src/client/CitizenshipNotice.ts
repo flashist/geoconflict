@@ -19,7 +19,8 @@ import {
  * - `read_failed`: the read failed; text plus the Restart game button.
  * - `still_failing`: the same, after a restart from that button did not help.
  * - `unverified`: a citizen whose session is not confirmed; text only (Q1, Q3).
- * - `verified_paid`: a verified session of a paid citizen.
+ * - `verified_paid`: a verified session of a paid citizen; the card thanks them
+ *   for supporting the game (task 0407 wording).
  * - `none`: nothing new (guests, verified non-paid players, unverified
  *   non-citizens — they cannot have paid).
  */

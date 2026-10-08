@@ -1402,3 +1402,229 @@ describe("FlashistFacade.reloadAppWithoutHash (task 0404)", () => {
     ).toBeNull();
   });
 });
+
+// Task 0382 (ADR-119): this game's portal URL from the SDK (host side), and the
+// invite payload (friend side). Fake ids and URLs only.
+describe("FlashistFacade portal link and invite payload (task 0382)", () => {
+  const PORTAL = "https://portal.example/games/app/111111";
+
+  function makeSdkFacade(sdk: unknown): FlashistFacade {
+    return makeFacade({ yaGamesAvailable: true, yandexGamesSDK: sdk });
+  }
+
+  function sdkWith(
+    getGameByID: jest.Mock | undefined,
+    appId: unknown = "111111",
+  ): unknown {
+    return {
+      environment: { app: { id: appId } },
+      features: { GamesAPI: getGameByID ? { getGameByID } : undefined },
+    };
+  }
+
+  beforeEach(() => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  describe("loadPortalGameUrl", () => {
+    it("returns the URL, asks once per page, and passes the id as a number", async () => {
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: true, game: { url: PORTAL } });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBe(PORTAL);
+      await expect(facade.loadPortalGameUrl()).resolves.toBe(PORTAL);
+
+      expect(getGameByID).toHaveBeenCalledTimes(1);
+      expect(getGameByID).toHaveBeenCalledWith(111111);
+      expect(facade.portalGameUrl).toBe(PORTAL);
+    });
+
+    it("two calls before the answer share one SDK call", async () => {
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: true, game: { url: PORTAL } });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await Promise.all([
+        facade.loadPortalGameUrl(),
+        facade.loadPortalGameUrl(),
+      ]);
+
+      expect(getGameByID).toHaveBeenCalledTimes(1);
+    });
+
+    it("isAvailable: false → null, and kept", async () => {
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: false, game: { url: PORTAL } });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+
+      expect(getGameByID).toHaveBeenCalledTimes(1);
+      expect(facade.portalGameUrl).toBeNull();
+    });
+
+    it("a failed call → null, not kept: the next call asks again", async () => {
+      const getGameByID = jest
+        .fn()
+        .mockRejectedValueOnce(new Error("network"))
+        .mockResolvedValueOnce({ isAvailable: true, game: { url: PORTAL } });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+      // `?? null`: Object.create skips the field's `= null` initializer.
+      expect(facade.portalGameUrl ?? null).toBeNull();
+      await expect(facade.loadPortalGameUrl()).resolves.toBe(PORTAL);
+
+      expect(getGameByID).toHaveBeenCalledTimes(2);
+    });
+
+    it("a call that throws synchronously → null, not kept", async () => {
+      const getGameByID = jest.fn(() => {
+        throw new Error("boom");
+      });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+
+      expect(getGameByID).toHaveBeenCalledTimes(2);
+    });
+
+    it("a call that never answers → null after 5 s, not kept", async () => {
+      jest.useFakeTimers();
+      const getGameByID = jest.fn(() => new Promise(() => {}));
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      let settled: string | null | undefined;
+      void facade.loadPortalGameUrl().then((url) => (settled = url));
+      await jest.advanceTimersByTimeAsync(4999);
+      expect(settled).toBeUndefined();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(settled).toBeNull();
+
+      void facade.loadPortalGameUrl();
+      expect(getGameByID).toHaveBeenCalledTimes(2);
+    });
+
+    it.each([
+      ["no SDK", undefined],
+      ["no GamesAPI", sdkWith(undefined)],
+    ])("%s → null, no call, not kept", async (_label, sdk) => {
+      const facade = makeSdkFacade(sdk);
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+
+      // The SDK arrives later: the next call asks.
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: true, game: { url: PORTAL } });
+      (facade as unknown as { yandexGamesSDK: unknown }).yandexGamesSDK =
+        sdkWith(getGameByID);
+      await expect(facade.loadPortalGameUrl()).resolves.toBe(PORTAL);
+    });
+
+    it.each([
+      ["not numeric", "abc"],
+      ["empty", ""],
+      ["zero", "0"],
+      ["negative", "-5"],
+      ["fractional", "1.5"],
+      ["missing", null],
+    ])("an app id that is %s → null, no call", async (_label, appId) => {
+      const getGameByID = jest.fn();
+      const facade = makeSdkFacade(sdkWith(getGameByID, appId));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+      expect(getGameByID).not.toHaveBeenCalled();
+    });
+
+    it("accepts an app id that is already a number", async () => {
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: true, game: { url: PORTAL } });
+      const facade = makeSdkFacade(sdkWith(getGameByID, 111111));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBe(PORTAL);
+      expect(getGameByID).toHaveBeenCalledWith(111111);
+    });
+
+    it.each([
+      ["http", "http://portal.example/games/app/111111"],
+      ["unparsable", "not a url"],
+      ["javascript", "javascript:alert(1)"],
+      ["missing", undefined],
+    ])("a %s game URL → null", async (_label, url) => {
+      const getGameByID = jest
+        .fn()
+        .mockResolvedValue({ isAvailable: true, game: { url } });
+      const facade = makeSdkFacade(sdkWith(getGameByID));
+
+      await expect(facade.loadPortalGameUrl()).resolves.toBeNull();
+      expect(facade.portalGameUrl).toBeNull();
+    });
+  });
+
+  describe("getInvitePayload", () => {
+    it("returns the SDK's payload string", () => {
+      const facade = makeSdkFacade({ environment: { payload: "K7M4PCRX" } });
+      expect(facade.getInvitePayload()).toBe("K7M4PCRX");
+    });
+
+    it.each([
+      ["no SDK", undefined],
+      ["no environment", {}],
+      ["no payload", { environment: {} }],
+      ["a non-string payload", { environment: { payload: 12345678 } }],
+    ])("%s → null", (_label, sdk) => {
+      expect(makeSdkFacade(sdk).getInvitePayload()).toBeNull();
+    });
+  });
+
+  describe("whenYandexSdkAvailable", () => {
+    it("resolves at once when the SDK is already there", async () => {
+      const facade = makeSdkFacade({});
+      await expect(facade.whenYandexSdkAvailable()).resolves.toBeUndefined();
+    });
+
+    it("resolves when initLoadedYandexSdk() assigns the SDK later", async () => {
+      const sdk = { getFlags: jest.fn(), getPlayer: jest.fn() };
+      (window as unknown as { YaGames: unknown }).YaGames = {
+        init: jest.fn().mockResolvedValue(sdk),
+      };
+      const facade = Object.assign(Object.create(FlashistFacade.prototype), {
+        yaGamesAvailable: false,
+        yandexInitPromise: Promise.resolve(),
+        yandexSdkInitPlayerPromise: Promise.resolve(),
+        hasLoggedExperimentEvents: true,
+        initExperimentFlags: jest.fn().mockResolvedValue(undefined),
+        initPayments: jest.fn().mockResolvedValue(undefined),
+        yandexGamesReadyCallback: jest.fn(),
+        primeCitizenshipSurfacesSnapshot: jest.fn(),
+      }) as FlashistFacade;
+      jest.spyOn(console, "log").mockImplementation(() => {});
+
+      let resolved = false;
+      void facade.whenYandexSdkAvailable().then(() => (resolved = true));
+      await Promise.resolve();
+      expect(resolved).toBe(false);
+
+      await (
+        facade as unknown as { initLoadedYandexSdk(): Promise<void> }
+      ).initLoadedYandexSdk();
+      await Promise.resolve();
+
+      expect(resolved).toBe(true);
+      expect(facade.yandexGamesSDK).toBe(sdk);
+      delete (window as unknown as { YaGames?: unknown }).YaGames;
+    });
+  });
+});

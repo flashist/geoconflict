@@ -16,6 +16,41 @@ import { beginJoiningLobby } from "./StartScreenPresence";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
 import { getApiBase } from "./jwt";
+
+// Task 0413: a page in a cross-origin iframe (Yandex Games) may not read the
+// clipboard. Remembered for this session only, after a press failed with a
+// not-allowed error; never stored, so every session guesses afresh.
+let clipboardReadBlocked = false;
+
+export function resetClipboardReadMemoryForTests(): void {
+  clipboardReadBlocked = false;
+}
+
+type PolicyCheck = { allowsFeature?: (feature: string) => boolean };
+
+// Task 0413: by capability, never by "are we inside Yandex". Chromium answers
+// the policy check up front; where nothing answers, a failed press is the
+// safety net (pasteFromClipboard).
+function clipboardReadAvailable(): boolean {
+  if (clipboardReadBlocked) return false;
+  if (typeof navigator.clipboard?.readText !== "function") return false;
+  const policyDocument = document as Document & {
+    permissionsPolicy?: PolicyCheck;
+    featurePolicy?: PolicyCheck;
+  };
+  const policy =
+    policyDocument.permissionsPolicy ?? policyDocument.featurePolicy;
+  if (typeof policy?.allowsFeature === "function") {
+    return policy.allowsFeature("clipboard-read");
+  }
+  return true;
+}
+
+function isClipboardPermissionError(error: unknown): boolean {
+  const name = (error as { name?: unknown } | null)?.name;
+  return name === "NotAllowedError" || name === "SecurityError";
+}
+
 @customElement("join-private-lobby-modal")
 export class JoinPrivateLobbyModal extends LitElement {
   @query("o-modal") private modalEl!: HTMLElement & {
@@ -29,6 +64,12 @@ export class JoinPrivateLobbyModal extends LitElement {
   // Holds the whole ClientInfo (not just the username) so the lobby list can render
   // the citizen badge alongside the name — task 0068.
   @state() private players: ClientInfo[] = [];
+  // Task 0413: no paste button when this page cannot read the clipboard; the
+  // hint tells the player how to paste by hand instead.
+  @state() private pasteUnavailable = false;
+  // Task 0413: a press that failed for some other reason shows the hint but
+  // keeps the button, as the failure may be a one-off.
+  @state() private pasteHintShown = false;
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Task 0327: bumped by every close. A lobby check still awaiting its fetch
@@ -41,6 +82,7 @@ export class JoinPrivateLobbyModal extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    this.pasteUnavailable = !clipboardReadAvailable();
     window.addEventListener("keydown", this.handleKeyDown);
   }
 
@@ -73,26 +115,36 @@ export class JoinPrivateLobbyModal extends LitElement {
             placeholder=${translateText("private_lobby.enter_id")}
             @keyup=${this.handleChange}
           />
-          <button
-            @click=${this.pasteFromClipboard}
-            class="lobby-id-paste-button"
-          >
-            <svg
-              class="lobby-id-paste-button-icon"
-              stroke="currentColor"
-              fill="currentColor"
-              stroke-width="0"
-              viewBox="0 0 32 32"
-              height="18px"
-              width="18px"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M 15 3 C 13.742188 3 12.847656 3.890625 12.40625 5 L 5 5 L 5 28 L 13 28 L 13 30 L 27 30 L 27 14 L 25 14 L 25 5 L 17.59375 5 C 17.152344 3.890625 16.257813 3 15 3 Z M 15 5 C 15.554688 5 16 5.445313 16 6 L 16 7 L 19 7 L 19 9 L 11 9 L 11 7 L 14 7 L 14 6 C 14 5.445313 14.445313 5 15 5 Z M 7 7 L 9 7 L 9 11 L 21 11 L 21 7 L 23 7 L 23 14 L 13 14 L 13 26 L 7 26 Z M 15 16 L 25 16 L 25 28 L 15 28 Z"
-              ></path>
-            </svg>
-          </button>
+          ${this.pasteUnavailable
+            ? ""
+            : html`<button
+                @click=${this.pasteFromClipboard}
+                class="lobby-id-paste-button"
+              >
+                <svg
+                  class="lobby-id-paste-button-icon"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 32 32"
+                  height="18px"
+                  width="18px"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M 15 3 C 13.742188 3 12.847656 3.890625 12.40625 5 L 5 5 L 5 28 L 13 28 L 13 30 L 27 30 L 27 14 L 25 14 L 25 5 L 17.59375 5 C 17.152344 3.890625 16.257813 3 15 3 Z M 15 5 C 15.554688 5 16 5.445313 16 6 L 16 7 L 19 7 L 19 9 L 11 9 L 11 7 L 14 7 L 14 6 C 14 5.445313 14.445313 5 15 5 Z M 7 7 L 9 7 L 9 11 L 21 11 L 21 7 L 23 7 L 23 14 L 13 14 L 13 26 L 7 26 Z M 15 16 L 25 16 L 25 28 L 15 28 Z"
+                  ></path>
+                </svg>
+              </button>`}
         </div>
+        ${this.pasteUnavailable || this.pasteHintShown
+          ? html`<div
+              id="lobby-id-paste-hint"
+              class="mt-2 text-center text-sm text-gray-300"
+            >
+              ${translateText("private_lobby.paste_hint")}
+            </div>`
+          : ""}
         <div class="message-area ${this.message ? "show" : ""}">
           ${this.message}
         </div>
@@ -136,6 +188,10 @@ export class JoinPrivateLobbyModal extends LitElement {
   }
 
   public open(id: string = "") {
+    this.pasteUnavailable = !clipboardReadAvailable();
+    // Explicit, as in reset(): the decorator transform does not reliably
+    // schedule updates under the test build.
+    this.requestUpdate();
     this.modalEl?.open();
     if (id) {
       this.setLobbyId(id);
@@ -180,6 +236,7 @@ export class JoinPrivateLobbyModal extends LitElement {
     this.hasJoined = false;
     this.message = "";
     this.players = [];
+    this.pasteHintShown = false;
     this.closeGeneration++;
     // Task 0374: a closed window no longer counts as joining, even if its
     // lookup is still running. Safe to run twice (o-modal's close() fires
@@ -235,12 +292,22 @@ export class JoinPrivateLobbyModal extends LitElement {
     this.setLobbyId(value);
   }
 
+  // Task 0413: a failed press never ends in silence — it shows the hint and
+  // puts the cursor in the box. A not-allowed failure also hides the button
+  // for the rest of the session.
   private async pasteFromClipboard() {
     try {
       const clipText = await navigator.clipboard.readText();
       this.setLobbyId(clipText);
     } catch (err) {
-      console.error("Failed to read clipboard contents: ", err);
+      console.warn(`Clipboard read failed, showing the paste hint: ${err}`);
+      if (isClipboardPermissionError(err)) {
+        clipboardReadBlocked = true;
+        this.pasteUnavailable = true;
+      }
+      this.pasteHintShown = true;
+      this.requestUpdate();
+      this.lobbyIdInput?.focus();
     }
   }
 

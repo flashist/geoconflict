@@ -52,10 +52,13 @@ const logLockedFeatureTap = FlashistFacade.instance
 const waitGameInit = flashist_waitGameInitComplete as jest.Mock;
 
 let popupShow: jest.Mock;
+let enablePrivateTab: jest.Mock;
 
 function mountPage(): void {
-  // The row exactly as both templates ship it: hidden by default.
+  // The row exactly as both templates ship it: hidden by default. Task 0412: a
+  // stub <start-screen-tabs> stands in for the real tab strip.
   document.body.innerHTML = `
+    <start-screen-tabs></start-screen-tabs>
     <div id="private-lobby-row" class="container__row" style="display: none;">
       <o-button id="host-lobby-button" translationKey="main.create_lobby"></o-button>
       <o-button id="join-private-lobby-button" translationKey="main.join_lobby"></o-button>
@@ -65,6 +68,10 @@ function mountPage(): void {
   popupShow = jest.fn();
   Object.assign(document.querySelector("citizenship-explainer-modal")!, {
     show: popupShow,
+  });
+  enablePrivateTab = jest.fn();
+  Object.assign(document.querySelector("start-screen-tabs")!, {
+    enablePrivateTab,
   });
 }
 
@@ -264,6 +271,64 @@ describe("PrivateLobbyAccess (task 0302)", () => {
     });
   });
 
+  // Task 0412: the same single rule check reveals the start screen's Private tab.
+  describe("the Private tab (task 0412)", () => {
+    it("is enabled once when the rule is on", async () => {
+      await startAccess();
+
+      expect(enablePrivateTab).toHaveBeenCalledTimes(1);
+    });
+
+    it("is never enabled when the rule is off", async () => {
+      isEveryoneEnabled.mockResolvedValue(false);
+
+      await startAccess();
+
+      expect(enablePrivateTab).not.toHaveBeenCalled();
+    });
+
+    it("is never enabled when a read throws — fail closed", async () => {
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      isSurfacesEnabled.mockRejectedValue(new Error("boom"));
+      isTester.mockReturnValue(true);
+
+      await startAccess();
+
+      expect(enablePrivateTab).not.toHaveBeenCalled();
+    });
+
+    it("is never enabled on a degraded boot (no flags → both reads false)", async () => {
+      isSurfacesEnabled.mockResolvedValue(false);
+      isEveryoneEnabled.mockResolvedValue(false);
+      isTester.mockReturnValue(true);
+
+      await startAccess();
+
+      expect(enablePrivateTab).not.toHaveBeenCalled();
+    });
+
+    it("a page without <start-screen-tabs> still shows the row and does not throw", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      document.querySelector("start-screen-tabs")!.remove();
+
+      const access = await startAccess();
+
+      expect(row().style.display).toBe("");
+      expect(access.isVisible()).toBe(true);
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+
+  it("renders both buttons with no title attribute anywhere (no browser tooltip, task 0412)", async () => {
+    await startAccess();
+
+    for (const button of [hostButton(), joinButton()]) {
+      expect(button.hasAttribute("title")).toBe(false);
+      expect(button.querySelector("[title]")).toBeNull();
+      expect(button.querySelector("button")).not.toBeNull();
+    }
+  });
+
   describe("switch on: Create is a citizen perk", () => {
     it.each([
       ["unknown (profile still loading)", null],
@@ -424,6 +489,34 @@ describe.each(["index.html", "yandex-games_iframe.html"])(
       expect(row!.querySelector("#host-lobby-button")).not.toBeNull();
       expect(row!.querySelector("#join-private-lobby-button")).not.toBeNull();
     });
+
+    // Task 0412: the row moved into the third tab, restyled as menu rows.
+    it("puts the row inside #private-tab-content, not the Multiplayer tab", () => {
+      const row = page.getElementById(PRIVATE_LOBBY_ROW_ID)!;
+      expect(row.closest("#private-tab-content")).not.toBeNull();
+      expect(row.closest("#multiplayer-tab-content")).toBeNull();
+    });
+
+    it("ships #private-tab-content hidden by default", () => {
+      const content = page.getElementById("private-tab-content");
+      expect(content).not.toBeNull();
+      expect(content!.classList.contains("hidden")).toBe(true);
+    });
+
+    it.each(["host-lobby-button", "join-private-lobby-button"])(
+      "#%s is a menu row (menurow, chevron, icon, subtitle) with no title tooltip",
+      (id) => {
+        const button = page.getElementById(id)!;
+        expect(button.hasAttribute("menurow")).toBe(true);
+        expect(button.hasAttribute("chevron")).toBe(true);
+        expect(button.getAttribute("icon") ?? "").not.toBe("");
+        expect(button.getAttribute("subtitleTranslationKey") ?? "").not.toBe(
+          "",
+        );
+        expect(button.hasAttribute("secondary")).toBe(false);
+        expect(button.getAttribute("title") ?? "").toBe("");
+      },
+    );
 
     it("has exactly one Create button, and it is inside the row", () => {
       const buttons = page.querySelectorAll("#host-lobby-button");

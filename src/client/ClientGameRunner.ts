@@ -88,6 +88,7 @@ import { FlashistGameSettings } from "./flashist-game/FlashistGameSettings";
 import {
   flashist_logEventAnalytics,
   flashistConstants,
+  FlashistFacade,
 } from "./flashist/FlashistFacade";
 import { logOtelWarn } from "./OtelBrowserInit";
 
@@ -1328,7 +1329,8 @@ export class ClientGameRunner {
   }
 }
 
-function showErrorModal(
+// Exported for tests (task 0413).
+export function showErrorModal(
   error: string,
   message: string | undefined,
   gameID: GameID,
@@ -1362,13 +1364,21 @@ function showErrorModal(
   const button = document.createElement("button");
   button.textContent = translateText("error_modal.copy_clipboard");
   button.className = "copy-btn";
+  // Task 0413: through the facade (Yandex SDK first, browser clipboard as the
+  // fallback), called first in the click with nothing awaited before it — the
+  // SDK copy fails once the click's focus is gone.
   button.addEventListener("click", async () => {
+    let copied = false;
     try {
-      await navigator.clipboard.writeText(content);
-      button.textContent = translateText("error_modal.copied");
+      copied = await FlashistFacade.instance.copyText(content);
     } catch {
-      button.textContent = translateText("error_modal.failed_copy");
+      // copyText never throws; kept so the click can never leave an unhandled
+      // rejection.
+      copied = false;
     }
+    button.textContent = translateText(
+      copied ? "error_modal.copied" : "error_modal.failed_copy",
+    );
   });
 
   // Add to modal

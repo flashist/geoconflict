@@ -20,7 +20,7 @@ Sprint 7
 > 📌 No sprint was named, so this is on the Backlog board. Placing it in a sprint is the owner's call.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -103,13 +103,13 @@ format.
 3. `en.json` and `ru.json` both carry every new key.
 4. `npm test`, `npm run lint`, `npx tsc --noEmit` green.
 5. **Live check in production is a separate task:**
-   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+   [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
    (build/verify split, owner rule 2026-09-29). Do not hold this task open for it.
 
 ## Notes
 
 - **Depends on:** [`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
-- **Blocks:** [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+- **Blocks:** [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
 - 🔗 **Dependency note — 2026-10-05 (added by a spawned `fkit-producer` at the close of `0389`; a dependency fact, not an
   owner ruling).** [`0389`](../../done/0389-make-the-private-lobby-code-easier-to-read-and-type/brief.md) changed
   private-lobby codes to **8 characters from `23456789ABCDEFGHJKMNPQRSTVWXYZ`** (any case typed; shown as `K7M4 PCRX`;
@@ -137,7 +137,7 @@ format.
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task, probe in its
   worklog), [`0331`](../../done/0331-keep-the-query-string-on-match-exit/brief.md) /
   [`0337`](../../done/0337-verify-0331-in-production-the-sdk-query-parameter-survives-a-match-exit/brief.md) (the `sdk` query
-  parameter), [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md).
+  parameter), [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md).
 - **Privacy:** no app id, catalog URL, player id, host or secret in any artifact, test fixture included (use a fake
   id).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

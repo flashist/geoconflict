@@ -1978,7 +1978,7 @@ rollback target** (`0.0.156-profile.2`, which was `0340`'s target):
 
 **Found during the post-deploy checks — pointers only:**
 
-- [`0416`](../tasks/backlog/0416-private-lobby-start-fails-with-403-because-the-container-nginx-drops-the-query-string-on-worker-routes/brief.md)
+- [`0416`](../tasks/done/0416-private-lobby-start-fails-with-403-because-the-container-nginx-drops-the-query-string-on-worker-routes/brief.md)
   — private-lobby Start → **403** `citizens_only`: the container nginx drops the query string on worker routes. Not in
   `0.0.157`; Sprint 7, ships with the next game deploy (owner ruling 2026-10-08). 🔲 Backlog at the time of this entry.
 - [`0411`](../tasks/backlog/0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)

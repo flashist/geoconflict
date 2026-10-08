@@ -2563,6 +2563,98 @@ describe("CitizenshipCard", () => {
       });
     });
 
+    // Task 0407: `verified_paid` is the paid-citizen thank-you (owner ruling
+    // 2026-10-08, Option A). Who sees it, pinned case by case.
+    describe("paid thank-you (task 0407)", () => {
+      const THANKS = "citizenship_status.verified_paid";
+
+      it("a verified paid citizen below the XP threshold sees it", async () => {
+        loadProfile.mockResolvedValue({ ...VERIFIED_PAID, xp: 25 });
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain(THANKS);
+        expect(notice(card)).not.toBeNull();
+      });
+
+      it("a verified paid citizen who also reached the XP threshold still sees it", async () => {
+        loadProfile.mockResolvedValue({ ...VERIFIED_PAID, xp: 150 });
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).toContain(THANKS);
+      });
+
+      // Each "not shown" case also checks that the read landed and the
+      // state's own line (or no line) rendered, so the absence is not just an
+      // unsettled card.
+      it("verified earned-only: not shown", async () => {
+        loadProfile.mockResolvedValue(VERIFIED_EARNED);
+        const card = await appendCard({ visible: true });
+
+        expect(getProfileVerificationStatus()).toBe("verified");
+        expect(notice(card)).toBeNull();
+        expect(card.textContent).not.toContain(THANKS);
+      });
+
+      it.each([
+        [
+          "unverified earned",
+          UNVERIFIED_CITIZEN,
+          "unverified",
+          "citizenship_status.unverified",
+        ],
+        [
+          "unverified claiming paid",
+          { ...UNVERIFIED_CITIZEN, isPaidCitizen: true },
+          "unverified",
+          "citizenship_status.unverified",
+        ],
+        [
+          "failed read",
+          FAILED_READ,
+          "read_failed",
+          "citizenship_status.read_failed",
+        ],
+      ])("%s: not shown", async (_label, profile, status, line) => {
+        loadProfile.mockResolvedValue(profile);
+        const card = await appendCard({ visible: true });
+
+        expect(getProfileVerificationStatus()).toBe(status);
+        expect(card.textContent).toContain(line);
+        expect(card.textContent).not.toContain(THANKS);
+      });
+
+      it("guest: not shown", async () => {
+        const card = await appendCard({ visible: true });
+
+        expect(getProfileVerificationStatus()).toBe("guest");
+        expect(card.textContent).not.toContain(THANKS);
+      });
+
+      it("still checking: not shown", async () => {
+        pendingRead();
+        const card = await appendCard({ visible: true });
+
+        expect(checkingLine(card)).not.toBeNull();
+        expect(card.textContent).not.toContain(THANKS);
+      });
+
+      it("kill switch off: hidden with the card", async () => {
+        flashistConstants.features.CITIZENSHIP_CARD_ENABLED = false;
+        loadProfile.mockResolvedValue(VERIFIED_PAID);
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).not.toContain(THANKS);
+      });
+
+      it("citizenship_ui off: hidden with the card", async () => {
+        isCitizenshipUiEnabled.mockResolvedValue(false);
+        loadProfile.mockResolvedValue(VERIFIED_PAID);
+        const card = await appendCard({ visible: true });
+
+        expect(card.textContent).not.toContain(THANKS);
+      });
+    });
+
     it("a purchases-reconciled re-read updates the line without a reload", async () => {
       loadProfile.mockResolvedValue(FAILED_READ);
       const card = await appendCard({ visible: true });
@@ -3302,6 +3394,76 @@ describe("CitizenshipCard", () => {
 
         expect(card.getCitizenshipOffer()).toEqual({ kind: "read_failed" });
         expect(buyButton(card)).toBeNull();
+      });
+
+      // Task 0409: an earned citizen may buy — verified "not paid" only, and
+      // only in the popup (owner ruling 2026-10-08: no card render change).
+      describe("earned citizens (task 0409)", () => {
+        const UNVERIFIED_CITIZEN = {
+          ...NON_CITIZEN_PROFILE,
+          xp: 100,
+          isCitizen: true,
+          isVerifiedRead: false,
+        };
+        const VERIFIED_EARNED = { ...UNVERIFIED_CITIZEN, isVerifiedRead: true };
+        const VERIFIED_PAID = { ...VERIFIED_EARNED, isPaidCitizen: true };
+        const FAILED_READ = {
+          ...NON_CITIZEN_PROFILE,
+          xp: 0,
+          isAuthoritative: false,
+          isVerifiedRead: false,
+        };
+
+        it("is citizen_buy for a verified earned citizen — popup only, no card button", async () => {
+          getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+          loadProfile.mockResolvedValue(VERIFIED_EARNED);
+          const card = await appendCard({ visible: true });
+          await settle(card);
+
+          expect(card.getCitizenshipOffer()).toEqual({
+            kind: "citizen_buy",
+            price: "99 ₽",
+          });
+          expect(buyButton(card)).toBeNull();
+        });
+
+        it.each([
+          ["an unverified citizen", UNVERIFIED_CITIZEN],
+          ["a verified paid citizen", VERIFIED_PAID],
+        ] as const)("is citizen for %s", async (_label, profile) => {
+          getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+          loadProfile.mockResolvedValue(profile);
+          const card = await appendCard({ visible: true });
+          await settle(card);
+
+          expect(card.getCitizenshipOffer()).toEqual({ kind: "citizen" });
+          expect(buyButton(card)).toBeNull();
+        });
+
+        it.each([
+          ["fails", FAILED_READ],
+          ["is stale (still verified, not paid)", VERIFIED_EARNED],
+        ] as const)(
+          "is citizen after a granted purchase, even when the re-read %s",
+          async (_label, reRead) => {
+            getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+            loadProfile.mockResolvedValue(VERIFIED_EARNED);
+            const card = await appendCard({ visible: true });
+            await settle(card);
+            expect(card.getCitizenshipOffer().kind).toBe("citizen_buy");
+            runPurchase.mockResolvedValue("granted");
+            loadProfile.mockResolvedValue(reRead);
+
+            const result = await card.buyCitizenship(
+              "PurchasePaidCitizenshipExplainer",
+            );
+            await settle(card);
+
+            expect(result).toBe("granted");
+            expect(card.getCitizenshipOffer()).toEqual({ kind: "citizen" });
+            expect(buyButton(card)).toBeNull();
+          },
+        );
       });
     });
 

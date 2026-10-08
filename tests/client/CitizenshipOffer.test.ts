@@ -7,6 +7,7 @@ import {
 } from "../../src/client/CitizenshipOffer";
 
 const NON_CITIZEN = { isCitizen: false, isAuthoritative: true, xp: 25 };
+const CITIZEN = { isCitizen: true, isAuthoritative: true, xp: 100 };
 
 function inputs(
   overrides: Partial<CitizenshipOfferInputs> = {},
@@ -16,6 +17,8 @@ function inputs(
     isChecking: false,
     profile: NON_CITIZEN,
     paidGrantConfirmed: false,
+    isVerifiedRead: false,
+    isPaidCitizen: false,
     canLogIn: true,
     productPrice: "99 ₽",
     ...overrides,
@@ -103,5 +106,105 @@ describe("deriveCitizenshipOffer (task 0301)", () => {
         ),
       ).toEqual({ kind: "read_failed" });
     });
+  });
+
+  // Task 0409: an earned citizen may buy — only on a verified "not paid" read.
+  describe("citizen_buy (task 0409)", () => {
+    it("citizen_buy for a verified, not-paid citizen with a product", () => {
+      expect(
+        deriveCitizenshipOffer(
+          inputs({ profile: CITIZEN, isVerifiedRead: true }),
+        ),
+      ).toEqual({ kind: "citizen_buy", price: "99 ₽" });
+    });
+
+    it("double-charge guard: an unverified citizen never gets a buy offer", () => {
+      // An unverified read cannot say "paid" (ADR-116 Decision 4): a paid
+      // citizen on this session looks exactly like an unpaid one.
+      expect(
+        deriveCitizenshipOffer(
+          inputs({
+            profile: CITIZEN,
+            isVerifiedRead: false,
+            isPaidCitizen: false,
+          }),
+        ),
+      ).toEqual({ kind: "citizen" });
+    });
+
+    it("citizen for a verified paid citizen", () => {
+      expect(
+        deriveCitizenshipOffer(
+          inputs({
+            profile: CITIZEN,
+            isVerifiedRead: true,
+            isPaidCitizen: true,
+          }),
+        ),
+      ).toEqual({ kind: "citizen" });
+    });
+
+    it("citizen once a paid grant is confirmed, even on a stale verified not-paid read", () => {
+      expect(
+        deriveCitizenshipOffer(
+          inputs({
+            profile: CITIZEN,
+            isVerifiedRead: true,
+            paidGrantConfirmed: true,
+          }),
+        ),
+      ).toEqual({ kind: "citizen" });
+    });
+
+    it("citizen when the catalog has no citizenship product — no dead button", () => {
+      expect(
+        deriveCitizenshipOffer(
+          inputs({
+            profile: CITIZEN,
+            isVerifiedRead: true,
+            productPrice: null,
+          }),
+        ),
+      ).toEqual({ kind: "citizen" });
+    });
+
+    it("checking beats citizen_buy", () => {
+      expect(
+        deriveCitizenshipOffer(
+          inputs({ profile: CITIZEN, isVerifiedRead: true, isChecking: true }),
+        ),
+      ).toEqual({ kind: "checking" });
+    });
+
+    it.each([
+      [false, false],
+      [true, false],
+      [false, true],
+      [true, true],
+    ])(
+      "non-citizen results ignore the new flags (verified=%s, paid=%s)",
+      (isVerifiedRead, isPaidCitizen) => {
+        const flags = { isVerifiedRead, isPaidCitizen };
+        expect(deriveCitizenshipOffer(inputs(flags))).toEqual({
+          kind: "buy",
+          price: "99 ₽",
+          xp: 25,
+        });
+        expect(
+          deriveCitizenshipOffer(inputs({ ...flags, productPrice: null })),
+        ).toEqual({ kind: "no_product", xp: 25 });
+        expect(
+          deriveCitizenshipOffer(
+            inputs({
+              ...flags,
+              profile: { ...NON_CITIZEN, isAuthoritative: false },
+            }),
+          ),
+        ).toEqual({ kind: "read_failed" });
+        expect(
+          deriveCitizenshipOffer(inputs({ ...flags, profile: null })),
+        ).toEqual({ kind: "guest", canLogIn: true });
+      },
+    );
   });
 });

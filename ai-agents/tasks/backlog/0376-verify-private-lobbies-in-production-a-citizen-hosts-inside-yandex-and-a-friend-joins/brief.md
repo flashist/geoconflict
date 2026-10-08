@@ -116,7 +116,7 @@ Nothing is built. This is a live test, run by the owner with one other person.
    reloads — otherwise they do not see the Join Lobby button and cannot enter the code. **Interim limit, accepted —
    OWNER RULING 2026-10-04**, given live via `AskUserQuestion` in the `fkit lead` session during `0380` review
    (finding R3), relayed by `fkit-lead`; ⛔ not producer precedent. Lifted when
-   [`0382`](../0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
+   [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) ships or the
    `private_lobbies_all` console flag is turned on.
    ✅ *(Added 2026-10-05.)* **Lobby-code check, steps 2–3 — this is the live check for
    [`0389`](../../done/0389-make-the-private-lobby-code-easier-to-read-and-type/brief.md).**

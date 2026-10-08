@@ -49,6 +49,10 @@ import { GutterAds } from "./GutterAds";
 import { HelpModal } from "./HelpModal";
 import { HostLobbyModal as HostPrivateLobbyModal } from "./HostLobbyModal";
 import { openHostLobbyFromStartScreen } from "./HostLobbyOpen";
+import {
+  openInviteFromPayload,
+  shouldAutoLaunchTutorial,
+} from "./InvitePayload";
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
@@ -80,6 +84,7 @@ import {
 import { setStartScreenControlsHidden } from "./StartScreenControls";
 import {
   beginJoiningLobby,
+  isOnStartScreen,
   reportBackOnStartScreen,
   setStartScreenPresenceSource,
 } from "./StartScreenPresence";
@@ -208,6 +213,12 @@ class Client {
   private darkModeButton: DarkModeButton | null = null;
 
   private joinModal: JoinPrivateLobbyModal;
+  // Task 0382: the Yandex invite payload opened the Join window at startup —
+  // the first-time tutorial then does not auto-launch on this page load.
+  public openedInviteAtStartup = false;
+  // Task 0382 review R1: the auto-launched tutorial awaits cosmetics before it
+  // sends `join-lobby`, so nothing else marks that window as busy.
+  private tutorialStarting = false;
   private publicLobby: PublicLobby;
   private userSettings: UserSettings = new UserSettings();
   private patternsModal: TerritoryPatternsModal;
@@ -579,6 +590,16 @@ class Client {
     // Attempt to join lobby
     this.handleHash();
 
+    // Task 0382 (ADR-119): a Yandex invite link's payload opens the Join window
+    // once — at startup, or when a late SDK arrives. Whatever the private-lobby
+    // flags say (owner ruling (a)): no flag check here.
+    this.openedInviteAtStartup = this.openInviteFromPayload();
+    if (!FlashistFacade.instance.yandexGamesSDK) {
+      void FlashistFacade.instance
+        .whenYandexSdkAvailable()
+        .then(() => this.openInviteFromPayload());
+    }
+
     const onHashUpdate = () => {
       // Reset the UI to its initial state
       this.joinModal.close();
@@ -653,6 +674,17 @@ class Client {
     if (modal instanceof ReconnectModal) {
       modal.show(session);
     }
+  }
+
+  private openInviteFromPayload(): boolean {
+    return openInviteFromPayload({
+      readPayload: () => FlashistFacade.instance.getInvitePayload(),
+      // Review R1: a join still being set up (task 0336), or the tutorial
+      // before its join, is busy too — opening then would start a second join.
+      isBusy: () =>
+        this.gameStop !== null || this.tutorialStarting || !isOnStartScreen(),
+      openJoinWindow: (code) => this.joinModal.open(code),
+    });
   }
 
   private handleHash() {
@@ -883,6 +915,17 @@ class Client {
   }
 
   async startTutorial(): Promise<void> {
+    this.tutorialStarting = true;
+    try {
+      await this.dispatchTutorialJoin();
+    } finally {
+      // handleJoinLobby marks the join (beginJoiningLobby) before its first
+      // await, so the busy window has no gap once `join-lobby` is sent.
+      this.tutorialStarting = false;
+    }
+  }
+
+  private async dispatchTutorialJoin(): Promise<void> {
     const attemptNumber = incrementAndGetTutorialAttemptCount();
     flashist_logEventAnalytics(
       flashistConstants.analyticEvents.TUTORIAL_STARTED,
@@ -1121,8 +1164,15 @@ export async function startClient(): Promise<void> {
   // 0404). After initialize(), which registers the start-screen source.
   startLongSessionRefreshChecker();
 
-  // Tutorial: auto-launch for first-time players
-  if (!localStorage.getItem(TUTORIAL_COMPLETED_KEY)) {
+  // Tutorial: auto-launch for first-time players — not when an invite opened
+  // the Join window on this load (task 0382), or its join would replace the
+  // friend's.
+  if (
+    shouldAutoLaunchTutorial(
+      Boolean(localStorage.getItem(TUTORIAL_COMPLETED_KEY)),
+      client.openedInviteAtStartup,
+    )
+  ) {
     await client.startTutorial();
   }
 }

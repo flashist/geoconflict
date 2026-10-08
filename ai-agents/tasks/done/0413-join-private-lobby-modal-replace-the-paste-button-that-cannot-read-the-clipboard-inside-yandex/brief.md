@@ -38,7 +38,7 @@ behind the `private_lobbies_all` flag (`0354`), so few players can reach the dea
 > and only matters when a player hits the error window.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

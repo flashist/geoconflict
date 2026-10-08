@@ -101,9 +101,10 @@ export function resetCitizenshipSeenReportedForTests(): void {
  *   authorized non-citizen — name + XP progress toward the threshold,
  *   citizen — adds the CITIZEN badge, bar full.
  * The logged-in states can carry one session status line under the XP bar
- * (task 0397, CitizenshipNotice.ts): "verified, paid benefits on", "not
- * confirmed" for an unverified citizen, or "couldn't load" with a player-pressed
- * Restart game button (and its "still not working" variant).
+ * (task 0397, CitizenshipNotice.ts): a thank-you for a verified paid citizen
+ * (task 0407 wording), "not confirmed" for an unverified citizen, or "couldn't
+ * load" with a player-pressed Restart game button (and its "still not working"
+ * variant).
  * XP/citizenship values come from PlayerProfileView.
  *
  * Task 0301: the card is the only owner of purchase state. The "What is
@@ -507,6 +508,10 @@ export class CitizenshipCard extends LitElement {
       isChecking: this.isEnabled && this.currentNotice() === "checking",
       profile: this.profile,
       paidGrantConfirmed: this.paidGrantConfirmed,
+      // Task 0409: the same two published values as the 0397 status line and
+      // the 0248 ad gate — never a second source.
+      isVerifiedRead: getProfileVerificationStatus() === "verified",
+      isPaidCitizen: isCurrentPlayerPaidCitizen(),
       canLogIn: facade.yaGamesAvailable && !facade.isYandexDegraded(),
       productPrice: product === null ? null : product.price,
     });
@@ -762,7 +767,8 @@ export class CitizenshipCard extends LitElement {
             // A zero-state fallback also reports isCitizen: false — offering
             // a working buy button off it could double-charge a real citizen
             // whose profile read failed. The rule lives in CitizenshipOffer.ts
-            // (task 0301), shared with the explainer popup.
+            // (task 0301), shared with the explainer popup. `citizen_buy` is
+            // drawn by the popup only (task 0409, owner ruling 2026-10-08).
             this.renderBuyCta(offer.price)
           : nothing}
         ${isCitizen && profile.isAuthoritative
@@ -782,6 +788,8 @@ export class CitizenshipCard extends LitElement {
   // Task 0397: the session status line (CitizenshipNotice.ts). Only the
   // couldn't-load notice gets a button (owner ruling Q3); "not confirmed" is
   // text advice only, because a reload does not usually fix it (ADR-121).
+  // Task 0407: `verified_paid` is the paid-citizen thank-you — same line, same
+  // look, new text only (owner ruling 2026-10-08).
   private renderStatusNotice() {
     const notice = this.currentNotice();
     if (notice === "verified_paid") {

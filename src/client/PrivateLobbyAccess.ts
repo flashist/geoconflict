@@ -9,6 +9,7 @@ import {
   isTesterMarkerSet,
 } from "./flashist/FlashistFacade";
 import { onLockedFeatureTap } from "./LockedFeature";
+import type { StartScreenTabs } from "./StartScreenTabs";
 
 export const PRIVATE_LOBBY_ROW_ID = "private-lobby-row";
 export const HOST_LOBBY_BUTTON_ID = "host-lobby-button";
@@ -17,8 +18,9 @@ export const HOST_LOBBY_BUTTON_ID = "host-lobby-button";
  * Whether the private-lobby row is shown at all (task 0354): the citizenship
  * surfaces are on AND (the `geoconflict_tester` marker OR the
  * `private_lobbies_all` flag). Waits for platform init. The row and the
- * citizenship explainer's private-lobby line (task 0301) both read this — one
- * rule, two readers. May reject; callers fail closed.
+ * citizenship explainer's private-lobby line (task 0301) both read this, and
+ * the row's answer also reveals the start screen's Private tab (task 0412) — one
+ * rule, three users. May reject; callers fail closed.
  */
 export async function isPrivateLobbyRowEnabled(): Promise<boolean> {
   await flashist_waitGameInitComplete();
@@ -82,6 +84,15 @@ export class PrivateLobbyAccess {
       subscribeCitizenshipStatus(() => this.applyLock());
       row.style.display = "";
       this.isRowVisible = true;
+      // Task 0412: the same single rule check also reveals the start screen's
+      // Private tab, so the tab and its buttons can never disagree. A missing or
+      // not-yet-upgraded <start-screen-tabs> just means no tab (fails closed).
+      // Typed against the real class (type-only import, no runtime cycle) so a
+      // rename of enablePrivateTab is a compile error, not a silently empty tab.
+      const tabs = document.querySelector(
+        "start-screen-tabs",
+      ) as StartScreenTabs | null;
+      tabs?.enablePrivateTab?.();
     } catch (error) {
       // Fail closed: the row stays hidden.
       console.warn("Private lobby row could not be shown:", error);

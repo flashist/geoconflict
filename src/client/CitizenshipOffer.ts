@@ -9,6 +9,12 @@
 // AUTHORITATIVE non-citizen read, and a server-confirmed paid grant beats
 // everything after "guest" — a stale buy button after a committed grant invites
 // a second real charge.
+//
+// Task 0409: the guard covers citizens too. An earned citizen may buy only on a
+// VERIFIED read that says "not paid" — an unverified read cannot say "paid"
+// (ADR-116 Decision 4), so a paid citizen on an unverified session would look
+// unpaid. Every unknown gives plain `citizen`: no button. The server does not
+// refuse a second purchase, so this rule is the only guard.
 
 /**
  * Fired on `window` after every citizenship card update, so an open explainer
@@ -25,6 +31,8 @@ export type CitizenshipOffer =
   | { kind: "guest"; canLogIn: boolean }
   /** A citizen, or a server-confirmed paid grant whose re-read has not landed. */
   | { kind: "citizen" }
+  /** An earned citizen whose verified read says "not paid" (task 0409). */
+  | { kind: "citizen_buy"; price: string }
   /** The profile read failed — never offer a purchase off it. */
   | { kind: "read_failed" }
   /** An authoritative non-citizen, but the catalog has no citizenship product. */
@@ -39,6 +47,10 @@ export interface CitizenshipOfferInputs {
   /** The applied profile read; null means a guest. */
   profile: { isCitizen: boolean; isAuthoritative: boolean; xp: number } | null;
   paidGrantConfirmed: boolean;
+  /** The last applied read is the verified owner view (task 0409). */
+  isVerifiedRead: boolean;
+  /** That verified read says paid (task 0409). */
+  isPaidCitizen: boolean;
   /** `yaGamesAvailable && !isYandexDegraded()`. */
   canLogIn: boolean;
   /** The catalog price of the citizenship product, or null if it has none. */
@@ -56,6 +68,15 @@ export function deriveCitizenshipOffer(
     return { kind: "guest", canLogIn: inputs.canLogIn };
   }
   if (profile.isCitizen || inputs.paidGrantConfirmed) {
+    if (
+      !inputs.paidGrantConfirmed &&
+      profile.isAuthoritative &&
+      inputs.isVerifiedRead &&
+      !inputs.isPaidCitizen &&
+      inputs.productPrice !== null
+    ) {
+      return { kind: "citizen_buy", price: inputs.productPrice };
+    }
     return { kind: "citizen" };
   }
   if (!profile.isAuthoritative) {

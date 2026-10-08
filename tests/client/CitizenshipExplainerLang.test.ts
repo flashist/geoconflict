@@ -22,6 +22,7 @@ const REQUIRED_KEYS: Array<[string, string]> = [
   ["citizenship_explainer", "benefit_name_change"],
   ["citizenship_explainer", "benefit_private_lobby"],
   ["citizenship_explainer", "benefit_no_ads"],
+  ["citizenship_explainer", "paid_only_title"],
   ["citizenship_explainer", "free_title"],
   ["citizenship_explainer", "free_body"],
   ["citizenship_explainer", "your_xp"],
@@ -29,6 +30,9 @@ const REQUIRED_KEYS: Array<[string, string]> = [
   ["citizenship_explainer", "login_hint"],
   ["citizenship_explainer", "already_citizen"],
   ["citizenship_explainer", "close"],
+  // Task 0409: the earned citizen's Buy.
+  ["citizenship_explainer", "citizen_buy_title"],
+  ["citizenship_explainer", "citizen_buy_cta"],
   ["help_modal", "citizenship_title"],
   ["help_modal", "citizenship_desc"],
   // Reused unchanged by the popup.
@@ -88,6 +92,45 @@ describe("citizenship explainer localization (task 0301)", () => {
     expect(
       placeholders(value(en, "citizenship_explainer", "your_xp")!),
     ).toEqual(["{threshold}", "{xp}"]);
+  });
+
+  // Task 0408: the owner's exact words (ruling 2026-10-08) — never reworded.
+  it("paid_only_title is exactly the owner's sub-heading, in en and ru", () => {
+    expect(value(ru, "citizenship_explainer", "paid_only_title")).toBe(
+      "Только для платного гражданства:",
+    );
+    expect(value(en, "citizenship_explainer", "paid_only_title")).toBe(
+      "Paid citizenship only:",
+    );
+  });
+
+  // Task 0408: the sub-heading now says "paid only", so the ad-free line drops
+  // its own suffix — in BOTH files, never half-applied, never re-added in new
+  // words. Pinned to the owner-approved text (2026-10-08).
+  it("benefit_no_ads is exactly the owner-approved text, without a paid-only suffix", () => {
+    expect(value(en, "citizenship_explainer", "benefit_no_ads")).toBe(
+      "No full-screen ads before and after matches",
+    );
+    expect(value(ru, "citizenship_explainer", "benefit_no_ads")).toBe(
+      "Без полноэкранной рекламы перед матчами и после них",
+    );
+  });
+
+  // Task 0409: the owner's exact words (ruling 2026-10-08) — never reworded.
+  // The price is appended in code (" — {price}"), as for citizenship_paid.buy_cta.
+  it("citizen_buy_title and citizen_buy_cta are exactly the owner's words, in en and ru", () => {
+    expect(value(ru, "citizenship_explainer", "citizen_buy_title")).toBe(
+      "Платное гражданство",
+    );
+    expect(value(en, "citizenship_explainer", "citizen_buy_title")).toBe(
+      "Paid citizenship",
+    );
+    expect(value(ru, "citizenship_explainer", "citizen_buy_cta")).toBe(
+      "Купить платное гражданство",
+    );
+    expect(value(en, "citizenship_explainer", "citizen_buy_cta")).toBe(
+      "Buy paid citizenship",
+    );
   });
 
   it("0302's interim citizens_only_modal section is gone from both files", () => {

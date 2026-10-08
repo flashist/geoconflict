@@ -16,6 +16,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     analyticEvents: {},
     uiElementIds: {
       purchaseCitizenshipExplainer: "PurchaseCitizenshipExplainer",
+      purchasePaidCitizenshipExplainer: "PurchasePaidCitizenshipExplainer",
       citizenshipLoginExplainer: "CitizenshipLoginExplainer",
     },
     citizenshipExplainerSources: {
@@ -109,6 +110,7 @@ async function flush(modal: CitizenshipExplainerModal): Promise<void> {
 }
 
 const BUY: CitizenshipOffer = { kind: "buy", price: "99 ₽", xp: 25 };
+const CITIZEN_BUY: CitizenshipOffer = { kind: "citizen_buy", price: "99 ₽" };
 
 describe("CitizenshipExplainerModal (task 0301)", () => {
   beforeEach(() => {
@@ -214,11 +216,71 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
         "citizenship_explainer.benefit_name_change",
         "citizenship_explainer.benefit_private_lobby",
         "citizenship_explainer.benefit_no_ads",
+        "citizenship_explainer.paid_only_title",
         "citizenship_explainer.free_title",
         "citizenship_explainer.close",
       ]) {
         expect(text(modal)).toContain(key);
       }
+    });
+
+    // Task 0408: the ad-free perk is paid-only, so it sits under its own
+    // sub-heading below the all-citizens list, not in it.
+    it("the ad-free line sits under the paid-only sub-heading, not in the all-citizens list", async () => {
+      appendCard(BUY);
+      const modal = await mount();
+      await showFrom(modal);
+
+      const allCitizens = byId(modal, "citizenship-explainer-benefits")!;
+      const paidOnlyTitle = byId(
+        modal,
+        "citizenship-explainer-paid-only-title",
+      )!;
+      const paidOnly = byId(modal, "citizenship-explainer-paid-only")!;
+
+      expect(allCitizens.textContent).toContain(
+        "citizenship_explainer.benefit_badge",
+      );
+      expect(allCitizens.textContent).toContain(
+        "citizenship_explainer.benefit_name_change",
+      );
+      expect(allCitizens.textContent).toContain(
+        "citizenship_explainer.benefit_private_lobby",
+      );
+      expect(allCitizens.textContent).not.toContain(
+        "citizenship_explainer.benefit_no_ads",
+      );
+      expect(paidOnlyTitle.textContent).toContain(
+        "citizenship_explainer.paid_only_title",
+      );
+      expect(paidOnly.textContent).toContain(
+        "citizenship_explainer.benefit_no_ads",
+      );
+
+      const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+      expect(allCitizens.compareDocumentPosition(paidOnlyTitle) & follows).toBe(
+        follows,
+      );
+      expect(paidOnlyTitle.compareDocumentPosition(paidOnly) & follows).toBe(
+        follows,
+      );
+    });
+
+    it("keeps the paid-only block when the private-lobby line is hidden", async () => {
+      isRowEnabled.mockResolvedValue(false);
+      appendCard(BUY);
+      const modal = await mount();
+      await showFrom(modal);
+
+      expect(byId(modal, "citizenship-explainer-benefit-private-lobby")).toBe(
+        null,
+      );
+      expect(
+        byId(modal, "citizenship-explainer-paid-only-title"),
+      ).not.toBeNull();
+      expect(
+        byId(modal, "citizenship-explainer-benefit-no-ads")!.textContent,
+      ).toContain("citizenship_explainer.benefit_no_ads");
     });
 
     it("shows the private-lobby line only when the row is enabled (owner ruling Q3)", async () => {
@@ -273,16 +335,22 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
       });
     });
 
-    it("names nothing that is not built", async () => {
-      appendCard(BUY);
-      const modal = await mount();
-      await showFrom(modal);
+    it.each([
+      ["buy", BUY],
+      ["citizen_buy", CITIZEN_BUY],
+    ] as const)(
+      "names nothing that is not built (%s)",
+      async (_label, offer) => {
+        appendCard(offer);
+        const modal = await mount();
+        await showFrom(modal);
 
-      const keys = translate.mock.calls.map(([key]) => key as string);
-      for (const key of keys) {
-        expect(key).not.toMatch(/emoji|archive|inbox|replay|vote|flag|soon/i);
-      }
-    });
+        const keys = translate.mock.calls.map(([key]) => key as string);
+        for (const key of keys) {
+          expect(key).not.toMatch(/emoji|archive|inbox|replay|vote|flag|soon/i);
+        }
+      },
+    );
   });
 
   describe("the action area, per offer", () => {
@@ -387,6 +455,116 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
       expect(byId(modal, "citizenship-explainer-your-xp")).toBeNull();
     });
 
+    // Task 0409: an earned citizen, verified not paid.
+    it("citizen_buy: already-citizen line, own heading, and a Buy button with the price", async () => {
+      appendCard(CITIZEN_BUY);
+      const modal = await mount();
+      await showFrom(modal);
+
+      const alreadyCitizen = byId(
+        modal,
+        "citizenship-explainer-already-citizen",
+      )!;
+      const title = byId(modal, "citizenship-explainer-citizen-buy-title")!;
+      const button = byId(modal, "citizenship-explainer-citizen-buy")!;
+      expect(alreadyCitizen.textContent).toContain(
+        "citizenship_explainer.already_citizen",
+      );
+      expect(title.textContent).toContain(
+        "citizenship_explainer.citizen_buy_title",
+      );
+      expect(button.textContent).toContain(
+        "citizenship_explainer.citizen_buy_cta",
+      );
+      expect(button.textContent).toContain("99 ₽");
+      expect(button.classList.contains("primary-btn")).toBe(true);
+      // Never the non-citizen copy or the XP progress.
+      expect(byId(modal, "citizenship-explainer-buy")).toBeNull();
+      expect(byId(modal, "citizenship-explainer-your-xp")).toBeNull();
+      expect(text(modal)).not.toContain("citizenship_explainer.buy_title");
+      expect(text(modal)).not.toContain("citizenship_paid.buy_cta");
+    });
+
+    it("citizen_buy: the button sits at the bottom — after the already-citizen line and heading, before Close", async () => {
+      appendCard(CITIZEN_BUY);
+      const modal = await mount();
+      await showFrom(modal);
+
+      const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+      const alreadyCitizen = byId(
+        modal,
+        "citizenship-explainer-already-citizen",
+      )!;
+      const title = byId(modal, "citizenship-explainer-citizen-buy-title")!;
+      const button = byId(modal, "citizenship-explainer-citizen-buy")!;
+      const paidOnly = byId(modal, "citizenship-explainer-paid-only")!;
+      const close = byId(modal, "citizenship-explainer-close")!;
+      expect(paidOnly.compareDocumentPosition(alreadyCitizen) & follows).toBe(
+        follows,
+      );
+      expect(alreadyCitizen.compareDocumentPosition(title) & follows).toBe(
+        follows,
+      );
+      expect(title.compareDocumentPosition(button) & follows).toBe(follows);
+      expect(button.compareDocumentPosition(close) & follows).toBe(follows);
+    });
+
+    it("citizen_buy: a tap buys through the card with its own tap id", async () => {
+      const card = appendCard(CITIZEN_BUY);
+      const modal = await mount();
+      await showFrom(modal);
+
+      byId(modal, "citizenship-explainer-citizen-buy")!.click();
+      await flush(modal);
+
+      expect(card.buyCitizenship).toHaveBeenCalledTimes(1);
+      expect(card.buyCitizenship).toHaveBeenCalledWith(
+        "PurchasePaidCitizenshipExplainer",
+      );
+      expect(byId(modal, "citizenship-explainer-purchase-error")).toBeNull();
+    });
+
+    it("citizen_buy: an error result shows the error line", async () => {
+      const card = appendCard(CITIZEN_BUY);
+      card.buyCitizenship.mockResolvedValue("error");
+      const modal = await mount();
+      await showFrom(modal);
+
+      byId(modal, "citizenship-explainer-citizen-buy")!.click();
+      await flush(modal);
+
+      expect(
+        byId(modal, "citizenship-explainer-purchase-error"),
+      ).not.toBeNull();
+      expect(text(modal)).toContain("citizenship_paid.purchase_error");
+      // Retryable: the button stays.
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).not.toBeNull();
+    });
+
+    it("citizen_buy: busy shows nothing", async () => {
+      const card = appendCard(CITIZEN_BUY);
+      card.buyCitizenship.mockResolvedValue("busy");
+      const modal = await mount();
+      await showFrom(modal);
+
+      byId(modal, "citizenship-explainer-citizen-buy")!.click();
+      await flush(modal);
+
+      expect(byId(modal, "citizenship-explainer-purchase-error")).toBeNull();
+      expect(isOpen(modal)).toBe(true);
+    });
+
+    it("citizen: no citizen Buy button either", async () => {
+      appendCard({ kind: "citizen" });
+      const modal = await mount();
+      await showFrom(modal);
+
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).toBeNull();
+      expect(text(modal)).not.toContain(
+        "citizenship_explainer.citizen_buy_title",
+      );
+    });
+
     it("read_failed: the card's read-failed line, no buy", async () => {
       appendCard({ kind: "read_failed" });
       const modal = await mount();
@@ -440,6 +618,25 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
       await modal.updateComplete;
 
       expect(byId(modal, "citizenship-explainer-buy")).not.toBeNull();
+    });
+
+    it("the citizen Buy appears and disappears live with the offer (task 0409)", async () => {
+      let offer: CitizenshipOffer = { kind: "citizen" };
+      const card = appendCard(offer);
+      card.getCitizenshipOffer.mockImplementation(() => offer);
+      const modal = await mount();
+      await showFrom(modal);
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).toBeNull();
+
+      offer = CITIZEN_BUY;
+      window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
+      await modal.updateComplete;
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).not.toBeNull();
+
+      offer = { kind: "citizen" };
+      window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
+      await modal.updateComplete;
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).toBeNull();
     });
 
     it("the mid-session grant event closes it", async () => {

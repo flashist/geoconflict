@@ -34,6 +34,9 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       windowOrigin: "https://example.test/index.html",
       showInterstitial: jest.fn().mockResolvedValue(undefined),
+      // Task 0382: open() fetches the portal link on Yandex; none here, so
+      // Yandex copies the bare code (C4).
+      loadPortalGameUrl: jest.fn().mockResolvedValue(null),
     },
   },
 }));

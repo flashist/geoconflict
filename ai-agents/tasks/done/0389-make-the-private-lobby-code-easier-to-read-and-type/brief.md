@@ -37,7 +37,7 @@ session, during plan approval of [`0380`](../../done/0380-yandex-build-invites-c
 `0380`'s plan records: *"a separate task, filed at the end of Sprint 7 by a producer. **Not part of this task; do not
 absorb it.**"*
 
-**Urgency, on merit: low.** Once [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+**Urgency, on merit: low.** Once [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 ships, most friends open a link and never type the code. Typing matters for the code-only fallback (ADR-119 rule 3: no
 SDK link → code only) and for a code read out by voice or over chat. The owner placed it on Sprint 7 anyway.
 
@@ -139,7 +139,7 @@ public-lobby ids; change `0380`'s or `0382`'s invite behaviour beyond the code t
 - **Related:**
   - [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
     — `0380`'s production check. Format-neutral; if this ships first, its check simply sees the new code.
-  - [`0382`](../../backlog/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) — its
+  - [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) — its
     `InvitePayload` validates the code carried in the link. **Whichever of the two is built second must make that
     validator accept the new format** and run the payload through the same clean-up.
   - [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)

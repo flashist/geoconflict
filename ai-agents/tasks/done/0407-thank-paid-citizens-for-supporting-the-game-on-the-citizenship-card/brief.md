@@ -25,10 +25,13 @@ Sprint 7
 — its place on that board is append order, **not** a merit ranking. Needing a rank is the signal to pull it into a sprint.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
-fkit-producer
+fkit-coder
+
+> 📌 **2026-10-08 — was ~~fkit-producer~~; re-assigned to `fkit-coder`** after the owner's design approval was recorded
+> (see *Design approval* at the end of this brief), per `plan.md` §7. The paragraph below is history.
 
 ⚠️ **`fkit-producer` first, because Step 1 is a design discussion with the owner.** Re-assign to `fkit-coder` only after
 the owner's design approval is recorded in this brief (see Step 1).
@@ -165,3 +168,51 @@ is the owner's call:
   source), ADR-116 D4.
 - No ids, hosts or secrets belong in this brief or its follow-ups.
 - Filed 2026-10-08 by a spawned `fkit-producer` on an owner request relayed by `fkit-lead`. ⛔ Not producer precedent.
+- 📌 **2026-10-08 — the "`0396` still open" lines above are out of date.** `0396` is now in `done/`
+  ([brief](../../done/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md));
+  its live check passed 2026-10-08 (as relayed by `fkit-lead`). So the live-check timing gate on verification step 5 is
+  met. The earlier text is kept as history, not rewritten.
+
+## Design approval (Step 1 gate)
+
+- **Who:** the owner.
+- **When:** 2026-10-08.
+- **Channel:** live `AskUserQuestion` in the `fkit lead` session (the owner's own selections), relayed by `fkit-lead`
+  (driving `fkit-sprint-ship-loop`, Sprint 7) to a spawned `fkit-producer` with no owner channel (ADR-021/037).
+  ⛔ Not producer precedent.
+- **Approved:** the plan at `plan.md` in this folder (git blob `1af8db2088267c606f0bb05c07a5d02e4af54fb3`, checked
+  2026-10-08 with `git hash-object`).
+- ⚠️ **What "verbatim" means here:** the owner answered by picking options, so the verbatim record is the option labels
+  the owner selected (quoted as relayed) plus the exact strings the owner approved. No free-typed owner words were
+  relayed for this gate.
+
+**The owner's choices:**
+
+| # | Question | Owner's selection (verbatim label) | What it means |
+|---|---|---|---|
+| Q1 | Placement | **"A: One line, no ✓"** | Rewrite the existing `0397` paid line (`citizenship_status.verified_paid`) into the thank-you; drop the ✓. One line, not two. |
+| Q2 | Wording | (exact strings below) | RU / EN as below. |
+| Q3 | Look | **"Same as status lines"** | Small grey text in the light grey box, like the other status lines. No icon, no badge. |
+| Q4 | Defaults | **"Accept all five"** | See the five defaults below. |
+
+**Q2 — approved wording (exact):**
+
+| EN | RU |
+|---|---|
+| `Thank you for supporting the game! Your paid citizenship benefits are on.` | `Спасибо, что поддерживаете игру! Преимущества платного гражданства включены.` |
+
+**Q4 — the five defaults, all accepted:**
+
+1. An **unverified** paid player sees **no** thank-you; they see `0397`'s existing *"couldn't confirm"* line (ADR-116 D4).
+2. When the card is switched off (`CITIZENSHIP_CARD_ENABLED` kill switch / `citizenship_ui` flag), the thank-you is
+   hidden with it.
+3. A player who is **paid and also earned** the XP threshold **still sees** the thank-you.
+4. **Start screen only.**
+5. **No analytics event.**
+
+⚠️ **This ruling supersedes `0397`'s approved wording for `citizenship_status.verified_paid`** (approved 2026-10-06:
+*"✓ Verified — your paid citizenship benefits are on"* / *"✓ Подтверждено — преимущества платного гражданства
+включены"*). The new strings above replace it, and the ✓ is dropped. `0397`'s other status lines are not touched by
+this ruling.
+
+**Gate status:** Step 1 approval recorded. Step 2 (build, `fkit-coder`) may start.

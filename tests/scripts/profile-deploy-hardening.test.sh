@@ -12,7 +12,8 @@
 # the deploy-related files that HAVE them — currently setup-profile.sh,
 # setup-telemetry.sh, build-deploy-telemetry.sh, setup.sh (unattended-apt ordering
 # only, task 0286), and update.sh + nginx.conf for container log retention
-# (task 0060). It is NOT complete coverage: deploy.sh, build.sh and build-deploy.sh
+# (task 0060), and nginx.conf's worker route keeping its query string (task 0416).
+# It is NOT complete coverage: deploy.sh, build.sh and build-deploy.sh
 # have no assertions here at all. New structural checks belong here rather than in a
 # second harness nothing runs.
 #
@@ -931,6 +932,35 @@ printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*access_log[[:space:]]+off
   || pass "nginx.conf: access_log is not disabled site-wide"
 printf '%s\n' "$SERVER_LEVEL" | grep -qE '^[[:space:]]*error_log /dev/stderr;' \
   && pass "nginx.conf: server-level error_log still goes to stderr" || fail "nginx.conf: server-level error_log was disabled or moved off stderr"
+
+# ── Structural: the worker route keeps the query string (task 0416) ───────────
+# With variables in proxy_pass, nginx sends EXACTLY the URI written there; $2 is the path
+# only, so without $is_args$args the query is dropped. That silently lost create_game's
+# ?creatorClientID= in production → lobby with no creator → "Start" refused with 403.
+# Local dev never goes through this nginx (webpack proxy), so only this lint guards it.
+# Behaviour (query forwarded, bare /w<N> WebSocket unchanged) was proven in a throwaway
+# container — 0416's worklog. Same accepted residual as above: coupled to formatting, so a
+# reformat reds this (false RED, never false green).
+echo "== Structural: worker route keeps the query string (0416) =="
+WORKER_BLOCK=$(awk 'index($0, "location ~* ^/w(\\d+)") {b=1} b{print} b && /^    \}/{exit}' "$N")
+[ -n "$WORKER_BLOCK" ] && pass "nginx.conf: located the worker location block" \
+  || fail "nginx.conf: no 'location ~* ^/w(\\d+)' worker block found (the check below would be vacuous)"
+EXPECTED_WORKER_PROXY_PASS='proxy_pass http://127.0.0.1:$worker_port$2$is_args$args;'
+got_worker_proxy_pass=$(printf '%s\n' "$WORKER_BLOCK" | grep -E '^[[:space:]]*proxy_pass[[:space:]]' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+[ "$got_worker_proxy_pass" = "$EXPECTED_WORKER_PROXY_PASS" ] \
+  && pass "nginx.conf: worker proxy_pass forwards the query string (\$2\$is_args\$args)" \
+  || fail "nginx.conf: worker proxy_pass is '${got_worker_proxy_pass:-<none>}', expected '$EXPECTED_WORKER_PROXY_PASS' — without \$is_args\$args the query is dropped, create_game loses ?creatorClientID= and private-lobby Start returns 403 (0416)"
+# File-wide guard for the NEXT variable route: any non-comment proxy_pass with a $ variable
+# must carry $is_args$args. Known limit, accepted: a variable used only for the host (no
+# URI part) would be flagged although it is fine — a false RED, the safe direction.
+VAR_PROXY_PASS=$(grep -E '^[[:space:]]*proxy_pass[[:space:]][^#]*\$' "$N")
+[ -n "$VAR_PROXY_PASS" ] && pass "nginx.conf: found the variable proxy_pass line(s) to check" \
+  || fail "nginx.conf: no variable proxy_pass found (the check below would be vacuous)"
+# Test only the directive (before '#' and ';'), so the token in a trailing comment cannot pass it.
+missing_args=$(printf '%s\n' "$VAR_PROXY_PASS" | awk '{ d = $0; sub(/#.*/, "", d); sub(/;.*/, "", d); if (index(d, "$is_args$args") == 0) print }')
+[ -z "$missing_args" ] \
+  && pass "nginx.conf: every variable proxy_pass carries \$is_args\$args" \
+  || fail "nginx.conf: a variable proxy_pass lacks \$is_args\$args and drops the query string: $(printf '%s' "$missing_args" | sed 's/^[[:space:]]*//' | tr '\n' ' ')"
 
 # ── Structural: profile-box operability (task 0219) ───────────────────────────
 # Same character as the 0060 block above: LINTS over setup-profile.sh, value-asserting and

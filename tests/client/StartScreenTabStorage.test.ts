@@ -22,6 +22,11 @@ describe("StartScreenTabStorage", () => {
     expect(getActiveTab()).toBe("singleplayer");
   });
 
+  it("round-trips the private tab (task 0412)", () => {
+    setActiveTab("private");
+    expect(getActiveTab()).toBe("private");
+  });
+
   it("writes the storage key from the task brief", () => {
     setActiveTab("singleplayer");
     expect(localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)).toBe("singleplayer");

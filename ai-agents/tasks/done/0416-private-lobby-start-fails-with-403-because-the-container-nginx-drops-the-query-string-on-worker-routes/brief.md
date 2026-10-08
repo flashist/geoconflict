@@ -29,7 +29,7 @@ private lobby from starting, it ships today by owner ruling, and three live chec
 cannot pass until it is fixed. A spawned producer cannot re-rank (ADR-035); the owner can move it in one edit.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

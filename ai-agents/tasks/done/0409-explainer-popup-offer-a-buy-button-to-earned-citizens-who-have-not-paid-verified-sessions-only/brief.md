@@ -24,7 +24,7 @@ Sprint 7
 — its place on that board is **append order, not a merit ranking**. Needing a rank is the signal to pull it into a sprint.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -82,7 +82,7 @@ styled **like the "Войти в Яндекс" login button**.
 
 - **Nothing hard.** `0250` S3b (verified owner view) and `0397` (session-status line) are built and were live as of the
   2026-10-08 deploy.
-- [`0408`](../0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md)
+- [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md)
   (paid-only sub-heading in **the same popup**) touches the same render and the same language section. **The coder
   should sequence them (either order) or do them together** — and open point 2 below leans on `0408`'s new section.
 - [`0407`](../0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md) (thank paid citizens on

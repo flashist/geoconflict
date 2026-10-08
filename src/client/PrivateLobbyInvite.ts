@@ -10,13 +10,24 @@ import { PrivateLobbyCodeSchema } from "../core/Schemas";
 // whether the SDK loaded: a Yandex boot whose SDK failed still copies the code,
 // never a URL.
 
-/** The text the host's invite copies. */
+/**
+ * The text the host's invite copies. Task 0382: on Yandex, this game's own
+ * portal link (from the SDK, `portalGameUrl`) with the code as `payload` once
+ * that link is known and the code is valid; the bare code otherwise.
+ */
 export function inviteCopyText(
   lobbyId: string,
   isYandexPlatform: boolean,
   windowOrigin: string,
+  portalGameUrl: string | null,
 ): string {
   if (isYandexPlatform) {
+    if (
+      portalGameUrl !== null &&
+      PrivateLobbyCodeSchema.safeParse(lobbyId).success
+    ) {
+      return buildInviteLink(portalGameUrl, lobbyId) ?? lobbyId;
+    }
     return lobbyId;
   }
   // Flashist Adaptation: windowOrigin is correct here — the invite should keep the
@@ -43,4 +54,22 @@ export function lobbyIdFromJoinHash(
     return lobbyId;
   }
   return null;
+}
+
+/**
+ * Task 0382: the SDK's game URL with `payload=<code>` set through the URL API —
+ * an existing query and hash are kept, an existing `payload` is replaced. Null
+ * when the URL does not parse.
+ */
+export function buildInviteLink(
+  portalGameUrl: string,
+  lobbyCode: string,
+): string | null {
+  try {
+    const link = new URL(portalGameUrl);
+    link.searchParams.set("payload", lobbyCode);
+    return link.toString();
+  } catch {
+    return null;
+  }
 }
