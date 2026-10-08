@@ -12,7 +12,7 @@
 >
 > ✅ Done (agent-closed — not owner-verified), 2026-10-01. Built to the owner-approved plan; the code landed in
 > commit `e581824` ("Sprint push", 2026-10-01). ⚠️ **Not deployed** — it targets Saturday's (2026-10-03/04) profile
-> deploy. ⚠️ The board row's own text says *"Not committed"*; that was true when the producer closed it and is now
+> deploy. 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).* ⚠️ The board row's own text says *"Not committed"*; that was true when the producer closed it and is now
 > stale — the code **is** in `e581824` (checked with `git show`, 2026-10-01). **No bracket has been read yet**, so
 > the cause of `stale` is still unknown.
 >
@@ -25,7 +25,7 @@
 > brackets **cannot pick the fix on their own** (they cannot tell first boot from after-match reload, or whether a
 > second Yandex call returns a newer `issuedAt`). Two tasks followed, on owner rulings: **`0372`** — client diagnostics
 > mirroring these brackets one-to-one, done (agent-closed — not owner-verified), committed in `0c9a620`, **not
-> deployed** ([[tasks/stale-login-client-diagnostics]]); and **`0373`** — read both sets of data and choose the fix,
+> deployed** 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).* ([[tasks/stale-login-client-diagnostics]]); and **`0373`** — read both sets of data and choose the fix,
 > owner-placed at rank 2 on [[decisions/sprint-8]]. The *"fold into the re-check"* ruling (Q2) is now carried out by
 > `0373`.
 

@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 11 (append rank) / task `0334`
 
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `9cb8ee4`; **not in any deploy yet**
-> (latest game tag `0.0.155`). Client-only.
+> (latest game tag `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* Client-only.
 
 ## Goal
 

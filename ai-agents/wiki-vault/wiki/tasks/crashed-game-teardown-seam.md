@@ -8,7 +8,7 @@
 >
 > **`✅ Done (agent-closed — not owner-verified)`.** Three review rounds, three Codex passes.
 >
-> ⛔ **NOT DEPLOYED as of 2026-09-07** (commit `c910452`). Nothing here describes production behaviour.
+> ⛔ **NOT DEPLOYED as of 2026-09-07** (commit `c910452`). Nothing here describes production behaviour. 📌 *2026-10-08 lint: shipped since — `c910452` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; still never observed in production.*
 >
 > 🔴 **This is NOT a leak and NOT "orphaned monitors."** `Main.perfMonitorStop` stays reachable, so monitors **do not accumulate** — at most one dead game's monitor runs at a time, and the player's next leave-lobby or join-lobby stops it. That distinction is the whole reason the owner let `0225` ship without it. ⛔ **Do not let any artifact inflate this into a leak** — that language belongs to [[tasks/orphaned-performance-monitors-lobby-rejoin]].
 

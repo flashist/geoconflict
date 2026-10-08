@@ -7,7 +7,7 @@
 > 📌 **2026-10-07 sync — the stale-build popup now has a sibling message.** `0404` ([[tasks/long-session-refresh-popup]]) reuses `StaleBuildModal` for a
 > forced "please refresh" popup after 23 h on the **start screen only**. One popup at a time: the stale-build reason
 > wins. **This task's mid-match rule is unchanged** — the stale-build popup still shows mid-match. Built, committed
-> `077c9e3`, not deployed.
+> `077c9e3`, not deployed. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `077c9e3` is an ancestor of tag `0.0.157`); verify `0406` still open.*
 
 ## Goal
 

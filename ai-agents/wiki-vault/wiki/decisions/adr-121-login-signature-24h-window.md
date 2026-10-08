@@ -16,7 +16,7 @@
 > token** is not sent at join (`0332`'s review R2, [[decisions/adr-124-join-token]]). Whether that refresh also gets
 > **new Yandex signed data** — or the same data for the whole visit, as this ADR records — is **unknown**; `0404` adds
 > an `AfterRefreshPopup` boot kind to the `Profile:Login:SignatureAge:*` events to measure it (verify task `0406`, not
-> deployed). The 3–7 % unverified share ADR-124 quotes rests on this ADR's window.
+> deployed). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `077c9e3` is an ancestor of tag `0.0.157`); verify `0406` still open.* The 3–7 % unverified share ADR-124 quotes rests on this ADR's window.
 >
 > ⛔ **Decision 4 (the *"≤ 5 % `stale` over 7 days"* acceptance gate) and the re-raise bullet that restates it are
 > SUPERSEDED by ADR-122 (2026-10-05).** The canonical file keeps both lines byte-identical and marks them with ⛔. Do

@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 22 (append rank; owner-ruled **top** of Sprint 7) / task `0347`
 
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `9cb8ee4`; **not in any deploy yet**
-> (the latest game tag is `0.0.155`). Local proof only — no production check was filed (the brief says a verify
+> (the latest game tag is `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* Local proof only — no production check was filed (the brief says a verify
 > task is the owner's call after the deploy).
 
 ## Goal

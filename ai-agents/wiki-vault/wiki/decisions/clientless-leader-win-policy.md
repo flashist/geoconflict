@@ -12,7 +12,7 @@
 >   independent of any winner** — **Mechanism A**, via a composite `winnerDeclarable` field now present
 >   in `src/core/execution/WinCheckExecution.ts`, `src/core/game/GameUpdates.ts` and
 >   `src/client/ClientGameRunner.ts`. **FFA and Team both in scope.**
-> - 🚨 **STILL LIVE IN PRODUCTION.** `0211` is **NOT DEPLOYED** — the owner deploys at a later slot.
+> - 🚨 **STILL LIVE IN PRODUCTION.** `0211` is **NOT DEPLOYED** — the owner deploys at a later slot. 📌 *2026-10-08 lint: now history — `0211` reached production in release `0.0.152`, 2026-09-26 (✔️ `77fbc98` is an ancestor of tag `0.0.152`); that window recorded real 1 XP credits (see `0211`'s task page).*
 >   **Every match played today still loses the XP.** ⛔ **Do not write *"fixed"* without the second
 >   half.** ⚠️ **And `0211` closed with NO end-to-end proof that crediting works** — an owner-side
 >   manual live check after deploy is still outstanding.

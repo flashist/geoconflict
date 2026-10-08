@@ -90,6 +90,7 @@ login reply, **never from local storage**, and shows a notice only after the ser
 
 - [[decisions/adr-113-internal-player-id]] — the same-day amendment's source; re-keys this to `player_id`
 - [[decisions/adr-111-xp-economy-rescale]] — the 1 XP / 100 XP economy this grants into
+- [[systems/analytics]] — the `Citizenship:TenureGrant:*` events (task `0253`) that measure this grant (back-link added by lint 2026-10-08)
 - [[decisions/adr-101-fail-soft-xp-crediting]] — why a grant marked before the ack is lost for good
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted identity this bounds rather than fixes
 - [[tasks/profile-identity-s1-database-rekeying]] — task `0270`, which created `player_xp_grants` in `006`

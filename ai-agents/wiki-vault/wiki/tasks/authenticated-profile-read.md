@@ -1,9 +1,16 @@
 # Authenticated Profile Read — a Verified Player Sees Their Own Paid State, Without Leaking Who Paid (task 0250)
 
 **Source**: `ai-agents/tasks/done/0250-authenticated-profile-read-for-paid-entitlement/brief.md` (the plans `plan.md` (S1) and `plan-s3b.md` (S3b), `worklog.md` and `review.md` in the same folder read as supporting evidence) + `ai-agents/knowledge-base/reports/2026-09-27-0250-authenticated-profile-read-design.md`
-**Status**: done (agent-closed — not owner-verified) — **S1 live since 2026-09-29; S3b built, committed, NOT deployed**
+**Status**: done (agent-closed — not owner-verified) — **S1 live since 2026-09-29; S3b LIVE since 2026-10-08** (profile `0.0.156-profile.4`; verified by `0396`) *(was: "S3b built, committed, NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 17 (append rank; on merit directly below `0340`) / task `0250`
 
+> 🆕 **2026-10-08 sync — S3b IS DEPLOYED AND CONFIRMED LIVE** ([[tasks/authenticated-profile-read-live]], `0396`,
+> closed 2026-10-08). Mid-week exception, owner's call: profile **`0.0.156-profile.4`** (commit `55598f2`, carrying
+> `6f4ab77` S3b and `0332`'s vouch) at 06:41:41Z, **then** game `0.0.157`. Owner's DevTools check: verified **paid** →
+> `is_paid_citizen: true`; verified **earned** → `false`; unverified → S1 view, no key. Rollback target
+> `0.0.156-profile.3`; with the `0397` client live, a server rollback also needs the client back or `citizenship_ui` off.
+> The notes below saying S3b is *not deployed* were true when written.
+>
 > 📌 **2026-10-07 (later) sync — the step this task's design report §6 first named is built.** `0332`, the join token
 > ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]), committed `077c9e3`, **not deployed**. It changes nothing in S3b; the S3b server is still not deployed.
 >
@@ -103,7 +110,9 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[decisions/sprint-8]] — `0396`, the S3b verify task (rank 10 there; moved to Sprint 7, rank 49, 2026-10-06)
 - [[tasks/paid-citizen-ad-free]] — task `0248` (closed 2026-10-06): the ad gate that reads S3b's `isPaidCitizen` through one page-wide place
 - [[tasks/session-verified-status-line]] — task `0397` (closed 2026-10-06): adds `isVerifiedRead` to the view and shows the player the verified / not-confirmed state; its rule Q4 constrains S3b's deploy
-- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed
+- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): waited on this task through `0248`; committed `fc3f539`, not deployed 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `fc3f539` is an ancestor of tag `0.0.157`; `0396` worklog).*
 - [[tasks/verified-login-enforce-live]] — task `0395` (closed 2026-10-07): S3a live, `vfy: true` confirmed — the precondition for S3b's deploy
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: S3b's deploy (`0396`) is no longer held by an owner look at the login numbers
-- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): the join token first named in this task's design report §6 (built, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): the join token first named in this task's design report §6 (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): S3b deployed and confirmed live
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the first reader of `isPaidCitizen`, live

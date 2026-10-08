@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 42 (append rank — owner placed it "End of Sprint 7"; merit agrees) / task `0389`
 
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
-> deployed** — touches `src/core/`, the game server and the client; no game deploy since `0.0.156`. **No separate
+> deployed** — touches `src/core/`, the game server and the client; no game deploy since `0.0.156`. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* **No separate
 > verify task:** the live check after deploy lives in **`0376`** step 3 (the lobby-code check) — OWNER RULING
 > 2026-10-05, *"Add to 0376"*.
 

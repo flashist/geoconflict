@@ -33,7 +33,7 @@ The server is a **relay, not a simulator** — clients execute the game logic. S
 
 - **Turn interval is ~66.7 ms**, not the stock 100 ms — `turnIntervalMs()` returns `100 / flashist_gameSpeedCoef` with the coefficient at `1.5`. See [[decisions/adr-107-turn-interval-1-5x]].
 - The main thread drives the worker with a `requestAnimationFrame` **heartbeat pump** — one tick per frame normally, batched while catching up. Catch-up threshold is 30 queued turns; beyond it an overlay shows and rendering is suppressed until the queue drains.
-- Worker initialization has a ~~5,000 ms~~ **15,000 ms** timeout (`WORKER_INIT_TIMEOUT_MS`, task `0348`, committed `9cb8ee4` 2026-09-30, not yet released — [[tasks/worker-start-failure-reporting]]); an async start crash now fails at once with its real reason, and since `0035` the worker reuses the page's map instead of downloading it again ([[tasks/worker-reuses-page-map]]).
+- Worker initialization has a ~~5,000 ms~~ **15,000 ms** timeout (`WORKER_INIT_TIMEOUT_MS`, task `0348`, committed `9cb8ee4` 2026-09-30, not yet released — 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* — [[tasks/worker-start-failure-reporting]]); an async start crash now fails at once with its real reason, and since `0035` the worker reuses the page's map instead of downloading it again ([[tasks/worker-reuses-page-map]]).
 - Clients hash state every 10 ticks; the server takes a **majority vote** and flags minority clients desynced. Out-of-sync clients cannot vote on the winner.
 - Singleplayer / tutorial / replay have **no server** — `LocalServer.ts` emulates one in-browser and feeds the same `Turn` objects to the same worker.
 
@@ -52,7 +52,7 @@ The server is a **relay, not a simulator** — clients execute the game logic. S
 One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/static; each worker serves HTTP + WebSocket. Prod runs 20 workers, dev/preprod 2.
 
 - **Game placement is deterministic sharding, not load balancing** — `workerIndex(gameID) = simpleHash(gameID) % numWorkers()`. The **client computes the same index independently** to pick its worker URL, so client and server must ship the same worker count and be deployed together.
-- **Public lobby scheduling is master-side**: a 100 ms interval polls lobbies and creates one when none is open. The lobby window (`gameCreationRate()`) is **60,000 ms in prod and preprod** (dev overrides it to 5,000 ms). *Changed 2026-10-02 by task `0367`, committed in `2247699` — ~~120,000 ms~~ until then; ⚠️ **not yet deployed** (weekend game-server slot), and it is framed as a test with a one-number revert. See [[tasks/public-lobby-one-minute]].*
+- **Public lobby scheduling is master-side**: a 100 ms interval polls lobbies and creates one when none is open. The lobby window (`gameCreationRate()`) is **60,000 ms in prod and preprod** (dev overrides it to 5,000 ms). *Changed 2026-10-02 by task `0367`, committed in `2247699` — ~~120,000 ms~~ until then; ⚠️ **not yet deployed** (weekend game-server slot) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `2247699` is an ancestor of tag `0.0.156`).*, and it is framed as a test with a one-number revert. See [[tasks/public-lobby-one-minute]].*
 - **Join** caps 3 concurrent clients per IP on public games, kicks a same-`persistentID` client in prod, supports reconnect, and upserts the player's profile.
 - **Winner** is decided by a vote counted **by unique IP**. Hard game cap is 3 h.
 - **Auth is three independent layers**: player identity (a `PersistentId` UUID is accepted anonymously with no cryptography; otherwise EdDSA-only JWT verification), cosmetic entitlements (**fails open** — see [[decisions/adr-102-privilege-refresher-fails-open]]), and an admin/service header key.
@@ -87,7 +87,7 @@ One binary: `cluster.isPrimary` → master, else worker. Master serves HTTP/API/
 > (`0219`, open), so a later break fails silently until the certificate expires **2026-11-20**.
 >
 > 🚨 **WHAT IS STILL NOT TRUE, and these are what mislead now:**
-> - **The profile backend is NOT deployed to players, and the game server is NOT wired to it.**
+> - **The profile backend is NOT deployed to players, and the game server is NOT wired to it.** 📌 *2026-10-08 lint: now history — `0217` wired the game server 2026-09-26 (release `0.0.152`): real logins and XP credits land in production, and citizenship went live the same day (`0.0.154`).*
 >   `0217` is open; **no credit or upsert call path is live** and the profile database holds **zero
 >   citizen rows**.
 > - ~~🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.**~~ ✅ **CORRECTED 2026-09-11 — A BACKUP RESTORES.**

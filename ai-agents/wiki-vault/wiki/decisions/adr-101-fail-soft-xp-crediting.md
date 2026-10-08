@@ -32,7 +32,7 @@
 > 2026-09-11**.~~ ✅ **STRUCK 2026-09-12 — IT HAS NOW SHIPPED.** `src/core/profile/Citizenship.ts`
 > declares `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`, **verified in the code at commit
 > `77fbc98`**, shipped inside task `0211` together with the `en.json` / `ru.json` copy rescale.
-> ⛔ **SHIPPED IS NOT DEPLOYED** — the owner deploys at a later slot. 📌 **The 2026-09-11 wording is
+> ⛔ **SHIPPED IS NOT DEPLOYED** — the owner deploys at a later slot. 📌 *2026-10-08 lint: now history — `0211` reached production in release `0.0.152`, 2026-09-26 (✔️ `77fbc98` is an ancestor of tag `0.0.152`); that window recorded real 1 XP credits (see `0211`'s task page).* 📌 **The 2026-09-11 wording is
 > struck, not deleted: it was TRUE WHEN WRITTEN.** Every figure in the body below is an accurate
 > description of the code **as of 2026-09-11** and is kept unchanged as history rather than rewritten.
 > **Read `10` / `1,000` as *"one match's award"* / *"the threshold"*.**

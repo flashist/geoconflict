@@ -1,9 +1,15 @@
 # No Interstitial Ads for Paid Citizens — One Paid-Status Place, One Switch (task 0248)
 
 **Source**: `ai-agents/tasks/done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md` (its `plan.md`, `worklog.md` and `review.md` read as supporting evidence) + `ai-agents/knowledge-base/reports/2026-10-06-0248-step1-decision-gate.md`
-**Status**: done (agent-closed — not owner-verified) — **built and committed (`91eb99a`), NOT deployed**
+**Status**: done (agent-closed — not owner-verified) — **built and committed (`91eb99a`); LIVE since 2026-10-08** in game `0.0.157`, verified by `0398` *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 18 (append rank, not a merit rank) / task `0248`
 
+> 🆕 **2026-10-08 sync — LIVE AND VERIFIED** ([[tasks/paid-citizen-ad-free-live]], `0398`, closed 2026-10-08). Game
+> `0.0.157`, after the S3b server ([[tasks/authenticated-profile-read-live]]). Verified paid account: no ad at all six
+> placements; `Ad:InterstitialSuppressed:PaidCitizen` seen (24, partial day); guest and earned citizen still get ads
+> requested; the kill switch brings ads back. ⚠️ Found: a load where the flags fetch times out leaves a paid citizen
+> seeing ads until a reload (`0411`, Backlog board). The notes below saying *not deployed* were true when written.
+>
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` via `/fkit-task-done`, at `fkit-lead`'s instruction under
 > `/fkit-sprint-ship-loop`, on the owner-approved `plan.md` and the owner's build/verify-split rule (2026-09-29): it
 > closes once built and reviewed. ⛔ **Nothing was seen live.** The deploy and the live check are task **`0398`**
@@ -109,3 +115,5 @@ everybody the moment the profile server had a bad minute.
 - [[systems/project-brief]] — the `PROJECT.md` claim this task makes true
 - [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06): lists this perk (*paid* only) and ships in the same deploy
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: not held by the login numbers; a non-`ok` login now means a paid citizen sees ads once this ships
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the live check, all five checks passed
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): S3b live — the gate this task waited on

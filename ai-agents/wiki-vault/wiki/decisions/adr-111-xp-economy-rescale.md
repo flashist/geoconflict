@@ -21,7 +21,7 @@
 > same-change mandate, met. Shipped inside task
 > [[tasks/credit-participation-xp-elimination-or-match-end]] (`0211`), closed the same day.
 >
-> ⛔ **SHIPPED IS NOT DEPLOYED.** The owner deploys at a later slot; **no player has seen these values.**
+> ⛔ **SHIPPED IS NOT DEPLOYED.** The owner deploys at a later slot; **no player has seen these values.** 📌 *2026-10-08 lint: now history — `0211` reached production in release `0.0.152`, 2026-09-26 (✔️ `77fbc98` is an ancestor of tag `0.0.152`); that window recorded real 1 XP credits (see `0211`'s task page).*
 > ⛔ **AND SHIPPED IS NOT VERIFIED END-TO-END** — `0211` closed with **no end-to-end proof that
 > crediting works** and an **outstanding owner-side manual live check**.
 >
@@ -236,6 +236,7 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
   still describes what `0191` BUILT, which is correct and deliberate** — the behaviour changed
   underneath it, the build did not
 - [[decisions/adr-numbering-two-series]] — why this is 111 and not 011
+- [[tasks/analytics-p0-session-match-count]] — the session match-count event whose rationale cites this threshold (back-link added by lint 2026-10-08)
 - `src/core/profile/Citizenship.ts` — the two constants and `isCitizenFromXp`
 - `src/core/profile/MatchQualification.ts` — where the award is attached
 - `src/profile-server/PlayerProfileRepository.ts` — the authoritative citizenship flip

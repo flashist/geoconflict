@@ -6,7 +6,7 @@
 
 > 📌 **2026-10-06 sync — case 3 is BUILT:** `0377` ends an unstarted private lobby with nobody connected after **30
 > idle minutes** (owner's value), done 2026-10-04 (agent-closed — not owner-verified), committed `8d74090`, ⚠️ **not
-> deployed**; live check `0390` (Sprint 8). See [[tasks/private-lobby-idle-end]]. Case 1 (`0228`) unchanged.
+> deployed**; 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* live check `0390` (Sprint 8). See [[tasks/private-lobby-idle-end]]. Case 1 (`0228`) unchanged.
 >
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30, on owner rulings for all four cases. **No code review
 > step ran** — it produced a report, not a diff. ⚠️ **The live two-window reproduction was NOT RUN.** Case 1 is

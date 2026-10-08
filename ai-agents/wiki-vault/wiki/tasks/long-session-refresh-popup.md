@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 53 (append rank, not a merit rank — flagged; moved in from Sprint 8 rank 14 on 2026-10-07) / task `0404`
 
+> 🆕 **2026-10-08 sync — DEPLOYED, NOT YET VERIFIED.** The code (`077c9e3`) is in game **`0.0.157`**, deployed
+> 2026-10-08 (container started 06:56:17Z) — checked: `git tag --contains 077c9e3` lists `0.0.157`; `0396`'s worklog names
+> `0404` in the image ([[tasks/authenticated-profile-read-live]]). Its verify-live task `0406` is still open. The
+> *"NOT DEPLOYED"* note below was true when written.
+>
 > ✅ Done (agent-closed — not owner-verified), closed **2026-10-07** by a spawned `fkit-producer`, routed by
 > `fkit-lead` driving `/fkit-sprint-ship-loop`. ⚠️ **The brief carries no close note** — the close record (verify
 > results, browser check, review) is on the Sprint 7 board row and in the worklog; parts of it are marked there as
@@ -86,3 +91,4 @@ only on the main screen."* Two benefits: a fresh login pass, and fresh game code
 - [[systems/analytics]] — the six `Session:LongSessionRefresh:*` events and the `AfterRefreshPopup` boot kind
 - [[decisions/sprint-7]] — the board row (rank 53)
 - [[decisions/sprint-8]] — the original filing (rank 14, now `➡️ Moved`) and verify task `0406`
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): its worklog records the game deploy that shipped this task

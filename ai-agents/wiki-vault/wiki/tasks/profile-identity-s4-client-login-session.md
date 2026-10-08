@@ -46,7 +46,7 @@ way to retry for that page load — was ruled out of scope and filed as backlog 
 > card's *couldn't load profile* state is now a sanctioned restart — never during a lobby or match, never automatic.
 > ⛔ Still **no in-page login retry**; the button is a full page reload. It uses its **own** helper and event, not this
 > task's `Profile:Login:Restart:*` funnel. Everything else in D3 stands. The gap above is now covered by `0397`
-> ([[tasks/session-verified-status-line]], built, not deployed); `0278` was cancelled as superseded
+> ([[tasks/session-verified-status-line]], built, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*; `0278` was cancelled as superseded
 > ([[decisions/cancelled-tasks]]). Recorded on this task's brief as an appended note; the task stays done.
 
 **The D1 deploy-risk caveat was closed by evidence on 2026-09-16** (not retconned): the local card flag

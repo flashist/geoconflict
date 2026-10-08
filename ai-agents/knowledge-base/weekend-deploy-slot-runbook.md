@@ -1917,3 +1917,76 @@ Facts read read-only by `fkit-lead`, relayed to a spawned `fkit-producer` (no ow
   from the owner's local profile deploy record.
 - Confirmed **still present on the profile box** (read-only, 2026-10-07), alongside the new `0.0.156-profile.3` image
   (`sha256:ea35fe69…3114`).
+
+### 📌 2026-10-08 — profile `0.0.156-profile.4` (S3b + `0332`) then game `0.0.157` (mid-week, owner's call): records and rollback targets (appended; the sections above are not edited, ADR-035)
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) on the OWNER RULING typed live 2026-10-08 in the
+`fkit lead` session, relayed by `fkit-lead`, verbatim *"update it"*; ⛔ not producer precedent. Every fact below is
+taken from the closed task worklogs — the producer checked nothing on any server. Full records:
+[`0396` worklog](../tasks/done/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/worklog.md)
+(gates, delta check, both deploys, rollback rules, watch) ·
+[`0400` worklog](../tasks/done/0400-verify-0397-live-the-session-status-line-shows-the-right-state-in-production/worklog.md) ·
+[`0398` worklog](../tasks/done/0398-verify-0248-live-paid-citizens-see-no-interstitial-ads-in-production/worklog.md) ·
+[`0401` worklog](../tasks/done/0401-verify-0301-live-the-citizenship-explainer-popup-works-in-production/worklog.md).
+Times are UTC.
+
+- **Owner-run deploys, Thu 2026-10-08** — a mid-week exception to the weekend-slot rule, owner's call (same kind as
+  `0391` and `0340`). **Order: profile first → owner's DevTools check → game** (server first, as the `0397` Q4 ruling
+  requires).
+- **Pre-flight** (`0396` §2): config parity `--enforce` exit 0 (REQUIRED 0 game/client/profile) · `npm run lint` exit 0 ·
+  `npm test` 4190/4191 — 1 fail, `tests/profile-server/Routes.test.ts`, `socket hang up` (supertest flake family; no
+  `SIGSEGV`); that file re-ran 64/64 — re-run stated · `test:integration` not run · no migrations changed.
+
+| | Profile server (1st) | Game (2nd) |
+|---|---|---|
+| Time | deploy record **06:41:41Z**; container started 06:42:15Z (outside 02:00–03:15 ✅) | container started **06:56:17Z** |
+| Version / commit | **`0.0.156-profile.4`** / **`55598f2`** (tag pushed) | **`0.0.157`** / **`c12cd8e`** (tag pushed) |
+| Image | digest `sha256:5a3b3c703b327ee0cf35548ffd47b4594e3aac3fc876fc30c5f8a094afa756d5` | tag **`20261008-095100`**, digest `sha256:42289f504150bbe931213c8da37fb1477ae2f127650f112364f993e05b4bc3bf` |
+| What rode along | [`0250`](../tasks/done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) S3b (`6f4ab77`) + `0332`'s profile side (`077c9e3`, join-token vouch; verify task `0405`). Nothing unexpected; `55598f2` adds only `0402`'s worklog on top. | 36 commits since `0.0.156` (`f712263`), incl. `0397`, `0248`, `0301`, `0332` (game side), `0404`. |
+
+- **Owner's DevTools check, between the two deploys** (`0396` §4, §6): verified paid account → `is_paid_citizen: true`
+  ✅ · verified earned → `false` ✅ · `vfy:false` session → S1 view (no key) ✅ (~07:28:29Z).
+- **Watch** (`0396` §5/§5b, read-only by `fkit-lead`): profile `/health` on `.4`/`55598f2`, `/ready` 200, 0 `error`/0
+  `warn`, postgres untouched · game: `failed after retries` **0**, `dropped` **0**, level `error` **0**; restart-minute
+  `warn`s only · **first `credited` line at 07:02:06Z** (the ~07:02Z re-check) — credits flow on the new image.
+- ⚠️ **Counters restarted at 06:41:41Z — never compare cumulative values across it.** That is the start of
+  [`0402`](../tasks/backlog/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/worklog.md)'s piece 2
+  (piece 1 ended 06:28:30Z).
+
+**Rollback targets now.** ⚠️ **Updates § *Never roll back to*, "after this slot", and the 2026-10-07 notes'
+rollback target** (`0.0.156-profile.2`, which was `0340`'s target):
+
+- **Profile → `0.0.156-profile.3`** (the `0340` image) —
+  `sha256:ea35fe69b4721a8ddabb148218eb4b00ecd0f3ea4801bca0790bfd72a2883114`, **still on the box** (checked 2026-10-08).
+- **Game → `20261003-123251`** (`0.0.156`) — **registry only**: the deploy pruned it from the box (F-D); a rollback
+  re-pulls it.
+
+**⛔ Rollback rules** (from `0396` § *Rollback rules*; the Q4 choice from `0400` §2 / `0398` §2):
+
+- **S3b → `0340` (`0.0.156-profile.3`) is safe for the server:** verified callers fall back to the S1 view; the client
+  fails closed.
+- **But with the `0397` client live, a profile rollback also needs the game client rolled back, or `citizenship_ui`
+  switched off** — otherwise every logged-in citizen sees *"We couldn't confirm your account this time…"* (OWNER RULING
+  on `0397` Q4, 2026-10-06).
+- **A game rollback undoes every task in the image** (`0397`, `0248`, `0301`, `0332` game side, `0404`, …). It is safe
+  for the server, but with S3b live it **also needs `citizenship_ui` off** (or a server rollback) — `0248`'s ad gate
+  rule (`0397` R3).
+- **Chosen path for the Q4 pairing: switch `citizenship_ui` off** — the fastest safe path (the old game image needs a
+  re-pull). The kill switch was proven live: flag off → on within ~5 min ending ≈09:48Z (one flip served `0400` check 7
+  and `0398` check 5; exact times not recorded) — no card, interstitials shown while off.
+- ⛔ **Never roll back past S2** (ADR-116) — never to a pre-S2 profile image.
+
+**Found during the post-deploy checks — pointers only:**
+
+- [`0416`](../tasks/backlog/0416-private-lobby-start-fails-with-403-because-the-container-nginx-drops-the-query-string-on-worker-routes/brief.md)
+  — private-lobby Start → **403** `citizens_only`: the container nginx drops the query string on worker routes. Not in
+  `0.0.157`; Sprint 7, ships with the next game deploy (owner ruling 2026-10-08). 🔲 Backlog at the time of this entry.
+- [`0411`](../tasks/backlog/0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)
+  — a load where the flags fetch times out reads `citizenship_ui` as off for the session ⇒ card hidden **and a paid
+  citizen sees ads on that load**, until a reload. Backlog board; frequency not measured.
+- [`0418`](../tasks/backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+  — GameAnalytics re-check: `Citizenship:Status:Unverified` and `:Restart` not seen in the 2026-10-08 read (`0400`
+  check 8 not passed). Sprint 8.
+- **An empty player row** in the production profile DB, created at 07:27:11Z when `0396`'s Console snippet was first
+  run with its placeholder text unreplaced (not a real player's id; 0 XP, no citizenship). **Left in place — owner's
+  call** (removing it is a DB write). It adds +1 to the player count.

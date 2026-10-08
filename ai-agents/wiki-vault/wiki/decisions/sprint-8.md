@@ -5,6 +5,14 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-08 (latest, `6f1d737`): 17 rows — 2 `✅ Done` · 7 `🔲 Backlog` · 8 `➡️ Moved`; 7 OPEN** (was 16 / 6),
+> counted by me by each row's leading status glyph. **`0418` appended at 17** — re-read `Citizenship:Status:Unverified`
+> and `Citizenship:Status:Restart` in GameAnalytics over several days, because `0400`'s check 8 did not see them
+> ([[tasks/session-verified-status-line-live]]); owner, verbatim: *"No need for the investigation, brief a task to the
+> Sprint 8 to recheck the numbers in GameAnalytics."* Append rank, not merit; it blocks nothing and is time-gated. The
+> rest of the diff is `backlog/` → `done/` link repoints for `0396`, `0398`, `0400`, `0401` (all closed 2026-10-08 on
+> Sprint 7). Line-3 banner unchanged (`🔲 Backlog`).
+>
 > 🆕 **2026-10-07 (latest, `077c9e3`): 16 rows — 2 `✅ Done` · 6 `🔲 Backlog` · 8 `➡️ Moved`; 6 OPEN** (was 13 / 4).
 > Counted by me this run. Line-3 banner (`🔲 Backlog — 2026-09-29`, not started) unchanged.
 > - ➕ **14** `0404` (refresh popup after ~24 h) — filed here on the owner's free-text answer to `0332`'s review R2
@@ -246,3 +254,7 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/join-token-identity-vouch]] — task `0332`, whose verify-live task `0405` sits here at 15
 - [[tasks/long-session-refresh-popup]] — task `0404`, filed here at 14 and moved to Sprint 7; its verify `0406` sits here at 16
 - [[decisions/adr-124-join-token]] — ADR-124, the design `0405` checks live
+- [[tasks/session-verified-status-line-live]] — task `0400` (filed here at 12, closed on Sprint 7 2026-10-08): its failed check 8 became `0418` (rank 17)
+- [[tasks/authenticated-profile-read-live]] — task `0396` (filed here at 10; closed on Sprint 7 2026-10-08)
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (filed here at 11; closed on Sprint 7 2026-10-08)
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (filed here at 13; closed on Sprint 7 2026-10-08)

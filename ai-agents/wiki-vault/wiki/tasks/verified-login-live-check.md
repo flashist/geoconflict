@@ -110,12 +110,12 @@ read-only; **the producer that recorded them verified none.** Counts and duratio
 - [[systems/player-profile-store]] — the profile login and its verification counter
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy this read
 - [[tasks/hmac-construction-log-label]] — task `0309`, whose log line must be read before a second profile deploy
-- [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed)
+- [[tasks/stale-login-signature-age]] — task `0366`, the follow-up: an age bracket on every `stale` login (done 2026-10-01, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).*
 - [[tasks/stale-login-client-diagnostics]] — task `0372`, client-side follow-up filed 2026-10-02 (age by boot kind, second-call check, held time); `0373` reads it
 - [[decisions/sprint-8]] — where `0373`, the reading task, sat at rank 2 (moved to Sprint 7 rank 36 on 2026-10-04)
 - [[tasks/stale-login-fix-decision]] — task `0373`, the reading and the owner's choice of fix
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that answers this failure
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S2 exit is now the owner's look, no fixed bar
-- [[tasks/verified-login-enforce]] — task `0340`, S3a, the gate this check failed (built 2026-10-05, not deployed)
+- [[tasks/verified-login-enforce]] — task `0340`, S3a, the gate this check failed (built 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.3`, 2026-10-07 (`0395`).*
 - [[tasks/post-24h-window-login-read]] — task `0392`, the post-`0391` re-read (stale 3.25 %, 2026-10-07)
 - [[tasks/verified-login-enforce-live]] — task `0395`, S3a deployed and `vfy: true` confirmed live (2026-10-07)

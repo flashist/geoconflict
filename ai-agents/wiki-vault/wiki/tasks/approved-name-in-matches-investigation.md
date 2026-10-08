@@ -6,7 +6,7 @@
 
 > 📌 **2026-10-07 sync — two of this investigation's follow-ups resolved.** Brief B3 (`0323`, the server-confirmed
 > mark) was **cancelled** — owner: players don't care; admins' need met by `0332`'s counter
-> ([[decisions/cancelled-tasks]]). The join token `0332` was built (not deployed), but on Q5 the owner kept the approved
+> ([[decisions/cancelled-tasks]]). The join token `0332` was built (not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*, but on Q5 the owner kept the approved
 > name for unverified players, so the forged-id case (R1 / ADR-115 residual 1) stays open by owner ruling ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]).
 >
 > ✅ Done (agent-closed — not owner-verified). Findings report:

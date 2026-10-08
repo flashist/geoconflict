@@ -36,7 +36,7 @@ never showed, and start-screen cleanup was skipped.
   (investigate). Leftovers named: the `0228` join race window; `0252`'s Transport listener leak now reachable
   here too; an orphan unstarted private lobby if the host closes before `createLobby` answers.
 - 🆕 **2026-09-30 — all three follow-ups CLOSED `(agent-closed — not owner-verified)`** (committed, not yet
-  released): `0333` → [[tasks/host-create-leaves-public-lobby]] (the public leave now happens at the Create tap);
+  released) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).*: `0333` → [[tasks/host-create-leaves-public-lobby]] (the public leave now happens at the Create tap);
   `0334` → [[tasks/host-start-stops-after-window-close]] (no `start_game` after the window closes); `0335` →
   [[tasks/lobby-close-leftovers-investigation]] (all four leftovers real, none serious — case 1 folded into `0228`,
   case 2 noted on `0252`, cases 3 and 4 accepted as known).

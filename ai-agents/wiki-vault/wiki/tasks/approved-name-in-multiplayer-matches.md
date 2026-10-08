@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 6, rank 37 / task `0322` (brief B2 of the `0317` report)
 
 > 📌 **2026-10-07 (later) sync — `0332` built; the forged-id case STAYS OPEN BY OWNER RULING, not until `0332`.**
-> The join token ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the game server a `verified` bit (built, committed `077c9e3`, **not deployed**),
+> The join token ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the game server a `verified` bit (built, committed `077c9e3`, **not deployed**), 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 > but on Q5 the owner chose **"Keep for unconfirmed"** (not the recommendation): approved names are still swapped in
 > for unverified players, so a forged id keeps showing a citizen's approved name (ADR-115 residual 1). The mark `0323`
 > was cancelled the same day ([[decisions/cancelled-tasks]]).
@@ -86,4 +86,4 @@ name reaches other players in multiplayer, with no client change.
 - [[tasks/name-change-operator-decide-command]] — task `0312` (2026-09-27): a working operator Approve/Reject command run on the profile box
 - [[tasks/verified-login-enforce-live]] — task `0395` (2026-10-07): S3a live at the profile server; this page's forged-id case still waits on `0332`
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the funnel learns `verified`; this task's swap stays open to unverified players (Q5)
-- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed); no longer the exit for this task's forged-id case
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed); 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* no longer the exit for this task's forged-id case

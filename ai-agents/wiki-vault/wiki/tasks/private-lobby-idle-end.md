@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 39 (append rank; moved in from the Backlog board 2026-10-04) / task `0377`
 
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-04; committed in `8d74090` (2026-10-05). ⚠️ **Not
-> deployed** — server-only, needs a game-server deploy, none since `0.0.156`. Its live check is **`0390`** (Sprint 8,
+> deployed** — server-only, needs a game-server deploy, none since `0.0.156`. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Its live check is **`0390`** (Sprint 8,
 > rank 7): an abandoned private lobby ends after 30 minutes and an occupied one does not.
 
 ## Goal
@@ -35,7 +35,7 @@ ever joined.
 
 ## Outcome
 
-- Release-gate item 4 is **built, not deployed and not proven live** — `0390` is the proof.
+- Release-gate item 4 is **built, not deployed and not proven live** — `0390` is the proof. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Still not proven live — `0390`.
 - A late joiner to a lobby ended this way gets the same result as for any finished or missing game today.
 
 ## Related

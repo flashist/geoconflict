@@ -230,3 +230,4 @@ exactly why a deploy cannot prove anything until launch flips layer 1.
 - [[decisions/sprint-5]] — where `0238`, the validation of that remote half, now sits after the 2026-09-22 move
 - [[tasks/private-lobby-citizen-perk]] — task `0302` (2026-09-27): private lobbies become a citizen perk, locked for others; server start gate
 - [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the popup, card link and Instructions section all obey this kill switch; the popup fails closed if the check throws
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): kill switch passed live; a flags-fetch timeout fails open for ads (`0411`)

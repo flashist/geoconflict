@@ -6,7 +6,7 @@
 
 > **`✅ Done (agent-closed — not owner-verified)`.** The owner ruled the *decisions* (scheduling onto Sprint 4, the choke-point shape, splitting F2/F3/F4 out); they did **not** hand-verify the result and did not run it themselves.
 >
-> ⛔ **NOT DEPLOYED as of 2026-09-07.** The change is in commit `702a8ea`, ships at the next deploy window. Nothing on this page describes production behaviour.
+> ⛔ **NOT DEPLOYED as of 2026-09-07.** The change is in commit `702a8ea`, ships at the next deploy window. Nothing on this page describes production behaviour. 📌 *2026-10-08 lint: shipped since — `702a8ea` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; still never observed in production.*
 >
 > 📌 At close time `src/client/Main.ts` was **uncommitted in the working tree** and the task folder itself was untracked, which is why the close used `mv` rather than `git mv`. It has since been committed in `702a8ea`. Nothing was committed, pushed, stashed or restored *by the close*.
 

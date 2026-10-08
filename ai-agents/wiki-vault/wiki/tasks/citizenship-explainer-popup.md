@@ -1,9 +1,16 @@
 # "What is citizenship?" Explainer Popup — the Purchase Funnel (task 0301)
 
 **Source**: `ai-agents/tasks/done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md` (its `plan.md`, `worklog.md` and `review.md` read as supporting evidence)
-**Status**: done (agent-closed — not owner-verified) — **built and committed (`fc3f539`), NOT deployed**
+**Status**: done (agent-closed — not owner-verified) — **built and committed (`fc3f539`); LIVE since 2026-10-08** in game `0.0.157`, verified by `0401` *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 19 (append rank, not a merit rank) / task `0301`
 
+> 🆕 **2026-10-08 sync — LIVE AND VERIFIED** ([[tasks/citizenship-explainer-popup-live]], `0401`, closed 2026-10-08).
+> Game `0.0.157`. Owner's live checks: a test purchase from the popup completed (`Purchase:Completed:Citizenship`); guest
+> login runs; the popup works in the real iframe in RU; the **locked Create Lobby tap** works — its first live test.
+> ⚠️ The local look (plan § 6 step 11, then the verify's § 1) was **never done**. Follow-ups on Sprint 7: `0417` (use more
+> width on desktop), `0408` (ad-free under its own *paid only* sub-heading), `0409` (Buy for an earned citizen, verified
+> sessions only). The notes below saying *not deployed* were true when written.
+>
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` (no owner channel), on results relayed by `fkit-lead` from
 > `/fkit-sprint-ship-loop`. Plan approved by the owner live (rulings Q1–Q5 below). ⛔ **Nothing was seen live** except
 > the owner's own Q5 check of two *existing* perks. The deploy and the live checks are task **`0401`**, now on
@@ -103,3 +110,5 @@ in the doc, code unchanged; second opinion reasoning-only (Codex could not run j
 - [[decisions/sprint-7]] — the board (rank 19), closed 2026-10-06; verify `0401` at rank 48
 - [[decisions/sprint-8]] — where `0401` was filed (rank 13) before it moved to Sprint 7
 - [[decisions/sprint-6]] — where this task was filed and ranked (2026-09-26)
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): the live check, all four checks passed; local look never done
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): its hard dependency, deployed first

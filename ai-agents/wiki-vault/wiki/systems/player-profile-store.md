@@ -3,6 +3,16 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-10-08 sync — S3b AND THE `0332` VOUCH ARE LIVE: profile `0.0.156-profile.4`** (commit `55598f2`), deployed
+> by the owner Thu 2026-10-08, deploy record 06:41:41Z, a mid-week exception; **before** game `0.0.157`
+> ([[tasks/authenticated-profile-read-live]], `0396`). A verified paid caller now reads `is_paid_citizen: true`; an
+> unverified one still gets the S1 view. No migration changed. Watch: `/health` on `.4`, `/ready` 200, 0 error lines; logins
+> over ~18 min `ok` 196 · `stale` 11; vouch counter `verified` 43 · `absent` 84 · no rejected outcome (the real read is
+> `0405`). **Counters restarted at 06:41:41Z.** Rollback target `0.0.156-profile.3` (still on the box) — but with the
+> `0397` client live, a server rollback also needs the client back or `citizenship_ui` off. ⚠️ Carried: one empty player
+> row created under a Console snippet's unreplaced placeholder (not a real player) is still in the DB — removing it is
+> the owner's call. Notes below saying S3b / `0332` are *not deployed* were true when written.
+>
 > 🆕 **2026-10-07 (later) sync (`077c9e3`) — the resolve route can now vouch for a session (task `0332`), committed,
 > NOT deployed.** `POST /internal/v1/players/resolve` takes an optional `sessionToken` and replies an optional
 > `verified` (new `src/profile-server/SessionVouch.ts`; ADR-124). The session secret stays on this box; the game box
@@ -212,7 +222,7 @@
 >
 > ## 🚨 What is STILL NOT TRUE — these are what will mislead you now
 >
-> 1. 🔴 **THE PROFILE BACKEND IS NOT DEPLOYED TO PLAYERS, AND THE GAME SERVER IS NOT WIRED TO IT.**
+> 1. 🔴 **THE PROFILE BACKEND IS NOT DEPLOYED TO PLAYERS, AND THE GAME SERVER IS NOT WIRED TO IT.** 📌 *2026-10-08 lint: now history — `0217` wired the game server 2026-09-26 (release `0.0.152`): real logins and XP credits land in production, and citizenship went live the same day (`0.0.154`).*
 >    `0217` is **open**. **No credit or upsert call path is live**, and the profile database holds
 >    **zero citizen rows** — so `client.isCitizen` cannot become `true` anywhere.
 > 2. ~~🔴 **THE RESTORE PATH HAS NEVER BEEN TESTED.**~~ ✅ **CORRECTED 2026-09-11 — A BACKUP RESTORES.
@@ -378,7 +388,7 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 
 ## Gotchas / Known Issues
 
-- The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state relies on Yandex Payments HMAC verification, implemented in 0019 but not yet live-verified (no secret key until catalog approval).
+- The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state relies on Yandex Payments HMAC verification, implemented in 0019 but not yet live-verified (no secret key until catalog approval). 📌 *2026-10-08 lint: now history — the key is on the box (owner-set, 2026-09-20), paid citizenship went live 2026-09-26, and `0297` proved real purchases (closed 2026-10-05; HMAC construction `decoded_json`, n = 1; reconciliation and catalog checks waived by the owner, not verified).*
 - `PROFILE_API_URL` has to be present in the game-server deploy environment or `/api/env.profileApiUrl` stays empty. T4h is the completed fix for that deploy gap.
 - Profile outages must not stop active matches. T6 keeps match-end crediting fail-soft: after bounded retries, credits may be dropped rather than blocking winner handling or cleanup.
 - The duplicate backup-task conflict is resolved as of 2026-06-29 and canonical T8 is now done. Off-box backup activation is fail-closed: missing or partial `PROFILE_BACKUP_*` config keeps first deploys on local weekly dumps, but an already off-box-configured box refuses a silent downgrade unless `PROFILE_BACKUP_DISABLE_OFFBOX=1` is explicit.
@@ -570,15 +580,15 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/game-prod-egress-ip-allowlist]] — task `0295`: the game server's egress address in this box's `/internal/` allowlist
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the login signature check in shadow mode, deployed 2026-09-29
 - [[decisions/adr-116-verified-login]] — the first verified identity: signed player data at login, carried as `vfy`
-- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed): `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
+- [[tasks/profile-deploy-version-tags]] — task `0355` (2026-09-30, not yet deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03, tagged and verified by `0358`.*: `/health` returns `{status, version, commit}` and telemetry `service.version` is the baked version name, not `"1.0.0"`
 - [[tasks/verified-login-live-check]] — task `0339`: the login-verification counter read live; S2 exit not met (2026-10-01)
-- [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed)
+- [[tasks/stale-login-signature-age]] — task `0366`: new counter `geoconflict.profile.login.verification.stale_age` on `/v1/login` (done 2026-10-01, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).*
 - [[tasks/profile-os-baseline-hardening]] — task `0221` (P6): OS baseline, `unless-stopped` + `init`, graceful shutdown; closed 2026-10-01 with two owner-accepted residuals
 - [[decisions/sprint-7]] — the board holding `0250` (rank 17; S1 deployed 2026-09-29, S3b waits on `0340`)
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): this box's Postgres is to be pinned by digest (`0384`/`0385`); upgrades become deliberate and backup-first (`0388`)
 - [[tasks/login-signature-24h-window]] — task `0391`, the 24 h login window (deployed 2026-10-06, `0.0.156-profile.2`)
-- [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed)
-- [[tasks/authenticated-profile-read]] — task `0250`, S1 live / S3b built, not deployed
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.3`, 2026-10-07 (`0395`).*
+- [[tasks/authenticated-profile-read]] — task `0250`, S1 live / S3b built, not deployed 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the live payments checks (closed 2026-10-05)
 - [[decisions/adr-121-login-signature-24h-window]] — the login window decision
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the owner-judgment gate before each `verified` deploy
@@ -586,4 +596,5 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` login numbers (stale 3.25 %)
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login-verification counters are monitored, not a deploy gate
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the resolve route vouches for a session token; the secret stays on this box
-- [[tasks/join-token-identity-vouch]] — task `0332`, the vouch build (committed, not deployed; profile first)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the vouch build (committed, not deployed; profile first) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): deployed `0.0.156-profile.4` (S3b + `0332` vouch)

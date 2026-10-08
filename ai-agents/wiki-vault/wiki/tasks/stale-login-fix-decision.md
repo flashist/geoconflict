@@ -6,7 +6,7 @@
 
 > 📌 **2026-10-07 (later) sync — a measurement of "after-match reloads give stale signatures" is coming.** `0404`
 > ([[tasks/long-session-refresh-popup]]) cites this task's finding to explain why a page refresh may not give fresh Yandex signed data, and adds an
-> `AfterRefreshPopup` boot kind to the `SignatureAge` events to measure it (verify `0406`, not deployed).
+> `AfterRefreshPopup` boot kind to the `SignatureAge` events to measure it (verify `0406`, not deployed). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `077c9e3` is an ancestor of tag `0.0.157`); verify `0406` still open.*
 >
 > 🆕 **2026-10-07 sync — the prediction was checked.** After `0391`'s 24 h window went live, `0392` read **3.25 %**
 > stale (241 / 7,426, ≈ 22.75 h, weekday-only) against this task's **~2.5 %** prediction and its **33.8 %** baseline;

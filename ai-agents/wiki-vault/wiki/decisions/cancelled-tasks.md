@@ -232,7 +232,7 @@ does not pollute the `Profile:Login:Restart:*` funnel. `0397` also took on the l
 re-reads when Yandex authorizes late). ⚠️ `0278`'s file pointer (`FlashistFacade.ts` "around lines 736-741") was stale
 by then.
 
-**Where the work lives now:** `0397`, built and committed, **not deployed** (live check `0400`). See
+**Where the work lives now:** `0397`, built and committed, **not deployed** (live check `0400`). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).* See
 [[tasks/session-verified-status-line]].
 
 **If revisited:** do not restart `0278`; `0397` covers both paths. Its verification step 5 (a client test driving the
@@ -268,6 +268,27 @@ a citizen's approved name) stays open by owner ruling Q5.
 ADR-115): whether such an admin view counts as *"presented to players"* under that re-raise trigger — ask the owner when
 it is filed; do not settle it in a review. Any future reader of `verified` must check it through the funnel and apply
 ADR-124 Decision 6 (missing `verified` = unverified).
+
+## Error Window — "Copy" Button Copies Through `FlashistFacade.copyText` (task 0414)
+
+**Sprint:** Sprint 7 (rank 59 — kept as a closed row, never renumbered)
+**Status:** ⛔ Cancelled 2026-10-08 (agent-closed — not owner-verified) — **merged into `0413`**, not dropped
+
+**What it was:** filed 2026-10-08 the same hour as `0413` (the join-private-lobby modal's paste button, which cannot read
+the clipboard inside the Yandex iframe — found during `0398`'s live checks on `0.0.157`). While looking at that bug,
+`fkit-lead` found the error window's "copy" button (built in `src/client/ClientGameRunner.ts`) still calling
+`navigator.clipboard.writeText` directly, not the `FlashistFacade.copyText()` path `0380` built (Yandex SDK clipboard
+first, called inside the click before any `await`, browser clipboard as fallback;
+[[tasks/yandex-invite-copies-code]]). ⚠️ Never proven to fail today — nobody had pressed it inside Yandex. The owner
+asked for *"a task"*; the producer split it in two under the smallest-shippable-unit rule, noting *"if the owner wants
+them as one task, fold this one into `0413`"*.
+
+**Why cancelled:** the owner, asked *"keep 0413/0414 split or merge them?"*, answered verbatim *"1. Merge."* `0413` now
+carries this whole scope as its **Part B** (context, build, tests, live check); `0413` keeps rank 58 and its own open
+point (hide vs keep the paste button, and the hint text). Nothing was built here. ID `0414` stays used.
+
+**If revisited:** read `0413`'s Part B, not this brief. The inherited unknown is unchanged: `0380`'s own live check
+(`0381`) has not shown whether the SDK clipboard or the fallback actually copies inside the Yandex iframe.
 
 ## Consequences
 
@@ -308,3 +329,5 @@ ADR-124 Decision 6 (missing `verified` = unverified).
 - [[decisions/sprint-7]] — the board where `0323` (rank 8) was cancelled 2026-10-07
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, the name swap `0323`'s mark would have marked
 - [[tasks/verified-login-enforce]] — task `0340`, whose listed `verified` readers included `0323` until its cancellation
+- [[tasks/yandex-invite-copies-code]] — task `0380`, the `copyText` path that `0414` (cancelled 2026-10-08, merged into `0413`) would have reused
+- [[tasks/paid-citizen-ad-free-live]] — task `0398`, during whose live checks the paste bug behind `0413`/`0414` was found

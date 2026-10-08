@@ -5,6 +5,35 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
+> # 🆕 2026-10-08 (latest, `6f1d737`) — 64 ROWS, 12 OPEN: THE CITIZENSHIP DEPLOY RAN; `0396` / `0398` / `0400` / `0401` CLOSED; TEN ROWS ADDED
+>
+> **Re-counted at `HEAD` = `6f1d737`: 64 rows — 45 `✅ Done` · 11 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 3 `⛔ Cancelled`; 12 OPEN** (was 54 / 7). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`. Window commits: `55598f2`, `c12cd8e` (the `0.0.157` version bump), `22189fd`,
+> `6f1d737`.
+>
+> - 🚀 **Mid-week deploy, Thu 2026-10-08, owner's call:** profile `0.0.156-profile.4` (S3b + `0332`'s vouch) at
+>   06:41:41Z, **then** game `0.0.157` at 06:56:17Z (`0397`, `0248`, `0301`, `0332` game side, `0404`, and the
+>   private-lobby tasks of `8d74090`).
+> - ✅ **Closed 2026-10-08, `(agent-closed — not owner-verified)`, on owner rulings:** `0396` (49,
+>   [[tasks/authenticated-profile-read-live]]) · `0398` (50, [[tasks/paid-citizen-ad-free-live]]) · `0401` (48,
+>   [[tasks/citizenship-explainer-popup-live]]) — *"Close them"*; `0400` (51, [[tasks/session-verified-status-line-live]])
+>   — *"Close it, pointing at the Sprint 8 re-check"*: ⚠️ its check 8 (analytics) is **not passed**, carried by `0418`.
+> - ➕ **Added (all `🔲 Backlog`, ADR-035 append ranks — positions, not merit ranks, flagged for owner confirmation):**
+>   `0407` (54 — thank paid citizens on the card; design gate first), `0408` (55 — ad-free under a *paid only*
+>   sub-heading), `0409` (56 — Buy for earned, unpaid citizens, verified sessions only) — moved in from the Backlog board,
+>   owner: *"we might need to do them today and deliver a new deploy update"*; `0412` (57 — a *Private* start-screen tab,
+>   kept as one task by owner ruling); `0413` (58 — the join modal's paste button; now also carries `0414`'s scope as
+>   Part B); `0414` (59 — **cancelled**, merged into `0413`, [[decisions/cancelled-tasks]]); `0382`, `0383` (60, 61 — the
+>   Yandex invite link and its production check, moved in from the Backlog board; `0383` is a verify task in its build's
+>   own sprint, by this ruling); `0416` (62 — private-lobby Start 403, ship today); `0417` (63 — wider explainer popup on
+>   desktop).
+> - 🚀 **Same-day deploy exception** to the weekend-slot rule covers **`0407`–`0409` and `0416` only**; `0412`, `0413`,
+>   `0382`, `0383`, `0417` follow the weekend rule. `0407` still needs its design approval before any build. *"Might"* is
+>   not a commitment to ship today.
+> - ⚠️ **Not ingested — backlog briefs:** the new briefs `0407`–`0413`, `0415`–`0418` are open, so they get no vault page
+>   yet; the summaries above come from the board's addenda.
+>
 > # 🆕 2026-10-07 (latest, `077c9e3`) — 54 ROWS, 7 OPEN: `0332` BUILT AND CLOSED (ADR-124); `0323` CANCELLED; `0404` MOVED IN, BUILT AND CLOSED
 >
 > **Re-counted at `HEAD` = `077c9e3`: 54 rows — 41 `✅ Done` · 6 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
@@ -680,24 +709,24 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/verified-login-live-check]] — task `0339`, closed 2026-10-01 as a FAILED verification; follow-up `0366` sits here
 - [[tasks/telemetry-deploy-version-tags]] — task `0356`, closed 2026-10-01; verify `0363` on Sprint 8
 - [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced)
-- [[tasks/stale-login-signature-age]] — task `0366`, rank 30, closed 2026-10-01 (agent-closed — not owner-verified); committed in `e581824`, not deployed; owner-placed directly below `0337`
+- [[tasks/stale-login-signature-age]] — task `0366`, rank 30, closed 2026-10-01 (agent-closed — not owner-verified); committed in `e581824`, not deployed; owner-placed 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).* directly below `0337`
 - [[tasks/profile-os-baseline-hardening]] — task `0221`, rank 7, closed 2026-10-01 (B5/B6 owner-accepted residuals)
 - [[tasks/uptrace-channel-state-production-check]] — task `0341`, rank 26, closed 2026-10-01 (passed; SQL re-enable, UI unproven)
 - [[tasks/alert-delivery-after-idle]] — task `0289`, rank 27, closed 2026-10-01 on observed evidence, bounded to 4 h 36 min
 - [[systems/alert-delivery]] — the alert path `0341`, `0289`, `0368` and `0369` concern
-- [[tasks/public-lobby-one-minute]] — task `0367`, rank 31, closed 2026-10-02 (agent-closed — not owner-verified); committed in `2247699`, not deployed; verify `0370` on Sprint 8
+- [[tasks/public-lobby-one-minute]] — task `0367`, rank 31, closed 2026-10-02 (agent-closed — not owner-verified); committed in `2247699`, not deployed; verify `0370` 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `2247699` is an ancestor of tag `0.0.156`).* on Sprint 8
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368`, rank 32, closed 2026-10-02 (runbook SQL fallback; tested locally only)
 - [[tasks/hardening-harness-speedup]] — task `0371`, rank 34, moved in from the Backlog board and closed 2026-10-02
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369`, rank 33, closed 2026-10-02 (UI re-enable named; Test-channel warning)
 - [[systems/player-profile-store]] — where `0250` S1 (rank 17, deployed 2026-09-29) lives
-- [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it (moved here from Sprint 8 at rank 36 on 2026-10-04)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`, rank 35, added and closed 2026-10-02 (agent-closed — not owner-verified); committed in `0c9a620`, not deployed; `0373` reads it 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).* (moved here from Sprint 8 at rank 36 on 2026-10-04)
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, `0355`'s verify on Sprint 8: passed, closed 2026-10-03
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, `0356`'s verify on Sprint 8: passed, closed 2026-10-03
 - [[tasks/client-null-id-errors]] — task `0032`, rank 5, closed 2026-10-04 (agent-closed — not owner-verified): Step 5 Uptrace re-check passed
 - [[tasks/private-lobby-citizen-perk]] — the release gate behind `0354`, `0377`, `0380` (ranks 37–39, moved in 2026-10-04)
 - [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — the decision `0380` (rank 38) builds the code half of
 - [[tasks/verified-login-enforce]] — task `0340` (rank 16), S3a built; deploy in `0395` (rank 45)
-- [[tasks/authenticated-profile-read]] — task `0250` (rank 17), closed 2026-10-06; S3b not deployed
+- [[tasks/authenticated-profile-read]] — task `0250` (rank 17), closed 2026-10-06; S3b not deployed 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 - [[tasks/paid-citizenship-test-buy]] — task `0297` (rank 21), closed 2026-10-05 with three checks waived
 - [[tasks/stale-login-fix-decision]] — task `0373` (rank 36), closed 2026-10-05
 - [[tasks/private-lobby-tester-default]] — task `0354` (rank 37)
@@ -709,13 +738,17 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/login-signature-24h-window]] — task `0391` (rank 43), deployed 2026-10-06
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window decision behind `0391`
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — no fixed bar for `0340`'s deploy
-- [[tasks/paid-citizen-ad-free]] — task `0248` (rank 18), closed 2026-10-06; committed, not deployed; live check `0398` on Sprint 8
-- [[tasks/session-verified-status-line]] — task `0397` (rank 46), added and closed 2026-10-06; committed, not deployed; live check `0400` on Sprint 8
+- [[tasks/paid-citizen-ad-free]] — task `0248` (rank 18), closed 2026-10-06; committed, not deployed; live check `0398` 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).* on Sprint 8
+- [[tasks/session-verified-status-line]] — task `0397` (rank 46), added and closed 2026-10-06; committed, not deployed; live check `0400` 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).* on Sprint 8
 - [[tasks/jest-worker-cap]] — task `0399` (rank 47), added and closed 2026-10-06
-- [[tasks/citizenship-explainer-popup]] — task `0301` (rank 19), closed 2026-10-06; committed `fc3f539`, not deployed; verify `0401` at rank 48
+- [[tasks/citizenship-explainer-popup]] — task `0301` (rank 19), closed 2026-10-06; committed `fc3f539`, not deployed; verify `0401` 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `fc3f539` is an ancestor of tag `0.0.157`; `0396` worklog).* at rank 48
 - [[tasks/post-24h-window-login-read]] — task `0392` (rank 44): the post-`0391` login read, closed 2026-10-07
 - [[tasks/verified-login-enforce-live]] — task `0395` (rank 45): S3a deployed and `vfy: true` confirmed, closed 2026-10-07
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers stop gating `0396` and the other `verified` deploys; `0402` (rank 52) is the non-blocking re-read
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): `0332`'s design, accepted on owner rulings Q1–Q8
-- [[tasks/join-token-identity-vouch]] — task `0332` (rank 9), built and closed 2026-10-07 (not deployed)
-- [[tasks/long-session-refresh-popup]] — task `0404` (rank 53), moved in from Sprint 8, built and closed 2026-10-07 (not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332` (rank 9), built and closed 2026-10-07 (not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/long-session-refresh-popup]] — task `0404` (rank 53), moved in from Sprint 8, built and closed 2026-10-07 (not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `077c9e3` is an ancestor of tag `0.0.157`); verify `0406` still open.*
+- [[tasks/authenticated-profile-read-live]] — task `0396` (rank 49), closed 2026-10-08: S3b live
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (rank 50), closed 2026-10-08: ad-free live
+- [[tasks/session-verified-status-line-live]] — task `0400` (rank 51), closed 2026-10-08: check 8 not passed, carried by `0418`
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (rank 48), closed 2026-10-08: popup live; follow-ups `0408`, `0409`, `0417`

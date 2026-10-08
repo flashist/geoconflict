@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 40 (append rank; moved in from the Backlog board 2026-10-04) / task `0353`
 
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
-> deployed** (client-only; no game deploy since `0.0.156`).
+> deployed** (client-only; no game deploy since `0.0.156`). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).*
 
 ## Goal
 

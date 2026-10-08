@@ -3,6 +3,21 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-08 (latest, `6f1d737`): 143 rows, 102 open — three filed, five moved to Sprint 7.** Re-counted by me at
+> `HEAD` = `6f1d737`, by each row's leading status glyph: 99 `🔲 Backlog` · 33 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` ·
+> 3 `⛔ Cancelled` (was 137 / 101). All three new rows came out of the 2026-10-08 live checks on `0.0.157`:
+> - **`0410`** — the citizenship card shows *"0 / 100"* XP and an empty bar when the profile could not load (found by
+>   `0400` check 5a, [[tasks/session-verified-status-line-live]]). Open for the plan gate: hide vs placeholder; sequence
+>   with `0407`.
+> - **`0411`** — suggest a reload when the experiment-flags fetch timed out: on such a load `citizenship_ui` reads off,
+>   so 🔴 **a paid citizen sees interstitial ads** for the session (found during `0398`,
+>   [[tasks/paid-citizen-ad-free-live]]). Owner ruling: a non-forced reload line reusing `0397`'s Restart button, only for
+>   *fetch failed* — the kill switch must still hide everything.
+> - **`0415`** — no native browser tooltips anywhere in the UI (`title` attributes); owner: generic hints are *"forbidden
+>   by Yandex.Games rules"*. ⚠️ That Yandex rule is **not in the wiki** — the board itself flags the gap.
+> - ➡️ **Moved to [[decisions/sprint-7]]** (rows kept as `➡️ Moved`): `0407`, `0408`, `0409` (filed here the same day;
+>   same-day deploy exception) and `0382`, `0383` (the Yandex invite link and its check; weekend rule).
+>
 > 🆕 **2026-10-07 (latest, `077c9e3`): 137 rows, 101 open — `0403` filed.** Re-counted by me at `HEAD` = `077c9e3`, by
 > each row's leading status glyph: 98 `🔲 Backlog` · 28 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was
 > 136 / 100). `0403` — **Telegram and VK links in the feedback popup**, so players who want a reply can get one; filed on
@@ -872,3 +887,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[decisions/adr-121-login-signature-24h-window]] — `0393` (the >24 h residue) and `0394` (its unbuilt Decision 3) live here
 - [[tasks/login-signature-24h-window]] — task `0391`, which filed `0394` and feeds `0393`
 - [[tasks/session-verified-status-line]] — task `0397`, into which this board's `0278` was folded (cancelled 2026-10-06)
+- [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): its check 5a filed `0410` here
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): the flags-timeout load filed as `0411` here

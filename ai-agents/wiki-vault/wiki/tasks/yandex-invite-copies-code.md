@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 38 (append rank; moved in from the Backlog board 2026-10-04) / task `0380`
 
+> 🆕 **2026-10-08 sync — now deployed; the link half moved onto Sprint 7.** `8d74090` is in game **`0.0.157`**
+> (deployed 2026-10-08; checked with `git tag --contains`). The owner, live-testing private lobbies on `0.0.157`, saw no
+> invite link in the host window — this task is the code half; the link half `0382` and its check `0383` were moved onto
+> [[decisions/sprint-7]] (ranks 60, 61) by owner ruling *"Move 0382 and 0383 into the Sprint 7"*. `0381` (this task's
+> live check) is not recorded as run in this window. `0414`, which would have moved the error window's copy button onto
+> `copyText`, was merged into `0413` ([[decisions/cancelled-tasks]]). The *"Not deployed"* line below was true when written.
+>
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** (no game deploy since `0.0.156`). ⚠️ **Not verified in the Yandex iframe:** whether the SDK clipboard or
 > the native fallback actually copies there is for the live check **`0381`** (Backlog board).
@@ -52,3 +59,4 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[tasks/private-lobby-citizen-perk]] — the six-item release gate
 - [[systems/flashist-init]] — the facade's SDK access
 - [[decisions/sprint-7]] — the board (rank 38)
+- [[decisions/cancelled-tasks]] — `0414` (cancelled 2026-10-08, merged into `0413` Part B): moves the error window's copy button onto this task's `copyText`

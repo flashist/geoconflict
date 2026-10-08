@@ -4,7 +4,7 @@
 **Status**: accepted
 
 > 📌 **2026-10-06 sync — the code half is BUILT:** `0380` done 2026-10-05 (agent-closed — not owner-verified),
-> committed `8d74090`, ⚠️ **not deployed**; whether the SDK clipboard really copies inside the iframe is `0381`'s live
+> committed `8d74090`, ⚠️ **not deployed**; 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* whether the SDK clipboard really copies inside the iframe is `0381`'s live
 > check. Accepted interim residual R3 (owner *"Accept for now"*): a non-tester friend on Yandex has no Join button and no
 > `#join=` path until `0382` or the everyone-flag. `0389` changed the private-lobby code to a new 8-character format
 > (alphabet `23456789ABCDEFGHJKMNPQRSTVWXYZ`, shown in two groups) — `0382`'s payload validator must accept it. The
@@ -152,5 +152,5 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[tasks/citizen-verified-icon]] — task `0068`, whose live check surfaced `0198` and, through it, `0199`
 - [[systems/networking]] — the worker route and entry-point behaviour behind the invite and the join
 - [[decisions/sprint-7]] — `0380` (the code half of this decision) moved onto this board 2026-10-04, rank 38 (producer order)
-- [[tasks/yandex-invite-copies-code]] — task `0380`, the code half (done 2026-10-05, not deployed)
+- [[tasks/yandex-invite-copies-code]] — task `0380`, the code half (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Live check `0381` still open.
 - [[tasks/private-lobby-code-format]] — task `0389`, the new code format `0382` must accept

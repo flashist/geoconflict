@@ -29,7 +29,7 @@ and because a hidden card publishes no citizenship status, a paying citizen also
   **R2** (owner: *"Record as accepted"*): the disconnect lifecycle of the late reveal — accepted residual with
   its future fix named. **R3** (owner: *"Accept + file own bug"*): a reveal that starts during a quick-join's
   setup can still open the gift popup as the player enters a lobby — filed as **`0336`**, end of Sprint 7.
-  🆕 **`0336` closed 2026-09-30** `(agent-closed — not owner-verified)`, committed, not yet released — the popup now
+  🆕 **`0336` closed 2026-09-30** `(agent-closed — not owner-verified)`, committed, not yet released — the popup now (📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `26b85c0` is an ancestor of tag `0.0.156`).*)
   waits for the start screen and a match start closes it; it deliberately reversed one of this task's pinned
   gate-reveal test assertions (owner-ruled). See [[tasks/tenure-popup-never-over-match]].
 

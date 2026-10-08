@@ -20,7 +20,7 @@
 >   24 h — bounded, since that box already holds `PROFILE_INTERNAL_TOKEN`;
 > - `verified` changes nothing the game server grants today (every use kept open, ADR-124 Decision 5).
 > 🔧 The note says *"Not built yet"*; the build closed later that day ([[tasks/join-token-identity-vouch]]), committed
-> `077c9e3`, **not deployed**. Also: the point-5 reader list now marks `0323` *(cancelled 2026-10-07)*.
+> `077c9e3`, **not deployed**. 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* Also: the point-5 reader list now marks `0323` *(cancelled 2026-10-07)*.
 >
 > 🆕 **2026-10-07 — ADR-116's NOTE IS APPLIED: the verification trigger fired.** `0340` (S3a) was deployed 2026-10-07
 > (07:10:45Z, profile `0.0.156-profile.3`, commit `71efd10`) and the owner's live check returned **`vfy: true`**
@@ -207,4 +207,4 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/verified-login-enforce-live]] — task `0395`, the deploy and `vfy: true` live check that fired this ADR's trigger (2026-10-07)
 - [[tasks/authenticated-profile-read]] — task `0250`: S3b branches the profile read on the session's `verified` claim
 - [[decisions/adr-124-join-token]] — 2026-10-07: point 6 clarified — the game server relays the session token on resolve, holds it in memory only, never the secret
-- [[tasks/join-token-identity-vouch]] — task `0332`, the build of that relay (committed, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the build of that relay (committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*

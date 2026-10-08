@@ -29,7 +29,8 @@ today. The strategic sequence is **retention → monetization → content**: any
 in a match longer, brings them back, or converts curious newcomers raises ad revenue without
 touching monetization at all. Yandex Games also promotes titles that earn more per player, so
 engagement gains compound into ranking and DAU. In-app purchases via the Yandex Games SDK are
-planned and partly built, not yet live.
+~~planned and partly built, not yet live~~ live: paid citizenship since 2026-09-26 (`0.0.154`), and
+its no-interstitial-ads benefit (`0248`) since 2026-10-08 (`0.0.157`, verified by `0398`) (corrected 2026-10-08).
 
 **Citizenship.** The supporter tier and the spine of the monetization layer. Two paths — *earned*
 (~~1,000 XP at 10 XP per qualifying match~~ 100 XP at 1 XP per qualifying match, per ADR-111; corrected 2026-09-25) and *paid* (~~99 ₽~~ 249 Yan (owner changed it in the Yandex console, 2026-09-25)). Any purchase grants citizenship.
@@ -65,6 +66,8 @@ commands, deploy topology, and the ranked technical risks. Do not duplicate it h
 ## Conventions & constraints
 
 ### Platform — Yandex Games
+
+**Platform rules** the game follows, each with its source: [`yandex-games-platform-rules.md`](yandex-games-platform-rules.md).
 
 - The production entry template is **`src/client/yandex-games_iframe.html`**, not `index.html`.
   There are **two** HTML templates and both get the same bundle — **any new HTML element must be

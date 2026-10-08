@@ -37,7 +37,7 @@ player-facing strings; `0017` does not.
 - ✅ **In the repository at `b3ee5de` the rescale IS present** — verified this sync:
   `src/core/profile/Citizenship.ts` carries `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`, and
   the `inbox.templates.citizenship_earned` body in `resources/lang/en.json` says *"100 XP"*.
-- ⛔ **In production it is not**: `0211` is closed but **not deployed** (see
+- ⛔ **In production it is not**: `0211` is closed but **not deployed** (see 📌 *2026-10-08 lint: now history — `0211` reached production in release `0.0.152`, 2026-09-26 (✔️ `77fbc98` is an ancestor of tag `0.0.152`); that window recorded real 1 XP credits (see `0211`'s task page).* —
   [[tasks/credit-participation-xp-elimination-or-match-end]]), and production credits nothing anyway
   until the token is deployed non-empty.
 - 🚩 **So the brief's *"shipped today is the struck figure"* is true of PRODUCTION and stale about the

@@ -3,6 +3,17 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-08 sync — game `0.0.157` is LIVE (2026-10-08), so the code for these events is now in the production client:**
+> `Ad:InterstitialSuppressed:PaidCitizen` (`0248`), `Citizenship:Status:*` (`0397`), the `0301` explainer events, and
+> `0404`'s `Session:LongSessionRefresh:*` / `AfterRefreshPopup` strings (image contents per `0396`'s worklog; not each
+> event checked). First readings, GameAnalytics ~11:39Z 2026-10-08, **partial day, *"Demo mode"* banner shown**:
+> `Ad:InterstitialSuppressed:PaidCitizen` **24** (vs `Ad:Interstitial` 2,720 — [[tasks/paid-citizen-ad-free-live]]) ·
+> `Citizenship:Status:ReadFailed` **95**, ⚠️ **`Unverified` and `Restart` NOT seen** — re-read by `0418`, no diagnosis yet
+> ([[tasks/session-verified-status-line-live]]) · `Citizenship:Explainer:Opened:CardLink` 142, `UI:Tap:CitizenshipLoginExplainer`
+> 6, `UI:Tap:PurchaseCitizenshipExplainer` 3, `LockedFeature:Tap:*` 1 (first ever on production)
+> ([[tasks/citizenship-explainer-popup-live]]). Notes and headings below saying these are *not deployed* / *not yet
+> released* were true when written; `analytics-event-reference.md` did not change in this window.
+>
 > 🆕 **2026-10-07 sync (`077c9e3`) — 16 NEW STRINGS for the 23 h refresh popup (task `0404`), committed, NOT
 > deployed:** six `Session:LongSessionRefresh:{Due|Shown|Refresh|Waited|DeferredByDialog|PreemptedByStaleBuild}` and a
 > new `AfterRefreshPopup` boot kind for the ten `Profile:Login:SignatureAge:*` labels (A1's `<BootKind>` is now
@@ -77,7 +88,7 @@ The reference docs are `ai-agents/knowledge-base/analytics-event-reference.md` a
 | `Feedback` | Feedback form interactions |
 | `Subscribe` | Email subscription modal open and submit events |
 | `UI` | Button clicks; `UI:Tap:{ElementId}` for specific elements and placement-specific CTA tracking |
-| `Performance` | FPS and memory sampled every **300 s** during gameplay (raised from 60 s by task `0224`, 2026-09-06 — ⛔ **committed in `35afc64`, NOT deployed** as of 2026-09-07) |
+| `Performance` | FPS and memory sampled every **300 s** during gameplay (raised from 60 s by task `0224`, 2026-09-06 — ⛔ **committed in `35afc64`, NOT deployed** as of 2026-09-07) 📌 *2026-10-08 lint: shipped since — `35afc64` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; * |
 | `Build` | Stale build detection |
 | `Worker` | Web Worker init success/failure |
 | `Tutorial` | Tutorial flow — started, tooltips, skipped, completed |
@@ -105,6 +116,8 @@ The baseline events fire once per session from `FlashistFacade`; Yandex login st
 `Session:PlatformInitTimeout` fires when a blocking platform-init stage exceeds the shared 5-second deadline and the app continues in degraded mode. Degraded mode uses default flags, localStorage username fallback, browser language, and no ads. **It fires at most once per boot (latched):** a stage-1 and a stage-2 deadline on the same boot log **one** event. *(Corrected 2026-09-28 by task `0328`: the reference doc used to say "at most once per stage", which the code never did.)*
 
 ### Platform degraded, recovered and loader-retry events (tasks `0328`, `0330` — built 2026-09-28, not yet released)
+
+📌 *2026-10-08 lint: released since — game `0.0.155`, 2026-09-29 (✔️ `68303d5` is an ancestor of tag `0.0.155`).*
 
 Added to measure how often the Yandex platform boots degraded, why, and whether the boot followed a match exit ([[tasks/citizenship-card-vanishes-investigation]]). Definitions of record: `ai-agents/knowledge-base/analytics-event-reference.md`.
 
@@ -250,6 +263,8 @@ The start-screen redesign adds menu-tab and citizenship-surface instrumentation.
 
 ## Worker Start & Reconnect Events (tasks `0347`, `0348`, `0035` — built 2026-09-30, committed `9cb8ee4`, not yet released)
 
+📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).*
+
 Source: `ai-agents/knowledge-base/analytics-event-reference.md` § *Worker Initialization Events* and
 § *Reconnection Events*, as changed in the 2026-09-30 sync window.
 
@@ -264,6 +279,8 @@ See [[tasks/rejoin-after-failed-match-start]], [[tasks/worker-start-failure-repo
 checked only at a local fake sink.
 
 ## Citizenship Funnel Events (built 2026-08-24 — not yet live)
+
+📌 *2026-10-08 lint: live since — the citizenship card turned on in game `0.0.154`, 2026-09-26, so these events can fire; the 2026-10-08 counts are at the top of this page.*
 
 Tasks 0017 (earned) and 0018 (paid) shipped the citizenship funnel events on local/mock scope; all of them are gated behind the 0054 `CITIZENSHIP_CARD_ENABLED` flag (default OFF), so **none fire in production** until the flip-ON at launch.
 
@@ -292,6 +309,8 @@ The five surviving events live in **two** constant maps in `src/client/flashist/
 > **Unproven** — a code-reading conclusion, not an observation. Settling it needs a real Yandex Games context (the preload curtain is exactly what local dev lacks), so it cannot be confirmed or ruled out before citizenship goes live. 📌 **The follow-up brief is deliberately UNFILED, owner-ruled at close**, waiting on the first live day of real `Citizenship:Seen` volume — a recorded non-filing, not a dropped thread. See [[tasks/analytics-p1-citizenship-funnel]].
 
 ## Personal Inbox Events (built 2026-08-26 — not yet live)
+
+📌 *2026-10-08 lint: live since — the Personal tab went live with citizenship in game `0.0.154`, 2026-09-26 (see [[features/announcements]]).*
 
 Task 0012 added four events for the citizens-only Personal tab inside the announcements popup. They sit behind the **same `CITIZENSHIP_CARD_ENABLED` gate** — while the card is unlaunched the inbox fetch never runs, so none of these can fire. The tab strip itself is rendered only when `GET /v1/messages` succeeded, i.e. the server confirmed the viewer is a citizen, so **guests and non-citizens never fire any of them**.
 
@@ -397,6 +416,8 @@ reads as real; noted, not proven.
 
 ## Profile Login Signature Age Events (task `0372` — built 2026-10-02, committed `0c9a620`, NOT deployed)
 
+📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).*
+
 Client diagnostics for the ~1 in 3 profile logins the server calls `stale` ([[tasks/stale-login-client-diagnostics]];
 the reading is task `0373` on [[decisions/sprint-8]] — 📌 moved to Sprint 7, rank 36, on 2026-10-04). **Analytics only: login sends exactly the signature it sent
 before, at the same moment.** Fired from `takeYandexPlayerSignature()` in `src/client/flashist/FlashistFacade.ts`;
@@ -410,7 +431,7 @@ arriving**.
   server's ~32 % `stale` share.
 - `<BootKind>`: `AfterMatch` when this page load follows a match exit (`bootFollowsMatchExit`, the same flag as
   `Session:PlatformDegraded`, task `0328`), else `FirstBoot`.
-  - 🆕 **2026-10-07 (task `0404`, committed `077c9e3`, not deployed):** a third kind, **`AfterRefreshPopup`** —
+  - 🆕 **2026-10-07 (task `0404`, committed `077c9e3`, not deployed): 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `077c9e3` is an ancestor of tag `0.0.157`); verify `0406` still open.*** a third kind, **`AfterRefreshPopup`** —
     when the boot follows a press of the long-session refresh popup (its own `sessionStorage` marker, read and removed
     on every boot); order `AfterMatch` → `AfterRefreshPopup` → `FirstBoot` (`AfterMatch` wins if both, which normal
     flow cannot produce). Ten more strings, `Profile:Login:SignatureAge:AfterRefreshPopup:<Label>`. **What it answers:**
@@ -490,6 +511,8 @@ No value. Dev/staging builds only log it.
 
 ### Paid-citizen suppression (task `0248` — built 2026-10-06, committed `91eb99a`, NOT deployed)
 
+📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*
+
 **`Ad:InterstitialSuppressed:PaidCitizen`** (enum `AD_INTERSTITIAL_SUPPRESSED_PAID_CITIZEN`), fired from
 `FlashistFacade.showInterstitial()` once per request when the SDK is present, citizenship surfaces are on (read at ad
 time), and the card's last applied read was a **verified** owner view saying paid. No ad is requested, so
@@ -508,6 +531,8 @@ time), and the card's last applied read was a **verified** owner view saying pai
 
 ## Tenure Grant Events (task `0253` — built 2026-09-24, not yet live)
 
+📌 *2026-10-08 lint: live since — the tenure popup went live 2026-09-26 (see [[decisions/adr-112-free-xp-grants]]).*
+
 Three events under *Citizenship Events* in the reference doc, all behind `CITIZENSHIP_CARD_ENABLED`
 **and** the `citizenship_ui` flag (task `0236`'s combined gate), so **none can fire before `0065` flips
 the card**. They fire only after a successful `POST /v1/login` whose reply says the tenure check is
@@ -523,7 +548,7 @@ the card**. They fire only after a successful `POST /v1/login` whose reply says 
 `Claimed` / `Rejected:*` fire at most once per player except when two tabs race. ⛔ **"ClaimFailed, never
 Claimed" does not mean ungranted** — the server's grant table is the truth. See [[tasks/tenure-xp-grant]].
 
-🆕 **2026-09-30 (`0336`, committed `26b85c0`, not yet released):** the `Claimed` row now says the thank-you popup
+🆕 **2026-09-30 (`0336`, committed `26b85c0`, not yet released): 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `26b85c0` is an ancestor of tag `0.0.156`).*** the `Claimed` row now says the thank-you popup
 opens right after the claim **or once the player is back on the start screen — never over a lobby or match — and a
 match start closes it.** No event added or renamed. See [[tasks/tenure-popup-never-over-match]].
 
@@ -729,7 +754,7 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/worker-reuses-page-map]] — task `0035`, worker-failure telemetry silent after a leave
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, the `Citizenship:TenureGrant:Claimed` popup timing
 - [[tasks/verified-login-live-check]] — task `0339`: the first live counts of the four `Profile:Login:Signature:*` events
-- [[tasks/stale-login-client-diagnostics]] — task `0372`: the 20 `Profile:Login:SignatureAge:*` + 4 `Profile:Login:Signature:Refetch:*` events and `Ready`'s held-ms value (committed, not deployed)
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: the 20 `Profile:Login:SignatureAge:*` + 4 `Profile:Login:Signature:Refetch:*` events and `Ready`'s held-ms value (committed, not deployed) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).*
 - [[tasks/login-signature-24h-window]] — task `0391`: why the §A1 client labels no longer match the server
 - [[tasks/authenticated-profile-read]] — task `0250`: `Citizenship:Earned:XP` dormant from S1, verified-only from S3b
 - [[tasks/private-lobby-tester-default]] — task `0354`: the `private_lobbies_all` cohort event
@@ -739,3 +764,6 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/citizenship-explainer-popup]] — task `0301`: the three `Citizenship:Explainer:Opened:*` events and the two popup tap ids (committed, not deployed)
 - [[tasks/verified-login-enforce-live]] — task `0395` (2026-10-07): verified logins live; the `Citizenship:Status:*` caveat still waits on `0396`
 - [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): six `Session:LongSessionRefresh:*` events and the `AfterRefreshPopup` boot kind (committed, not deployed)
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): first live count of `Ad:InterstitialSuppressed:PaidCitizen`
+- [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): `Citizenship:Status:Unverified` / `:Restart` not seen (re-read `0418`)
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (2026-10-08): first live explainer, locked-feature and purchase counts

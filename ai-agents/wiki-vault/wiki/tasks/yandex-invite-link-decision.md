@@ -76,4 +76,4 @@ portals; also lands in our own `location.search`; `getGameByID` returns this gam
 - [[tasks/match-exit-keeps-query-string]] — `0331`: the `sdk` parameter that must never be stripped
 - [[systems/flashist-init]] — the platform flag and the late-recovery path the payload read must use
 - [[decisions/sprint-backlog]] — the board this task closed on, and where `0380`–`0383` are filed
-- [[tasks/yandex-invite-copies-code]] — task `0380`, the code half of the follow-up (done 2026-10-05, not deployed)
+- [[tasks/yandex-invite-copies-code]] — task `0380`, the code half of the follow-up (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Live check `0381` still open.

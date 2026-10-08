@@ -28,7 +28,7 @@
 >    again with no filed candidate**. ⚠️ **Open point for the owner, not decided:** whether a future **per-player admin
 >    view** counts as *"presented to players"* — ask when such a task is filed. See [[decisions/cancelled-tasks]].
 > - Unchanged: every decision, residuals 2–5, the other re-raise bullets, the closeout sentence. 🔧 The amendments say
->   `0332` is *"not yet built"*; it closed later that day ([[tasks/join-token-identity-vouch]]), committed, not deployed.
+>   `0332` is *"not yet built"*; it closed later that day ([[tasks/join-token-identity-vouch]]), committed, not deployed. 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 >
 > 📌 **Amended 2026-10-01 — `0308` cancelled; the D6 revisit moves to `0365`.** Facts only; **no decision changed.**
 > Recorded by the architect on an owner ruling given live via `AskUserQuestion`, relayed by `fkit-lead`: *"New task
@@ -130,5 +130,5 @@ is **closeout of this ADR, not a new defect.**
 - [[tasks/player-name-lost-space]] — task `0308`, cancelled 2026-10-01 (not reproduced); the D6 revisit moved to `0365`
 - [[decisions/sprint-backlog]] — the Backlog board, where `0365` (the D6 revisit since 2026-10-01) sits
 - [[decisions/adr-124-join-token]] — 2026-10-07: provides the `verified` bit; residual 1 stays open by owner ruling Q5 (*"Keep for unconfirmed"*)
-- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed) — no longer this ADR's residual-1 exit
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* — no longer this ADR's residual-1 exit
 - [[decisions/cancelled-tasks]] — `0323` (the mark), cancelled 2026-10-07; the second re-raise trigger has no filed candidate

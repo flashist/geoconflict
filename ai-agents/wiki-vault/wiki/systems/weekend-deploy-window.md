@@ -3,8 +3,28 @@
 **Layer**: shared (game box + profile/admin box + telemetry box)
 **Key files**: `setup-profile.sh`, `build-deploy-profile.sh`, `build-deploy.sh`, `deploy.sh`,
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
-`src/client/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh`
+`src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> # 🆕 2026-10-08 — A THIRD MID-WEEK DEPLOY RAN: S3b PROFILE `0.0.156-profile.4`, THEN GAME `0.0.157`
+>
+> - **Owner-run, Thu 2026-10-08 — mid-week exception, owner's call** (*"I am ready for making the release. Walk me
+>   through the steps"*). **Profile first** (deploy record 06:41:41Z, outside the backup window; commit `55598f2`: `0250`
+>   S3b + `0332`'s vouch; no migration), **then** the owner's DevTools check, **then** the game client (`0.0.157`, commit
+>   `c12cd8e`, started 06:56:17Z: `0397`, `0248`, `0301`, `0332` game side, `0404`, and the private-lobby tasks of
+>   `8d74090`) — server first, as `0397`'s Q4 ruling requires. Record: [[tasks/authenticated-profile-read-live]] (`0396`).
+> - **Rollback targets after this deploy (from `0396`'s worklog):** profile → **`0.0.156-profile.3`** (the `0340` image,
+>   still on the box); game → **`0.0.156`** (registry only — pruned from the box, runbook F-D; a rollback re-pulls it).
+>   ⛔ **The two are now paired:** a server rollback also needs the client back or `citizenship_ui` off; a client rollback
+>   rolls back every task in the image and also needs `citizenship_ui` off or a server rollback. **Never roll back past S2.**
+> - Live checks the same day: `0396`, `0398`, `0400` (check 8 not passed → `0418`), `0401` — all closed
+>   `(agent-closed — not owner-verified)`; see [[decisions/sprint-7]].
+> - ⚠️ **Runbook gap:** `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` has **no** 2026-10-08 section in this
+>   window — its *rollback targets* still end at the 2026-10-07 deploy. The targets above come from the task worklog.
+> - **Further same-day deploy allowed** for `0407`–`0409` and `0416` only (owner rulings on Sprint 7); everything else
+>   new waits for the weekend.
+>
+> ---
+>
 > # 🆕 2026-10-07 — A SECOND MID-WEEK PROFILE DEPLOY RAN: `0340` (S3a) IS LIVE; ROLLBACK TARGET NOW `0.0.156-profile.2`
 >
 > - **Owner-run profile deploy, Wed 2026-10-07** — a mid-week exception to the weekend-slot rule (owner, verbatim: *"I
@@ -822,3 +842,4 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, whose §1 read lifted the profile freeze (closed 2026-10-05)
 - [[tasks/verified-login-enforce-live]] — task `0395`, the 2026-10-07 mid-week profile deploy (`0340`, `0.0.156-profile.3`)
 - [[tasks/post-24h-window-login-read]] — task `0392`, the numbers read before (and judged after) that deploy
+- [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): the third mid-week deploy — profile `.4` then game `0.0.157`

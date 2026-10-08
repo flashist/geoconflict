@@ -36,7 +36,7 @@
 > everyone's crediting) **has lost most of its force.**
 >
 > ⛔ **SHIPPED IS NOT DEPLOYED.** `0211` is not in production, so **in the live game T1's premise still
-> describes what happens today.** ⚠️ **Two different frames — do not collapse them:** the *decision
+> describes what happens today.** 📌 *2026-10-08 lint: now history — `0211` reached production in release `0.0.152`, 2026-09-26 (✔️ `77fbc98` is an ancestor of tag `0.0.152`); that window recorded real 1 XP credits (see `0211`'s task page).* ⇒ **in the live game T1 has expired too** — the *"production behaviour has not changed yet"* clause just below is history as well. ⚠️ **Two different frames — do not collapse them:** the *decision
 > record* must now read T1 as expired; the *production behaviour* has not changed yet.
 >
 > ⛔ **THIS STILL DOES NOT FIRE THE RE-RAISE TRIGGER BELOW.** That trigger reads *"crediting ever

@@ -1,9 +1,17 @@
 # Show the Player Whether Their Session Is Verified — a Status Line in the Citizenship Card (task 0397)
 
 **Source**: `ai-agents/tasks/done/0397-show-players-whether-their-session-is-verified/brief.md` (its `plan.md`, `worklog.md` and `review.md` read as supporting evidence) + `ai-agents/knowledge-base/reports/2026-10-06-0397-step1-product-spec.md`
-**Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`), NOT deployed**
+**Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`); LIVE since 2026-10-08** in game `0.0.157`, checked by `0400` (⚠️ check 8 not passed) *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 46 (append rank, not a merit rank; on merit directly below `0250`) / task `0397`
 
+> 🆕 **2026-10-08 sync — LIVE; live check closed with one check NOT passed** ([[tasks/session-verified-status-line-live]],
+> `0400`, closed 2026-10-08). Deployed in game `0.0.157` in the same slot as S3b, **server first** (this task's Q4 ruling).
+> Passed live, in RU: checking, verified paid, couldn't load + Restart (all parts), kill switch. **Not checked live:**
+> the two unverified states (both owner accounts verify). ⚠️ **`Citizenship:Status:Unverified` and `:Restart` were not
+> seen** in GameAnalytics (`ReadFailed` 95) — re-read by `0418` (Sprint 8), no investigation, by owner ruling. Follow-ups:
+> `0410` (*0 / 100* XP shown on a failed read) and `0411` (reuse Restart when the flags fetch times out). The notes below
+> saying *not deployed* were true when written.
+>
 > 📌 **2026-10-07 (later) sync — `0332` does NOT reword this line's *not confirmed* text.** The join token
 > ([[tasks/join-token-identity-vouch]]) was built with every perk kept open to unverified players, so nothing new is lost; ADR-124 makes the reword
 > (EN + RU) and a message for unverified non-citizens the duty of any **future** flip of a perk to verified-only
@@ -116,3 +124,6 @@ unverified.
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the *not confirmed* text is reworded only by a future flip of a perk
 - [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): built with every perk open; this line's text unchanged
 - [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup, another start-screen-only build
+- [[tasks/session-verified-status-line-live]] — task `0400` (closed 2026-10-08): the live check; check 8 carried by `0418`
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): the S3b server deployed first, per Q4
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): deployed together (R3); found the flags-timeout load (`0411`)

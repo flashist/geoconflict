@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 41 (append rank; moved in from the Backlog board 2026-10-04) / task `0374`
 
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
-> deployed** (client-only; no game deploy since `0.0.156`). **Unit-tested only** — the owner's live check was optional
+> deployed** (client-only; no game deploy since `0.0.156`). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* **Unit-tested only** — the owner's live check was optional
 > (the hang is hard to produce by hand and the impact is a delay).
 
 ## Goal
@@ -29,6 +29,18 @@ the tenure popup could be delayed.
   worklog as within the plan's intent.
 - **Review:** ready to merge, no findings; Codex's `disconnectedCallback` claims disproven (both windows are static in
   both HTML templates).
+
+## Outcome
+
+- Closed 2026-10-05 `(agent-closed — not owner-verified)`; committed in `8d74090`. Deployed in game `0.0.157`
+  (2026-10-08; `8d74090` is an ancestor of tag `0.0.157`).
+- **Proof is unit tests only:** both new test files pass (17/17 and 19/19); a mutation check (the two
+  `endJoiningMarks()` calls in `reset()` commented out) fails 9 tests; full `npm test` passed, lint clean
+  (worklog). **No live check** — the brief makes it optional (hard to produce by hand; the impact is a delay),
+  and none is recorded.
+- Review: ready to merge, no findings, no accepted residuals.
+- *(Section added 2026-10-08 by lint — the page was missing the template's `## Outcome`; content from the
+  task's `worklog.md` and `brief.md`.)*
 
 ## Related
 

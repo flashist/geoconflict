@@ -29,7 +29,7 @@ to git, `/health` said only `{"status":"ok"}`, and telemetry `service.version` w
 running on that box?" was answerable only from a deploy log on the operator's laptop.
 
 Split (confirmed by the owner): this task is the **profile** server; the telemetry server is **`0356`** (Sprint 7,
-rank 29 — **done 2026-10-01**, agent-closed, not deployed: [[tasks/telemetry-deploy-version-tags]]). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, file it"*, Backlog board).
+rank 29 — **done 2026-10-01**, agent-closed, not deployed 📌 *2026-10-08 lint: deployed since — telemetry `0.0.155-telemetry.1`, 2026-10-03, verified by `0363`.*: [[tasks/telemetry-deploy-version-tags]]). The game server's own fake `"1.0.0"` became **`0357`** (owner: *"Yes, file it"*, Backlog board).
 
 ## Key Changes
 

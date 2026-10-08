@@ -4,6 +4,16 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 🆕 **2026-10-08 sync — `0301` IS DEPLOYED, so release-gate item 5 is met; a production 403 blocks private-lobby
+> starts.** Game **`0.0.157`** (2026-10-08) carries `fc3f539` (`0301`) and `8d74090` (the private-lobby tasks) — checked
+> with `git tag --contains`. The interim popup is gone from production; `0401`'s check 4 was the **first live test of the
+> locked look and the locked tap** — passed ([[tasks/citizenship-explainer-popup-live]]). ⚠️ During `0398`'s placement 4
+> the server answered Start with **403 `citizens_only`** — per `fkit-lead`'s diagnosis the container nginx drops the
+> query string on worker paths ([[tasks/paid-citizen-ad-free-live]]). Filed as `0416` (Sprint 7, rank 62, owner: ship
+> today). Also moved onto Sprint 7 the same day: `0382` / `0383` (the invite link and its check, ranks 60–61); filed:
+> `0412` (a *Private* start-screen tab, 57) and `0413` (the join modal's paste button, 58; it absorbed cancelled `0414`).
+> The other gate items are unchanged by this sync; `private_lobbies_all` state not re-checked.
+>
 > 📌 **2026-10-07 (later) sync — the private-lobby gate stays open to unverified citizens, by owner ruling.** On
 > `0332`'s Q4 the owner chose **"Keep it open (Recommended)"**, so a forged citizen id can still host. `0332`
 > ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the funnel a `verified` bit (built, not deployed) that the gate does not read.
@@ -144,12 +154,14 @@ of the perks would depend on it."*
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322` (2026-09-28): the game server swaps a citizen's approved name in for other players, at ADR-103 trust
 - [[tasks/citizenship-card-newest-profile-read]] — task `0326` (2026-09-28): the citizenship card applies only the newest profile read
 - [[decisions/sprint-7]] — `0354`, `0380`, `0377` (gate items) moved onto this board 2026-10-04, ranks 37–39 (producer order)
-- [[tasks/private-lobby-tester-default]] — task `0354`, gate item 1 (done 2026-10-05, not deployed)
-- [[tasks/yandex-invite-copies-code]] — task `0380`, half of gate item 6 (done 2026-10-05, not deployed)
-- [[tasks/private-lobby-idle-end]] — task `0377`, gate item 4 (done, not deployed; live check `0390`)
+- [[tasks/private-lobby-tester-default]] — task `0354`, gate item 1 (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).*
+- [[tasks/yandex-invite-copies-code]] — task `0380`, half of gate item 6 (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).*
+- [[tasks/private-lobby-idle-end]] — task `0377`, gate item 4 (done, not deployed; live check `0390`) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).*
 - [[tasks/host-window-poll-before-lobby]] — task `0353`, host-window poll fix
 - [[tasks/lobby-window-joining-mark]] — task `0374`, the joining mark ends on close
 - [[tasks/private-lobby-code-format]] — task `0389`, the new private-lobby code
-- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06, not deployed): replaces the interim popup; gate item 5
+- [[tasks/citizenship-explainer-popup]] — task `0301` (closed 2026-10-06, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `fc3f539` is an ancestor of tag `0.0.157`; `0396` worklog).*: replaces the interim popup; gate item 5
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the private-lobby gate stays open to unverified citizens (Q4)
-- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): first live test of the locked look and tap; gate item 5 met
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): its placement-4 check surfaced the Start 403 (`0416`)

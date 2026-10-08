@@ -4,7 +4,7 @@
 **Source files**: `src/client/ReconnectModal.ts`, `src/client/ReconnectSession.ts`, `src/client/Main.ts`, `src/core/execution/MarkDisconnectedExecution.ts`
 
 > 🆕 **2026-09-30 — a refresh after a FAILED match start can now rejoin** (task `0347`, committed `9cb8ee4`,
-> not yet released — [[tasks/rejoin-after-failed-match-start]]). The reconnect session used to be saved only
+> not yet released — 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* — [[tasks/rejoin-after-failed-match-start]]). The reconnect session used to be saved only
 > after the game worker started, so a worker start failure left nothing to restore (a gap since `026701c`,
 > 2026-03-07, not a regression). It is now saved as soon as the server's `start` reaches the lobby, before the
 > worker is built; multiplayer only. Rejoin still needs a **click**; a second failure keeps the session and nothing

@@ -15,7 +15,7 @@
 > `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent). The code is in commit `0c9a620`
 > ("Sprint push", 2026-10-02 — checked with `git show --stat`: `src/client/SignatureAgeAnalytics.ts`,
 > `src/client/flashist/FlashistFacade.ts` and two test files). 🚨 **NOT deployed.** It targets the **2026-10-03/04
-> game deploy**; if it misses, it rides 2026-10-10/11 and `0373`'s earliest read slides a week. The board row says
+> game deploy**; 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).* if it misses, it rides 2026-10-10/11 and `0373`'s earliest read slides a week. The board row says
 > *"Not committed"* — true when the producer closed it, now stale (the code is in `0c9a620`). 📌 *2026-10-02: the row
 > is now corrected — "committed in `0c9a620`; not deployed" (owner request, relayed by `fkit-lead`); the deploy is
 > still pending.* **No event has been

@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 6, rank 38 (append rank; owner ruled it *"directly above 0250"*) / task `0325`
 
 > 📌 **2026-10-07 (later) sync — the "second step" this task named is built.** The join token `0332` ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) carries
-> the verified session to the game server (committed `077c9e3`, not deployed). By owner ruling every perk stays open to
+> the verified session to the game server (committed `077c9e3`, not deployed). 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* By owner ruling every perk stays open to
 > unverified players, so ADR-116 residual 7 stays open.
 >
 > 🆕 **2026-10-07 sync — S3a is now LIVE.** `0340` was deployed 2026-10-07 (`0.0.156-profile.3`) and the owner's live
@@ -108,13 +108,13 @@ forger cannot get. The task was filed on owner ruling D3 on `0250` (*"New task, 
 - [[decisions/sprint-7]] — where `0339` and `0340` live
 - [[systems/flashist-init]] — the facade that pre-fetches the signed player data at boot
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check that FAILED 2026-10-01 (S2 exit not met)
-- [[tasks/stale-login-signature-age]] — task `0366`: counts how old this check's `stale` signatures are (done 2026-10-01, not deployed)
-- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics on this check's `stale` logins (signature age by boot kind, second-call check, held ms on `Ready`); committed, not deployed
-- [[tasks/verified-login-enforce]] — task `0340`, S3a (built 2026-10-05, not deployed; deploy in `0395`)
+- [[tasks/stale-login-signature-age]] — task `0366`: counts how old this check's `stale` signatures are (done 2026-10-01, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).*
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics on this check's `stale` logins (signature age by boot kind, second-call check, held ms on `Ready`); committed, not deployed 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).*
+- [[tasks/verified-login-enforce]] — task `0340`, S3a (built 2026-10-05, not deployed; deploy in `0395`) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.3`, 2026-10-07 (`0395`).*
 - [[decisions/adr-121-login-signature-24h-window]] — the 24 h window that replaced this task's 900 s
 - [[tasks/login-signature-24h-window]] — task `0391`, the window change (deployed 2026-10-06)
 - [[tasks/authenticated-profile-read]] — task `0250`, whose ruling D3 filed this task; its S3b reads `verified`
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed 2026-10-07, `vfy: true` confirmed live
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` stale share (3.25 %)
-- [[tasks/join-token-identity-vouch]] — task `0332`, the second step (join token), built 2026-10-07 (not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the second step (join token), built 2026-10-07 (not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07)

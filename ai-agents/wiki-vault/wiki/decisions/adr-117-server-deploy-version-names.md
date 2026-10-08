@@ -77,7 +77,7 @@ bumping or suffixing `package.json`; warn-and-deploy on uncommitted files (decli
   third-party images, so decision 4 and the decision-6 surfaces do not apply (a marker file on the box instead);
   ⚠️ decision 3 there is the default but `0356` says it is **not yet ruled for that task**. *(📌 2026-10-01: ruled at
   `0356`'s plan gate — **refuse** on uncommitted shipped files, no deploy lock, no commit-exact upload; `0356` is
-  done (agent-closed — not owner-verified), not deployed; verify `0363` on Sprint 8 — see
+  done (agent-closed — not owner-verified), not deployed; 📌 *2026-10-08 lint: deployed since — telemetry `0.0.155-telemetry.1`, 2026-10-03, verified by `0363`.* verify `0363` on Sprint 8 — see
   [[tasks/telemetry-deploy-version-tags]].)* Game server
   (**`0357`**) — not renamed; only its fake `service.version` `"1.0.0"` is replaced by the real version.
 - **Re-raise only if:** the game's own versioning changes shape; a tool starts reading or sorting git tags; the

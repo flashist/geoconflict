@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 24 (append rank; part of the owner-ruled top reconnect run) / task `0035` — moved in from `sprint-backlog.md` 2026-09-29
 
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `9cb8ee4`; **not in any deploy yet**
-> (latest game tag `0.0.155`). Its proof on the real dev box is verify task **`0351`**, Sprint 8 rank 2
+> (latest game tag `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* Its proof on the real dev box is verify task **`0351`**, Sprint 8 rank 2
 > ([[decisions/sprint-8]]); it does not block Sprint 7's deploy.
 
 ## Goal

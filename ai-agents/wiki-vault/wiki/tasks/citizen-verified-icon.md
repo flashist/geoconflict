@@ -6,7 +6,7 @@
 
 > 📌 **2026-10-07 sync — the ★'s forged-id case stays open by owner ruling.** On `0332`'s Q3 the owner chose
 > **"Keep the ★ (Recommended)"**: unverified citizens keep the ★, so a forged id still shows it. `0332`
-> ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the funnel a `verified` bit (built, not deployed) that nothing in the ★ path reads.
+> ([[tasks/join-token-identity-vouch]], [[decisions/adr-124-join-token]]) gives the funnel a `verified` bit (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* that nothing in the ★ path reads.
 >
 > 🆕 **2026-09-28 — this task's seam now carries more than a cosmetic flag; two of its residuals were
 > re-decided.** (1) **Private lobbies** (`0302`) gate a **permission** on the resolved citizen flag, so the
@@ -96,4 +96,4 @@ The other seven: no pre-match icon in public quick-play (there is no public-lobb
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, which gated the ★ badge inside `renderCitizenBadge()` on the owner ruling *"kill means kill"*
 - [[tasks/citizenship-card-fail-closed-degraded-sdk]] — task `0291`, which brought the **card** into line with this badge's fail-closed behaviour, resolving the *"kill means kill"* / *"keep the fail-open"* tension `0236` had recorded as deliberately unresolved
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the ★ stays open to unverified citizens (Q3)
-- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*

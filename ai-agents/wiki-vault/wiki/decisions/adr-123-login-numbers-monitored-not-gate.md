@@ -50,7 +50,7 @@ longer block us so the point is that we already improved this tail numbers drast
    see [[decisions/sprint-7]]). The ADR does not set what that re-read must show.
 3. **ADR-122 otherwise stands:** no fixed window or threshold (D1); counters restart at each profile deploy, so never
    compare a cumulative value across one; `0394` is not a gate (D4). The separate-slot advice is already met
-   (`0340` deployed alone; S3b has not deployed).
+   (`0340` deployed alone; S3b has not deployed). 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 4. **Unchanged:** any approval a consumer task needs for reasons *other than* the login numbers — e.g. ADR-116
    Decision 6's approval to enforce (already given for `0340`, per `0395`), or rules the owner set inside
    `0332` / `0323`. Only the numbers gate is removed.
@@ -100,4 +100,5 @@ change nothing.
 - [[tasks/stale-login-fix-decision]] — task `0373`, the weekend-evening data behind the caveat
 - [[systems/player-profile-store]] — the profile box whose counters are monitored
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): `0332`'s design; its deploy is not held by the login numbers
-- [[tasks/join-token-identity-vouch]] — task `0332`, built and closed 2026-10-07 (not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, built and closed 2026-10-07 (not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): deployed S3b with gate 3 removed by this ADR

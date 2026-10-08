@@ -7,7 +7,7 @@
 > 📌 **2026-10-06 sync — `0297` (the owner-run test-buy) CLOSED 2026-10-05**, with §2's catalog read, both §4
 > reconciliation boxes and §5 **waived by the owner, not verified** ([[tasks/paid-citizenship-test-buy]]). `0250`
 > closed 2026-10-06: S1 (paid state hidden from unverified readers) live since 2026-09-29; S3b (a verified owner sees
-> their own paid facts) **built, not deployed** ([[tasks/authenticated-profile-read]]).
+> their own paid facts) **built, not deployed** ([[tasks/authenticated-profile-read]]). 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 >
 > 🚨 **READ THIS FIRST — what the close does and does not prove.** Closed **2026-09-26** by a spawned
 > `fkit-producer` via `/fkit-task-done`, on an **owner ruling given live in the `fkit lead` session via
@@ -107,8 +107,9 @@ timestamp ⇒ paid). The owner ruled that a must-fix in `0250` (authenticated pr
 - [[decisions/sprint-4]] — the board this work started on, before the 2026-09-23 rescope moved it to Sprint 5
 - [[systems/project-brief]] — product ground truth — the go-live-before-proof tradeoff, now live
 - [[tasks/citizenship-restart-prompt]] — task `0303` (2026-09-28): a "restart to apply" popup after a purchase or a citizenship-making tenure gift
-- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the HMAC-construction label is built but not deployed; the answer is still owed in `0297`
+- [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): the HMAC-construction label is built but not deployed; the answer is still owed in `0297` 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `26b85c0` is an ancestor of that tag; that deploy verified by `0358`).* The label was read 2026-10-04 (`decoded_json`, n = 1) and `0297` closed 2026-10-05.
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the owner-run test-buy (closed 2026-10-05; three checks waived)
 - [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak fix and verified owner view
-- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): no interstitial ads for paid citizens — built and committed, not deployed (live check `0398`)
-- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the explainer popup's Buy reuses this purchase path through the card — committed, not deployed (live check `0401`)
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): no interstitial ads for paid citizens — built and committed, not deployed (live check `0398`) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*
+- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the explainer popup's Buy reuses this purchase path through the card — committed, not deployed (live check `0401`) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `fc3f539` is an ancestor of tag `0.0.157`; `0396` worklog).*
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (2026-10-08): a test purchase from the explainer popup completed in production

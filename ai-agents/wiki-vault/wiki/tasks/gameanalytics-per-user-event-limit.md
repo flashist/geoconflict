@@ -8,7 +8,7 @@
 >
 > **`✅ Done (agent-closed — not owner-verified)`.** Closed 2026-09-07 on an owner ruling given live — *"Close now with an honest note."* The owner approved **the decision to close** and has **verified nothing in production**. Closed by a spawned `fkit-producer` via `/fkit-task-done`; no commit was made by the close.
 >
-> ⛔ **NOTHING FROM THIS TASK IS DEPLOYED** as of 2026-09-07. It ships at the next deploy window. **Do not read any statement on this page as production behaviour.**
+> ⛔ **NOTHING FROM THIS TASK IS DEPLOYED** as of 2026-09-07. It ships at the next deploy window. **Do not read any statement on this page as production behaviour.** 📌 *2026-10-08 lint: shipped since — `35afc64` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; the post-deploy attribution stays impossible, as below.*
 
 ## Goal
 

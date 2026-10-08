@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 37 (append rank; moved in from the Backlog board 2026-10-04) / task `0354`
 
+> 🆕 **2026-10-08 sync — now deployed.** `8d74090` is in game **`0.0.157`** (deployed 2026-10-08; checked with
+> `git tag --contains 8d74090`). No live check of this task's tester default is recorded in this window. `0401`'s
+> Snippet B set the tester marker on production for its locked-tap check ([[tasks/citizenship-explainer-popup-live]]).
+> Release-gate item 5 is now met (`0301` deployed). The *"Not deployed"* line below was true when written.
+>
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` ("Sprint 7: private lobby tasks
 > 0354 0380 0377 0353 0374 0389", 2026-10-05). ⚠️ **Not deployed** — client-only, and no game deploy has run since
 > `0.0.156` (2026-10-03; checked: newest game tag). Nothing here is owner-verified.
@@ -54,3 +59,4 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[systems/analytics]] — the `Experiment:private_lobbies_all:*` cohort event
 - [[decisions/sprint-7]] — the board (rank 37)
 - [[tasks/citizenship-explainer-popup]] — task `0301`, release-gate item 5: built and committed (`fc3f539`) 2026-10-06; met only on deploy
+- [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): used the tester marker for its locked-tap check; gate item 5 met

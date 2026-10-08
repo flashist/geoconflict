@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 9 (append rank, not a merit rank) / task `0332`
 
+> 🆕 **2026-10-08 sync — DEPLOYED, NOT YET VERIFIED.** Both sides rode along with `0250` S3b: the profile side in
+> **`0.0.156-profile.4`** (06:41:41Z), the game side in **`0.0.157`** (06:56:17Z) — profile first, as required (`0396`'s
+> delta check named it as expected, nothing unexpected; [[tasks/authenticated-profile-read-live]]). Early watch only:
+> the `resolve_vouch` counter read `verified` 43 · `absent` 84 · no rejected outcome; credits flowed. Its own verify-live
+> task `0405` is still open. The *"NOT DEPLOYED"* note below was true when written.
+>
 > ✅ Done (agent-closed — not owner-verified), closed **2026-10-07** by a spawned `fkit-producer`, routed by
 > `fkit-lead` driving `/fkit-sprint-ship-loop`, on an **owner ruling given live via `AskUserQuestion`**: *"Close it
 > (Recommended)"* — *"A producer closes 0332 and files the 'verify it live' task for after the deploy. The high
@@ -127,3 +133,4 @@ Coverage **reasoning-only second opinion** both rounds (Codex ran, found nothing
 - [[systems/player-profile-store]] — the profile server's resolve route
 - [[decisions/sprint-7]] — the board row (rank 9)
 - [[decisions/sprint-8]] — verify task `0405`
+- [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): the deploy this task rode along in

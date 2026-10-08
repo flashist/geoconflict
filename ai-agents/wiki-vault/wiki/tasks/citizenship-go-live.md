@@ -7,7 +7,7 @@
 > 📌 **2026-10-06 sync:** `0297` (the live test-buy split out of this task) **closed 2026-10-05** — real purchases
 > proven, HMAC construction `decoded_json` (n = 1), and the reconciliation and catalog checks **waived by the owner, not
 > verified** ([[tasks/paid-citizenship-test-buy]]). `0250` closed 2026-10-06 — S1 live since 2026-09-29, S3b built and
-> **not deployed** ([[tasks/authenticated-profile-read]]).
+> **not deployed** ([[tasks/authenticated-profile-read]]). 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 >
 > # ✅ CITIZENSHIP IS LIVE IN PRODUCTION SINCE 2026-09-26 — release `0.0.154`
 >
@@ -134,4 +134,4 @@ unknown** — backlog follow-ups `0309` → `0310`. A snapshot at about 14:47 UT
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): closed on local proof; which construction matched is still unknown
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the test-buy split out of this task (closed 2026-10-05)
 - [[tasks/authenticated-profile-read]] — task `0250`, the paid-state leak this page flagged at launch
-- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the "nothing explains citizenship" follow-up — committed, not deployed
+- [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the "nothing explains citizenship" follow-up — committed, not deployed 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `fc3f539` is an ancestor of tag `0.0.157`; `0396` worklog).*

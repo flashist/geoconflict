@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 13 (append rank) / task `0336`
 
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `26b85c0`; **not in any deploy yet**
-> (latest game tag `0.0.155`). ⚠️ **The real claim path was NOT RUN live** — it cannot be reached in local dev;
+> (latest game tag `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `26b85c0` is an ancestor of tag `0.0.156`).* ⚠️ **The real claim path was NOT RUN live** — it cannot be reached in local dev;
 > covered by unit tests only. The tenure popup itself **is live in production** since `0.0.154`.
 >
 > 📌 **2026-10-02 — a known gap in this gate is filed as `0374`** (Backlog, open, placement unruled — see

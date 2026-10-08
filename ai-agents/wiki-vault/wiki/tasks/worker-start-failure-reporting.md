@@ -5,7 +5,7 @@
 **Sprint/Tag**: Sprint 7, rank 23 (append rank; part of the owner-ruled top reconnect run) / task `0348`
 
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `9cb8ee4`; **not in any deploy yet**
-> (latest game tag `0.0.155`). Live checks ran on local dev only; the Uptrace line was checked at a **local fake
+> (latest game tag `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* Live checks ran on local dev only; the Uptrace line was checked at a **local fake
 > sink**, never in a real Uptrace.
 
 ## Goal

@@ -41,7 +41,7 @@ This is the fact most likely to mislead a reader of `Main.ts`. `gameStop` is the
 | desync modal | ❌ | ❌ | **`0233`, open** |
 | lobby error, pre-runner | ❌ | ❌ | **`0233`, open — and whether a monitor is even running here is UNSETTLED** |
 
-> 🆕 **2026-09-30 — site B grew, and the start can now be stopped** (committed `9cb8ee4`, not yet released).
+> 🆕 **2026-09-30 — site B grew, and the start can now be stopped** (committed `9cb8ee4`, not yet released) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).*.
 > `0348` ([[tasks/worker-start-failure-reporting]]): the worker-init failure path now calls `worker?.cleanup()`, so a
 > failed start no longer leaves a worker running. `0035` ([[tasks/worker-reuses-page-map]]): `joinLobby` aborts on
 > leave and on a lobby `error`, which stops a **still-starting** worker and silences the failure popup and telemetry

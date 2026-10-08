@@ -58,4 +58,5 @@ it does.
 - [[tasks/test-suite-reliability-investigation]] — task `0197`, ruled out before re-running
 - [[decisions/sprint-4]] — the board it closed on
 - [[decisions/sprint-backlog]] — the board carrying `0299`
-- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06, built, not deployed): paid citizens' interstitials are suppressed before Yandex is asked, so `Ad:Interstitial` no longer fires for them; the new `Ad:InterstitialSuppressed:PaidCitizen` counts suppressed **requests**
+- [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06, built, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*: paid citizens' interstitials are suppressed before Yandex is asked, so `Ad:Interstitial` no longer fires for them; the new `Ad:InterstitialSuppressed:PaidCitizen` counts suppressed **requests**
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): `Ad:Interstitial` 2,720 beside 24 suppressed (partial day)

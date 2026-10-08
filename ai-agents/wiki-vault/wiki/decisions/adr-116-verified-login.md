@@ -19,7 +19,7 @@
 > for unconfirmed"*. So a forged id still earns XP, shows the ★, hosts, and shows an approved name; **each part closes
 > only if the owner flips that use to verified-only**. A missing `verified` reads as unverified (Q7) — the rule for any
 > such flip. 🔧 The note says `0332` is *"accepted, not yet built"*; it closed later that day
-> ([[tasks/join-token-identity-vouch]]), committed, **not deployed**.
+> ([[tasks/join-token-identity-vouch]]), committed, **not deployed**. 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 >
 > ⛔ **2026-10-05 — SUPERSEDED IN PART by [[decisions/adr-121-login-signature-24h-window]]** (owner *"24 hours
 > (Recommended)"*; append-only pointers added to the canonical ADR, every older line byte-identical). **Superseded:**
@@ -36,7 +36,7 @@
 > with two additions beyond the draft (the relogin re-verifies with a fresh signed call; no route reads `verified` at the
 > deployed commit); two ✅ pointers. Every older line byte-identical. The post-`0391` stale share the owner looked at
 > first: **3.25 %** ([[tasks/post-24h-window-login-read]]). ⚠️ The owner's approval to enforce came **after** the deploy.
-> `0250` S3b — the first reader of `verified` — is still **not deployed**. The 2026-10-06 note below is history.
+> `0250` S3b — the first reader of `verified` — is still **not deployed**. 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).* The 2026-10-06 note below is history.
 > 🆕 **2026-10-06 sync — where the slices stand:** the 24 h window is **live** since the 2026-10-06 profile deploy
 > (`0391`, [[tasks/login-signature-24h-window]]); **S3a is built, not deployed** — `0340` closed as built + reviewed
 > (`71efd10`), its deploy and live check are `0395` ([[tasks/verified-login-enforce]]); `0250` S3b (the first reader of
@@ -182,8 +182,8 @@ to the client — ADR-103 already says do not re-propose it).
 - [[systems/weekend-deploy-window]] — the 2026-09-29 deploy, in the order this ADR's clarification set
 - [[tasks/approved-name-in-multiplayer-matches]] — task `0322`, whose forged-id case stays open until `0332`
 - [[tasks/verified-login-live-check]] — task `0339`, the live S2 check: FAILED 2026-10-01 (S2 exit not met); follow-up `0366`
-- [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed)
-- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics feeding `0373`, the reading task S3a (`0340`) now waits on (done 2026-10-02, not deployed)
+- [[tasks/stale-login-signature-age]] — task `0366`: the `stale` age-bracket counter that S3a's gate now waits on (done 2026-10-01, not deployed) 📌 *2026-10-08 lint: deployed since — profile `0.0.156-profile.1`, 2026-10-03 (✔️ `e581824` is an ancestor of that tag; that deploy verified by `0358`).*
+- [[tasks/stale-login-client-diagnostics]] — task `0372`: client diagnostics feeding `0373`, the reading task S3a (`0340`) now waits on (done 2026-10-02, not deployed) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `0c9a620` is an ancestor of tag `0.0.156`).*
 - [[decisions/adr-118-archive-read-through-game-server]] — 🆕 2026-10-03: signed identity is a candidate for the citizen-gated archive read (open point 1, an owner question)
 - [[decisions/adr-121-login-signature-24h-window]] — supersedes this ADR in part (2026-10-05): 24 h window, id first, residual R1
 - [[decisions/adr-122-stale-login-gate-owner-judgment]] — the S3a gate's watch window and threshold have no fixed value
@@ -192,9 +192,11 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/verified-login-enforce]] — task `0340`, S3a (built; ~~not deployed~~ deployed 2026-10-07 via `0395`)
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a deployed and `vfy: true` confirmed live, 2026-10-07; applied the ADR-113 note
 - [[tasks/post-24h-window-login-read]] — task `0392`: the post-`0391` stale share (3.25 %) the owner looked at
-- [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed)
+- [[tasks/authenticated-profile-read]] — task `0250`, S3b reads `verified` (built, not deployed) 📌 *2026-10-08 lint: S3b deployed since — profile `0.0.156-profile.4`, 2026-10-08; owner's live check passed both halves (`0396`).*
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): ad-free reads paid only from the verified owner view (Decision 4); unverified sessions see ads (owner-accepted)
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): shows the player whether this session is verified; explains Decision 4, does not soften it
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the login numbers no longer gate `verified` deploys; Decision 6 unchanged
 - [[decisions/adr-124-join-token]] — 2026-10-07: the game server learns `verified` through the join token; residual 7 stays open by owner ruling
-- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): S3b live — Decision 4 holds in production
+- [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): the not-confirmed state that explains Decision 4 is live (unverified states not checked live)

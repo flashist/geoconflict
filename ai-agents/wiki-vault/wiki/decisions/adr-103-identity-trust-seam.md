@@ -22,7 +22,7 @@
 >   The re-raise list (paid citizenship through an unverified identity; observed farming; a second reader of
 >   `client.yandexPlayerId`) is unchanged and is where such a ruling would come from.
 > - 🔧 The canonical note says *"Not built yet"*; `0332`'s build closed later the same day
->   ([[tasks/join-token-identity-vouch]]), committed in `077c9e3`, **not deployed** (no release tag) — so the game
+>   ([[tasks/join-token-identity-vouch]]), committed in `077c9e3`, **not deployed** (no release tag) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.* — so the game
 >   server in production is still exactly as this ADR describes.
 >
 > 🆕 **2026-10-07 sync — verified logins are live at the PROFILE server; THIS ADR STILL GOVERNS THE GAME SERVER.**
@@ -129,4 +129,4 @@ The design rules that make this a seam rather than just a shortcut:
 - [[tasks/verified-login-enforce]] — task `0340`, S3a built (deployed 2026-10-07); the game-server seam stays client-asserted until `0332`
 - [[tasks/verified-login-enforce-live]] — task `0395`: S3a live 2026-10-07 at the profile server only — not in this seam
 - [[decisions/adr-124-join-token]] — 2026-10-07: supersedes **design rule 2 only**; the earned-XP decision stands (owner Q2); exit now an owner flip of `xpCredit`
-- [[tasks/join-token-identity-vouch]] — task `0332`: the funnel now carries `{ yandexId, verified }` (built, committed, not deployed)
+- [[tasks/join-token-identity-vouch]] — task `0332`: the funnel now carries `{ yandexId, verified }` (built, committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
