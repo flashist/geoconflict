@@ -32,7 +32,7 @@ Uptrace approval — **confirm that approval covers this task first** (standing 
 handed over).
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md).)*
+[`0396`](../../done/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md).)*
 
 ## Context
 

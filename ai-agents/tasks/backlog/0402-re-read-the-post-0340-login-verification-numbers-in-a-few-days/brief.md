@@ -64,7 +64,7 @@ worklog § *2026-10-07 — the read*, which follows `0373`'s Step 1):
 ### Caveats to watch (from ADR-122 and the earlier reads)
 - ⚠️ **Counters restart at every profile deploy.** The window starts at the first point after the **latest** profile
   deploy — 2026-10-07T07:10:45Z (`0340`) as of filing. If another profile deploy lands inside the window (for
-  example [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md)'s
+  example [`0396`](../../done/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md)'s
   S3b deploy), say so and treat the window as two pieces. **Never subtract or compare a cumulative value across a
   restart.**
 - ⚠️ **Evenings, weekend ones especially, are the window to watch.** In `0373`'s data (which included the Sat 3 and

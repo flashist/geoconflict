@@ -4,10 +4,18 @@
 0383
 
 ## Sprint
-Backlog
+Sprint 7
+
+> 📌 **2026-10-08 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING typed directly by the owner in the `fkit lead` session on 2026-10-08 (the owner's own message, not an `AskUserQuestion` answer), relayed verbatim by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+> Verbatim: *"Move 0382 and 0383 into the Sprint 7"*. The [Backlog board](../../../sprints/backlog.md) row is kept as `➡️ Moved`. Status unchanged
+> (`🔲 Backlog`); no folder moved, no mover run. `0383` is placed in the same sprint as its build by this ruling, not by the build/verify rule; the placement note under *Priority* is history. Its dependency on `0382` (built and deployed) is unchanged.
 
 ## Priority
-Unscheduled
+61
+
+> 📌 **2026-10-08 — was ~~Unscheduled~~; 61 is ADR-035 append position on [Sprint 7](../../../sprints/plan-sprint-7.md), NOT a merit rank.**
+> The owner named the two tasks (`0382`, `0383`, in that order), not ranks. Appended after that board's
+> highest (60, `0382`); open for owner confirmation. The note below describes the Backlog board and is history.
 
 > 📌 **Placement note.** No sprint was named, so this is on the Backlog board for now. The owner's standing
 > build/verify rule (2026-09-29) puts a verify task **at the top of the next sprint after its build ships**, and it

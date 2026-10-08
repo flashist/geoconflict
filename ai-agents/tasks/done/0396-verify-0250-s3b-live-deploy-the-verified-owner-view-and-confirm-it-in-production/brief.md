@@ -38,7 +38,7 @@ note at the end.
 > above).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The gate calls, the deploys and the DevTools check are
@@ -221,7 +221,7 @@ and the ⛔ rollback rule below written out in full.
 >   `bad_payload`) before this deploy is no longer needed. **Verification step 1's** *"the owner's call on the
 >   post-`0391` numbers, in the owner's words"* is likewise no longer required; record this ruling's date in its place.
 >   The *Notes* line *"Also needed, not a task: the owner's ADR-122 look …"* and the ADR-122 bullet in *Context* are
->   superseded on that point. The numbers re-read is now [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md)
+>   superseded on that point. The numbers re-read is now [`0402`](../../backlog/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md)
 >   — non-blocking.
 > - **Gates that remain:** 1 — `0340` deployed in its own, earlier slot: ✅ **met 2026-10-07** (deploy record
 >   2026-10-07T07:10:45Z, [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/worklog.md)); 2 — `0395` confirmed

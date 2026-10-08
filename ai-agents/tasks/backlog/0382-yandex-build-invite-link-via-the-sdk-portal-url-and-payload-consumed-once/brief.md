@@ -4,10 +4,18 @@
 0382
 
 ## Sprint
-Backlog
+Sprint 7
+
+> 📌 **2026-10-08 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING typed directly by the owner in the `fkit lead` session on 2026-10-08 (the owner's own message, not an `AskUserQuestion` answer), relayed verbatim by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+> Verbatim: *"Move 0382 and 0383 into the Sprint 7"*. The [Backlog board](../../../sprints/backlog.md) row is kept as `➡️ Moved`. Status unchanged
+> (`🔲 Backlog`); no folder moved, no mover run.
 
 ## Priority
-Unscheduled
+60
+
+> 📌 **2026-10-08 — was ~~Unscheduled~~; 60 is ADR-035 append position on [Sprint 7](../../../sprints/plan-sprint-7.md), NOT a merit rank.**
+> The owner named the two tasks (`0382`, `0383`, in that order), not ranks. Appended after that board's
+> highest (59, `0414`); open for owner confirmation. The note below describes the Backlog board and is history.
 
 > 📌 No sprint was named, so this is on the Backlog board. Placing it in a sprint is the owner's call.
 

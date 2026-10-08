@@ -372,7 +372,7 @@ ruling for the identical `0395` case — 2026-10-05, live via `AskUserQuestion` 
 *"Note only (Recommended)"*.
 
 - **Deploy this task only after
-  [`0396`](../../backlog/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) confirms
+  [`0396`](../0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md) confirms
   the owner view live** in production — a verified paid account's `GET /v1/profile` shows `is_paid_citizen: true`.
   [`0250`](../../done/0250-authenticated-profile-read-for-paid-entitlement/brief.md) closed 2026-10-06
   `(agent-closed — not owner-verified)` once built and reviewed; its slice S3b (the verified owner view this task reads

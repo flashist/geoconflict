@@ -37,7 +37,7 @@ Sprint 7
 > above).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The deploy, the test purchase and every check inside the

@@ -23,7 +23,7 @@
 | It is false on every other path: guest, failed or timed-out read, a body that fails the schema, an unverified session, or a server older than S3b. This is "fail closed for entitlement" (ADR-116 Decision 4). **For this task that means ads show**, which is the fail-open-to-ads behaviour the brief requires. The two "fail" words point the same way. | `PlayerProfileView.ts:105`, `:144`; `0250/review.md:20` |
 | S3b source is **committed** in `6f4ab77` ("Sprint push", 2026-10-06 13:25). ⚠️ The brief's 2026-10-06 note says it is "not committed". That was true when the note was written and is **stale now**. | `git show --stat 6f4ab77` lists `PlayerProfileView.ts`, `PublicProjection.ts`, `Routes.ts`, `PlayerProfile.ts`, `LoginContract.ts` |
 | S3b is **not deployed.** `6f4ab77` is in no git tag. The latest profile-server deploy tag, `0.0.156-profile.2`, points at `0aef613`, which is before S3b. | `git tag --contains 6f4ab77` returns nothing |
-| Going live waits on [`0396`](../../tasks/backlog/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md). | brief, 2026-10-06 note |
+| Going live waits on [`0396`](../../tasks/done/0396-verify-0250-s3b-live-deploy-the-verified-owner-view-and-confirm-it-in-production/brief.md). | brief, 2026-10-06 note |
 
 **What is still missing. All of it is Step 2 build work, not a new seam decision:**
 

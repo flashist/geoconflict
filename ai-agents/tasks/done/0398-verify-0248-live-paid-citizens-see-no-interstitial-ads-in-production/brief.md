@@ -35,7 +35,7 @@ OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQ
 > above).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The deploy, the Yandex console flip and the live checks
