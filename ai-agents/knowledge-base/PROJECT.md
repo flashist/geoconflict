@@ -10,7 +10,8 @@ Russian-market adaptation of the open-source game [OpenFront.io](https://openfro
 claim and expand territory on maps drawn from real-world geography, build structures, form
 alliances, deploy weapons, and compete to be the last player standing. It ships primarily through
 **Yandex Games**, is played mainly by Russian-speaking players, and today earns its revenue from
-advertising, with an in-app-purchase layer (the "citizenship" supporter tier) being built out.
+advertising, with an in-app-purchase layer (the "citizenship" supporter tier) ~~being built out~~
+live since 2026-09-26 (corrected 2026-10-08).
 
 ## Domain & context
 
