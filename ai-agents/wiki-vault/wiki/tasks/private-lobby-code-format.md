@@ -40,6 +40,9 @@ host-window **retry on `409` dropped** (the server's `409 game_id_taken` refusal
 
 ## Outcome
 
+- 📌 *2026-10-08 sync:* `0382` landed second and adapted, as agreed — its payload is cleaned with `cleanLobbyCode` and
+  validated with `PrivateLobbyCodeSchema` ([[tasks/yandex-invite-sdk-link]]).
+
 - ⚠️ **Accepted residual (owner: *"Accept and note it"*):** a **hand-typed** `#join=` link **with a space** is ignored
   on the website build — upstream `getToken()` in `src/client/jwt.ts` rebuilds the hash through `URLSearchParams`, so
   the space becomes `+`, which fails the format. Copied invites are ungrouped and Yandex ignores `#join=` (`0380`), so
@@ -56,3 +59,5 @@ host-window **retry on `409` dropped** (the server's `409 game_id_taken` refusal
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature
 - [[systems/networking]] — `create_game` and the worker routes
 - [[decisions/sprint-7]] — the board (rank 42)
+- [[tasks/yandex-invite-sdk-link]] — task `0382`, whose payload validator accepts this format
+- [[tasks/join-modal-paste-hint]] — task `0413`: the Join window's paste fix; this task's clean-up of typed or pasted codes unchanged

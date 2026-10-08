@@ -48,6 +48,10 @@ portals; also lands in our own `location.search`; `getGameByID` returns this gam
 
 ## Outcome
 
+- 📌 *2026-10-08 sync:* both builds now exist — `0380` (live in `0.0.157`) and `0382` (closed 2026-10-08, committed
+  `a555111`, not deployed; [[tasks/yandex-invite-sdk-link]]). The probe's facts (payload returns after a match; copy only
+  inside a click; never rewrite `location.search`) are what `0382` built against. Checks `0381` / `0383` still open.
+
 - **Verification step 1** (platform findings, sourced, with what could not be established) — met by the evaluation
   report plus the probe's *not tested* list.
 - 🚫 **Verification step 2 — WAIVED 2026-10-04, never run** (owner: *"Yes, skip it and close 0199"*). Moot because
@@ -78,3 +82,4 @@ portals; also lands in our own `location.search`; `getGameByID` returns this gam
 - [[decisions/sprint-backlog]] — the board this task closed on, and where `0380`–`0383` are filed
 - [[tasks/yandex-invite-copies-code]] — task `0380`, the code half of the follow-up (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Live check `0381` still open.
 - [[systems/yandex-games-platform-rules]] — Rule 3 cites the owner's 2026-10-03 ruling recorded in this task
+- [[tasks/yandex-invite-sdk-link]] — task `0382`, the link build this decision ordered (closed 2026-10-08)

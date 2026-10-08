@@ -3,7 +3,15 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-08 (latest, `6f1d737`): 143 rows, 102 open — three filed, five moved to Sprint 7.** Re-counted by me at
+> 🆕 **2026-10-08 (latest, `a555111`): 144 rows, 103 open — `0419` filed.** Re-counted by me at `HEAD` = `a555111`, by
+> each row's leading status glyph: 100 `🔲 Backlog` · 33 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was
+> 143 / 102). **`0419`** — other small standalone popups (game starting, citizenship restart, tenure grant, reconnect,
+> stale build, email subscribe, feedback — the producer's grep, the coder confirms) get the same wider-on-large-screens
+> change as `0417` ([[tasks/explainer-popup-wider]]); filed on the owner's plan-gate answer *"File a task for the
+> others"*; depends on `0417`'s settled approach. The other edits are `backlog/` → `done/` link repoints in the
+> `➡️ Moved` rows of `0382`, `0407`, `0408`, `0409`, all closed on [[decisions/sprint-7]] 2026-10-08.
+>
+> 🆕 **2026-10-08 (`6f1d737`): 143 rows, 102 open — three filed, five moved to Sprint 7.** Re-counted by me at
 > `HEAD` = `6f1d737`, by each row's leading status glyph: 99 `🔲 Backlog` · 33 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` ·
 > 3 `⛔ Cancelled` (was 137 / 101). All three new rows came out of the 2026-10-08 live checks on `0.0.157`:
 > - **`0410`** — the citizenship card shows *"0 / 100"* XP and an empty bar when the profile could not load (found by
@@ -892,3 +900,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): its check 5a filed `0410` here
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): the flags-timeout load filed as `0411` here
 - [[systems/yandex-games-platform-rules]] — the rule behind `0415` (Rule 1), `0010` (Rule 2) and the `0403` VK placement (Rule 3)
+- [[tasks/explainer-popup-wider]] — task `0417`, whose plan gate filed `0419` here

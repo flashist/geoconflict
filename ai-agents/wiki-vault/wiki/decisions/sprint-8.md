@@ -5,7 +5,20 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-08 (latest, `6f1d737`): 17 rows — 2 `✅ Done` · 7 `🔲 Backlog` · 8 `➡️ Moved`; 7 OPEN** (was 16 / 6),
+> 🆕 **2026-10-08 (latest, `a555111`): 18 rows — 2 `✅ Done` · 8 `🔲 Backlog` · 8 `➡️ Moved`; 8 OPEN** (was 17 / 7),
+> counted by me by each row's leading status glyph. **`0420` appended at 18** — **one live-check checklist** for the
+> Sprint 7 builds `0416` ([[tasks/worker-route-query-string]]), `0408` ([[tasks/explainer-paid-only-subheading]]),
+> `0409` ([[tasks/explainer-buy-for-earned-citizens]]), `0407` ([[tasks/paid-citizen-thank-you-line]]), `0417`
+> ([[tasks/explainer-popup-wider]]), `0412` ([[tasks/start-screen-private-tab]]) and `0413`
+> ([[tasks/join-modal-paste-hint]]); `0382` is not in it (its check is `0383` on [[decisions/sprint-7]]). Owner ruling
+> 2026-10-08: one verify task *"at the top of Sprint 8"* under the build/verify-split rule; ADR-035 forbids renumbering
+> closed rows, so it was appended — then **"Keep rank 18"** (owner, same day): read it as the top group. Also ruled:
+> `0413`'s error-window copy is **"not checked live"** (no safe way to raise the window in production). Deploy timing on
+> the brief: `0416`, `0407`–`0409` cleared same-day; `0412`, `0413`, `0417` weekend slot — so the checklist may run in
+> two passes. ⚠️ None of the seven is deployed yet (`git tag --contains a555111` → none). Line-3 banner unchanged
+> (`🔲 Backlog`). `0420`'s brief is open, so it has no vault page; summary from the board's addendum.
+>
+> 🆕 **2026-10-08 (`6f1d737`): 17 rows — 2 `✅ Done` · 7 `🔲 Backlog` · 8 `➡️ Moved`; 7 OPEN** (was 16 / 6),
 > counted by me by each row's leading status glyph. **`0418` appended at 17** — re-read `Citizenship:Status:Unverified`
 > and `Citizenship:Status:Restart` in GameAnalytics over several days, because `0400`'s check 8 did not see them
 > ([[tasks/session-verified-status-line-live]]); owner, verbatim: *"No need for the investigation, brief a task to the
@@ -258,3 +271,10 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/authenticated-profile-read-live]] — task `0396` (filed here at 10; closed on Sprint 7 2026-10-08)
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (filed here at 11; closed on Sprint 7 2026-10-08)
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (filed here at 13; closed on Sprint 7 2026-10-08)
+- [[tasks/worker-route-query-string]] — task `0416`, live check on `0420` (rank 18)
+- [[tasks/explainer-paid-only-subheading]] — task `0408`, live check on `0420`
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409`, live check on `0420`
+- [[tasks/paid-citizen-thank-you-line]] — task `0407`, live check on `0420`
+- [[tasks/explainer-popup-wider]] — task `0417`, live check on `0420`
+- [[tasks/start-screen-private-tab]] — task `0412`, live check on `0420`
+- [[tasks/join-modal-paste-hint]] — task `0413`, live check on `0420` (error-window copy: not checked live, by ruling)

@@ -93,3 +93,4 @@ Nothing in source. The record, by Verification step:
 - [[decisions/sprint-8]] — filed there (rank 10) before moving to Sprint 7
 - [[tasks/paid-citizen-ad-free]] — task `0248`, the ad gate that reads S3b and waited on this task
 - [[tasks/citizenship-explainer-popup]] — task `0301`, which rode in the same game deploy
+- [[tasks/paid-citizen-thank-you-line]] — task `0407`, whose live check needed this one first

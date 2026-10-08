@@ -54,6 +54,11 @@ Nothing in source. Owner's checks on production, 2026-10-08:
     sub-heading.
   - **`0409`** (rank 56) — no Buy button for an earned citizen who has not paid (verified sessions only).
   `0408` and `0409`, with `0407`, were moved in from the Backlog board with the owner's same-day deploy exception.
+- 📌 *2026-10-08 (later) sync: all three follow-ups built and closed the same day* — `0408`
+  ([[tasks/explainer-paid-only-subheading]]), `0409` ([[tasks/explainer-buy-for-earned-citizens]]), `0417`
+  ([[tasks/explainer-popup-wider]]); `0407` too ([[tasks/paid-citizen-thank-you-line]]). Committed `a555111`, not deployed;
+  their live look is `0420` (Sprint 8). ⚠️ After `0412` ([[tasks/start-screen-private-tab]]) ships, this task's check 4
+  (the locked Create tap) needs a switch to the new Private tab first.
 - **`0354`'s release gate item 5 is met** — `0301` is deployed ([[tasks/private-lobby-citizen-perk]]).
 
 ## Related
@@ -69,3 +74,8 @@ Nothing in source. Owner's checks on production, 2026-10-08:
 - [[systems/analytics]] — the explainer, locked-feature and purchase events read here
 - [[decisions/sprint-7]] — the board (rank 48) and the follow-ups `0407`–`0409`, `0417`
 - [[decisions/sprint-8]] — filed there (rank 13) before moving to Sprint 7
+- [[tasks/explainer-paid-only-subheading]] — follow-up `0408`, built 2026-10-08
+- [[tasks/explainer-buy-for-earned-citizens]] — follow-up `0409`, built 2026-10-08
+- [[tasks/explainer-popup-wider]] — follow-up `0417`, built 2026-10-08
+- [[tasks/paid-citizen-thank-you-line]] — `0407`, moved in with `0408`/`0409`, built 2026-10-08
+- [[tasks/start-screen-private-tab]] — `0412`: check 4's locked Create tap moves into the Private tab

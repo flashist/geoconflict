@@ -49,6 +49,10 @@
 >     real player; 0 XP, no citizenship) — **left in place, owner's call**; it adds +1 to the player count.
 > - **Further same-day deploy allowed** for `0407`–`0409` and `0416` only (owner rulings on Sprint 7); everything else
 >   new waits for the weekend.
+>   📌 *2026-10-08 (later) sync:* `0416` ([[tasks/worker-route-query-string]]) and `0407`–`0409` are **built and committed**
+>   (`a555111`), but **no deploy tag contains them** (checked 2026-10-08) — the same-day deploy has not happened as far as
+>   the repo shows. `0416` ships only with a game **image** rebuild (`build-deploy.sh`), since `nginx.conf` is the
+>   container nginx. `0412`, `0413`, `0417` wait for the weekend; all seven live checks are `0420` (Sprint 8).
 >
 > ---
 >
@@ -870,3 +874,4 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/verified-login-enforce-live]] — task `0395`, the 2026-10-07 mid-week profile deploy (`0340`, `0.0.156-profile.3`)
 - [[tasks/post-24h-window-login-read]] — task `0392`, the numbers read before (and judged after) that deploy
 - [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): the third mid-week deploy — profile `.4` then game `0.0.157`
+- [[tasks/worker-route-query-string]] — task `0416`, the post-deploy Start 403, fixed in `nginx.conf` (built 2026-10-08, ships with the game image)

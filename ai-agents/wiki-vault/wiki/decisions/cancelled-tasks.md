@@ -290,6 +290,11 @@ point (hide vs keep the paste button, and the hint text). Nothing was built here
 **If revisited:** read `0413`'s Part B, not this brief. The inherited unknown is unchanged: `0380`'s own live check
 (`0381`) has not shown whether the SDK clipboard or the fallback actually copies inside the Yandex iframe.
 
+> 📌 *2026-10-08 sync: Part B is built.* `0413` closed 2026-10-08 `(agent-closed — not owner-verified)` — the error
+> window's copy now goes through `FlashistFacade.copyText`; committed in `a555111`, not deployed. Proven locally only on
+> the browser fallback; by owner ruling on `0420` the error-window copy is **"not checked live"**. See
+> [[tasks/join-modal-paste-hint]].
+
 ## Consequences
 
 - Future retries should start from the narrower follow-up guidance recorded under each cancelled item, not from the original cancelled scope
@@ -331,3 +336,4 @@ point (hide vs keep the paste button, and the hint text). Nothing was built here
 - [[tasks/verified-login-enforce]] — task `0340`, whose listed `verified` readers included `0323` until its cancellation
 - [[tasks/yandex-invite-copies-code]] — task `0380`, the `copyText` path that `0414` (cancelled 2026-10-08, merged into `0413`) would have reused
 - [[tasks/paid-citizen-ad-free-live]] — task `0398`, during whose live checks the paste bug behind `0413`/`0414` was found
+- [[tasks/join-modal-paste-hint]] — task `0413`, which built `0414`'s scope as Part B (closed 2026-10-08)

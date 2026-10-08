@@ -78,3 +78,4 @@ confirmed (Recommended)"* — this task is B4, and it shipped **only because the
 - [[decisions/sprint-7]] — where `0337`, the verify task, sits
 - [[tasks/match-exit-query-string-production-check]] — task `0337`, this task's production check: PASSED 2026-10-04
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: the same-tab reload on match exit is its leading (unproven) cause of `stale` logins
+- [[tasks/yandex-invite-sdk-link]] — task `0382`: the invite payload also sits in `location.search`, which it never rewrites for this task's reason

@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified) — **built and committed (`fc3f539`); LIVE since 2026-10-08** in game `0.0.157`, verified by `0401` *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 19 (append rank, not a merit rank) / task `0301`
 
+> 🆕 **2026-10-08 (later) sync — the three popup follow-ups are built** (all `(agent-closed — not owner-verified)`,
+> committed `a555111`, **not deployed**): `0408` paid-only sub-heading ([[tasks/explainer-paid-only-subheading]]) ·
+> `0409` *Buy paid citizenship* for verified, earned, unpaid citizens — the shared offer rule gains `citizen_buy`, card
+> render unchanged ([[tasks/explainer-buy-for-earned-citizens]]) · `0417` 600 px cap and a dark scrollbar
+> ([[tasks/explainer-popup-wider]]). Locally looked at for all three (Playwright). Live look → `0420` (Sprint 8).
+>
 > 🆕 **2026-10-08 sync — LIVE AND VERIFIED** ([[tasks/citizenship-explainer-popup-live]], `0401`, closed 2026-10-08).
 > Game `0.0.157`. Owner's live checks: a test purchase from the popup completed (`Purchase:Completed:Citizenship`); guest
 > login runs; the popup works in the real iframe in RU; the **locked Create Lobby tap** works — its first live test.
@@ -112,3 +118,7 @@ in the doc, code unchanged; second opinion reasoning-only (Codex could not run j
 - [[decisions/sprint-6]] — where this task was filed and ranked (2026-09-26)
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): the live check, all four checks passed; local look never done
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): its hard dependency, deployed first
+- [[tasks/explainer-paid-only-subheading]] — task `0408` (closed 2026-10-08): ad-free under a *paid only* sub-heading
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (closed 2026-10-08): the `citizen_buy` offer, verified sessions only
+- [[tasks/explainer-popup-wider]] — task `0417` (closed 2026-10-08): 600 px cap, dark scrollbar
+- [[tasks/start-screen-private-tab]] — task `0412`: the locked Create tap now lives in the Private tab

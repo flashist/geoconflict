@@ -46,6 +46,11 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 
 ## Outcome
 
+- 📌 *2026-10-08 (later) sync:* the link half `0382` is **built** (closed 2026-10-08, committed `a555111`, not
+  deployed; [[tasks/yandex-invite-sdk-link]]) — `inviteCopyText()` gained the portal-URL argument, and a payload opens
+  the Join window for a non-tester friend, which ends residual R3 once live. Part B of `0413`
+  ([[tasks/join-modal-paste-hint]]) moved the error window's copy onto this task's `copyText`.
+
 - Release-gate item 6 is half built: `0380` ✅; `0382` (the link) and both production checks `0381` / `0383` remain
   on the Backlog board ([[tasks/private-lobby-citizen-perk]]).
 - **Not unit-tested:** `Main.handleHash()` itself (its `Client` class is not exported) — the logic it delegates to is.
@@ -61,3 +66,5 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[decisions/sprint-7]] — the board (rank 38)
 - [[decisions/cancelled-tasks]] — `0414` (cancelled 2026-10-08, merged into `0413` Part B): moves the error window's copy button onto this task's `copyText`
 - [[systems/yandex-games-platform-rules]] — Rule 3, applied here to private-lobby invites
+- [[tasks/yandex-invite-sdk-link]] — task `0382`, the link half built on top of this (closed 2026-10-08)
+- [[tasks/join-modal-paste-hint]] — task `0413`, whose Part B reuses `copyText` for the error window

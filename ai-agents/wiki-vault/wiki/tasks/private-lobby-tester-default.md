@@ -39,6 +39,10 @@ non-citizens, and the server refuses to start a private match whose creator is n
 
 ## Outcome
 
+- 📌 *2026-10-08 sync:* `0382` is built (not deployed; [[tasks/yandex-invite-sdk-link]]) — gate item 6 now waits only on the
+  live checks `0381` / `0383`. `0412` reuses this task's visibility rule for a new *Приватная* tab
+  ([[tasks/start-screen-private-tab]]).
+
 - **Console values (Q5), owner-stated 2026-10-05, not checked by anyone in the console:** *"private_lobbies - has
   never been set up, citizenship_ui - enabled"*. So the old flag never had any effect in production, and once `0354`
   deploys, **testers see the row and non-testers do not** (`private_lobbies_all` unset).
@@ -60,3 +64,5 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[decisions/sprint-7]] — the board (rank 37)
 - [[tasks/citizenship-explainer-popup]] — task `0301`, release-gate item 5: built and committed (`fc3f539`) 2026-10-06; met only on deploy
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): used the tester marker for its locked-tap check; gate item 5 met
+- [[tasks/yandex-invite-sdk-link]] — task `0382`, the invite-link half of gate item 6 (built 2026-10-08)
+- [[tasks/start-screen-private-tab]] — task `0412`, the Private tab shown under this task's rule

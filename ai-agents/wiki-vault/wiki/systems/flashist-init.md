@@ -87,3 +87,4 @@ The dynamic import of `Main.ts` is a new network step. `Bootstrap.ts` retries a 
 - [[tasks/stale-login-client-diagnostics]] — task `0372`: `takeYandexPlayerSignature()` now fires signature-age and second-call diagnostics (login unchanged)
 - [[tasks/private-lobby-tester-default]] — task `0354`: the `private_lobbies_all` flag and the tester marker
 - [[tasks/yandex-invite-copies-code]] — task `0380`: `FlashistFacade.copyText()` (SDK clipboard inside the click)
+- [[tasks/yandex-invite-sdk-link]] — task `0382`: `loadPortalGameUrl()`, `getInvitePayload()`, and a second payload read on late SDK recovery (`whenYandexSdkAvailable`)

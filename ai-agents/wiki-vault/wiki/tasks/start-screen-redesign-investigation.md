@@ -25,3 +25,4 @@ Sprint 4's citizenship UI is now unblocked from a layout-direction standpoint. E
 
 - [[decisions/sprint-4]] — Sprint 4 roadmap and the redesign dependency for citizenship UI
 - [[tasks/start-screen-redesign-implementation]] — implementation task that shipped the tab layout, citizenship card shell, persistence, copy rename, and analytics
+- [[tasks/start-screen-private-tab]] — task `0412`: the third tab, fit-checked at this page's 360×430 minimum

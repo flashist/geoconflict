@@ -57,6 +57,11 @@ Nothing in source. The record:
 - **Not in scope, unchanged:** rewarded video; a full-screen ad Yandex shows without the game asking cannot be stopped
   by the gate (`0248` Step 1 report residual, still unverified).
 
+- 📌 *2026-10-08 (later) sync:* `0416` is **built** ([[tasks/worker-route-query-string]]) — cause confirmed by
+  reproduction, fixed in `nginx.conf` — and so is the join-window paste bug found during these checks, as `0413`
+  ([[tasks/join-modal-paste-hint]], also carrying `0414`'s error-window copy). Both committed `a555111`, **not deployed**;
+  live checks → `0420`. `0411` is still open on the Backlog board.
+
 ## Related
 
 - [[tasks/paid-citizen-ad-free]] — task `0248`, the build this verifies
@@ -74,3 +79,5 @@ Nothing in source. The record:
 - [[decisions/cancelled-tasks]] — `0414`, filed from the paste bug found during these checks, cancelled and merged into `0413`
 - [[tasks/authenticated-profile-read]] — task `0250`, whose S3b `isPaidCitizen` is the paid answer
 - [[systems/project-brief]] — `PROJECT.md` now records the ad-free benefit live since `0.0.157`, verified by this task (corrected 2026-10-08)
+- [[tasks/worker-route-query-string]] — task `0416`, the Start 403 found at placement 4, built 2026-10-08
+- [[tasks/join-modal-paste-hint]] — task `0413`, the paste bug found during these checks, built 2026-10-08

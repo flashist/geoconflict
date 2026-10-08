@@ -116,3 +116,5 @@ a purchase can still infer it — closing it would mean refusing unverified read
 - [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): the join token first named in this task's design report §6 (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): S3b deployed and confirmed live
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the first reader of `isPaidCitizen`, live
+- [[tasks/paid-citizen-thank-you-line]] — task `0407` (built 2026-10-08): the paid thank-you reads S3b's `isPaidCitizen`
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (built 2026-10-08): the earned-citizen Buy needs S3b's verified owner view

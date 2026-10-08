@@ -5,7 +5,25 @@
 
 > Source: `ai-agents/sprints/plan-sprint-7.md`.
 >
-> # 🆕 2026-10-08 (latest, `6f1d737`) — 64 ROWS, 12 OPEN: THE CITIZENSHIP DEPLOY RAN; `0396` / `0398` / `0400` / `0401` CLOSED; TEN ROWS ADDED
+> # 🆕 2026-10-08 (latest, `a555111`) — 64 ROWS, 4 OPEN: THE SHIP LOOP CLOSED EIGHT ROWS (`0382`, `0407`–`0409`, `0412`, `0413`, `0416`, `0417`)
+>
+> **Re-counted at `HEAD` = `a555111`: 64 rows — 53 `✅ Done` · 3 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
+> 3 `⛔ Cancelled`; 4 OPEN** (was 64 / 12). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
+> still `🔄 In progress — 2026-09-29`. Window commit: `a555111` ("Sprint push", 2026-10-08 20:53 +0300).
+>
+> - ✅ **Closed 2026-10-08 by `fkit-sprint-ship-loop`, all `(agent-closed — not owner-verified)`:** `0382` (60,
+>   [[tasks/yandex-invite-sdk-link]]) · `0407` (54, [[tasks/paid-citizen-thank-you-line]]) · `0408` (55,
+>   [[tasks/explainer-paid-only-subheading]]) · `0409` (56, [[tasks/explainer-buy-for-earned-citizens]]) · `0412` (57,
+>   [[tasks/start-screen-private-tab]]) · `0413` (58, [[tasks/join-modal-paste-hint]]) · `0416` (62,
+>   [[tasks/worker-route-query-string]]) · `0417` (63, [[tasks/explainer-popup-wider]]).
+> - ⚠️ **Committed, not deployed:** all eight are in `a555111`; `git tag --contains a555111` → none (checked 2026-10-08).
+>   The same-day deploy cleared for `0407`–`0409` and `0416` has **not** happened as far as the tags show.
+> - **Still open (4):** `0219` (🚧 Blocked, profile-box operability), `0213` (14, the profile-backend epic,
+>   carried from Sprint 4), `0402` (52, re-read login numbers — time-gated) and `0383` (61, the live check of `0382`).
+> - Live checks for `0407`, `0408`, `0409`, `0412`, `0413`, `0416`, `0417` are one checklist, `0420`, on
+>   [[decisions/sprint-8]] (owner ruling 2026-10-08); `0382`'s stays `0383` here.
+>
+> # 🆕 2026-10-08 (`6f1d737`) — 64 ROWS, 12 OPEN: THE CITIZENSHIP DEPLOY RAN; `0396` / `0398` / `0400` / `0401` CLOSED; TEN ROWS ADDED
 >
 > **Re-counted at `HEAD` = `6f1d737`: 64 rows — 45 `✅ Done` · 11 `🔲 Backlog` · 1 `🚧 Blocked` · 4 `➡️ Moved` ·
 > 3 `⛔ Cancelled`; 12 OPEN** (was 54 / 7). ⚠️ Counted by me this run, by each row's leading status glyph. Line-3 banner
@@ -753,3 +771,11 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/session-verified-status-line-live]] — task `0400` (rank 51), closed 2026-10-08: check 8 not passed, carried by `0418`
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (rank 48), closed 2026-10-08: popup live; follow-ups `0408`, `0409`, `0417`
 - [[systems/yandex-games-platform-rules]] — Rule 1 (no generic tooltips/hints) is what `0412` (rank 57) fixes on the private-lobby buttons
+- [[tasks/yandex-invite-sdk-link]] — task `0382` (rank 60), closed 2026-10-08; its live check `0383` (61) is still open
+- [[tasks/paid-citizen-thank-you-line]] — task `0407` (rank 54), closed 2026-10-08
+- [[tasks/explainer-paid-only-subheading]] — task `0408` (rank 55), closed 2026-10-08
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (rank 56), closed 2026-10-08
+- [[tasks/start-screen-private-tab]] — task `0412` (rank 57), closed 2026-10-08
+- [[tasks/join-modal-paste-hint]] — task `0413` (rank 58, carries cancelled `0414`), closed 2026-10-08
+- [[tasks/worker-route-query-string]] — task `0416` (rank 62), closed 2026-10-08
+- [[tasks/explainer-popup-wider]] — task `0417` (rank 63), closed 2026-10-08

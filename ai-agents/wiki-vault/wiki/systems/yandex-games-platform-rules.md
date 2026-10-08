@@ -24,7 +24,7 @@ what is cited.
 
 | # | Rule | Source (repo) | Work / where applied |
 |---|---|---|---|
-| 1 | **No generic tooltips / hints**, including native browser `title` tooltips | The owner's statement, 2026-10-08 — **no Yandex page cited, by owner ruling** | `0412` (private-lobby buttons), `0415` (app-wide) — both 🔲 Backlog |
+| 1 | **No generic tooltips / hints**, including native browser `title` tooltips | The owner's statement, 2026-10-08 — **no Yandex page cited, by owner ruling** | `0412` (private-lobby buttons) — ✅ built 2026-10-08, not deployed; `0415` (app-wide) — 🔲 Backlog |
 | 2 | **No real-country flags or country names** as in-game content | [[decisions/adr-106-flags-suppressed]]; `PROJECT.md`; `0191` | `0010` — flags return only as a paid **non-country** cosmetic (🚧 Blocked) |
 | 3 | **No links or redirects that take players off Yandex Games** | Owner ruling 2026-10-03 in `0199`; [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] | Private-lobby invites (`0380`, done) |
 | 4 | **One main domain; everything else on its subdomains, never a raw IP** | Owner 2026-09-04 (clean-slate survey, `0214`); [[decisions/adr-118-archive-read-through-game-server]]; `0013` | Profile API on `api.` subdomain; archives read through the game server |
@@ -47,6 +47,11 @@ appears on hover (the source's example: "Join Lobby" in English over a Russian b
   "Присоединиться к лобби"); `0415` — app-wide removal (`o-button` / `o-modal` `title`, and every other `title`
   attribute). Both 🔲 Backlog as the source read on 2026-10-08 (`0412` on [[decisions/sprint-7]], `0415` on
   [[decisions/sprint-backlog]]). Backlog briefs — no vault page yet.
+- 📌 *2026-10-08 (later) sync:* `0412` is **done** (agent-closed — not owner-verified), committed `a555111`, **not
+  deployed**: both buttons carry no `title` in either template, guarded by a test ([[tasks/start-screen-private-tab]]).
+  Proven by the absence of every `title` — headless Chromium draws no native tooltip, so not seen by eye. The knowledge-
+  base note still lists `0412` as 🔲 Backlog (its link was repointed to `done/`, the status text was not). `0415` remains
+  open.
 - ⚠️ **Until `0415` ships, native tooltips still exist in the live UI.** Do not add new ones.
 
 ### Rule 2 — No real-country flags or country names as in-game content
@@ -123,3 +128,4 @@ Approval takes days and is an **external blocker** on any paid feature — plan 
 - [[decisions/sprint-7]] — `0412` (Rule 1, private-lobby buttons)
 - [[decisions/sprint-backlog]] — `0415` (Rule 1, app-wide), `0010` (Rule 2), `0403` (Rule 3, VK placement)
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature whose buttons `0412` fixes under Rule 1
+- [[tasks/start-screen-private-tab]] — task `0412`, Rule 1 applied to the private-lobby buttons (built 2026-10-08)

@@ -200,3 +200,5 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): S3b live — Decision 4 holds in production
 - [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): the not-confirmed state that explains Decision 4 is live (unverified states not checked live)
+- [[tasks/paid-citizen-thank-you-line]] — task `0407` (2026-10-08): the paid thank-you shows only on a verified read (Decision 4)
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (2026-10-08): the popup's earned-citizen Buy shows only on a verified, not-paid read (Decision 4)

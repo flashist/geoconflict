@@ -3,6 +3,14 @@
 **Date**: 2026-10-04
 **Status**: accepted
 
+> 🆕 **2026-10-08 sync — the link half is BUILT too:** `0382` done 2026-10-08 (agent-closed — not owner-verified),
+> committed `a555111`, ⚠️ **not deployed** (`git tag --contains` → none). SDK URL via `getGameByID`, fetched before the
+> click; link built with the `URL` API; payload read at startup and on late SDK recovery; consume-once in
+> `sessionStorage`; a non-tester friend gets the Join window (ruling (a)); payload validated with the `0389` code schema.
+> No app id, no `yandex.<tld>` literal, no write to `location.search`. Ends residual R3 once live. Both halves built;
+> **gate item 6 still needs `0381` + `0383` to pass live.** See [[tasks/yandex-invite-sdk-link]]. The canonical ADR file
+> did not change in this window.
+>
 > 📌 **2026-10-06 sync — the code half is BUILT:** `0380` done 2026-10-05 (agent-closed — not owner-verified),
 > committed `8d74090`, ⚠️ **not deployed**; 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* whether the SDK clipboard really copies inside the iframe is `0381`'s live
 > check. Accepted interim residual R3 (owner *"Accept for now"*): a non-tester friend on Yandex has no Join button and no
@@ -155,3 +163,4 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[tasks/yandex-invite-copies-code]] — task `0380`, the code half (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Live check `0381` still open.
 - [[tasks/private-lobby-code-format]] — task `0389`, the new code format `0382` must accept
 - [[systems/yandex-games-platform-rules]] — Rule 3 (no off-portal links) cites this ADR and its requirement numbers
+- [[tasks/yandex-invite-sdk-link]] — task `0382`, the link half (built 2026-10-08, not deployed)

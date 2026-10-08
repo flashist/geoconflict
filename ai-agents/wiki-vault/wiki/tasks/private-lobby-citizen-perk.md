@@ -4,6 +4,16 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 🆕 **2026-10-08 (later) sync — four private-lobby tasks BUILT, none deployed** (all `(agent-closed — not
+> owner-verified)`, committed `a555111`; `git tag --contains` → none): `0416` — the Start 403 **confirmed by reproduction**
+> and fixed with `$is_args$args` on the container nginx worker route ([[tasks/worker-route-query-string]]) · `0382` — the
+> SDK-built invite link with `payload`, consume-once; a non-tester friend gets the Join window
+> ([[tasks/yandex-invite-sdk-link]]) — so **gate item 6 is built on both halves**, still met only when `0381` + `0383`
+> pass live · `0412` — the buttons moved to a new *Приватная* tab under the same visibility rule, restyled, no native
+> tooltip ([[tasks/start-screen-private-tab]]) · `0413` — the Join window hides the paste button and shows a hint where the
+> clipboard cannot be read ([[tasks/join-modal-paste-hint]]). Live checks: `0383` (Sprint 7) and `0420` (Sprint 8). The
+> other gate items are unchanged by this sync.
+>
 > 🆕 **2026-10-08 sync — `0301` IS DEPLOYED, so release-gate item 5 is met; a production 403 blocks private-lobby
 > starts.** Game **`0.0.157`** (2026-10-08) carries `fc3f539` (`0301`) and `8d74090` (the private-lobby tasks) — checked
 > with `git tag --contains`. The interim popup is gone from production; `0401`'s check 4 was the **first live test of the
@@ -166,3 +176,7 @@ of the perks would depend on it."*
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): first live test of the locked look and tap; gate item 5 met
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): its placement-4 check surfaced the Start 403 (`0416`)
 - [[systems/yandex-games-platform-rules]] — Rule 1: the private-lobby buttons' native tooltips, removed by `0412`
+- [[tasks/worker-route-query-string]] — task `0416` (closed 2026-10-08): the Start 403 fix (container nginx query string)
+- [[tasks/yandex-invite-sdk-link]] — task `0382` (closed 2026-10-08): the invite link, second half of gate item 6
+- [[tasks/start-screen-private-tab]] — task `0412` (closed 2026-10-08): the row moved into a *Приватная* tab
+- [[tasks/join-modal-paste-hint]] — task `0413` (closed 2026-10-08): the Join window's paste fix

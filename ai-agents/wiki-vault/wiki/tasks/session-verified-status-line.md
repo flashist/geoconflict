@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`); LIVE since 2026-10-08** in game `0.0.157`, checked by `0400` (⚠️ check 8 not passed) *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 46 (append rank, not a merit rank; on merit directly below `0250`) / task `0397`
 
+> 🆕 **2026-10-08 (later) sync — the *verified paid* wording is superseded by `0407`** (built, committed `a555111`, **not
+> deployed**): owner ruling *"A: One line, no ✓"* rewrote `citizenship_status.verified_paid` to EN *"Thank you for
+> supporting the game! Your paid citizenship benefits are on."* / RU *"Спасибо, что поддерживаете игру! Преимущества
+> платного гражданства включены."* — the ✓ dropped. The other status lines are untouched. The table below keeps the
+> 2026-10-06 wording as history. See [[tasks/paid-citizen-thank-you-line]]. `0409`
+> ([[tasks/explainer-buy-for-earned-citizens]]) reuses this task's verified/unverified signal for its Buy guard.
+>
 > 🆕 **2026-10-08 sync — LIVE; live check closed with one check NOT passed** ([[tasks/session-verified-status-line-live]],
 > `0400`, closed 2026-10-08). Deployed in game `0.0.157` in the same slot as S3b, **server first** (this task's Q4 ruling).
 > Passed live, in RU: checking, verified paid, couldn't load + Restart (all parts), kill switch. **Not checked live:**
@@ -57,7 +64,7 @@ an unverified **citizen** is "maybe paid".
 | State | When | Shows |
 |---|---|---|
 | Checking | card on, no read applied yet — replaces the old wrong flash of the guest card with its login button | *Checking your account…* |
-| Verified paid citizen | verified owner view, paid | *✓ Verified — your paid citizenship benefits are on* |
+| Verified paid citizen | verified owner view, paid | *✓ Verified — your paid citizenship benefits are on* — 📌 *superseded by `0407` (2026-10-08, not yet deployed): "Thank you for supporting the game! Your paid citizenship benefits are on.", no ✓* |
 | Not confirmed (citizen) | authoritative read, citizen, no owner view — **text only** | *We couldn't confirm your account this time. If you bought citizenship, it's safe — you may just see ads until it's confirmed. Closing and reopening the game usually helps.* |
 | Couldn't load profile | read not authoritative (failed login, timeout, …) | *We couldn't load your profile right now. Nothing is lost — a restart usually helps.* + **Restart game** |
 | After a restart that did not help | same, on the next load | *Still not working. Please try again a bit later — nothing is lost.* |
@@ -127,3 +134,5 @@ unverified.
 - [[tasks/session-verified-status-line-live]] — task `0400` (closed 2026-10-08): the live check; check 8 carried by `0418`
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): the S3b server deployed first, per Q4
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): deployed together (R3); found the flags-timeout load (`0411`)
+- [[tasks/paid-citizen-thank-you-line]] — task `0407`, which rewrote the verified-paid line (2026-10-08)
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409`, which reuses the verified signal for the popup's Buy guard

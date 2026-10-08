@@ -49,6 +49,13 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - **The worker's rate limiter counts the master as one IP** — 20 req/s per IP applies to every route including `create_game` and `/api/game/:id` from loopback. Normal cadence is ~10 req/s per lobby, so a burst can 429 the master. Known, not fixed; whether the limiter should exempt loopback or the admin header is an open question for the owner.
 - **Private lobbies bypass all of the above.** The host picks the game ID client-side and POSTs `create_game` straight to `/w<N>/`, so a dead or wedged index costs the host one failed click and a retry. Accepted as-is by the owner 2026-08-26 — no master-only fix reaches it without publishing worker health to the client.
 - 🔧 **Two of the private-lobby HTTP calls never reached the worker on Yandex Games** (task `0198`, measured 2026-08-28). **Fix deployed 2026-08-29 in release `362a2f9`** — the shipped code uses bare root-absolute `` `/${config.workerPath(id)}/api/…` `` paths at all three sites. ⚠️ **The production proof is unreachable, not merely unrun**: the private-lobby buttons are inside a `display: none` row on the Yandex template, so the symptom cannot be reproduced there. What follows is the mechanism, kept because the *rule* is the durable part. `HostLobbyModal`'s `putGameConfig()` (PUT `/api/game/:id`) and `startGame()` (POST `/api/start_game/:id`) built their URLs by concatenating onto `FlashistFacade.windowOrigin`, which carries the document pathname. On the production Yandex entry point the path becomes `/yandex-games_iframe.html/w1/api/…`, never matches nginx's `^/w(\d+)`, and falls through to `app.get("*")` → **404**. Neither call checks `response.ok`, so nothing surfaces: the lobby is created, the player list keeps refreshing, the modal closes, and the game never starts — with the host's map/difficulty/bots/mode silently lost too. `pollPlayers()` and `createLobby()` use bare root-absolute paths and are unaffected, which is exactly why the lobby *looks* healthy. See [[decisions/windoworigin-url-join-defect]].
+- 🔧 **The container nginx used to drop the query string on every `/w<N>/…` request** (task `0416`, found 2026-10-08 on
+  `0.0.157`). The worker route's `proxy_pass` contains variables (`$worker_port$2`), and with variables nginx sends
+  exactly the URI written — `$2` is the path only. So `create_game/<id>?creatorClientID=…` reached the worker without the
+  creator, and every private-lobby Start was refused with 403. Fixed by appending `$is_args$args`; confirmed by a local
+  container repro; a harness check in `npm test` now requires `$is_args$args` on any variable `proxy_pass`. **Built,
+  committed `a555111`, not deployed** — it ships with the game image. Local dev does not go through this nginx, which is
+  why no test caught it. See [[tasks/worker-route-query-string]].
 - ⚠️ **The lobby-poll payload `GET /api/game/:id` is unauthenticated and now carries `isCitizen`** (task `0068`). Accepted **only while that flag stays purely cosmetic, and void the moment anything of value is gated on it.** See [[tasks/citizen-verified-icon]].
 
 ## Related
@@ -78,3 +85,4 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
 - [[tasks/private-lobby-idle-end]] — task `0377`: unstarted private lobbies end after 30 idle minutes
 - [[tasks/host-window-poll-before-lobby]] — task `0353`: no empty-id lobby poll
 - [[tasks/private-lobby-code-format]] — task `0389`: `create_game` validates the id and refuses duplicates (`409`)
+- [[tasks/worker-route-query-string]] — task `0416`: the worker route dropped query strings (private-lobby Start 403)

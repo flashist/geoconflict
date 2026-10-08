@@ -117,3 +117,6 @@ everybody the moment the profile server had a bad minute.
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: not held by the login numbers; a non-`ok` login now means a paid citizen sees ads once this ships
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the live check, all five checks passed
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): S3b live — the gate this task waited on
+- [[tasks/paid-citizen-thank-you-line]] — task `0407`: the card's paid thank-you, same single paid source
+- [[tasks/explainer-paid-only-subheading]] — task `0408`: this perk now sits under its own *paid citizenship only* sub-heading in the popup
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409`: an earned citizen can now buy this perk from the popup

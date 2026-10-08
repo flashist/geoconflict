@@ -259,7 +259,7 @@ ships.
 
 The analytics reference also defines placement-specific community CTA tap IDs. `UI:Tap:TelegramLinkStartScreen` and `UI:Tap:TelegramLinkGameEnd` are emitted by the shipped [[tasks/telegram-link]] flow; `UI:Tap:VkLinkStartScreen` and `UI:Tap:VkLinkGameEnd` are emitted by [[tasks/vk-link]]. This keeps start-screen and game-end CTA taps segmented separately.
 
-The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]].
+The start-screen redesign adds menu-tab and citizenship-surface instrumentation. `UI:Tap:MultiplayerTab` and `UI:Tap:SingleplayerTab` fire on explicit tab taps, including re-taps of the active tab; restoring a persisted tab on load does not fire. `Citizenship:Seen` fires once per page load when the citizenship card is visible, and `UI:Tap:CitizenshipLoginToEarn` tracks the Yandex login CTA. See [[tasks/start-screen-redesign-implementation]]. Since task 0054 the card is hidden behind a default-OFF client flag, so **no citizenship surface events fire in production** until the flag flips ON at citizenship launch; see [[tasks/hide-citizenship-card-flag]]. 📌 *2026-10-08 sync:* `UI:Tap:PrivateTab` (`flashistConstants.uiElementIds.privateTab`, task `0412`, built, not deployed) — same semantics for the new *Приватная* tab; restoring the stored tab or the late switch when the tab appears fires nothing, and the tab exists only under the private-lobby rule, so other players never fire it ([[tasks/start-screen-private-tab]]).
 
 ## Worker Start & Reconnect Events (tasks `0347`, `0348`, `0035` — built 2026-09-30, committed `9cb8ee4`, not yet released)
 
@@ -589,8 +589,10 @@ while the citizenship kill switch is off (the popup refuses to open). Each openi
 | `Citizenship:Explainer:Opened:LockedFeature:PrivateLobby` | From a tap on the **locked** Create Lobby button, right after `LockedFeature:Tap:PrivateLobby`. Five colon parts — the GameAnalytics maximum. Unreachable in a local dev build (Create is never locked there) |
 | `UI:Tap:PurchaseCitizenshipExplainer` | Buy tapped **inside the popup**, before the purchase starts; the existing `Purchase:*:Citizenship` events follow unchanged. A tap while a purchase is already running fires **nothing** (one shared latch with the card, checked before the event — review R1 corrected the doc to match the code) |
 | `UI:Tap:CitizenshipLoginExplainer` | A guest taps login **inside the popup** — only where a login can work (Yandex context, SDK not degraded). The `Profile:Login:Restart:*` funnel follows as for the card's login button |
+| `UI:Tap:PurchasePaidCitizenshipExplainer` | 📌 *2026-10-08 (task `0409`, built, not deployed):* an **earned** citizen taps *Buy paid citizenship* inside the popup — shown only on a verified read that says not paid (the `citizen_buy` offer). Same shared latch. `Purchase:*:Citizenship` does **not** tell an upgrade from a first purchase — this tap is how upgrades are counted ([[tasks/explainer-buy-for-earned-citizens]]) |
 
-**Funnel reading:** Opened → `UI:Tap:PurchaseCitizenshipExplainer` → `Purchase:Started/Completed/Abandoned:Citizenship`.
+**Funnel reading:** Opened → `UI:Tap:PurchaseCitizenshipExplainer` (or, for an earned citizen,
+`UI:Tap:PurchasePaidCitizenshipExplainer`, `0409`) → `Purchase:Started/Completed/Abandoned:Citizenship`.
 The purchase events are **not** split by surface; the tap events are. Fired through
 `FlashistFacade.logCitizenshipExplainerOpenedEvent(sourceSuffix)` from `CitizenshipExplainerModal.show()`; callers open
 the popup only via `openCitizenshipExplainer()` in `src/client/CitizenshipExplainer.ts`. See
@@ -767,3 +769,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): first live count of `Ad:InterstitialSuppressed:PaidCitizen`
 - [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): `Citizenship:Status:Unverified` / `:Restart` not seen (re-read `0418`)
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (2026-10-08): first live explainer, locked-feature and purchase counts
+- [[tasks/start-screen-private-tab]] — task `0412`: `UI:Tap:PrivateTab`
+- [[tasks/explainer-buy-for-earned-citizens]] — task `0409`: `UI:Tap:PurchasePaidCitizenshipExplainer`
