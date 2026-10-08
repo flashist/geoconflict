@@ -165,3 +165,4 @@ of the perks would depend on it."*
 - [[tasks/join-token-identity-vouch]] — task `0332`, the join token (built, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): first live test of the locked look and tap; gate item 5 met
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): its placement-4 check surfaced the Start 403 (`0416`)
+- [[systems/yandex-games-platform-rules]] — Rule 1: the private-lobby buttons' native tooltips, removed by `0412`

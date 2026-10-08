@@ -752,3 +752,4 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (rank 50), closed 2026-10-08: ad-free live
 - [[tasks/session-verified-status-line-live]] — task `0400` (rank 51), closed 2026-10-08: check 8 not passed, carried by `0418`
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (rank 48), closed 2026-10-08: popup live; follow-ups `0408`, `0409`, `0417`
+- [[systems/yandex-games-platform-rules]] — Rule 1 (no generic tooltips/hints) is what `0412` (rank 57) fixes on the private-lobby buttons

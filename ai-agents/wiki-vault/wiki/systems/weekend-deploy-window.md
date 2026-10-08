@@ -18,8 +18,35 @@
 >   rolls back every task in the image and also needs `citizenship_ui` off or a server rollback. **Never roll back past S2.**
 > - Live checks the same day: `0396`, `0398`, `0400` (check 8 not passed → `0418`), `0401` — all closed
 >   `(agent-closed — not owner-verified)`; see [[decisions/sprint-7]].
-> - ⚠️ **Runbook gap:** `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` has **no** 2026-10-08 section in this
->   window — its *rollback targets* still end at the 2026-10-07 deploy. The targets above come from the task worklog.
+> - ~~⚠️ **Runbook gap:** `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` has **no** 2026-10-08 section in this
+>   window — its *rollback targets* still end at the 2026-10-07 deploy. The targets above come from the task worklog.~~
+>   ✅ **Gap closed (2026-10-08 sync, `bf5a9a1`):** the runbook now carries an appended 2026-10-08 section (recorded by a
+>   spawned `fkit-producer` on the owner's *"update it"*; ⛔ not producer precedent; every fact taken from the closed
+>   worklogs of `0396`, `0398`, `0400`, `0401` — the producer checked nothing on any server). It **updates § *Never roll
+>   back to*, "after this slot", and the 2026-10-07 rollback target** (`0.0.156-profile.2`). What it adds to the above:
+>   - **Pre-flight** (`0396` §2): config parity `--enforce` exit 0 · lint exit 0 · `npm test` 4190/4191 — 1 fail,
+>     `tests/profile-server/Routes.test.ts`, `socket hang up` (supertest flake family, no `SIGSEGV`), that file re-ran
+>     64/64, re-run stated · `test:integration` **not run** · no migrations changed.
+>   - **Rollback targets, now in the runbook:** profile → **`0.0.156-profile.3`** (the `0340` image, still on the box,
+>     checked 2026-10-08); game → **`20261003-123251`** (`0.0.156`), **registry only** — a rollback re-pulls it.
+>   - **⛔ Rollback rules:** S3b → `0.0.156-profile.3` is safe for the server, but with the `0397` client live it also
+>     needs the game client rolled back **or `citizenship_ui` off** — else every logged-in citizen sees *"We couldn't
+>     confirm your account this time…"* (owner ruling on `0397` Q4, 2026-10-06). A game rollback undoes every task in
+>     the image and, with S3b live, also needs `citizenship_ui` off or a server rollback (`0248`'s ad-gate rule).
+>     **Chosen path for the pairing: switch `citizenship_ui` off** — fastest safe path; the kill switch was proven live
+>     (off → on within ~5 min ending ≈09:48Z; exact times not recorded). **Never roll back past S2** (ADR-116).
+>   - **Owner's DevTools check between the deploys:** verified paid → `is_paid_citizen: true` ✅ · verified earned →
+>     `false` ✅ · `vfy:false` session → the S1 view ✅.
+>   - **Watch (read-only, `fkit-lead`):** profile `/health` on `.4`, `/ready` 200, 0 `error` / 0 `warn`, postgres
+>     untouched · game: `failed after retries` 0, `dropped` 0, level `error` 0 · **first `credited` line 07:02:06Z** —
+>     credits flow on the new image. ⚠️ **Counters restarted at 06:41:41Z — never compare cumulative values across it**
+>     (start of `0402`'s piece 2).
+>   - **Found during the post-deploy checks (pointers only):** `0416` (private-lobby Start → 403 `citizens_only`, the
+>     container nginx drops the query string on worker routes; not in `0.0.157`; Sprint 7, next game deploy) · `0411`
+>     (a flags-fetch timeout reads `citizenship_ui` as off ⇒ a paid citizen sees ads that load; frequency not measured)
+>     · `0418` (two `0397` status events not seen in GameAnalytics; Sprint 8) · **one empty player row** in the
+>     production profile DB, created 07:27:11Z when `0396`'s Console snippet ran with its placeholder unreplaced (not a
+>     real player; 0 XP, no citizenship) — **left in place, owner's call**; it adds +1 to the player count.
 > - **Further same-day deploy allowed** for `0407`–`0409` and `0416` only (owner rulings on Sprint 7); everything else
 >   new waits for the weekend.
 >

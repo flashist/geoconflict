@@ -154,3 +154,4 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[decisions/sprint-7]] — `0380` (the code half of this decision) moved onto this board 2026-10-04, rank 38 (producer order)
 - [[tasks/yandex-invite-copies-code]] — task `0380`, the code half (done 2026-10-05, not deployed) 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Live check `0381` still open.
 - [[tasks/private-lobby-code-format]] — task `0389`, the new code format `0382` must accept
+- [[systems/yandex-games-platform-rules]] — Rule 3 (no off-portal links) cites this ADR and its requirement numbers

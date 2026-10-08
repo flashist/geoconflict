@@ -73,3 +73,4 @@ Nothing in source. The record:
 - [[decisions/sprint-backlog]] — where `0411` was filed
 - [[decisions/cancelled-tasks]] — `0414`, filed from the paste bug found during these checks, cancelled and merged into `0413`
 - [[tasks/authenticated-profile-read]] — task `0250`, whose S3b `isPaidCitizen` is the paid answer
+- [[systems/project-brief]] — `PROJECT.md` now records the ad-free benefit live since `0.0.157`, verified by this task (corrected 2026-10-08)

@@ -598,3 +598,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the resolve route vouches for a session token; the secret stays on this box
 - [[tasks/join-token-identity-vouch]] — task `0332`, the vouch build (committed, not deployed; profile first) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): deployed `0.0.156-profile.4` (S3b + `0332` vouch)
+- [[systems/yandex-games-platform-rules]] — Rule 4: why the profile API sits on the `api.` subdomain

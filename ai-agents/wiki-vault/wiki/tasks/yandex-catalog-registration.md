@@ -174,3 +174,4 @@ will require its **own** `PAYMENT_PRODUCT_IDS` entry **and** its own grant branc
 - [[decisions/adr-102-privilege-refresher-fails-open]] — ADR-102, whose dated note records the 2026-09-25 re-price
 - [[tasks/monetization-analytics-spec]] — the analytics spec whose `price_rubles` field name the re-price made misleading
 - [[decisions/sprint-backlog]] — the Backlog board, whose `0248` row carries the new price
+- [[systems/yandex-games-platform-rules]] — Rule 5: catalog items must be registered and approved first

@@ -69,6 +69,8 @@ Nothing in source. The record, by Verification step:
 - ⚠️ **The runbook was not updated in this window** — `ai-agents/knowledge-base/weekend-deploy-slot-runbook.md` still
   ends at the 2026-10-07 deploy; the rollback targets above come from this task's worklog. See
   [[systems/weekend-deploy-window]].
+  📌 *2026-10-08 sync: now history — the runbook gained an appended 2026-10-08 section (`bf5a9a1`) that records this
+  deploy, the same rollback targets and rules, and the empty row; summarised on [[systems/weekend-deploy-window]].*
 - Unblocked the same sitting: `0398` ([[tasks/paid-citizen-ad-free-live]]), `0400`
   ([[tasks/session-verified-status-line-live]]) and `0401` ([[tasks/citizenship-explainer-popup-live]]).
 

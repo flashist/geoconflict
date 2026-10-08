@@ -60,3 +60,4 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[systems/flashist-init]] — the facade's SDK access
 - [[decisions/sprint-7]] — the board (rank 38)
 - [[decisions/cancelled-tasks]] — `0414` (cancelled 2026-10-08, merged into `0413` Part B): moves the error window's copy button onto this task's `copyText`
+- [[systems/yandex-games-platform-rules]] — Rule 3, applied here to private-lobby invites

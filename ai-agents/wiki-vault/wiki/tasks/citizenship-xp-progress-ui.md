@@ -58,3 +58,4 @@ The XP/progress card now reads server profile state for authorized players. Gues
 - [[tasks/citizenship-paid]] — task `0018`, the paid-citizenship buy flow — closed 2026-09-26 after the first real purchases returned 200
 - [[tasks/citizenship-card-newest-profile-read]] — task `0326` (2026-09-28): the citizenship card applies only the newest profile read
 - [[tasks/citizenship-card-vanishes-investigation]] — task `0318` (2026-09-28): why the citizenship card vanished after a match on a shaky connection
+- [[systems/yandex-games-platform-rules]] — Rule 2 cites this task's hard constraint (sellable flags are non-country only)

@@ -15,6 +15,8 @@
 >   *fetch failed* — the kill switch must still hide everything.
 > - **`0415`** — no native browser tooltips anywhere in the UI (`title` attributes); owner: generic hints are *"forbidden
 >   by Yandex.Games rules"*. ⚠️ That Yandex rule is **not in the wiki** — the board itself flags the gap.
+>   📌 *2026-10-08 sync: gap closed — now [[systems/yandex-games-platform-rules]] Rule 1, sourced to the owner's own
+>   statement of 2026-10-08; no Yandex page is cited, by owner ruling.*
 > - ➡️ **Moved to [[decisions/sprint-7]]** (rows kept as `➡️ Moved`): `0407`, `0408`, `0409` (filed here the same day;
 >   same-day deploy exception) and `0382`, `0383` (the Yandex invite link and its check; weekend rule).
 >
@@ -889,3 +891,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/session-verified-status-line]] — task `0397`, into which this board's `0278` was folded (cancelled 2026-10-06)
 - [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): its check 5a filed `0410` here
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): the flags-timeout load filed as `0411` here
+- [[systems/yandex-games-platform-rules]] — the rule behind `0415` (Rule 1), `0010` (Rule 2) and the `0403` VK placement (Rule 3)

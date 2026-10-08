@@ -24,16 +24,22 @@ Source: `ai-agents/knowledge-base/PROJECT.md`
 > *"THE GAME SERVER IS NOT WIRED"* and *"ZERO ROWS"* bullets further down are history** — see
 > [[tasks/profile-p2-wire-game-server]] and [[systems/player-profile-store]].
 
+> 📌 **2026-10-08 sync.** `PROJECT.md` corrected two sentences (struck, not deleted, in the source): the Overview now
+> says the citizenship IAP layer is **live since 2026-09-26**, and the Business-model line says **IAP is live** — paid
+> citizenship since `0.0.154` (2026-09-26), the no-interstitial-ads benefit (`0248`) since `0.0.157` (2026-10-08,
+> verified by `0398`). This clears the 2026-10-08 lint warning on this page. The source also gained a link to the new
+> platform-rules note — [[systems/yandex-games-platform-rules]].
+
 ## Architecture
 
 ### What the product is
 
-Geoconflict is a live, browser-based real-time PvP strategy game with short sessions — a Russian-market adaptation of the open-source OpenFront.io. It ships primarily through **Yandex Games**, is played mainly by Russian-speaking players, and earns today from advertising, with an in-app-purchase layer (the citizenship supporter tier) being built out.
+Geoconflict is a live, browser-based real-time PvP strategy game with short sessions — a Russian-market adaptation of the open-source OpenFront.io. It ships primarily through **Yandex Games**, is played mainly by Russian-speaking players, and earns today from advertising, with an in-app-purchase layer (the citizenship supporter tier) ~~being built out~~ **live since 2026-09-26** (source corrected 2026-10-08).
 
 - **Audience** — Russian-speaking players of territorial-control `.io` strategy games. **Desktop-first** by both size and engagement depth; mobile is materially smaller and lower-engagement, and iOS retention is poor. Community lives on VKontakte and Telegram.
-- **Business model** — ad impressions (interstitial + sticky banner) are the primary revenue today. The strategic sequence is **retention → monetization → content**; Yandex Games promotes titles that earn more per player, so engagement gains compound into ranking and DAU. IAP via the Yandex Games SDK is planned and partly built, **not yet live**. See [[decisions/product-strategy]].
+- **Business model** — ad impressions (interstitial + sticky banner) are the primary revenue today. The strategic sequence is **retention → monetization → content**; Yandex Games promotes titles that earn more per player, so engagement gains compound into ranking and DAU. IAP via the Yandex Games SDK is ~~planned and partly built, **not yet live**~~ **live: paid citizenship since 2026-09-26 (`0.0.154`), and its no-interstitial-ads benefit (`0248`) since 2026-10-08 (`0.0.157`, verified by `0398` — [[tasks/paid-citizen-ad-free-live]])** — corrected in `PROJECT.md` 2026-10-08 (struck, not deleted, in the source). See [[decisions/product-strategy]].
 
-  > **LINT WARNING:** (2026-10-08) *"IAP … **not yet live**"* mirrors the source — `ai-agents/knowledge-base/PROJECT.md` still says *"planned and partly built, not yet live"* — but this page's own top banner records paid citizenship **live since 2026-09-26** (release `0.0.154`, first real purchases the same day). The two disagree; the vault cannot edit `PROJECT.md` (ADR-005). A human should update the source sentence; the wiki will re-ingest it.
+  > ✅ **Lint warning resolved (2026-10-08 sync).** ~~**LINT WARNING:** (2026-10-08) *"IAP … not yet live"* mirrors the source — `PROJECT.md` still says *"planned and partly built, not yet live"* — but this page's own top banner records paid citizenship live since 2026-09-26.~~ The source sentence was corrected by a human edit on 2026-10-08 (commits `bf5a9a1`, `c592f08`) and re-ingested here; the page and its source now agree.
 - **Citizenship** — the supporter tier and the spine of the monetization layer. Two paths: *earned* (**`100 XP` at `1 XP` per qualifying match** — ✅ **SHIPPED 2026-09-12, verified in the code at `77fbc98`: `src/core/profile/Citizenship.ts` declares `CITIZENSHIP_XP_THRESHOLD = 100` and `XP_PER_MATCH = 1`**, and the player-facing `en.json`/`ru.json` copy was rescaled in the same change. ⛔ **SHIPPED IS NOT DEPLOYED — no player has seen these values.** ⛔ *"About 10×"* was never the ruling: the threshold was divided by **EXACTLY 10**, and **time-to-citizenship is DELIBERATELY UNCHANGED at ~100 matches**. ~~1,000 XP at 10 XP per qualifying match~~ ~~⚠️ NOT SHIPPED — the code today still reads `XP_PER_MATCH = 10` / `CITIZENSHIP_XP_THRESHOLD = 1000`~~ 📌 **both struck, not deleted — each was true when written.** See [[decisions/adr-111-xp-economy-rescale]] and [[tasks/credit-participation-xp-elimination-or-match-end]]) and *paid* (~~99 ₽~~ **249 Yan** — the owner changed it in the Yandex console on 2026-09-25; `PROJECT.md` updated the same day, see [[tasks/yandex-catalog-registration]]). Any purchase grants citizenship. Benefits include no interstitial ads for paid citizens, the full emoji set, and further perks (name change, verified icon, private lobbies, spectating) planned behind it. See [[systems/player-profile-store]].
 
 ### Domain vocabulary
@@ -55,6 +61,7 @@ Geoconflict is a live, browser-based real-time PvP strategy game with short sess
 ### Constraints that bind every task
 
 **Platform — Yandex Games**
+- **Platform rules** the game follows (no generic tooltips/hints, no real-country flags or names, no off-portal links, one main domain, catalog items approved first), each with its repo source: [[systems/yandex-games-platform-rules]]. The bullets below are the technical constraints that page leaves here.
 - The production entry template is `src/client/yandex-games_iframe.html`, not `index.html`. Both bundled templates get the same bundle, so **any new HTML element must be added to both**.
 - **No real-country flags or names** as cosmetics — Yandex bans them. See [[decisions/adr-106-flags-suppressed]].
 - The Yandex SDK **may be absent or time out**; degraded mode is a first-class state, not an error path. See [[systems/flashist-init]].
@@ -149,3 +156,5 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 - [[tasks/profile-durability-restore-drill]] — task `0218`, closed 2026-09-11: **a backup restores** (proven twice, non-empty data, live database included) — ⛔ **but the schedule and the data are proven only SEPARATELY, so a SCHEDULED backup capturing REAL DATA is still unproven**
 - [[tasks/citizenship-kill-switch-coverage]] — task `0236`, the client-side citizenship kill switch, and the `0238` launch gate that must clear before the citizenship flag is flipped
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): builds the *"no interstitial ads for paid citizens"* benefit `PROJECT.md` promises — committed, NOT deployed; the store-copy condition stands until it is — 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*
+- [[systems/yandex-games-platform-rules]] — the five Yandex Games platform rules, each with its repo source; this page keeps the technical platform constraints
+- [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the paid-citizen no-ads benefit verified live, as `PROJECT.md` now records

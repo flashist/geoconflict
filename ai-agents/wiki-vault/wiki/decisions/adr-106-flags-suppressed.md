@@ -47,3 +47,4 @@ Two supporting moves complete it: the asset directory was renamed to `resources/
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
 - [[systems/architecture-overview]] — §authentication and cosmetics, where the suppression sits in the wider survey
 - [[decisions/sprint-backlog]] — task `0010`, the briefed re-enable of flags as a paid **non-country** cosmetic. It is also one of the paid entitlements that would fire ADR-102's expiry trigger. The `/flags/*.svg` 404 stays by design until it ships.
+- [[systems/yandex-games-platform-rules]] — Rule 2 (no real-country flags or names) cites this ADR as its source

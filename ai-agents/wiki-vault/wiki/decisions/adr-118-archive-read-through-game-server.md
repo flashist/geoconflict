@@ -95,3 +95,4 @@ check to mint the URL, so only the byte transfer is saved.
 - [[systems/match-logging]] — what is recorded per match, and the still-live ungated client read (`0292`)
 - [[decisions/sprint-backlog]] — where `0030` and `0292` now sit (archiving postponed indefinitely 2026-10-03)
 - [[decisions/sprint-7]] — the board `0030` left on 2026-10-03
+- [[systems/yandex-games-platform-rules]] — Rule 4 (one main domain, never a raw IP) cites this ADR's domain constraint
