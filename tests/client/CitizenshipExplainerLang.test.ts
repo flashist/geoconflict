@@ -16,17 +16,13 @@ function load(file: string): Record<string, Record<string, unknown>> {
 const REQUIRED_KEYS: Array<[string, string]> = [
   ["citizenship_explainer", "link"],
   ["citizenship_explainer", "title"],
-  ["citizenship_explainer", "intro"],
-  ["citizenship_explainer", "benefits_title"],
   ["citizenship_explainer", "benefit_badge"],
   ["citizenship_explainer", "benefit_name_change"],
   ["citizenship_explainer", "benefit_private_lobby"],
   ["citizenship_explainer", "benefit_no_ads"],
   ["citizenship_explainer", "paid_only_title"],
-  ["citizenship_explainer", "free_title"],
   ["citizenship_explainer", "free_body"],
   ["citizenship_explainer", "your_xp"],
-  ["citizenship_explainer", "buy_title"],
   ["citizenship_explainer", "login_hint"],
   ["citizenship_explainer", "already_citizen"],
   ["citizenship_explainer", "close"],
@@ -88,16 +84,17 @@ describe("citizenship explainer localization (task 0301)", () => {
   it("the free route and the progress line are parameterized, never hard-coded", () => {
     expect(
       placeholders(value(en, "citizenship_explainer", "free_body")!),
-    ).toEqual(["{threshold}", "{xpPerMatch}"]);
+    ).toEqual(["{threshold}"]);
     expect(
       placeholders(value(en, "citizenship_explainer", "your_xp")!),
     ).toEqual(["{threshold}", "{xp}"]);
   });
 
-  // Task 0408: the owner's exact words (ruling 2026-10-08) — never reworded.
+  // Task 0408: the owner's exact words — never reworded. The ru wording was
+  // shortened by task 0421 (owner ruling 2026-10-08, which supersedes 0408's).
   it("paid_only_title is exactly the owner's sub-heading, in en and ru", () => {
     expect(value(ru, "citizenship_explainer", "paid_only_title")).toBe(
-      "Только для платного гражданства:",
+      "Только с платным гражданством:",
     );
     expect(value(en, "citizenship_explainer", "paid_only_title")).toBe(
       "Paid citizenship only:",
@@ -106,14 +103,49 @@ describe("citizenship explainer localization (task 0301)", () => {
 
   // Task 0408: the sub-heading now says "paid only", so the ad-free line drops
   // its own suffix — in BOTH files, never half-applied, never re-added in new
-  // words. Pinned to the owner-approved text (2026-10-08).
+  // words. Pinned to the owner-approved text (2026-10-08; changed by 0421 on
+  // 2026-10-09, owner change).
   it("benefit_no_ads is exactly the owner-approved text, without a paid-only suffix", () => {
     expect(value(en, "citizenship_explainer", "benefit_no_ads")).toBe(
-      "No full-screen ads before and after matches",
+      "No ads between levels",
     );
     expect(value(ru, "citizenship_explainer", "benefit_no_ads")).toBe(
-      "Без полноэкранной рекламы перед матчами и после них",
+      "Без рекламы между уровнями",
     );
+  });
+
+  // Task 0421: the shorter popup text, owner-approved 2026-10-08 (old vs new
+  // shown side by side). The intro, the "free" heading and the "buy" heading
+  // were removed from the popup, and the "citizens get" heading on 2026-10-09
+  // (owner change), so their keys are gone from both files.
+  it("carries exactly 0421's approved shorter text, in en and ru", () => {
+    const approved: Record<string, [string, string]> = {
+      benefit_badge: [
+        "A ★ badge next to your name in matches",
+        "Значок ★ рядом с именем в матчах",
+      ],
+      benefit_name_change: ["Name changes", "Смена имени"],
+      benefit_private_lobby: ["Private lobbies", "Приватные лобби"],
+      free_body: [
+        "Get it free for {threshold} XP",
+        "Получите бесплатно за {threshold} XP",
+      ],
+      your_xp: [
+        "You have {xp} / {threshold} XP.",
+        "У вас {xp} / {threshold} XP.",
+      ],
+    };
+    for (const [key, [enText, ruText]] of Object.entries(approved)) {
+      expect(value(en, "citizenship_explainer", key)).toBe(enText);
+      expect(value(ru, "citizenship_explainer", key)).toBe(ruText);
+    }
+  });
+
+  it("0421's removed keys are gone from both files", () => {
+    for (const key of ["intro", "free_title", "buy_title", "benefits_title"]) {
+      expect(value(en, "citizenship_explainer", key)).toBeUndefined();
+      expect(value(ru, "citizenship_explainer", key)).toBeUndefined();
+    }
   });
 
   // Task 0409: the owner's exact words (ruling 2026-10-08) — never reworded.

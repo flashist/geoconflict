@@ -37,10 +37,7 @@ jest.mock("../../src/client/PrivateLobbyAccess", () => ({
   isPrivateLobbyRowEnabled: jest.fn(),
 }));
 
-import {
-  CITIZENSHIP_XP_THRESHOLD,
-  XP_PER_MATCH,
-} from "../../src/core/profile/Citizenship";
+import { CITIZENSHIP_XP_THRESHOLD } from "../../src/core/profile/Citizenship";
 import { openCitizenshipExplainer } from "../../src/client/CitizenshipExplainer";
 import { CitizenshipExplainerModal } from "../../src/client/CitizenshipExplainerModal";
 import {
@@ -210,14 +207,11 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
 
       for (const key of [
         "citizenship_explainer.title",
-        "citizenship_explainer.intro",
-        "citizenship_explainer.benefits_title",
         "citizenship_explainer.benefit_badge",
         "citizenship_explainer.benefit_name_change",
         "citizenship_explainer.benefit_private_lobby",
         "citizenship_explainer.benefit_no_ads",
         "citizenship_explainer.paid_only_title",
-        "citizenship_explainer.free_title",
         "citizenship_explainer.close",
       ]) {
         expect(text(modal)).toContain(key);
@@ -325,7 +319,6 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
       expect(translate).toHaveBeenCalledWith(
         "citizenship_explainer.free_body",
         {
-          xpPerMatch: XP_PER_MATCH,
           threshold: CITIZENSHIP_XP_THRESHOLD,
         },
       );
@@ -353,6 +346,64 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
     );
   });
 
+  // Task 0421 (owner ruling 2026-10-08): the intro paragraph, the "free"
+  // heading and the "buy" heading were removed to shorten the popup; the
+  // "citizens get" heading followed on 2026-10-09 (owner change). They
+  // must not creep back in any case the popup draws.
+  it.each([
+    ["checking", { kind: "checking" }],
+    ["guest", { kind: "guest", canLogIn: true }],
+    ["guest, no login", { kind: "guest", canLogIn: false }],
+    ["citizen", { kind: "citizen" }],
+    ["citizen_buy", CITIZEN_BUY],
+    ["read_failed", { kind: "read_failed" }],
+    ["no_product", { kind: "no_product", xp: 25 }],
+    ["buy", BUY],
+  ] as Array<[string, CitizenshipOffer]>)(
+    "draws none of 0421's removed lines (%s)",
+    async (_label, offer) => {
+      appendCard(offer);
+      const modal = await mount();
+      await showFrom(modal);
+
+      for (const key of [
+        "citizenship_explainer.intro",
+        "citizenship_explainer.free_title",
+        "citizenship_explainer.buy_title",
+        "citizenship_explainer.benefits_title",
+      ]) {
+        expect(text(modal)).not.toContain(key);
+      }
+    },
+  );
+
+  // Task 0421 (owner change 2026-10-09): someone who is already a citizen is
+  // not told how to get citizenship for free.
+  it.each([
+    ["checking", { kind: "checking" }, true],
+    ["guest", { kind: "guest", canLogIn: true }, true],
+    ["guest, no login", { kind: "guest", canLogIn: false }, true],
+    ["citizen", { kind: "citizen" }, false],
+    ["citizen_buy", CITIZEN_BUY, false],
+    ["read_failed", { kind: "read_failed" }, true],
+    ["no_product", { kind: "no_product", xp: 25 }, true],
+    ["buy", BUY, true],
+  ] as Array<[string, CitizenshipOffer, boolean]>)(
+    "the free-route line (%s): shown = %s",
+    async (_label, offer, isShown) => {
+      appendCard(offer);
+      const modal = await mount();
+      await showFrom(modal);
+
+      expect(byId(modal, "citizenship-explainer-free-body") !== null).toBe(
+        isShown,
+      );
+      expect(text(modal).includes("citizenship_explainer.free_body")).toBe(
+        isShown,
+      );
+    },
+  );
+
   describe("the action area, per offer", () => {
     it("buy: the Buy button with the catalog price", async () => {
       appendCard(BUY);
@@ -363,7 +414,8 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
       expect(button).not.toBeNull();
       expect(button!.textContent).toContain("citizenship_paid.buy_cta");
       expect(button!.textContent).toContain("99 ₽");
-      expect(text(modal)).toContain("citizenship_explainer.buy_title");
+      // Task 0421: no "Or buy it now" heading — the button names the purchase.
+      expect(text(modal)).not.toContain("citizenship_explainer.buy_title");
     });
 
     it("buy: a tap buys through the card with the explainer tap id", async () => {

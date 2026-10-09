@@ -1,9 +1,6 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import {
-  CITIZENSHIP_XP_THRESHOLD,
-  XP_PER_MATCH,
-} from "../core/profile/Citizenship";
+import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
 import type { CitizenshipCard } from "./CitizenshipCard";
 import type { CitizenshipExplainerSource } from "./CitizenshipExplainer";
 import {
@@ -340,9 +337,7 @@ export class CitizenshipExplainerModal extends LitElement {
           <h2 id="citizenship-explainer-title">
             ${translateText("citizenship_explainer.title")}
           </h2>
-          <p>${translateText("citizenship_explainer.intro")}</p>
 
-          <h3>${translateText("citizenship_explainer.benefits_title")}</h3>
           <ul id="citizenship-explainer-benefits">
             <li>${translateText("citizenship_explainer.benefit_badge")}</li>
             <li>
@@ -365,13 +360,14 @@ export class CitizenshipExplainerModal extends LitElement {
             </li>
           </ul>
 
-          <h3>${translateText("citizenship_explainer.free_title")}</h3>
-          <p id="citizenship-explainer-free-body">
-            ${translateText("citizenship_explainer.free_body", {
-              xpPerMatch: XP_PER_MATCH,
-              threshold: CITIZENSHIP_XP_THRESHOLD,
-            })}
-          </p>
+          ${offer.kind === "citizen" || offer.kind === "citizen_buy"
+            ? // Task 0421: a citizen already has it — no "get it free" line.
+              nothing
+            : html`<p id="citizenship-explainer-free-body">
+                ${translateText("citizenship_explainer.free_body", {
+                  threshold: CITIZENSHIP_XP_THRESHOLD,
+                })}
+              </p>`}
           ${offer.kind === "buy" || offer.kind === "no_product"
             ? html`<p id="citizenship-explainer-your-xp" class="muted">
                 ${translateText("citizenship_explainer.your_xp", {
@@ -400,7 +396,6 @@ export class CitizenshipExplainerModal extends LitElement {
     switch (offer.kind) {
       case "buy":
         return html`
-          <h3>${translateText("citizenship_explainer.buy_title")}</h3>
           <button
             id="citizenship-explainer-buy"
             class="primary-btn"
