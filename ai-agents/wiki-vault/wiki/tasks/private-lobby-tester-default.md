@@ -66,3 +66,4 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (closed 2026-10-08): used the tester marker for its locked-tap check; gate item 5 met
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, the invite-link half of gate item 6 (built 2026-10-08)
 - [[tasks/start-screen-private-tab]] — task `0412`, the Private tab shown under this task's rule
+- [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09

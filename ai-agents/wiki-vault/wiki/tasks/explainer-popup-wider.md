@@ -7,6 +7,7 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Weekend-slot deploy. The look inside the real Yandex iframe → `0420` ([[decisions/sprint-8]]).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 5 passed live 2026-10-09 (desktop wider, dark scrollbar; phone width OK). Text since shortened by `0421` — [[tasks/explainer-popup-shorter-text]].*
 
 ## Goal
 

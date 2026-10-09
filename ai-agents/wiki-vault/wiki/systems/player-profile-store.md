@@ -240,6 +240,7 @@
 > 3. 🔴 **`0216` PROVED CAPABILITY, NOT MONITORING.** **Nothing reads the certificate renewal log**
 >    (`0219`, open), so a break between now and the twice-daily renewal window (~2026-10-21) fails
 >    **silently** until the certificate expires **2026-11-20**.
+>    📌 *2026-10-09 sync: `0219`'s G3/G4 deferral is **LIFTED** (owner ruling *"Yes, un-pause in Sprint 8 (Recommended)"*): `0219` moved to Sprint 8 (rank 24, `🔄 In progress`) to switch on and test the server-down and backups-stopped alarms. Until that is done the fuse is **still unwatched**, and Sprint 8 is not started ([[decisions/sprint-8]]).*
 > 4. 🔴 **Two silent barriers still sit on the credit path** and neither reveals the other: the
 >    persisted `/opt/profile/.internal_token` now holds a **stale, superseded** value that a
 >    blank-valued future deploy would silently re-adopt (→ 401 on every credit call, XP **lost, not
@@ -599,3 +600,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/join-token-identity-vouch]] — task `0332`, the vouch build (committed, not deployed; profile first) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): deployed `0.0.156-profile.4` (S3b + `0332` vouch)
 - [[systems/yandex-games-platform-rules]] — Rule 4: why the profile API sits on the `api.` subdomain
+- [[decisions/sprint-8]] — `0219` (rank 24, G3/G4 un-paused 2026-10-09) and the epic `0213` (rank 25)

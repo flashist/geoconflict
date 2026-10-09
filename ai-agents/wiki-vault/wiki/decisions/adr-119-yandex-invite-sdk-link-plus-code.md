@@ -10,6 +10,7 @@
 > No app id, no `yandex.<tld>` literal, no write to `location.search`. Ends residual R3 once live. Both halves built;
 > **gate item 6 still needs `0381` + `0383` to pass live.** See [[tasks/yandex-invite-sdk-link]]. The canonical ADR file
 > did not change in this window.
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* ✅ *The link half passed live (`0383`, 2026-10-09, [[tasks/yandex-invite-sdk-link-live]]); the code half's check `0381` is still open.*
 >
 > 📌 **2026-10-06 sync — the code half is BUILT:** `0380` done 2026-10-05 (agent-closed — not owner-verified),
 > committed `8d74090`, ⚠️ **not deployed**; 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* whether the SDK clipboard really copies inside the iframe is `0381`'s live

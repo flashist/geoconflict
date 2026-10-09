@@ -8,6 +8,7 @@
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08),
 > although the owner ruled it **"Sprint 7, ship today"**. Ships only with a **game image rebuild** (`build-deploy.sh`),
 > not `setup.sh`. Live check → `0420` ([[decisions/sprint-8]]).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 1 (2026-10-09, `0.0.161`): private-lobby start **passed** — no `403`, match started for both.*
 
 ## Goal
 

@@ -165,3 +165,4 @@ implementation brief(s).
 - `schema.md`, **Standing Owner Rulings** — the 2026-08-29 owner ruling that public hostnames may stay
   in vault pages cites **this page** as the case where the hostname *is* the finding. Do not strip the
   host from this page; that question is closed.
+- [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09

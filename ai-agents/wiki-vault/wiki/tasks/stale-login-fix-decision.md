@@ -78,3 +78,4 @@ No code. What the readings showed (approximate; client figures are GameAnalytics
 - [[tasks/verified-login-enforce-live]] — task `0395`, S3a live 2026-10-07
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: carries this task's weekend-evening caveat (20–23 UTC not yet re-measured after `0391`)
 - [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup; measures whether a refresh gets new signed data
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

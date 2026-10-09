@@ -61,6 +61,7 @@ Nothing in source. The record:
   reproduction, fixed in `nginx.conf` — and so is the join-window paste bug found during these checks, as `0413`
   ([[tasks/join-modal-paste-hint]], also carrying `0414`'s error-window copy). Both committed `a555111`, **not deployed**;
   live checks → `0420`. `0411` is still open on the Backlog board.
+  📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).*
 
 ## Related
 

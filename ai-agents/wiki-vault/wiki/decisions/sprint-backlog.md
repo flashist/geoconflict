@@ -3,6 +3,19 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-09 (latest, `78f9c7b`): 145 rows, 103 open — `0415` moved to Sprint 8; `0424` filed.** Re-counted by me
+> at `HEAD` = `78f9c7b`, by each row's leading status glyph: 100 `🔲 Backlog` · 34 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked`
+> · 3 `⛔ Cancelled` (was 144 / 103).
+> - **`0415`** (no native browser tooltips) → `➡️ Moved to Sprint 8 — priority 20`, owner ruling *"Move 0415 into Sprint
+>   8 (Recommended)"* after the owner saw tooltips on `0.0.161` ([[decisions/sprint-8]]). The earlier gap note (*"rule not
+>   in the wiki"*) was closed 2026-10-08 by [[systems/yandex-games-platform-rules]].
+> - **`0424`** — **deferred investigation**: Yandex returned a different player id for the same account. On 2026-10-08,
+>   shortly after game deploy `0.0.160`, the owner's earned test account opened a **new, non-citizen** record. Owner
+>   ruling: the incident is **accepted**; the main theory — Yandex returned a new id for that login (an owner password
+>   change and a Yandex data-centre fire the same day, both **unverified**) — is **unproven**. Picked up only if more
+>   players lose XP / citizenship after re-login. Side effect: no earned-citizen test account, which `0425` on
+>   [[decisions/sprint-8]] addresses.
+>
 > 🆕 **2026-10-08 (latest, `a555111`): 144 rows, 103 open — `0419` filed.** Re-counted by me at `HEAD` = `a555111`, by
 > each row's leading status glyph: 100 `🔲 Backlog` · 33 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was
 > 143 / 102). **`0419`** — other small standalone popups (game starting, citizenship restart, tenure grant, reconnect,

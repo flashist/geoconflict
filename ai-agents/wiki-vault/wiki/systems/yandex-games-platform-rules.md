@@ -53,6 +53,7 @@ appears on hover (the source's example: "Join Lobby" in English over a Russian b
   base note still lists `0412` as 🔲 Backlog (its link was repointed to `done/`, the status text was not). `0415` remains
   open.
 - ⚠️ **Until `0415` ships, native tooltips still exist in the live UI.** Do not add new ones.
+  📌 *2026-10-09 sync: `0412` is deployed (`0.0.160`) and passed live — no tooltip on the two private-lobby buttons (`0420` item 6). Native tooltips were still seen on `0.0.161` on the join window's "Присоединиться к лобби" and the single-player "Начать игру" buttons; `0415` moved to Sprint 8, rank 20 ([[decisions/sprint-8]]).*
 
 ### Rule 2 — No real-country flags or country names as in-game content
 
@@ -129,3 +130,4 @@ Approval takes days and is an **external blocker** on any paid feature — plan 
 - [[decisions/sprint-backlog]] — `0415` (Rule 1, app-wide), `0010` (Rule 2), `0403` (Rule 3, VK placement)
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature whose buttons `0412` fixes under Rule 1
 - [[tasks/start-screen-private-tab]] — task `0412`, Rule 1 applied to the private-lobby buttons (built 2026-10-08)
+- [[decisions/sprint-8]] — `0415` (rank 20, pulled in 2026-10-09) makes Rule 1 true app-wide

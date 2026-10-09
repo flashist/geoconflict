@@ -12,6 +12,14 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 🆕 **2026-10-09 — `plan-index.md` (synced from `78f9c7b`): SPRINT 7 CLOSED 2026-10-09; NO SPRINT IS IN PROGRESS.**
+> Sprint 7's row reads `✅ Done 2026-10-09` (closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner
+> ruling *"I've commited the files. You can close Sprint 7"*) and links to `done/plan-sprint-7.md`. No row was open at the
+> close (`0219` and `0213` had moved to Sprint 8 the same day). ⚠️ **No sprint is `🔄 In progress`** — Sprint 8's banner
+> still reads `🔲 Backlog`; starting it is the owner's call. ⚠️ Source drift, not changed here: the Sprint 7 row's notes
+> column still says *"No goal set yet"*, though the owner set the goal on 2026-10-02 ([[decisions/sprint-7]]). The
+> 2026-09-30 note below is history (true 2026-09-29 → 2026-10-09). See [[decisions/sprint-7]] and [[decisions/sprint-8]].
+>
 > 🆕 **2026-09-30 — `plan-index.md` (synced from `b434732`): SPRINT 6 CLOSED 2026-09-29; SPRINT 7 IS THE ACTIVE
 > SPRINT; a Sprint 8 board exists.** Sprint 6's row reads `✅ Done 2026-09-29` (closed by `/fkit-sprint-done`,
 > agent-closed — not owner-verified; owner ruling R1) and links to `done/plan-sprint-6.md`. Sprint 7 reads

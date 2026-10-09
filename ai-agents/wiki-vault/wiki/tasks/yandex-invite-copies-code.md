@@ -68,3 +68,4 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[systems/yandex-games-platform-rules]] — Rule 3, applied here to private-lobby invites
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, the link half built on top of this (closed 2026-10-08)
 - [[tasks/join-modal-paste-hint]] — task `0413`, whose Part B reuses `copyText` for the error window
+- [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09

@@ -1,9 +1,36 @@
 # Sprint 7 *(no theme name yet — goal set 2026-10-02)*
 
 **Date**: 2026-09-27
-**Status**: proposed *(page-type field; the board is **🔄 In progress since 2026-09-29** — see below)*
+**Status**: accepted *(✅ **closed 2026-10-09** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-09-29~~; was `proposed` while open)*
 
-> Source: `ai-agents/sprints/plan-sprint-7.md`.
+> Source: `ai-agents/sprints/done/plan-sprint-7.md` *(moved there at the close, 2026-10-09; was ~~`ai-agents/sprints/plan-sprint-7.md`~~ — that path no longer exists)*.
+>
+> # 🆕 2026-10-09 (latest, `78f9c7b`) — ✅ SPRINT 7 CLOSED 2026-10-09: 65 ROWS, 56 DONE, 6 MOVED, 3 CANCELLED, 0 OPEN
+>
+> **Re-counted at `HEAD` = `78f9c7b`, by each row's leading status glyph: 65 rows — 56 `✅ Done` · 6 `➡️ Moved` ·
+> 3 `⛔ Cancelled`; 0 OPEN** (was 64 / 4). Line-3 banner: `✅ Done — 2026-10-09. Closed by /fkit-sprint-done
+> (agent-closed — not owner-verified).` Window commits: `a0b2485` (`0421`), the deploy bumps `0.0.158`–`0.0.161`,
+> `01d1ec1`, `50e8ab3`, `fd88852`, `cf561c8`, `7ec589d`, `78f9c7b`.
+>
+> - **Close authority:** OWNER RULING 2026-10-09, typed in the coordinating session and relayed to a spawned
+>   `fkit-producer` (ADR-021/037); ⛔ not producer precedent — *"I've commited the files. You can close Sprint 7"*. **No
+>   row was open at the close, so none was relocated.**
+> - ✅ **Closed 2026-10-09, all `(agent-closed — not owner-verified)`:** `0421` (64, **new row**,
+>   [[tasks/explainer-popup-shorter-text]]) — shorter explainer-popup text, deployed in game `0.0.161` · `0383` (61,
+>   [[tasks/yandex-invite-sdk-link-live]]) — `0382`'s invite link passed live on `0.0.161` · `0402` (52,
+>   [[tasks/post-0340-login-reread]]) — login numbers ≈2.6 %, closed by the owner without the weekend read.
+> - ➡️ **Moved to [[decisions/sprint-8]] before the close (owner rulings 2026-10-09):** `0219` (rank 6 here → 24 there,
+>   *"Move the task to Sprint 8"*; its G3/G4 deferral **lifted** — *"Yes, un-pause in Sprint 8 (Recommended)"*; now
+>   `🔄 In progress`) and its epic `0213` (rank 14 here → 25 there, *"Move it to the Sprint 8"*, `🔲 Backlog`).
+> - 🚀 **Deployed in this window (tags):** `a555111`'s eight builds are in tags `0.0.158`–`0.0.161` (2026-10-08 evening);
+>   `0420`'s worklog says `0416`, `0408`, `0409`, `0407`, `0417`, `0412`, `0413` shipped in `0.0.160`; `0421` in
+>   `0.0.161` (2026-10-09). The **"committed, not deployed"** line in the 2026-10-08 section below is **superseded**.
+>   Their live checks are `0420` on Sprint 8 — still open (run 1 recorded 2026-10-09; earned-account items blocked).
+> - ⚠️ **No sprint is `🔄 In progress` now** — Sprint 8's banner still reads `🔲 Backlog`; starting it is the owner's call
+>   (`plan-index.md`). ⚠️ `plan-index.md`'s Sprint 7 row still says *"No goal set yet"* — stale in the source (the goal
+>   was set 2026-10-02, below); not changed here.
+> - ℹ️ Two `➡️ Moved` rows (ranks 25 and 16 history) read `Moved to [Sprint 7](plan-sprint-7.md)` — a pointer to this
+>   same board, present before the close too; after the move to `done/` it still resolves. Source text, not changed here.
 >
 > # 🆕 2026-10-08 (latest, `a555111`) — 64 ROWS, 4 OPEN: THE SHIP LOOP CLOSED EIGHT ROWS (`0382`, `0407`–`0409`, `0412`, `0413`, `0416`, `0417`)
 >
@@ -771,7 +798,7 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/session-verified-status-line-live]] — task `0400` (rank 51), closed 2026-10-08: check 8 not passed, carried by `0418`
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (rank 48), closed 2026-10-08: popup live; follow-ups `0408`, `0409`, `0417`
 - [[systems/yandex-games-platform-rules]] — Rule 1 (no generic tooltips/hints) is what `0412` (rank 57) fixes on the private-lobby buttons
-- [[tasks/yandex-invite-sdk-link]] — task `0382` (rank 60), closed 2026-10-08; its live check `0383` (61) is still open
+- [[tasks/yandex-invite-sdk-link]] — task `0382` (rank 60), closed 2026-10-08; its live check `0383` (61) 📌 *2026-10-09: passed and closed*
 - [[tasks/paid-citizen-thank-you-line]] — task `0407` (rank 54), closed 2026-10-08
 - [[tasks/explainer-paid-only-subheading]] — task `0408` (rank 55), closed 2026-10-08
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (rank 56), closed 2026-10-08
@@ -779,3 +806,6 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/join-modal-paste-hint]] — task `0413` (rank 58, carries cancelled `0414`), closed 2026-10-08
 - [[tasks/worker-route-query-string]] — task `0416` (rank 62), closed 2026-10-08
 - [[tasks/explainer-popup-wider]] — task `0417` (rank 63), closed 2026-10-08
+- [[tasks/explainer-popup-shorter-text]] — task `0421` (rank 64), added 2026-10-08 and closed 2026-10-09; deployed in `0.0.161`
+- [[tasks/yandex-invite-sdk-link-live]] — task `0383` (rank 61), closed 2026-10-09: `0382`'s live check passed
+- [[tasks/post-0340-login-reread]] — task `0402` (rank 52), closed 2026-10-09: login numbers ≈2.6 %, no weekend read

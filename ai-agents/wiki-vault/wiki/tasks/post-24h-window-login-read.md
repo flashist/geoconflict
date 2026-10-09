@@ -32,6 +32,9 @@ this task's.
 owner ruling): the numbers are monitored, and the owner re-reads them *"after a few days"* in task `0402` (Sprint 7,
 non-blocking, same method as this task). ⚠️ This task's ≈ 22.75 h sample is weekday-only; the weekend-evening window is
 not yet measured after `0391`.
+📌 *2026-10-09 sync: `0402` closed* — pieces read 2026-10-07/08/09: ≈2.96 % and ≈2.6 % stale, weekday evenings 1.5 % and
+3.5 %; the weekend-evening window is **still not measured** — closed by the owner without it
+([[tasks/post-0340-login-reread]]).
 
 ## Key Changes
 
@@ -85,3 +88,4 @@ Nothing in source. The read, same method as `0373`'s server step (ClickHouse `SE
 - [[tasks/verified-login-live-check]] — task `0339`, the failed S2 check (~32 % stale) this chain answered
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S2 shadow mode whose counter this reads
 - [[decisions/adr-123-login-numbers-monitored-not-gate]] — 2026-10-07: the numbers this task read are no longer a deploy gate; `0402` re-reads them non-blocking
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

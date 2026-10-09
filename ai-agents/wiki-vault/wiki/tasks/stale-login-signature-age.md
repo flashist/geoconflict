@@ -1,6 +1,6 @@
 # Measure How Old `stale` Login Signatures Are (task 0366)
 
-**Source**: `ai-agents/tasks/done/0366-measure-how-old-stale-login-signatures-are/brief.md` (what was built: its Sprint 7 board row in `ai-agents/sprints/plan-sprint-7.md`, and the committed code in `src/profile-server/`)
+**Source**: `ai-agents/tasks/done/0366-measure-how-old-stale-login-signatures-are/brief.md` (what was built: its Sprint 7 board row in `ai-agents/sprints/done/plan-sprint-7.md`, and the committed code in `src/profile-server/`)
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 30 (✅ owner-ruled 2026-10-01: placed **directly below `0337`**, with the top group, whatever the number says — the number stays 30, ADR-035) / task `0366`
 
@@ -117,3 +117,4 @@ board to Sprint 7 the same day.
 - [[tasks/login-signature-24h-window]] — task `0391`, which re-cut them (deployed 2026-10-06)
 - [[decisions/adr-121-login-signature-24h-window]] — the decision that retired the sub-24 h brackets
 - [[tasks/post-24h-window-login-read]] — task `0392` (2026-10-07): the re-cut brackets after `0391` — `past_24h_48h` 137, `past_48h_7d` 106, 0 under 24 h
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

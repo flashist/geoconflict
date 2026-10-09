@@ -7,6 +7,7 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Weekend-slot deploy. Live look → `0420` ([[decisions/sprint-8]]); its Part B item is ruled **"not checked live"**.
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 7 (A) passed live 2026-10-09 (no paste button, hint shown, no `NotAllowedError`); item 7 (B), the error-window copy, stays **not checked live**.*
 
 ## Goal
 

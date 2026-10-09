@@ -56,6 +56,7 @@ Geoconflict networking is a worker-routed WebSocket plus HTTP system. Clients co
   container repro; a harness check in `npm test` now requires `$is_args$args` on any variable `proxy_pass`. **Built,
   committed `a555111`, not deployed** — it ships with the game image. Local dev does not go through this nginx, which is
   why no test caught it. See [[tasks/worker-route-query-string]].
+  📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 1 (2026-10-09): private-lobby start passed live, no `403`.*
 - ⚠️ **The lobby-poll payload `GET /api/game/:id` is unauthenticated and now carries `isCitizen`** (task `0068`). Accepted **only while that flag stays purely cosmetic, and void the moment anything of value is gated on it.** See [[tasks/citizen-verified-icon]].
 
 ## Related

@@ -13,6 +13,7 @@
 > tooltip ([[tasks/start-screen-private-tab]]) · `0413` — the Join window hides the paste button and shows a hint where the
 > clipboard cannot be read ([[tasks/join-modal-paste-hint]]). Live checks: `0383` (Sprint 7) and `0420` (Sprint 8). The
 > other gate items are unchanged by this sync.
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 1 (2026-10-09): Start passed live, no `403`; `0383` (invite link) passed — gate item 6 still waits on `0381` ([[tasks/yandex-invite-sdk-link-live]]).*
 >
 > 🆕 **2026-10-08 sync — `0301` IS DEPLOYED, so release-gate item 5 is met; a production 403 blocks private-lobby
 > starts.** Game **`0.0.157`** (2026-10-08) carries `fc3f539` (`0301`) and `8d74090` (the private-lobby tasks) — checked

@@ -1,6 +1,6 @@
 # Client Diagnostics for Stale Login Signatures — Age by Boot Kind, a Second-Call Check, Held Time (task 0372)
 
-**Source**: `ai-agents/tasks/done/0372-client-diagnostics-for-stale-login-signatures/brief.md` (what was built and proven: its Sprint 7 board row in `ai-agents/sprints/plan-sprint-7.md`; the events: `ai-agents/knowledge-base/analytics-event-reference.md` § *Profile Login Signature Age Events*)
+**Source**: `ai-agents/tasks/done/0372-client-diagnostics-for-stale-login-signatures/brief.md` (what was built and proven: its Sprint 7 board row in `ai-agents/sprints/done/plan-sprint-7.md`; the events: `ai-agents/knowledge-base/analytics-event-reference.md` § *Profile Login Signature Age Events*)
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 35 (append rank — ⚠️ **not** a merit rank; owner ruling *"Leave the number, start now (Recommended)"*) / task `0372`
 

@@ -8,6 +8,7 @@
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Cleared for a same-day deploy by owner ruling (*"might"*, not a commitment). **No visual or live check done** — the
 > live look is on `0420` ([[decisions/sprint-8]]).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 4 passed live 2026-10-09 for the paid account; the earned part is blocked (no earned test account).*
 
 ## Goal
 

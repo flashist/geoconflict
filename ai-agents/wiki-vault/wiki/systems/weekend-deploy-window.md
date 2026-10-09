@@ -603,6 +603,7 @@ Both halves, together, or the record is wrong:
   it.** The honest consequence stays attached: **the window's one step with zero prior production
   evidence has no written way back**, and **the whole of the mitigation is a human watching at
   W13–W15**. `0219`'s G3/G4 — the only things that would have watched automatically — are deferred.
+  📌 *2026-10-09 sync: `0219`'s G3/G4 deferral is **LIFTED** (owner ruling *"Yes, un-pause in Sprint 8 (Recommended)"*): `0219` moved to Sprint 8 (rank 24, `🔄 In progress`) to switch on and test the server-down and backups-stopped alarms. Until that is done the fuse is **still unwatched**, and Sprint 8 is not started ([[decisions/sprint-8]]).*
 - 🆕 **That watch is now DEFINED — by the owner, 2026-09-22 (closes this runbook's G3).** See *The W14
   watch* below. ⚠️ **The risk is now owned, not removed** — still a person, still no automation.
 
@@ -770,6 +771,8 @@ applied** — it compared the telemetry measurement against the profile fuse. Ap
 **three weeks later than it is**, and the affordability of `0219`'s G3/G4 deferral rests on this date.
 ⇒ **Never move a date between these two boxes. Always name the box before quoting a cert date.**
 
+📌 *2026-10-09 sync: `0219`'s G3/G4 deferral is **LIFTED** (owner ruling *"Yes, un-pause in Sprint 8 (Recommended)"*): `0219` moved to Sprint 8 (rank 24, `🔄 In progress`) to switch on and test the server-down and backups-stopped alarms. Until that is done the fuse is **still unwatched**, and Sprint 8 is not started ([[decisions/sprint-8]]).*
+
 ⚠️ **An expiry date is not a renewal test.** Both certificates being valid **today** says nothing about
 whether either renewal will fire — it does not exercise `certbot renew`, the HTTP challenge or the
 port-80 bind. **The silent-failure-from-~2026-10-21 concern is untouched**, and **the telemetry cert
@@ -875,3 +878,4 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/post-24h-window-login-read]] — task `0392`, the numbers read before (and judged after) that deploy
 - [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): the third mid-week deploy — profile `.4` then game `0.0.157`
 - [[tasks/worker-route-query-string]] — task `0416`, the post-deploy Start 403, fixed in `nginx.conf` (built 2026-10-08, ships with the game image)
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

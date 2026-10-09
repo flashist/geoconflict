@@ -5,6 +5,39 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-09 (latest, `78f9c7b`): 25 rows — 2 `✅ Done` · 13 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 14 OPEN** (was 18 / 8), counted by me by each row's leading status glyph. Line-3 banner **still
+> `🔲 Backlog` — not started.** ⚠️ With [[decisions/sprint-7]] **closed 2026-10-09**, **no sprint is `🔄 In progress`**;
+> starting this one is the owner's call. Seven rows appended (ADR-035 append ranks — positions, not merit ranks; each
+> flagged for owner confirmation on the board), all on owner rulings or requests relayed to a spawned `fkit-producer`:
+> - **19 `0422`** — `0421`'s live check ([[tasks/explainer-popup-shorter-text]]), filed at `0421`'s close, then
+>   **cancelled** the same day — *"Fold into 0420 (Recommended)"*: its checks are `0420` **item 8**
+>   ([[decisions/cancelled-tasks]]). `0420` items 2 and 5 were also updated to `0421`'s popup.
+> - **20 `0415`** — no native browser tooltips anywhere in the UI, **pulled in from the Backlog board** (*"Move 0415 into
+>   Sprint 8 (Recommended)"*) after the owner saw tooltips on `0.0.161` while running `0420` (the join window's
+>   "Присоединиться к лобби" and the single-player "Начать игру"). Rule 1 of [[systems/yandex-games-platform-rules]].
+> - **21 `0423`** — dark thin scrollbar in every game window, fixed once in the shared `o-modal` (*"Brief a small task,
+>   Sprint 8 (Recommended)"*); reference look `0417` ([[tasks/explainer-popup-wider]]); `0419`'s popups stay in `0419`
+>   (*"Keep them in 0419 (Recommended)"*). `0415` and `0423` both edit `Modal.ts` — whichever lands second rebases.
+> - **22 `0425`** — SSH-only tester roles: one operator command on the profile box applies a fixed test role
+>   (non-citizen, 99 XP, earned, paid flag only — **no fake purchase record**, brand-new) to one allowlisted tester and
+>   restores it exactly. Why: since the 2026-10-08 incident (`0424`, Backlog board) there is **no earned-citizen test
+>   account**, which blocks `0420`'s earned items. Owner kept rank 22 (*"Leave it at 22"*); on merit, top group. Each
+>   production run is a production write and needs the owner's OK in session. ⚠️ Its "tester" is a server-side allowlist
+>   — **not** the client flag of `0302` / `0354`.
+> - **23 `0426`** — a catch-up news-window entry (en + ru) for everything shipped since `2026-06-06` (`0.0.136`): 25
+>   production deploys (`0.0.137`–`0.0.161`) told players nothing. Starts after the last Sprint 8 build, ships in the
+>   final Sprint 8 deploy; the owner approves the exact text first.
+> - **24 `0219`** — profile-box operability, **moved in from Sprint 7**, `🔄 In progress`; its **G3/G4 deferral is
+>   LIFTED** (*"Yes, un-pause in Sprint 8 (Recommended)"*): switch on and test the server-down and backups-stopped
+>   alarms. The code for all four parts was deployed 2026-09-26; what is left is owner-side setup and live drills. 🚨
+>   **Timing risk (board's flag):** certificate renewal attempts start ~2026-10-21 (cert expires 2026-11-20) — if this
+>   sprint does not start before then, a failed renewal is still silent ([[systems/weekend-deploy-window]]).
+> - **25 `0213`** — the profile-backend epic, moved in with `0219` (*"Move it to the Sprint 8"*), `🔲 Backlog`; closes
+>   when `0219` closes.
+> - ℹ️ `0420` run 1 (2026-10-09, `0.0.161`) is recorded in its worklog — most items pass; earned-account items blocked;
+>   the error-window copy stays "not checked live". `0420` is open, so it has no vault page.
+>
 > 🆕 **2026-10-08 (latest, `a555111`): 18 rows — 2 `✅ Done` · 8 `🔲 Backlog` · 8 `➡️ Moved`; 8 OPEN** (was 17 / 7),
 > counted by me by each row's leading status glyph. **`0420` appended at 18** — **one live-check checklist** for the
 > Sprint 7 builds `0416` ([[tasks/worker-route-query-string]]), `0408` ([[tasks/explainer-paid-only-subheading]]),
@@ -238,7 +271,7 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 ## Related
 
 - [[decisions/sprint-6]] — the closed board whose brief-less rows became `0342` / `0343`
-- [[decisions/sprint-7]] — the active sprint
+- [[decisions/sprint-7]] — ~~the active sprint~~ 📌 *2026-10-09: closed; `0219` / `0213` moved here before the close*
 - [[decisions/sprint-5]] — the original home of most of these items; its prose now points at `0343`
 - [[decisions/sprint-backlog]] — `0342`, the "not tied to paid citizenship" discussion brief
 - [[decisions/product-strategy]] — `plan-index.md` lists this board and repoints the priority table to `0342` / `0343`
@@ -278,3 +311,10 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/explainer-popup-wider]] — task `0417`, live check on `0420`
 - [[tasks/start-screen-private-tab]] — task `0412`, live check on `0420`
 - [[tasks/join-modal-paste-hint]] — task `0413`, live check on `0420` (error-window copy: not checked live, by ruling)
+- [[tasks/explainer-popup-shorter-text]] — task `0421` (Sprint 7); its live check `0422` (19) folded into `0420` item 8
+- [[tasks/yandex-invite-sdk-link-live]] — task `0383` (Sprint 7), run in the same sitting as `0420` item 1
+- [[decisions/cancelled-tasks]] — `0422`, cancelled into `0420`
+- [[systems/yandex-games-platform-rules]] — Rule 1, which `0415` (20) makes true app-wide
+- [[systems/weekend-deploy-window]] — the unwatched certificate fuse `0219` (24) closes
+- [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; with Sprint 7 closed 2026-10-09 and this banner still `🔲 Backlog`, no sprint is in progress
+- [[systems/player-profile-store]] — the profile box whose operability `0219` (24) and epic `0213` (25) finish

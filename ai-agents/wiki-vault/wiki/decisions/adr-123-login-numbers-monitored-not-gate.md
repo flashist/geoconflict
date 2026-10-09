@@ -72,6 +72,8 @@ change nothing.
     data. The stale share paid citizens meet on a weekend evening is **not yet measured** after `0391`.
   - 🚨 **Nothing now stops a deploy if the numbers get worse.** The re-read in a few days (`0402`) is the only planned
     look, and it is tied to no deploy.
+    📌 *2026-10-09 sync: `0402` ran and closed* — stale ≈2.96 % (piece 1) and ≈2.6 % (piece 2, approximate); Thursday
+    evening 3.5 %. ⚠️ **Still no weekend evening read** — the owner closed it without one ([[tasks/post-0340-login-reread]]).
 - **Residual:** an agent asked *"are the numbers good enough to deploy?"* answers that under ADR-123 they are not a
   deploy gate; it reports the numbers and the caveats above if asked, and **does not hold a deploy on them**.
 - **Re-raise only if:** the owner reinstates a numbers look or a fixed bar (e.g. after the planned re-read); **or how
@@ -102,3 +104,4 @@ change nothing.
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): `0332`'s design; its deploy is not held by the login numbers
 - [[tasks/join-token-identity-vouch]] — task `0332`, built and closed 2026-10-07 (not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
 - [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): deployed S3b with gate 3 removed by this ADR
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

@@ -7,6 +7,7 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Cleared for a same-day deploy by owner ruling (*"might"*). Live look → `0420` ([[decisions/sprint-8]]).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *Its ru sub-heading and the ad-free line were **reworded by `0421`** (2026-10-09, `0.0.161`) — [[tasks/explainer-popup-shorter-text]].*
 
 ## Goal
 

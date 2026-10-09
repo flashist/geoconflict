@@ -9,6 +9,7 @@
 > `0409` *Buy paid citizenship* for verified, earned, unpaid citizens — the shared offer rule gains `citizen_buy`, card
 > render unchanged ([[tasks/explainer-buy-for-earned-citizens]]) · `0417` 600 px cap and a dark scrollbar
 > ([[tasks/explainer-popup-wider]]). Locally looked at for all three (Playwright). Live look → `0420` (Sprint 8).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *Text shortened by `0421` (`0.0.161`) — [[tasks/explainer-popup-shorter-text]].*
 >
 > 🆕 **2026-10-08 sync — LIVE AND VERIFIED** ([[tasks/citizenship-explainer-popup-live]], `0401`, closed 2026-10-08).
 > Game `0.0.157`. Owner's live checks: a test purchase from the popup completed (`Purchase:Completed:Citizenship`); guest

@@ -51,6 +51,7 @@ portals; also lands in our own `location.search`; `getGameByID` returns this gam
 - 📌 *2026-10-08 sync:* both builds now exist — `0380` (live in `0.0.157`) and `0382` (closed 2026-10-08, committed
   `a555111`, not deployed; [[tasks/yandex-invite-sdk-link]]). The probe's facts (payload returns after a match; copy only
   inside a click; never rewrite `location.search`) are what `0382` built against. Checks `0381` / `0383` still open.
+  📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* ✅ *`0383` passed live 2026-10-09 — [[tasks/yandex-invite-sdk-link-live]].*
 
 - **Verification step 1** (platform findings, sourced, with what could not be established) — met by the evaluation
   report plus the probe's *not tested* list.

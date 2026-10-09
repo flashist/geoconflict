@@ -107,3 +107,4 @@ Rejected: keeping ADR-121 D4 — it holds `0340` back at least one slot whatever
 - [[tasks/verified-login-shadow-mode]] — task `0325`, the S2 shadow mode the gate reads
 - [[tasks/post-24h-window-login-read]] — task `0392`: the one owner look this gate has had (2026-10-07)
 - [[tasks/verified-login-enforce-live]] — task `0395`: the `0340` deploy this gate governed; approval given after the deploy
+- [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)

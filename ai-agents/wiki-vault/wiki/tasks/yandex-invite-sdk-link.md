@@ -7,6 +7,7 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > ⚠️ **Nothing here is proven inside Yandex** — the live check is **`0383`** (Sprint 7 rank 61, still `🔲 Backlog`).
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* ✅ *Its live check `0383` **passed** on `0.0.161` and closed 2026-10-09 — [[tasks/yandex-invite-sdk-link-live]].*
 
 ## Goal
 

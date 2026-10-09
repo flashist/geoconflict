@@ -59,6 +59,7 @@ Nothing in source. Owner's checks on production, 2026-10-08:
   ([[tasks/explainer-popup-wider]]); `0407` too ([[tasks/paid-citizen-thank-you-line]]). Committed `a555111`, not deployed;
   their live look is `0420` (Sprint 8). ⚠️ After `0412` ([[tasks/start-screen-private-tab]]) ships, this task's check 4
   (the locked Create tap) needs a switch to the new Private tab first.
+  📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *Text since shortened by `0421` — [[tasks/explainer-popup-shorter-text]].*
 - **`0354`'s release gate item 5 is met** — `0301` is deployed ([[tasks/private-lobby-citizen-perk]]).
 
 ## Related

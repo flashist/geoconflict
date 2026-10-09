@@ -7,7 +7,7 @@
 
 Tasks cancelled and reverted. Documented here so decisions can be revisited with better context.
 
-Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/tasks/cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md`, `ai-agents/tasks/cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`
+Source: `ai-agents/tasks/cancelled/0072-deploy-time-config-guard/brief.md`, `ai-agents/tasks/cancelled/0096-win-condition-bug/brief.md`, `ai-agents/tasks/cancelled/0114-build-number-automation/brief.md`, `ai-agents/tasks/cancelled/0120-tutorial-action-pause/brief.md`, `ai-agents/tasks/cancelled/0119-nations-balance/brief.md`, `ai-agents/tasks/cancelled/0160-fix-compact-map-boat-attack/brief.md`, `ai-agents/tasks/cancelled/0169-profile-02-guest-localstorage/brief.md`, `ai-agents/tasks/cancelled/0171-profile-07-guest-migration/brief.md`, `ai-agents/tasks/cancelled/0187-profile-hash-player-ids/brief.md`, `ai-agents/tasks/cancelled/0310-drop-the-unused-yandex-hmac-construction/brief.md`, `ai-agents/tasks/cancelled/0278-missing-session-surface-on-the-logged-in-citizenship-card/brief.md`, `ai-agents/tasks/cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md`, `ai-agents/knowledge-base/hvn-balance-pr70-no-ship-review.md`, `ai-agents/knowledge-base/s4-profile-02-guest-localstorage-cancellation-2026-06-13.md`, `ai-agents/knowledge-base/personal-data-152fz-findings.md`, `ai-agents/tasks/cancelled/0422-verify-0421-live-the-shorter-citizenship-popup-on-a-real-phone-inside-yandex-games/brief.md`
 
 ---
 
@@ -294,6 +294,25 @@ point (hide vs keep the paste button, and the hint text). Nothing was built here
 > window's copy now goes through `FlashistFacade.copyText`; committed in `a555111`, not deployed. Proven locally only on
 > the browser fallback; by owner ruling on `0420` the error-window copy is **"not checked live"**. See
 > [[tasks/join-modal-paste-hint]].
+> 📌 *2026-10-09 sync: **deployed since** — `a555111` is in deploy tags `0.0.158`–`0.0.161`; `0420`'s worklog records these builds as shipped in game `0.0.160` (2026-10-08 evening).* *`0420` item 7 (B), this scope, stays **not checked live** (2026-10-09).*
+
+## Live Check — The Shorter Citizenship Popup on a Real Phone (task 0422)
+
+**Cancelled 2026-10-09** `(agent-closed — not owner-verified)`, by `/fkit-task-cancelled` — *"Merged into 0420 by owner
+ruling 2026-10-09 ('Fold into 0420')"*. Filed the same day by a spawned `fkit-producer` at `0421`'s close, under the
+owner's build/verify-split rule (2026-09-29), at Sprint 8 append rank 19.
+
+**What it would have checked:** owner-run, ru, real phone, portrait, inside Yandex Games, game `0.0.161` — (a)
+non-citizen: Buy visible without scrolling, text as `0421` approved; (b) earned account: no "Получите бесплатно" line,
+the paid-Buy button shown (⛔ never tapped); (c) paid account: neither. No size target (owner ruling 2026-10-08), so
+"Buy not visible" would be a question for the owner, not a fail.
+
+**Why cancelled:** the owner chose one checklist, one sitting — `0420` already checks the same popup with the same
+accounts. The checks became **`0420` item 8**. Nothing was built here; ID `0422` stays used; its Sprint 8 row keeps
+rank 19.
+
+**If revisited:** read `0420` item 8 and [[tasks/explainer-popup-shorter-text]]. ⚠️ Part (b) is **blocked** live —
+no earned-citizen test account exists since the 2026-10-08 id incident (`0424`); `0425` would provide one.
 
 ## Consequences
 
@@ -337,3 +356,5 @@ point (hide vs keep the paste button, and the hint text). Nothing was built here
 - [[tasks/yandex-invite-copies-code]] — task `0380`, the `copyText` path that `0414` (cancelled 2026-10-08, merged into `0413`) would have reused
 - [[tasks/paid-citizen-ad-free-live]] — task `0398`, during whose live checks the paste bug behind `0413`/`0414` was found
 - [[tasks/join-modal-paste-hint]] — task `0413`, which built `0414`'s scope as Part B (closed 2026-10-08)
+- [[tasks/explainer-popup-shorter-text]] — task `0421`, whose live check `0422` was cancelled into `0420` item 8 (2026-10-09)
+- [[decisions/sprint-8]] — the board where `0422` (rank 19) was filed and cancelled 2026-10-09
