@@ -88,6 +88,8 @@ export default [
     files: [
       "scripts/check-config-parity.mjs",
       "scripts/check-config-values.mjs",
+      // Task 0427: the project-wide jest lock wrapper — same reasoning.
+      "scripts/run-jest-with-project-lock.mjs",
     ],
     languageOptions: {
       parserOptions: {

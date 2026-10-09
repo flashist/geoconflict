@@ -54,7 +54,10 @@ const unitConfig = {
   // whole Terminal process tree onto the efficiency cores (4 on the owner's
   // Mac), and jest's default (cores - 1) then starved the shell harnesses past
   // their 150 s deadline. Likely, not proven.
-  // `npm test -- --maxWorkers=N` overrides this for one run.
+  // `npm test` also passes --detectOpenHandles (task 0427), which forces
+  // in-band, so `npm test -- --maxWorkers=N` no longer changes anything there.
+  // Several runs side by side are stopped by the project lock in
+  // scripts/run-jest-with-project-lock.mjs, not by this setting.
   // Not a supertest-flake fix (0200) and not a SIGSEGV fix (0197).
   maxWorkers: 1,
   // Integration tests (real Postgres) run only via `npm run test:integration`;

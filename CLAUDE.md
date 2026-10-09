@@ -234,6 +234,37 @@ Both are load-bearing: jest's 5000 ms default would make a normal slow harness f
 `Exceeded timeout of 5000 ms`, the exact string the known supertest flake below produces. Do not
 remove them.
 
+### Only one full test run at a time — project lock (task `0427`, owner ruling 2026-10-09)
+
+`npm test`, `npm run test:coverage` and `npm run test:integration` all go through
+`scripts/run-jest-with-project-lock.mjs`. **`maxWorkers: 1` limits ONE run; this lock stops several
+runs (from several agents or terminals) running side by side** — the case behind the 2026-10-08
+panic and the 2026-10-09 "CPU overflow" crash. Cause of those crashes is still unproven.
+
+- **A full run takes the lock.** A second full run **waits for its turn** and says so
+  (`[test lock] Waiting for its turn: another full test run (pid …, started at …) …`), then starts by
+  itself when the first one ends (owner ruling: wait, with a clear message). No timeout on the wait.
+- **Targeted runs never lock or wait:** a test path or pattern (`npm test -- tests/Attack.test.ts`),
+  `--watch`/`--watchAll`, `--findRelatedTests`, `--onlyChanged`, `--testPathPatterns`, and so on.
+  `-t <name>` alone is still a full run (it loads every file).
+- **The lock is per project, shared by all its worktrees:** `<git common dir>/geoconflict-jest-full-run.lock`
+  (falls back to `.geoconflict-jest-full-run.lock` in the repo root, git-ignored, if there is no git).
+  It records the holder's pid; **a lock whose process is gone is taken over automatically**, so a
+  crashed run never blocks testing. To clear one by hand: delete that file.
+- ⚠️ **Always run tests through the npm scripts.** `npx jest` bypasses the lock.
+- **Residuals, accepted:** two waiters that see the same stale lock at the same instant can both start
+  (a few-millisecond window); a reused pid could make a dead run's lock look alive (delete the file).
+  The `pretest` map-count step runs before the lock (it is tiny).
+
+**`--detectOpenHandles --forceExit` on the unit run** (`npm test`, `npm run test:coverage`) — owner
+ruling 2026-10-09, *"just in case"*. **Not** on `test:integration`: its no-`--forceExit` rule below
+stands (owner chose "Normal tests only").
+- `--forceExit` ends a run that would otherwise hang after the tests finish. Trade-off, accepted: it can
+  hide a real handle leak in the unit suite.
+- `--detectOpenHandles` reports what keeps jest alive. It **forces in-band** (jest ignores
+  `--maxWorkers` with it), so on `npm test` the `--maxWorkers=N` override below **no longer has an
+  effect**. It also adds some overhead per test.
+
 ### `npm test` runs 1 jest worker (owner ruling 2026-10-08; was 4, task `0399`)
 
 `jest.config.ts` sets `maxWorkers: 1` for the unit run — `npm test`, and `npm run test:coverage`,
@@ -263,7 +294,7 @@ likely, not proven.
 - **Cost of the 4-worker cap when nothing is throttled: none measured.** Terminal in front: 42 s vs 44 s
   (4 workers vs 13, one back-to-back run each, 2026-10-06, both green). One 4-worker run with
   Telegram/Safari in front, where no throttling happened, also took 42 s.
-- **Override for one run:** `npm test -- --maxWorkers=N` (still works at the 1-worker cap).
+- **Override for one run:** ~~`npm test -- --maxWorkers=N` (still works at the 1-worker cap).~~ **No effect on `npm test` since task `0427`** — `--detectOpenHandles` forces in-band (see the lock section above).
   `--runInBand` also wins over the config, and can't be combined with `--maxWorkers` (jest refuses
   to start).
 - **Not a flake fix, not a segfault fix.** The `supertest` flake below occurs at the same rate at 4 and
@@ -282,7 +313,7 @@ likely, not proven.
 | Shape | Status |
 |---|---|
 | `Exceeded timeout of 5000 ms` — jest's default clock, not a real 5 s wait | **confirmed**, traced |
-| `Jest did not exit one second after…` | **confirmed** — the *same* defect, not a second one |
+| `Jest did not exit one second after…` | **confirmed** — the *same* defect, not a second one. ⚠️ Since `0427` the unit run has `--forceExit`, so this shape is cut short there (`--detectOpenHandles` may print the open handle instead); judge the run by its other output |
 | `socket hang up` | seen, **never traced** — may be a different sub-mechanism |
 | unexpected `404` · `access-control-allow-origin` → `undefined` · `401` on a route with no auth middleware | seen historically, **mechanism unknown** — each carries a response, which the confirmed mechanism cannot produce |
 
