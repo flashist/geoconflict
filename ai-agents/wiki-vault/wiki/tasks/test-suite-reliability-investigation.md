@@ -61,6 +61,12 @@ Five macOS crash reports (four historical from 2026-08-28, one reproduced live 2
 
 **`--forceExit` was therefore REMOVED, not documented** (owner ruling R1, conditional on the cold-DB check, which passed), so a future real handle leak surfaces as a visible hang instead of being silently masked. `CLAUDE.md` now states plainly that **a future hang is a real regression — investigate it, do not add the flag back.**
 
+> 📌 **2026-10-09 — the UNIT run now has `--forceExit`; this integration rule is unchanged.** Task `0427`
+> ([[tasks/jest-full-run-lock]]) added `--detectOpenHandles --forceExit` to `npm test` and `npm run test:coverage` on an
+> owner request (*"just in case"*) and ruling (*"Normal tests only (Recommended)"*). `npm run test:integration` keeps
+> **no** `--forceExit`, exactly as above. Not a reversal of this task: a new owner decision for a different suite, with
+> the same trade-off accepted knowingly — on the unit run, `--forceExit` can hide a real handle leak.
+
 ### 4. ⚠️ The Node pin is NOT a mitigation — do not let any retelling turn it into one
 
 Node is pinned **for reproducibility only**, so contributors and future build images run a known runtime instead of silently taking whatever is installed. Deliberately asymmetric (owner ruling R5): `.nvmrc` exact `24.13.0` (names the known-good version, guides, cannot block); `engines.node` range `>=24.13.0 <25` (keeps the intent while unable to hard-fail an install over a patch bump).
@@ -76,6 +82,9 @@ Node is pinned **for reproducibility only**, so contributors and future build im
 > timeouts when macOS throttles a background Terminal — not as a segfault mitigation. ⛔ It makes **no claim** about
 > whether a cap affects the `SIGSEGV` below; that is unmeasured. `workerIdleMemoryLimit` is still unset. The paragraph
 > below is kept as the 2026-08 record. See [[tasks/jest-worker-cap]].
+> 📌 *2026-10-09 sync: the cap has since gone to **1 worker** (owner ruling 2026-10-08, after two kernel panics during
+> full runs — cause unproven), and `0427`'s `--detectOpenHandles` forces in-band on `npm test` anyway. Still no claim
+> about the `SIGSEGV`; `workerIdleMemoryLimit` still unset.*
 
 Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorkers` cap, no `workerIdleMemoryLimit`. Capping workers would trade a permanent slowdown on every run for an intermittent flake, and the owner declined.
 
@@ -110,3 +119,4 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 - [[decisions/sprint-4]] — the sprint board carrying this task and its `0200` follow-up
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, which ruled out this task's segfault before re-running
 - [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): the 4-worker cap that supersedes A2 for background-throttling timeouts only
+- [[tasks/jest-full-run-lock]] — task `0427` (2026-10-09): `--forceExit` on the unit run only; the integration rule above stands

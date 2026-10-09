@@ -4,6 +4,19 @@
 **Status**: done (agent-closed — not owner-verified) — committed in `036a5c8`; test config only, nothing ships in a deploy
 **Sprint/Tag**: Sprint 7, rank 47 (append rank, not a merit rank) / task `0399`
 
+> 🔁 **2026-10-09 sync — this page's numbers are history; two later changes apply.** Source: the committed `CLAUDE.md`
+> § Testing at `9dd117a`.
+> 1. **The cap is now 1 worker, not 4 — owner ruling 2026-10-08** (committed in `a555111`; it reached the vault only in
+>    this sync). Why: the owner's Mac kernel-panicked twice with the same WindowServer-watchdog signature (2026-10-06 and
+>    2026-10-08), both during full `npm test` runs — the second with several agents running full runs in parallel.
+>    **Cause unproven.** Cost: one 1-worker run on 2026-10-08 took **292 s**, green (vs 42 s at 4 workers on 2026-10-06 —
+>    front app and other load not recorded, so **not like-for-like**). One worker means jest runs every suite one after
+>    another in its main process, like `--runInBand`. It supersedes the 4-worker cap **for this reason only**; the
+>    measurements below were made at 4 and 13 workers, **not at 1**.
+> 2. **The `npm test -- --maxWorkers=N` override below no longer has any effect on `npm test`** — since task `0427`
+>    ([[tasks/jest-full-run-lock]]) the unit run passes `--detectOpenHandles`, which forces in-band. A **project-wide
+>    lock** now stops several full runs going side by side, which a per-run worker cap could not.
+
 > ✅ Closed 2026-10-06 by a spawned `fkit-producer` via `/fkit-task-done`, at `fkit-lead`'s instruction under
 > `/fkit-sprint-ship-loop`, on the owner-approved `plan.md` and owner rulings of 2026-10-06, verbatim: *"Yes, replace
 > A2"*, *"Run once, last, on my go"*, *"Approve the note"*, *"Enough, go to review"*, *"Amend it"*, *"Yes, fix them
@@ -80,3 +93,5 @@ negative that also misstated A2.
 - [[tasks/hardening-harness-speedup]] — task `0371`: the ~7 % CPU harness that fits this pattern
 - [[tasks/session-verified-status-line]] — task `0397`, whose red verify runs started this
 - [[decisions/sprint-7]] — the board (rank 47)
+- [[systems/architecture-overview]] — the build/run/test section, which now notes the 1-worker cap
+- [[tasks/jest-full-run-lock]] — task `0427` (2026-10-09): one full run at a time project-wide; its `--detectOpenHandles` made the `--maxWorkers=N` override a no-op on `npm test`

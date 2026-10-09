@@ -4,6 +4,19 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 🆕 **2026-10-09 (`9dd117a`) sync — the release gate's three open items MOVED TO [[decisions/sprint-8]], and the
+> flip itself is now a task.** Owner ruling, verbatim: *"1. Yes move to the Sprint 8 and brief a dedicated task for the
+> Sprint 8 to turn the private lobbies on for everybody."* `0376` (item 2) → rank 27, `0228` (item 3) → 28, `0381`
+> (item 6's last check) → 29 — append ranks, not merit ranks. **New `0428`** (rank 30): set `private_lobbies_all` =
+> `enabled` in the Yandex Games console, check live as a non-tester, keep the rollback (unset the flag) ready —
+> owner-executed, nothing built or deployed; depends on `0376`, `0228`, `0381`, `0390`. Three owner rulings the same
+> day: **`0390` must pass first**, so **item 4 now needs `0390`'s live pass**, not just `0377` built
+> ([[tasks/private-lobby-idle-end]]); flip **before the final Sprint 8 deploy** so `0426`'s news can announce it;
+> `0389`'s two code checks stay in `0376`. State per `0428`'s brief: items 1 and 5 closed with live evidence from
+> `0420`; item 6 waits only on `0381` (step 4, the old `#join=` link); `0376` mostly passed live 2026-10-09 (match end,
+> the `0353` host-window check and the console values still to do). ⚠️ Items 1, 4, 5 are agent-closed, not
+> owner-verified. **The gate is not met; `private_lobbies_all` stays unset.**
+>
 > 🆕 **2026-10-08 (later) sync — four private-lobby tasks BUILT, none deployed** (all `(agent-closed — not
 > owner-verified)`, committed `a555111`; `git tag --contains` → none): `0416` — the Start 403 **confirmed by reproduction**
 > and fixed with `$is_args$args` on the container nginx worker route ([[tasks/worker-route-query-string]]) · `0382` — the
@@ -148,6 +161,7 @@ of the perks would depend on it."*
 
 - [[decisions/adr-119-yandex-invite-sdk-link-plus-code]] — 🆕 release-gate item 6: how the invite works on the Yandex build
 - [[tasks/yandex-invite-link-decision]] — 🆕 task `0199`, the ruling behind gate item 6
+- [[decisions/sprint-8]] — 🆕 2026-10-09: where `0376`, `0228`, `0381` moved (ranks 27–29) and the flip task `0428` (30) sits
 - [[decisions/sprint-backlog]] — 🆕 where every release-gate task (`0354`, `0376`, `0377`, `0228`, `0380`–`0383`) sits
 - [[tasks/private-lobby-start-url]] — task `0198`, which fixed the private-lobby start URL on Yandex
 - [[tasks/citizen-verified-icon]] — task `0068`: its cosmetic-only residuals are void for this path (a permission)

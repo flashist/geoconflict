@@ -3,6 +3,15 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-09 (latest, `9dd117a`): 145 rows, 100 open — `0376`, `0228`, `0381` moved to Sprint 8.** Re-counted by
+> me at `HEAD` = `9dd117a`, by each row's leading status glyph: 97 `🔲 Backlog` · 37 `➡️ Moved` · 5 `✅ Done` · 3 `🚧
+> Blocked` · 3 `⛔ Cancelled` (was 145 / 103). The three open items of the private-lobby release gate
+> ([[tasks/private-lobby-citizen-perk]]) now read `➡️ Moved to Sprint 8 — priority 27 / 28 / 29` (`0376` / `0228` /
+> `0381`), on the owner's ruling typed in the coordinating session, verbatim *"1. Yes move to the Sprint 8 and brief a
+> dedicated task for the Sprint 8 to turn the private lobbies on for everybody."* (relayed to a spawned `fkit-producer`;
+> ⛔ not producer precedent). The ranks are append positions in gate-item order, not merit ranks. Rows kept as pointers,
+> status `🔲 Backlog` unchanged, nothing renumbered. The flip task `0428` was filed on [[decisions/sprint-8]], not here.
+>
 > 🆕 **2026-10-09 (latest, `78f9c7b`): 145 rows, 103 open — `0415` moved to Sprint 8; `0424` filed.** Re-counted by me
 > at `HEAD` = `78f9c7b`, by each row's leading status glyph: 100 `🔲 Backlog` · 34 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked`
 > · 3 `⛔ Cancelled` (was 144 / 103).

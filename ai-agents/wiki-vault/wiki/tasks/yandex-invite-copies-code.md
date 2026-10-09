@@ -14,6 +14,8 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** (no game deploy since `0.0.156`). ⚠️ **Not verified in the Yandex iframe:** whether the SDK clipboard or
 > the native fallback actually copies there is for the live check **`0381`** (Backlog board).
+>
+> 📌 *2026-10-09 sync: `0381` **moved to [[decisions/sprint-8]] (rank 29, append rank)** with the other open release-gate items, by owner ruling. Its brief now marks steps 1 and 6 superseded by `0382`; the main step left is step 4 — the old `#join=` link is ignored. It blocks the everyone-flip `0428`.*
 
 ## Goal
 
@@ -62,6 +64,7 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[tasks/private-lobby-tester-default]] — task `0354`, built before this one
 - [[tasks/private-lobby-code-format]] — task `0389`, filed from this task's Q3
 - [[tasks/private-lobby-citizen-perk]] — the six-item release gate
+- [[decisions/sprint-8]] — where `0381`, this task's live check, sits since 2026-10-09 (rank 29)
 - [[systems/flashist-init]] — the facade's SDK access
 - [[decisions/sprint-7]] — the board (rank 38)
 - [[decisions/cancelled-tasks]] — `0414` (cancelled 2026-10-08, merged into `0413` Part B): moves the error window's copy button onto this task's `copyText`

@@ -62,6 +62,11 @@ The confirmed mechanism produces **no response at all**, which cannot produce a 
 
 The **unexpected `404`** and the **missing `access-control-allow-origin`** are likewise outside the confirmed scope. "Mechanism confirmed" covers the **timeout sub-shape and its `Jest did not exit` companion** — and nothing else.
 
+> 📌 **2026-10-09 — the `Jest did not exit` companion looks different on the unit run now.** Since task `0427`
+> ([[tasks/jest-full-run-lock]]) `npm test` and `npm run test:coverage` run with `--forceExit`, so that shape is cut
+> short there (`--detectOpenHandles` may print the open handle instead); judge such a run by its other output, per the
+> committed `CLAUDE.md` flake table. The integration suites have no `--forceExit` and are unchanged.
+
 ### 4. 🔧 A propagated claim this task DISPROVED
 
 The four `tests/profile-server/*` suites were **never** "the only suites in the repository using `supertest`." **Seven** test files import it:
@@ -99,4 +104,5 @@ The four `tests/profile-server/*` suites were **never** "the only suites in the 
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, whose first full run hit a `socket hang up` of this family (likely, not proven)
 - [[tasks/hardening-harness-speedup]] — task `0371` (2026-10-02): a `NameChangeRoutes` `socket hang up` of this family hit one of its five full runs; re-run per the flake rule
 - [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): `npm test` now capped at 4 workers for background-throttling timeouts; ⛔ explicitly **not** a fix for this flake, which this task measured at the same rate at 4 and 13 workers
+- [[tasks/jest-full-run-lock]] — task `0427` (2026-10-09): `--forceExit` on the unit run cuts the `did not exit` shape short there
 - [[tasks/join-token-identity-vouch]] — task `0332` (2026-10-07): closed on a 2-of-3-red verify read as this flake, at a rate above this task's measurement

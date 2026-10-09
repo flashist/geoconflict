@@ -5,6 +5,34 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-09 (latest, `9dd117a`): 30 rows — 3 `✅ Done` · 17 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 18 OPEN** (was 25 / 14), counted by me by each row's leading status glyph. Line-3 banner **still
+> `🔲 Backlog` — not started.** Five rows appended (ADR-035 append ranks — positions, not merit ranks; each flagged for
+> owner confirmation on the board), all on owner requests or rulings typed in the coordinating session and relayed to a
+> spawned `fkit-producer` with no owner channel (⛔ not producer precedent):
+> - **26 `0427`** — one full jest run at a time project-wide, plus `--detectOpenHandles --forceExit` on the unit run
+>   ([[tasks/jest-full-run-lock]]). Filed on the owner's *"implement this fix for JEST the first thing"*; on merit the
+>   board puts it at the top, beside `0370`. **✅ Done the same day (agent-closed — not owner-verified)**, committed
+>   `1926f4c`; the owner's two-terminal check was not run.
+> - **27 `0376`, 28 `0228`, 29 `0381` — moved in from the Backlog board** ([[decisions/sprint-backlog]]): the three open
+>   items (2, 3, 6) of the private-lobby release gate ([[tasks/private-lobby-citizen-perk]]). Owner, verbatim: *"1. Yes
+>   move to the Sprint 8 and brief a dedicated task for the Sprint 8 to turn the private lobbies on for everybody."*
+>   Status `🔲 Backlog` carried unchanged. On merit the board puts `0376` and `0381` in the top group and `0228` near the
+>   top (its outcome is the one nobody can predict). `0376`'s brief now records 2026-10-09's live evidence (match end,
+>   the `0353` host-window check and the console values still to do); `0381`'s marks steps 1 and 6 superseded by `0382`,
+>   step 4 (the old `#join=` link) the main one left.
+> - **30 `0428`** (new) — **turn private lobbies on for everyone**: set `private_lobbies_all` = `enabled` in the Yandex
+>   Games console, check live as a non-tester, keep the rollback (unset the flag) ready. **Nothing built or deployed;
+>   executed by the owner.** Depends on `0376`, `0228`, `0381`, `0390`.
+> - 📌 **Three owner rulings, later 2026-10-09** (live `AskUserQuestion`): (1) **`0390` must pass first** — *"Yes, 0390
+>   must pass first (Recommended)"*, so gate item 4 now needs `0390`'s live pass, not just `0377` built
+>   ([[tasks/private-lobby-idle-end]]); (2) flip **before the final Sprint 8 deploy** — *"Before the final deploy
+>   (Recommended)"*, so `0426`'s news may announce it, provided `0428` has actually run by `0426`'s text gate; (3)
+>   **`0389`'s two code checks stay in `0376`** — *"Keep them in 0376 (Recommended)"*.
+> - ⚠️ **Board's flag:** gate items 1, 4, 5 are closed, but all **agent-closed, not owner-verified**; item 4 (`0377`) is
+>   built only until `0390` runs. Accepted risk carried in `0428`: the private-lobby gate stays open to unverified
+>   citizens (`0332` Q4), and after the flip every player sees Create, not just testers.
+>
 > 🆕 **2026-10-09 (latest, `78f9c7b`): 25 rows — 2 `✅ Done` · 13 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 14 OPEN** (was 18 / 8), counted by me by each row's leading status glyph. Line-3 banner **still
 > `🔲 Backlog` — not started.** ⚠️ With [[decisions/sprint-7]] **closed 2026-10-09**, **no sprint is `🔄 In progress`**;
@@ -318,3 +346,6 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[systems/weekend-deploy-window]] — the unwatched certificate fuse `0219` (24) closes
 - [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; with Sprint 7 closed 2026-10-09 and this banner still `🔲 Backlog`, no sprint is in progress
 - [[systems/player-profile-store]] — the profile box whose operability `0219` (24) and epic `0213` (25) finish
+- [[tasks/jest-full-run-lock]] — task `0427` (26): one full jest run at a time; done 2026-10-09
+- [[tasks/private-lobby-citizen-perk]] — the six-item release gate whose open items `0376` (27), `0228` (28), `0381` (29) moved here; the flip is `0428` (30)
+- [[tasks/yandex-invite-copies-code]] — task `0380`, verified by `0381` (29)

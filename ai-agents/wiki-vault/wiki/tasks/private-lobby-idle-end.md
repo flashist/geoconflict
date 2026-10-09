@@ -7,6 +7,8 @@
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-04; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** — server-only, needs a game-server deploy, none since `0.0.156`. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Its live check is **`0390`** (Sprint 8,
 > rank 7): an abandoned private lobby ends after 30 minutes and an occupied one does not.
+>
+> 📌 *2026-10-09 sync: **`0390` now gates the everyone-flip.** Owner ruling 2026-10-09, *"Yes, 0390 must pass first (Recommended)"* — gate item 4 needs `0390`'s live pass, not just this task built; `0390` is in the *Depends on* of `0428` (turn private lobbies on for everyone, [[decisions/sprint-8]] rank 30).*
 
 ## Goal
 
