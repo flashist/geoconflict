@@ -28,7 +28,7 @@ Sprint 7
 58
 
 ⚠️ **Priority 58 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 7](../../../sprints/plan-sprint-7.md)'s highest (57, `0412`); the owner named the sprint, not a rank.
+[Sprint 7](../../../sprints/done/plan-sprint-7.md)'s highest (57, `0412`); the owner named the sprint, not a rank.
 **On merit this belongs directly below `0412`** anyway, because it blocks nothing, nothing in Sprint 7 waits on it, a
 working workaround exists (type or paste into the box), and the private-lobby row is still shown only to testers or
 behind the `private_lobbies_all` flag (`0354`), so few players can reach the dead button today.

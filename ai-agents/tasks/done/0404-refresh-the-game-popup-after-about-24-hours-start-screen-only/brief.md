@@ -15,7 +15,7 @@ Verbatim: *"Move the refresh popup task to the Sprint 7"*. It supersedes the pla
 ## Priority
 53
 
-> 📌 **2026-10-07 — 53 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-07 — 53 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (52, `0402`); the owner named no placement. ⚠️ Flagged for owner confirmation: on
 > merit its rank barely matters — it blocks nothing and depends on nothing; it is the exit for `0332` (Sprint 7 rank 9)
 > review finding R2. The notes about rank 14 below (under *Owner rulings* and *Notes*) describe the Sprint 8 board and are

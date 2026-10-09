@@ -19,7 +19,7 @@ Sprint 7
 ## Priority
 48
 
-> 📌 **2026-10-06 — 48 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-06 — 48 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (47, `0399`). ⚠️ Flagged for owner confirmation: **on merit it is worked in the
 > same slot as `0398`** (`0301` deploys with `0248`). The note below about rank 13 describes the Sprint 8 board and is
 > history.
@@ -224,7 +224,7 @@ citizen for good and the locked button then unlocks.
   [`0398`](../0398-verify-0248-live-paid-citizens-see-no-interstitial-ads-in-production/brief.md).
 - **(a) Placement:** ~~Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396`/`0398`, the deploy
   may fall inside Sprint 7's time window.~~ ✅ **Answered 2026-10-06 — OWNER RULING *"Move it to Sprint 7"*:** moved to
-  [Sprint 7](../../../sprints/plan-sprint-7.md), rank 48 (append rank).
+  [Sprint 7](../../../sprints/done/plan-sprint-7.md), rank 48 (append rank).
 - **(b) The purchase:** ~~⚠️ **Open question — the real purchase.** Check 1 spends real money and turns the test account
   into a citizen for good. Which non-citizen account does the owner use, and is a real purchase acceptable? If not,
   check 1 is recorded as *not checked live*.~~ ✅ **Answered 2026-10-06 — OWNER RULINGS:** no real money (Yandex test-

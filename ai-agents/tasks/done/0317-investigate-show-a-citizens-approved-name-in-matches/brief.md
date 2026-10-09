@@ -120,7 +120,7 @@ report's rude-name filter point and the placement of the briefs. This satisfies 
   the rude-name filter would hide a requested name, and carries the D3 ADR (written by `fkit-architect`; updates
   ADR-103's scope). End of Sprint 6, after `0321`.
 - **B3** → [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) — the mark (D5). End of
-  [Sprint 7](../../../sprints/plan-sprint-7.md). Depends on `0322`.
+  [Sprint 7](../../../sprints/done/plan-sprint-7.md). Depends on `0322`.
 - **D6** → recorded as a note in
   [`0308`](../../cancelled/0308-player-name-loses-its-space-find-where-and-decide-which-characters-a-name-may-contain/brief.md)'s
   Notes. `0308`'s status and plan unchanged.

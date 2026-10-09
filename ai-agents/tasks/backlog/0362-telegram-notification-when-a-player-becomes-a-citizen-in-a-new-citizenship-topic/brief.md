@@ -202,7 +202,7 @@ name `TELEGRAM_TOPIC_CITIZENSHIP`) must appear everywhere the two existing topic
 - ~~**Relation to `0297`** (paid-citizenship owner-run test buy, Sprint 7, blocked): a real purchase would be the
   **first live proof of the paid message**. Not a dependency either way — if this ships after `0297`'s buy, the
   verify task needs another real or test purchase to prove the paid path.~~ ✂️ Moved to 0378 with the paid message.
-- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/plan-sprint-7.md) records that there is
+- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/done/plan-sprint-7.md) records that there is
   to be **no second profile deploy before `0297` §1 reads `0309`'s log line** (container logs are lost on recreate),
   and that `build-deploy-profile.sh` **refuses to run while any `src/` change is uncommitted**. So this task's code
   and deploy-script edits must not sit uncommitted across that weekend deploy, and it ships in a later profile

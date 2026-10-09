@@ -11,7 +11,7 @@ Sprint 7
 📌 **Moved from the Backlog board to Sprint 7 on 2026-09-29** — OWNER RULING given live 2026-09-29 in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0297 and the task that it depends on to the Sprint 7, make sure the 0297 has the correct status (blocked) by the corresponding task."* **This task is "the task that it depends on"**: [`0297`](../../done/0297-paid-citizenship-owner-run-test-buy-sequence/brief.md)'s open §1 item *"Determine which of the two constructions matched"* cannot be observed until this task's log line is built, deployed, and read after a real signed payload (identified by `fkit-lead`, checked against both briefs by the producer). `0310` (depends on this task) was **not** moved — `0297` does not wait on it; it stays on the [Backlog board](../../../sprints/backlog.md). *(Earlier value of this field: `Backlog`.)*
 
 ## Priority
-**20** — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), after that board's highest (19, `0301`). ⚠️ **The owner gave no rank** — a position, not a merit rank and not owner-ruled; placed directly above `0297` (21) because `0297` waits on it. *(Earlier value, struck:* ~~Unscheduled~~ *— Backlog board.)*
+**20** — append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), after that board's highest (19, `0301`). ⚠️ **The owner gave no rank** — a position, not a merit rank and not owner-ruled; placed directly above `0297` (21) because `0297` waits on it. *(Earlier value, struck:* ~~Unscheduled~~ *— Backlog board.)*
 
 ## Status
 ✅ Done (agent-closed — not owner-verified)

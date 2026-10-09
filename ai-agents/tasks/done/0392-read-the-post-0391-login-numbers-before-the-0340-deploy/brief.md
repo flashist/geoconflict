@@ -20,7 +20,7 @@ Sprint 7
 ## Priority
 44
 
-> 📌 **2026-10-05, latest — 44 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-05, latest — 44 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (43, `0391`). On merit: worked once `0391`'s Tue 6 Oct deploy has some data, and
 > before `0340`'s deploy at the 10/11 Oct slot. The note below about rank 8 describes the Sprint 8 board and is history.
 >
@@ -178,7 +178,7 @@ Recorded in the [ADR-122](../../../knowledge-base/decisions/adr-122-stale-login-
 placement *"Move to Sprint 7 (Recommended)"*; when it closes *"After the first look (Rec)"*; folder *"Rename and fix
 links"*.
 
-- **Sprint:** now [Sprint 7](../../../sprints/plan-sprint-7.md), appended at **44** (ADR-035 append rank, not a merit
+- **Sprint:** now [Sprint 7](../../../sprints/done/plan-sprint-7.md), appended at **44** (ADR-035 append rank, not a merit
   rank). Its [Sprint 8](../../../sprints/plan-sprint-8.md) row is `➡️ Moved`.
 - **Scope, narrowed — one look, then close.** Read the post-`0391` login numbers (stale share, `ok`, `id_mismatch`,
   `bad_payload`, plus the per-day / per-hour split and the stale-age brackets) from the first post-deploy point to the

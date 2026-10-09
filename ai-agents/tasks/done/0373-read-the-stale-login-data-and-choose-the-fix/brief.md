@@ -10,7 +10,7 @@
 ## Sprint
 Sprint 7
 
-> 📌 **2026-10-04 — was ~~Sprint 8~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING given
+> 📌 **2026-10-04 — was ~~Sprint 8~~; moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md).** OWNER RULING given
 > live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
 > `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Pull into
 > Sprint 7 (Recommended)"* — option text: *"Move 0373 onto Sprint 7 now. Sprint 7's goal includes citizenship, and 6

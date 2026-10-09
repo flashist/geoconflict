@@ -20,7 +20,7 @@ Sprint 7
 59
 
 ⚠️ **Priority 59 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 7](../../../sprints/plan-sprint-7.md)'s highest (58, `0413`); the owner named the sprint, not a rank.
+[Sprint 7](../../../sprints/done/plan-sprint-7.md)'s highest (58, `0413`); the owner named the sprint, not a rank.
 **On merit this belongs directly below `0413`**, because it came from the same owner request, blocks nothing, and only
 matters when a player hits the error window (rare) — so it is the less urgent of the two.
 

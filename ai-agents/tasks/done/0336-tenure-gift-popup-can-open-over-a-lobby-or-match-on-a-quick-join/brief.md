@@ -15,9 +15,9 @@ Sprint 7
 ## Priority
 13
 
-> 📌 **2026-09-29 — rank 11 → 13.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
+> 📌 **2026-09-29 — rank 11 → 13.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/done/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
-> 📌 **2026-09-29 — rank 10 → 11.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
+> 📌 **2026-09-29 — rank 10 → 11.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/done/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
 ⚠️ **Priority 10 is append rank, NOT a merit ranking — flagged for owner confirmation.** The **placement** is
 owner-ruled (end of Sprint 7, 2026-09-28 — see *Context*); the number is this board's highest (9, `0335`) plus

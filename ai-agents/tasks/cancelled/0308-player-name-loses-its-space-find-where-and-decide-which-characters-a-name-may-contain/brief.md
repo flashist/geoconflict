@@ -6,12 +6,12 @@
 ## Sprint
 Sprint 7
 
-➡️ **Moved to [Sprint 7](../../../sprints/plan-sprint-7.md) on 2026-09-29 by OWNER RULING R1** (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent) — see the *Addendum 2026-09-29, later — plan APPROVED, moved to Sprint 7* at the end. *Earlier value, kept:* ~~Sprint 6~~
+➡️ **Moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md) on 2026-09-29 by OWNER RULING R1** (live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent) — see the *Addendum 2026-09-29, later — plan APPROVED, moved to Sprint 7* at the end. *Earlier value, kept:* ~~Sprint 6~~
 
 ## Priority
 15
 
-➡️ **15 — append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), 2026-09-29.** ⚠️ **The owner gave no rank on Sprint 7**; 15 is the next rank after that board's highest (14, epic `0213`) — a position, **not** a merit rank and **not** owner-ruled. *Earlier value, kept (Sprint 6):* ~~35~~ —
+➡️ **15 — append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), 2026-09-29.** ⚠️ **The owner gave no rank on Sprint 7**; 15 is the next rank after that board's highest (14, epic `0213`) — a position, **not** a merit rank and **not** owner-ruled. *Earlier value, kept (Sprint 6):* ~~35~~ —
 
 ⬇️ **35 — PARKED AT THE BOTTOM OF SPRINT 6 BY OWNER RULING, 2026-09-27** — the owner's own free-text answer live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Let's come back to this task later, decrease the priority and put it to the end of the current sprint"*. Rank 35 is the next append rank below `0297` (34). See the *PARK 2026-09-27* addendum on the Sprint 6 board. *Earlier value, kept:* ~~6~~ —
 
@@ -276,12 +276,12 @@ precedent. Append-only (ADR-035). Recorded verbatim; the same four rulings are c
 
 **Effect.**
 - `## Sprint`: Sprint 6 → **Sprint 7** (old value struck, kept).
-- `## Priority`: **15**, the append rank on [Sprint 7](../../../sprints/plan-sprint-7.md) (after its highest, 14).
+- `## Priority`: **15**, the append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md) (after its highest, 14).
   ⚠️ **The owner gave no rank on Sprint 7** — a position, not a merit rank. Sprint 6's 35 struck, kept.
 - `## Status`: `🔄 In progress — driven by fkit-lead, 2026-09-29` (held a few minutes) → **`🔲 Backlog`** (old value
   struck, kept). The plan was **approved**; the build **had not started**; **no source file changed**.
 - [Sprint 6](../../../sprints/done/plan-sprint-6.md) row → `➡️ Moved to Sprint 7 — priority 15`; a row appended on
-  [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 15. No other row renumbered (ADR-035). No task folder moved.
+  [Sprint 7](../../../sprints/done/plan-sprint-7.md) at rank 15. No other row renumbered (ADR-035). No task folder moved.
 - The Notes' look-alike item (*"raise the conflict at the plan gate"*) is **answered** by R2.
 - `0317`'s brief (in `done/`) gained a dated one-line pointer under D6.
 

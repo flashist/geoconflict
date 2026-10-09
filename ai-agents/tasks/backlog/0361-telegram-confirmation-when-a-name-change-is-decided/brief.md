@@ -143,7 +143,7 @@ server once the decision is saved, would replace it.
 - **Related:** [`0350`](../0350-name-change-moderation-without-copy-and-paste/brief.md) (moderation without copy and
   paste — shape A1 chosen); hooking this in the repository means `0350`'s command inherits it. `0360` (refuse
   Anon-like names) and `0308` (name charset) touch the same feature, not this message.
-- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/plan-sprint-7.md) records that there is
+- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/done/plan-sprint-7.md) records that there is
   to be **no second profile deploy before `0297` §1 reads `0309`'s log line** (container logs are lost on recreate),
   and that `build-deploy-profile.sh` **refuses to run while any `src/` change is uncommitted**. So this task's code
   must not sit uncommitted in the working tree across that weekend deploy, and it ships in a later profile deploy.

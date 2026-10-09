@@ -29,9 +29,17 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
+> ✅ **2026-10-09 — SPRINT 7 CLOSED.** [Sprint 7](done/plan-sprint-7.md) was closed by `/fkit-sprint-done`
+> *(agent-closed — not owner-verified)* — banner `✅ Done — 2026-10-09`. No row was open at the close, so none was
+> relocated (`0219` and `0213` had already moved to [Sprint 8](plan-sprint-8.md) by owner ruling the same day).
+> **OWNER RULING 2026-10-09, typed live in the coordinating session and relayed to a spawned `fkit-producer`
+> (ADR-021/037); ⛔ not producer precedent** — *"I've commited the files. You can close Sprint 7"*. ⚠️ **No sprint is
+> `🔄 In progress` now** — Sprint 8's banner still reads `🔲 Backlog`; starting it is the owner's call, not made here.
+> The ✅ note directly below is history: true 2026-09-29 → 2026-10-09.
+>
 > ✅ **2026-09-29 — SPRINT 6 CLOSED; SPRINT 7 IS IN PROGRESS.** [Sprint 6](done/plan-sprint-6.md) was closed by
 > `/fkit-sprint-done` *(agent-closed — not owner-verified)* — banner `✅ Done — 2026-09-29` — and its three open rows
-> (`0339`, `0341`, `0289`) moved to [Sprint 7](plan-sprint-7.md) at 25–27. Sprint 7's banner now reads
+> (`0339`, `0341`, `0289`) moved to [Sprint 7](done/plan-sprint-7.md) at 25–27. Sprint 7's banner now reads
 > `🔄 In progress — 2026-09-29`. **OWNER RULINGS R1 + R2, live 2026-09-29 in the `fkit lead` session via
 > `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent** —
 > *"Close now, move 3 to Sprint 7"* and *"Yes, start Sprint 7 now (Recommended)"*. The 🔄 note directly below is
@@ -85,7 +93,7 @@ Features are **excluded** from experiments if:
 | [plan-sprint-4c.md](done/plan-sprint-4c.md) | Sprint 4c — Production Stabilization *(closed; in `done/`)* | Reduce the top production error families from the 2026-05-07 Uptrace telemetry review |
 | [plan-sprint-5.md](done/plan-sprint-5.md) | **Sprint 5 — Citizenship Launch** ~~Full F2P Loop & Social Features~~ *(renamed 2026-09-26, owner ruling)* ~~🔄 **ACTIVE since 2026-09-26**~~ ✅ **Done 2026-09-26** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; in `done/`)* ~~*(pre-scoped, not in work)*~~ | ~~Long-term engagement and monetization systems~~ Now the profile/citizenship launch only (owner ruling 2026-09-26); the F2P / social items moved to Sprint 6 |
 | [plan-sprint-6.md](done/plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* ~~*(pre-scoped, not in work)*~~ ~~🔄 **In progress since 2026-09-26**~~ ✅ **Done 2026-09-29** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner ruling R1; in `done/`)* *(owner ruling; see the 🔄 note above)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
-| [plan-sprint-7.md](plan-sprint-7.md) | Sprint 7 *(no theme name yet — the owner has not named it)* ~~🔲 **Backlog — created 2026-09-27, not started**~~ 🔄 **In progress since 2026-09-29** *(owner ruling R2)* *(owner ruling, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*)* | ⚠️ No goal set yet (owner's call). Holds the five rows moved out of Sprint 6 on 2026-09-27: `0027`, `0030`, `0032`, `0219`, `0221` |
+| [plan-sprint-7.md](done/plan-sprint-7.md) | Sprint 7 *(no theme name yet — the owner has not named it)* ~~🔲 **Backlog — created 2026-09-27, not started**~~ ~~🔄 **In progress since 2026-09-29**~~ *(owner ruling R2)* ✅ **Done 2026-10-09** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner ruling 2026-10-09; in `done/`)* *(owner ruling, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*)* | ⚠️ No goal set yet (owner's call). Holds the five rows moved out of Sprint 6 on 2026-09-27: `0027`, `0030`, `0032`, `0219`, `0221` |
 | [plan-sprint-8.md](plan-sprint-8.md) | **Sprint 8 — Paid Citizenship Perks and More Content** *(named 2026-09-29, owner ruling D)* ~~*(no theme name yet)*~~ 🔲 **Backlog — created 2026-09-29, not started** *(owner ruling, relayed by `fkit-lead`: split Sprint 6's 11 brief-less rows into two discussion briefs — paid-citizenship items to Sprint 8, the rest to the Backlog board; then ruling C moved leaderboard rewards, coin economy and clans to Sprint 8 too)* | ⚠️ No goal set yet (owner's call). Holds one discussion brief, [`0343`](../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md): paid map packs, nickname styling, map voting, premium replays, custom uploaded flags, leaderboard rewards, coin economy, clans. Its twin [`0342`](../tasks/backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (restart UX, mobile warning, free historical maps) is on the [Backlog board](backlog.md) |
 
 ---

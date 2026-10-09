@@ -15,7 +15,7 @@ Sprint 7
 ⚠️ Priority 63 is append rank, NOT a merit ranking — flagged for owner confirmation.
 **On merit this belongs directly below `0409`**, because it edits the same popup file as `0408` and `0409` and is best
 built right after them so the three changes do not collide; it blocks nothing and carries no same-day deploy intent.
-(ADR-035: appended after [Sprint 7](../../../sprints/plan-sprint-7.md)'s highest, 62 (`0416`). The owner named the
+(ADR-035: appended after [Sprint 7](../../../sprints/done/plan-sprint-7.md)'s highest, 62 (`0416`). The owner named the
 sprint, not a rank.)
 
 ## Status

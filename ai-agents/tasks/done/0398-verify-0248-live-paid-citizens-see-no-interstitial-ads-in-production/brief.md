@@ -18,7 +18,7 @@ OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQ
 ## Priority
 50
 
-> 📌 **2026-10-06 — 50 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-06 — 50 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (49, `0396`). ⚠️ Flagged for owner confirmation: on merit it is worked directly
 > after `0396` and in the same slot as `0401` — appending already lands it directly below `0396`. The note below about
 > rank 11 describes the Sprint 8 board and is history.
@@ -149,7 +149,7 @@ requested.
 - **Does not block Sprint 7's deploy** (owner rule, 2026-09-29).
 - **Placement:** ~~Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396`, its deploy could fall
   inside Sprint 7's time window — the reasoning that moved `0392` and `0395` to Sprint 7 on 2026-10-05.~~
-  ✅ **Answered 2026-10-06 — OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/plan-sprint-7.md), rank 50 (append
+  ✅ **Answered 2026-10-06 — OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md), rank 50 (append
   rank). See the placement note at the end.
 - ⚠️ **Open question — the test accounts.** Does the owner have (a) a **paid** account that logs in **verified**,
   (b) a **non-paid** account, and (c) an **earned-only** citizen account? If (c) is missing, record check 4 as *not

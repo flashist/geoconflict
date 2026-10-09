@@ -16,7 +16,7 @@ Sprint 7
 
 > ⚠️ **Priority 43 is append rank, NOT a merit ranking — flagged for owner confirmation.** The owner named the sprint
 > (*"Fix: Sprint 7, check: Sprint 8 (Recommended)"*), not a rank; appended after the
-> [Sprint 7 board](../../../sprints/plan-sprint-7.md)'s highest (42, `0389`), never inserted (ADR-035).
+> [Sprint 7 board](../../../sprints/done/plan-sprint-7.md)'s highest (42, `0389`), never inserted (ADR-035).
 > **On merit this belongs directly below `0373`**, because it is the fix `0373` chose and it is the next step on the
 > chain that blocks `0340` (and `0250` S3b, `0332`, `0323`, `0319`, `0248`, `0301` behind it). `0373` itself sits at
 > append rank 36 and is read as "worked before `0340`" — read this one the same way, whatever the number says.

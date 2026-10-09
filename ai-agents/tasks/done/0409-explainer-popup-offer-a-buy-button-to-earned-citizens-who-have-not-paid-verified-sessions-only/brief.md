@@ -9,14 +9,14 @@
 ## Sprint
 Sprint 7
 
-> 📌 **2026-10-08 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING typed directly by the owner in the `fkit lead` session on 2026-10-08 (the owner's own message, not an `AskUserQuestion` answer), relayed verbatim by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+> 📌 **2026-10-08 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md).** OWNER RULING typed directly by the owner in the `fkit lead` session on 2026-10-08 (the owner's own message, not an `AskUserQuestion` answer), relayed verbatim by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
 > Verbatim: *"0407, 0408, 0409 - shoud be moved into the Sprint 7 (current sprint), we might need to do them today and deliver a new deploy update"*. The [Backlog board](../../../sprints/backlog.md) row is kept as `➡️ Moved`. Status unchanged
 > (`🔲 Backlog`); no folder moved, no mover run. Deploy timing: see the dated *Deploy* note under *Notes*.
 
 ## Priority
 56
 
-> 📌 **2026-10-08 — was ~~Unscheduled~~; 56 is ADR-035 append position on [Sprint 7](../../../sprints/plan-sprint-7.md), NOT a merit rank.**
+> 📌 **2026-10-08 — was ~~Unscheduled~~; 56 is ADR-035 append position on [Sprint 7](../../../sprints/done/plan-sprint-7.md), NOT a merit rank.**
 > The owner named the three tasks (`0407`, `0408`, `0409`, in that order), not ranks. Appended after that board's
 > highest (55, `0408`); open for owner confirmation. The paragraph below describes the Backlog board and is history.
 

@@ -18,7 +18,7 @@ note at the end.
 ## Priority
 49
 
-> 📌 **2026-10-06 — 49 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-06 — 49 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (48, `0401`). ⚠️ Flagged for owner confirmation: **on merit it is worked right
 > after `0395`** (Sprint 7 rank 45), because it cannot deploy until `0395` confirms `vfy: true` live, and `0398`, `0400`
 > and `0401` all wait on it. The note below about rank 10 describes the Sprint 8 board and is history.
@@ -166,7 +166,7 @@ and the ⛔ rollback rule below written out in full.
 - **Placement:** ~~Sprint 8 per the owner's 2026-09-29 rule (*verify task on top of the next sprint; it must not block
   the current sprint's deploy*). ⚠️ **Open question:** its earliest deploy is the slot after 10/11 Oct, which may
   still fall inside Sprint 7 — the same reasoning that moved `0392` and `0395` to Sprint 7 on 2026-10-05.~~
-  ✅ **Answered 2026-10-06 — OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/plan-sprint-7.md), rank 49 (append
+  ✅ **Answered 2026-10-06 — OWNER RULING *"Move both to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md), rank 49 (append
   rank). See the placement note at the end.
 - ⚠️ **Open question — the two test sessions.** Does the owner have a **paid** test account that can log in
   verified? And how is a **`vfy:false`** session obtained once `0340` is live (an older token minted before `0340`'s

@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 7
 
-> 📌 **2026-09-29 — PULLED INTO [SPRINT 7](../../../sprints/plan-sprint-7.md) and SCOPE NARROWED TO OPTION A. Read the
+> 📌 **2026-09-29 — PULLED INTO [SPRINT 7](../../../sprints/done/plan-sprint-7.md) and SCOPE NARROWED TO OPTION A. Read the
 > authority before the outcome.** An **OWNER RULING given live 2026-09-29 in the `fkit lead` session**, relayed by
 > `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
 > `AskUserQuestion` "What should the Sprint 7 reconnect task cover?" → **"Rejoin + fix the timeout (Recommended)"** —

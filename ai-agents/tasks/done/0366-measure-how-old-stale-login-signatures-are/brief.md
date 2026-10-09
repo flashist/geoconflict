@@ -15,13 +15,13 @@ Sprint 7
 ## Priority
 30
 
-> ⚠️ **Priority 30 is append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), NOT a merit ranking — flagged for owner confirmation.** The owner ruled the move (Q1) but named no rank; the board's highest was 29 and writing it higher would renumber closed rows (ADR-035). **On merit this belongs directly below `0337`**, with the top group, because it must ride Saturday's (2026-10-03/04) profile deploy and `0340` waits on it. *(Earlier value, kept as history — true from filing until 2026-10-01:)* ~~Unscheduled~~
+> ⚠️ **Priority 30 is append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), NOT a merit ranking — flagged for owner confirmation.** The owner ruled the move (Q1) but named no rank; the board's highest was 29 and writing it higher would renumber closed rows (ADR-035). **On merit this belongs directly below `0337`**, with the top group, because it must ride Saturday's (2026-10-03/04) profile deploy and `0340` waits on it. *(Earlier value, kept as history — true from filing until 2026-10-01:)* ~~Unscheduled~~
 
 > ✅ **Answered 2026-10-01 — OWNER RULING** (live `fkit lead` session, verbatim *"I've commited the files, you can do the needed things by producer"*, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent): **placed directly below `0337`, with the top group, whatever the number says.** The number stays 30 — the board row is closed, and ADR-035 forbids renumbering closed rows even under an owner ruling. The "flagged for owner confirmation" wording above is kept as history. See the last section of this brief.
 
 > ⚠️ **Open owner question — Backlog or Sprint 7?** Filed on the Backlog board because no sprint was named. The
 > owner's aim is for this to ride **Saturday's (2026-10-03/04) profile deploy**, which argues for pulling it into
-> [Sprint 7](../../../sprints/plan-sprint-7.md) (the active sprint). Recommendation: pull it into Sprint 7. That
+> [Sprint 7](../../../sprints/done/plan-sprint-7.md) (the active sprint). Recommendation: pull it into Sprint 7. That
 > pull is a producer act on an owner ruling (three edits: board row, backlog row → `➡️ Moved`, this field).
 
 ## Status
@@ -152,7 +152,7 @@ the server, that is a **new** task, not this one.
 
 **Authority.** OWNER RULINGS given live 2026-10-01 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. These answer the three open questions in *Notes* above; the questions are kept as written.
 
-- **Q1 — Backlog or Sprint 7?** → *"Move to Sprint 7 (Recommended)"*. Done: appended on [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 30 (append rank — see `## Priority`); the [Backlog board](../../../sprints/backlog.md) row now reads `➡️ Moved to Sprint 7 — priority 30`; `## Sprint` updated. The `⚠️ Open owner question` note under `## Priority` is answered.
+- **Q1 — Backlog or Sprint 7?** → *"Move to Sprint 7 (Recommended)"*. Done: appended on [Sprint 7](../../../sprints/done/plan-sprint-7.md) at rank 30 (append rank — see `## Priority`); the [Backlog board](../../../sprints/backlog.md) row now reads `➡️ Moved to Sprint 7 — priority 30`; `## Sprint` updated. The `⚠️ Open owner question` note under `## Priority` is answered.
 - **Q2 — who reads the brackets after the deploy?** → *"Fold into the re-check (Recommended)"*. **No separate verify task is filed for this task.** Reading the age brackets in Uptrace after the deploy is part of the **S2-exit re-check before [`0340`](../0340-0325-s3a-enforce-mint-verified-sessions/brief.md)**. ⚠️ This is an **owner-ruled exception, for this task only,** to the 2026-09-29 standing rule (close the build, put a verify task at the top of the next sprint). This task still closes on its build proof (verification steps 1–7); the reading is **not** its close condition.
 - **Q3 — also record the age of `ok` signatures?** → *"Stale only (Recommended)"*. Scope unchanged: `stale` only.
 
@@ -160,5 +160,5 @@ the server, that is a **new** task, not this one.
 
 **Authority.** OWNER RULING given live 2026-10-01 in the `fkit lead` session, verbatim *"I've commited the files, you can do the needed things by producer"*, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent for re-ranking.
 
-- **Committed, not deployed.** This task's code + folder are in commit `e581824` ("Sprint push", 2026-10-01). Still **not deployed** — targets Saturday's (2026-10-03/04) profile deploy. The [Sprint 7](../../../sprints/plan-sprint-7.md) row's old *"Not committed"* is struck through there.
+- **Committed, not deployed.** This task's code + folder are in commit `e581824` ("Sprint push", 2026-10-01). Still **not deployed** — targets Saturday's (2026-10-03/04) profile deploy. The [Sprint 7](../../../sprints/done/plan-sprint-7.md) row's old *"Not committed"* is struck through there.
 - **Placement.** Directly below `0337`, with the top group. Rank number unchanged at 30 (closed row, ADR-035).

@@ -18,7 +18,7 @@ Sprint 7
 ## Priority
 45
 
-> 📌 **2026-10-05 — 45 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-05 — 45 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (44, `0392`). On merit: worked at the 10/11 Oct profile slot, after `0340` is
 > built and reviewed and after the owner's look via `0392`. The note below about rank 9 describes the Sprint 8 board and
 > is history.
@@ -201,7 +201,7 @@ as `0340`'s rollback target, and the never-pre-S2 rule. Append-only; do not rewr
 `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
 placement *"Move to Sprint 7 (Recommended)"*; on `0250` S3b / `0319` / `0332` / `0323`, *"Note only (Recommended)"*.
 
-- **Placement answered:** this task is on [Sprint 7](../../../sprints/plan-sprint-7.md), appended at 45; its
+- **Placement answered:** this task is on [Sprint 7](../../../sprints/done/plan-sprint-7.md), appended at 45; its
   [Sprint 8](../../../sprints/plan-sprint-8.md) row reads `➡️ Moved to Sprint 7 — priority 45` (rank 9 kept). The
   *Sprint placement is an open question* lines above are answered by this; kept as written.
 - **The four `verified` readers answered:** `0250` (S3b), `0319`, `0332` and `0323` each carry a dated note — *deploy

@@ -11,7 +11,7 @@ Sprint 7
 
 > **Rank 1 is OWNER-RULED placement** — the owner's words, verbatim: *"The verify task should be put on top of
 > the next sprint"*. It was appended at rank 11 (ADR-035: append, never insert) and then moved to the top within
-> the [Sprint 7 board](../../../sprints/plan-sprint-7.md)'s contiguous run of open rows by that owner ruling;
+> the [Sprint 7 board](../../../sprints/done/plan-sprint-7.md)'s contiguous run of open rows by that owner ruling;
 > no closed row exists on that board, so none was renumbered. See the board's 2026-09-29 addendum. ⛔ Not
 > producer precedent for re-ranking.
 

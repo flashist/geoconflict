@@ -9,7 +9,7 @@
 ## Sprint
 Sprint 7
 
-> 📌 **2026-10-04 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING given
+> 📌 **2026-10-04 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md).** OWNER RULING given
 > live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
 > `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Yes: all 5
 > ready ones"* — option text: *"0354, 0377, 0380 plus the two small fixes 0353 (error every second) and 0374 (joining

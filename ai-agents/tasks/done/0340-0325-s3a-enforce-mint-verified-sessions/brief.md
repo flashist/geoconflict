@@ -10,7 +10,7 @@
 ## Sprint
 Sprint 7
 
-📌 **Moved BACK from Sprint 6 to Sprint 7 on 2026-09-29, latest** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/plan-sprint-7.md). Appended on [Sprint 7](../../../sprints/plan-sprint-7.md) at rank 16; its earlier Sprint 7 row (rank 3) stays there as a closed `➡️ Moved` row (ADR-035). `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. **The gate below is unchanged.** The Sprint 6 note directly below (*Sprint 6 cannot close as fully done until this task has shipped*) no longer applies — this task is no longer on Sprint 6.
+📌 **Moved BACK from Sprint 6 to Sprint 7 on 2026-09-29, latest** — OWNER RULING given 2026-09-29 live in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0340 and any tasks from the Sprint 6 that depends on it to the Sprint 7."* **This reverses the same day's earlier ruling A** (*"Move 0340 into Sprint 6"*) — the latest explicit ruling wins. `fkit-lead` read *"depends on it"* as transitive (so no Sprint 6 task is left waiting on a Sprint 7 task) and stated that reading to the owner: `0340`; `0250` (its slice S3b waits on `0340`); `0248` (waits on `0250`); `0301` (waits on `0248` and `0250`). Record: the 2026-09-29 *`0340` chain* addenda under the status tables of [Sprint 6](../../../sprints/done/plan-sprint-6.md) and [Sprint 7](../../../sprints/done/plan-sprint-7.md). Appended on [Sprint 7](../../../sprints/done/plan-sprint-7.md) at rank 16; its earlier Sprint 7 row (rank 3) stays there as a closed `➡️ Moved` row (ADR-035). `## Status` unchanged (`🔲 Backlog`); no folder moved; no mover run. **The gate below is unchanged.** The Sprint 6 note directly below (*Sprint 6 cannot close as fully done until this task has shipped*) no longer applies — this task is no longer on Sprint 6.
 
 *(Earlier value, kept as history — true from earlier on 2026-09-29 until this move:)* ~~Sprint 6~~
 
@@ -21,7 +21,7 @@ Sprint 7
 ## Priority
 16
 
-> 📌 **2026-09-29, latest — rank 16 on [Sprint 7](../../../sprints/plan-sprint-7.md) is APPEND RANK, not a merit ranking.** The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. **On merit** this sits at the top of Sprint 7's open work, directly below `0337` — where its earlier Sprint 7 row (rank 3) stood — because `0250` S3b, `0332`, `0323` and `0319` wait on it. Its own gate, `0339`, stays on Sprint 6. The notes below about ranks 47 and 3 are kept as history.
+> 📌 **2026-09-29, latest — rank 16 on [Sprint 7](../../../sprints/done/plan-sprint-7.md) is APPEND RANK, not a merit ranking.** The owner gave no rank on Sprint 7; this board's highest was 15 (`0308`), and the four tasks moved by this ruling were appended in their Sprint 6 relative order: `0340` 16, `0250` 17, `0248` 18, `0301` 19. ADR-035: appended, never inserted; nothing was renumbered. **On merit** this sits at the top of Sprint 7's open work, directly below `0337` — where its earlier Sprint 7 row (rank 3) stood — because `0250` S3b, `0332`, `0323` and `0319` wait on it. Its own gate, `0339`, stays on Sprint 6. The notes below about ranks 47 and 3 are kept as history.
 >
 > *(Earlier value, kept as history — true on Sprint 6 earlier on 2026-09-29:)* ~~47~~
 
@@ -32,7 +32,7 @@ Sprint 7
 > **Rank 3 is OWNER-RULED placement** — the owner's ruling of 2026-09-29 (see *Context*): *"a separate 'S3a
 > enforce' build task after it"* (after the verify task, `0339`). It was **appended** at rank 13 (ADR-035:
 > append, never insert) and then moved up to sit directly below `0339`, within the
-> [Sprint 7 board](../../../sprints/plan-sprint-7.md)'s contiguous run of open rows, by that ruling. The board
+> [Sprint 7 board](../../../sprints/done/plan-sprint-7.md)'s contiguous run of open rows, by that ruling. The board
 > has no closed row, so none was renumbered. See the board's 2026-09-29 `0339`/`0340` addendum. ⛔ Not producer
 > precedent for re-ranking.
 >
@@ -255,7 +255,7 @@ how old the `stale` tickets are**, aiming for Saturday's profile deploy if it's 
 the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, check: Sprint 8 (Recommended)"**.
 
 - **The gate's chain is now:** [`0391`](../../done/0391-accept-login-signatures-up-to-24-hours-old-checking-the-player-first/brief.md)
-  (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/plan-sprint-7.md)) →
+  (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/done/plan-sprint-7.md)) →
   [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (~~the S2-exit re-check, pass =
   ≤5% over 7 days~~ *superseded 2026-10-05 by ADR-122: reads whatever post-`0391` data exists when the owner needs it,
   no fixed bar, gates nothing on its own*; [Sprint 8](../../../sprints/plan-sprint-8.md)) → this task. *(ADR-122:
@@ -319,7 +319,7 @@ plan gate, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawne
 - **New close condition:** this task closes once it is **built and reviewed** (agent-closed, per ADR-033). The earlier
   *"does not close until that note is applied"* condition is struck above.
 - **Moved to [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)**
-  (~~[Sprint 8](../../../sprints/plan-sprint-8.md)~~ [Sprint 7](../../../sprints/plan-sprint-7.md) — moved the same day by owner ruling *"Move to Sprint 7 (Recommended)"*): the deploy gate (`0391` live; the owner's look via `0392`; the
+  (~~[Sprint 8](../../../sprints/plan-sprint-8.md)~~ [Sprint 7](../../../sprints/done/plan-sprint-7.md) — moved the same day by owner ruling *"Move to Sprint 7 (Recommended)"*): the deploy gate (`0391` live; the owner's look via `0392`; the
   separate approval to enforce), the deploy itself, the delta check, the post-deploy watch, the worklog deploy entry, the
   ⛔ one-way rollback rule (target = the `0391` image; never pre-S2), the owner's DevTools `vfy` check, routing the
   ADR-113 note to `fkit-architect`, and the runbook's rollback-target line. Source: `plan.md` § 4 and § 3's rollback

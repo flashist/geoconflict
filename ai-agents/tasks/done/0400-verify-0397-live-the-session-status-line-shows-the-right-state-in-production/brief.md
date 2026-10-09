@@ -18,7 +18,7 @@ OWNER RULING *"Move it to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQue
 ## Priority
 51
 
-> 📌 **2026-10-06 — 51 is ADR-035 append rank on [Sprint 7](../../../sprints/plan-sprint-7.md), not a merit rank.**
+> 📌 **2026-10-06 — 51 is ADR-035 append rank on [Sprint 7](../../../sprints/done/plan-sprint-7.md), not a merit rank.**
 > Appended after that board's highest (50, `0398`). ⚠️ Flagged for owner confirmation: on merit it is worked in the
 > same sitting as `0398`, after `0396` — appending already lands it directly below `0398`. The note below about rank 12
 > describes the Sprint 8 board and is history.
@@ -165,7 +165,7 @@ Use a **fresh page load** for each check. Compare every shown text with the *App
   `citizenship_ui` flip can cover both kill-switch checks. Two tasks still, because each closes on its own result.
 - **Placement:** ~~Sprint 8 per the owner's 2026-09-29 rule. ⚠️ **Open question:** like `0396` and `0398`, its deploy
   could fall inside Sprint 7's time window — the reasoning that moved `0392` and `0395` to Sprint 7 on 2026-10-05.~~
-  ✅ **Answered 2026-10-06 — OWNER RULING *"Move it to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/plan-sprint-7.md), rank 51 (append
+  ✅ **Answered 2026-10-06 — OWNER RULING *"Move it to Sprint 7 (Recommended)"* (2026-10-06, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent):** moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md), rank 51 (append
   rank), with `0396` (49) and `0398` (50) already moved there. See the placement note at the end.
 - ⚠️ **Open question — the test accounts.** Does the owner have (a) a **paid** citizen account that logs in
   **verified**, (b) an **earned-only** citizen, and (c) a **non-citizen** logged-in account? The same accounts serve

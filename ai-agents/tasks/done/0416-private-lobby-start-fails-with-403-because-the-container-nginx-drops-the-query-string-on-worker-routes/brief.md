@@ -23,7 +23,7 @@ Sprint 7
 62
 
 ⚠️ **Priority 62 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 7](../../../sprints/plan-sprint-7.md)'s highest (61, `0383`); the owner named the sprint, not a rank.
+[Sprint 7](../../../sprints/done/plan-sprint-7.md)'s highest (61, `0383`); the owner named the sprint, not a rank.
 **On merit this belongs at the top of Sprint 7's open rows**, because it is a production bug that stops **every**
 private lobby from starting, it ships today by owner ruling, and three live checks (`0376`, `0401` check 4, `0383`)
 cannot pass until it is fixed. A spawned producer cannot re-rank (ADR-035); the owner can move it in one edit.

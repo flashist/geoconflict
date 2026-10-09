@@ -15,7 +15,7 @@ Sprint 7
 ⚠️ Priority 64 is append rank, NOT a merit ranking — flagged for owner confirmation.
 **On merit this belongs directly below `0417`**, because it is the next change to the same popup file, built on top of
 `0417`'s width change, and it is a small, owner-urgent UI fix the owner wants started now (possibly with its own deploy
-tomorrow). (ADR-035: appended after [Sprint 7](../../../sprints/plan-sprint-7.md)'s highest, 63 (`0417`). The owner
+tomorrow). (ADR-035: appended after [Sprint 7](../../../sprints/done/plan-sprint-7.md)'s highest, 63 (`0417`). The owner
 named the sprint, not a rank. Directly below `0417` is in fact where 64 sits, since `0417` holds 63; and `0417` is a
 closed row, so no re-rank could lift this one any higher on this board. The urgency lives in "start now", not in the
 rank number.)

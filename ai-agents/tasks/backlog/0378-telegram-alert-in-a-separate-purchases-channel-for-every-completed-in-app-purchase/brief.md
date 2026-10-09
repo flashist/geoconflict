@@ -201,7 +201,7 @@ the earned-by-XP message only; its paid half now lives here.
 - **Relation to `0297`** (paid-citizenship owner-run test buy, Sprint 7): its real purchase would be the **first live
   proof** of this alert. Not a dependency either way — if this ships after `0297`'s buy, the verify task needs another
   real or test purchase.
-- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/plan-sprint-7.md) records that there is
+- ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/done/plan-sprint-7.md) records that there is
   to be no second profile deploy before `0297` §1 reads `0309`'s log line, and that `build-deploy-profile.sh` refuses
   to run while any `src/` change is uncommitted. So this task's code must not sit uncommitted across that weekend
   deploy, and it ships in a later profile deploy. It edits `build-deploy-profile.sh` / `setup-profile.sh`, which

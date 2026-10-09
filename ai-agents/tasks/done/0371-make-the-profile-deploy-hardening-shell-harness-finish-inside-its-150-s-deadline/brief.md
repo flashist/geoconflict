@@ -10,7 +10,7 @@
 ## Sprint
 Sprint 7
 
-> 📌 **2026-10-02 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/plan-sprint-7.md).** OWNER RULING given 2026-10-02 via `AskUserQuestion` in the live `fkit lead` session, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+> 📌 **2026-10-02 — was ~~Backlog~~; moved to [Sprint 7](../../../sprints/done/plan-sprint-7.md).** OWNER RULING given 2026-10-02 via `AskUserQuestion` in the live `fkit lead` session, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
 > *"Move into Sprint 7 (Recommended)"*. Was filed on the [Backlog board](../../../sprints/backlog.md) earlier the same day;
 > that row is kept as `➡️ Moved`. No folder moved, no mover run.
 

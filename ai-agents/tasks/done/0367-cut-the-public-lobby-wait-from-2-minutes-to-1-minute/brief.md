@@ -195,7 +195,7 @@ written. Q3 and Q4 were asked as one question.
 
 - **Q0 — Rank** → *"Right below 0366 (Recommended)"*. With the top group, so it can be built for Saturday's
   (2026-10-03/04) weekend game-server deploy. Number stays 31 (ADR-035, no renumbering closed rows); placement
-  recorded on the [Sprint 7](../../../sprints/plan-sprint-7.md) row's priority cell and under `## Priority`.
+  recorded on the [Sprint 7](../../../sprints/done/plan-sprint-7.md) row's priority cell and under `## Priority`.
 - **Q1 — Keep/revert rule** → *"Matches + lone-player share (Recommended)"*. **Keep 1 minute if multiplayer matches
   per day hold steady or rise AND the share of matches with only one real player does not jump noticeably.** The
   owner sets the number for "noticeably" once the "before" numbers are in. Otherwise revert.

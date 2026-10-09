@@ -9,9 +9,9 @@ Sprint 7
 ## Priority
 8
 
-> 📌 **2026-09-29 — rank 6 → 8.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
+> 📌 **2026-09-29 — rank 6 → 8.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/done/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
-> 📌 **2026-09-29 — rank 5 → 6.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
+> 📌 **2026-09-29 — rank 5 → 6.** Shifted down one by an OWNER-RULED re-rank that put `0337` on top of the [Sprint 7 board](../../../sprints/done/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 addendum). Not a merit change for this task.
 
 ✅ **5 — placement OWNER-RULED 2026-09-27** (D5: *"…add it to the end of the end of the next sprint"*, live in
 the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037). Append rank: this
