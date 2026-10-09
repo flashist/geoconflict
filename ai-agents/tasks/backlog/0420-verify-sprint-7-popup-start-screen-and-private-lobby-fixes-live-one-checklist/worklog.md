@@ -45,7 +45,26 @@ screenshots (start screen; popup open). Steps 1–2 = items 4 and 2/5 below.
 - ℹ️ The login that now opens the new non-citizen record (50 / 100 XP) can serve as the **non-citizen** account for
   item 8 (a). ⛔ Still never tap Buy on it.
 
+### Non-citizen login, owner's phone — 2026-10-09 (~09:00Z, owner working remotely, phone only)
+
+The login that now opens the new non-citizen record (50 / 100 XP) — see "Earned test account — blocked" above. No
+tester marker on the phone. ⛔ Buy not tapped.
+
+| Item / bullet | Result | Evidence |
+|---|---|---|
+| Item 8 (a) — Buy visible without scrolling, real phone, inside Yandex Games, portrait | **pass** | owner, verbatim: *"1. Yes."* |
+| Item 8 (a) — text matches 0421's table | **pass** | owner, verbatim: *"2. Приватные лобби is not shown (… correct, because the phone doesn't have the console tweak for private lobby testing)"* — correct by design: that line shows only when the private-lobby rule is on (tester marker or the everyone flag), as the brief's table says ("when enabled") |
+| Item 5 — phone width: nothing clipped, no sideways scroll, "Закрыть" reachable | **pass** | owner, verbatim: *"3. Ok"* |
+| Item 6 — flag-off, non-tester player: exactly two tabs (Мультиплеер, Одиночная), no empty third; each on one line at phone width | **pass** | owner, verbatim: *"4. Ok"* |
+| Item 6 — three tabs at phone width (tester) | **not run yet** (phone has no tester marker) | — |
+| Item 8 — landscape (optional) | **pass — works; Buy and Close need a scroll in landscape, accepted by the owner** (no size target, owner ruling 2026-10-08) | owner, verbatim: *"Landscape popup works"*, then *"For landscape: buy and close are not visible without scroll, but that's ok"* |
+
+### Item 7 (B) — error-window copy
+
+**Not checked live** — by OWNER RULING 2026-10-08 ("Mark 'not checked live'"); no error window appeared on its own
+during this run. The Yandex SDK copy path stays unproven. Never recorded as passed.
+
 ### Still to run
-- Item 8 (a) non-citizen on a phone; item 6 non-tester (2 tabs).
+- ~~Item 8 (a) non-citizen on a phone~~ (done 2026-10-09, above); item 6 non-tester (2 tabs); items 5 and 6 at phone width; item 7 (A) on a phone.
 - Item 1 — private lobby start (paid host + second account), then the read-only game-log check (needs the owner's OK).
 - Item 7 (B) — record **not checked live** (owner ruling 2026-10-08), unless an error window appears on its own.
