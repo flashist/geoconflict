@@ -32,7 +32,7 @@ and ADR-035 never renumbers them — a new row always appends. Appended after th
 top group** — the coordinating session is already working it.
 
 ## Status
-🔄 In progress — built 2026-10-09 by the coordinating session (see worklog.md); one full `npm test` timing run still to do.
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

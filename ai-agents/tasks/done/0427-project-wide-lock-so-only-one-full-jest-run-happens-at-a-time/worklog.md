@@ -56,3 +56,18 @@ turn with a clear message**; `--detectOpenHandles --forceExit` on the **normal u
 - vs the 2026-10-08 baseline (292 s, 1 worker, no flags): **not like-for-like** — front app and other load were not
   recorded either time. It does show the new flags did not make the run slow enough to threaten the harness deadlines.
 - Not yet run: the owner's two-terminal check (second full run waits, then starts).
+
+### Closed 2026-10-09 — `✅ Done (agent-closed — not owner-verified)`
+- **Authority:** OWNER RULING 2026-10-09, typed live in the coordinating session: *"Commit, then close task"*. Closed by
+  a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Work committed in `1926f4c`.
+- **Proof at close:** the 15 lock tests (15/15), the real-lock-path check with a stub runner, lint/tsc clean, and one
+  full `npm test` through the wrapper (exit 0, 74 s, 216/216 suites, 4400 passed, 1 skipped — the Docker-probed
+  harness, Docker down: skipped, not passed).
+- **NOT done:** the owner's own two-terminal check (brief verification step 2 — second full run waits, then starts).
+  The waiting behaviour is proven only by the automated tests and the stub check. Also not run by hand: verification
+  steps 3 (`kill -9` stale lock) and 4 (`test:integration` waiting on the lock) as real runs — covered by the
+  automated tests only, as far as this worklog records.
+- **Timing caveat:** 74 s vs the 292 s baseline (2026-10-08) is **not like-for-like** (front app and other load not
+  recorded either time).
+- **Differs from the brief:** the no-git fallback takes a git-ignored lock file instead of the brief's default (run
+  unlocked with a warning) — the coder's choice, recorded above.
