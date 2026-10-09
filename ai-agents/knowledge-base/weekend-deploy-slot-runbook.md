@@ -1950,7 +1950,7 @@ Times are UTC.
   `warn`, postgres untouched · game: `failed after retries` **0**, `dropped` **0**, level `error` **0**; restart-minute
   `warn`s only · **first `credited` line at 07:02:06Z** (the ~07:02Z re-check) — credits flow on the new image.
 - ⚠️ **Counters restarted at 06:41:41Z — never compare cumulative values across it.** That is the start of
-  [`0402`](../tasks/backlog/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/worklog.md)'s piece 2
+  [`0402`](../tasks/done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/worklog.md)'s piece 2
   (piece 1 ended 06:28:30Z).
 
 **Rollback targets now.** ⚠️ **Updates § *Never roll back to*, "after this slot", and the 2026-10-07 notes'

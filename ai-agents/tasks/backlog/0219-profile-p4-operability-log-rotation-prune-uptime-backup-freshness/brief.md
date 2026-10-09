@@ -8,7 +8,11 @@
 
 ## Sprint
 
-Sprint 7
+Sprint 8
+
+📌 **Moved from Sprint 7 to Sprint 8 on 2026-10-09** — OWNER RULING typed by the owner in the coordinating session on 2026-10-09 (his own message, after a plain explanation of this task's four parts), relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Move the task to Sprint 8"*. Appended on [Sprint 8](../../../sprints/plan-sprint-8.md) at rank 24 (append rank — see `## Priority`); the [Sprint 7](../../../sprints/plan-sprint-7.md) row now reads `➡️ Moved`. Same day, a second owner ruling lifted the G3/G4 deferral — see the 2026-10-09 block under the 2026-09-19 ruling below. No folder moved; no mover run.
+
+*(Earlier value, kept as history — true until 2026-10-09:)* ~~Sprint 7~~
 
 📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-27** — OWNER RULING given live in the `fkit lead` session as the owner's own typed message, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*. [Sprint 7](../../../sprints/plan-sprint-7.md) is a new board, `🔲 Backlog` — **not started**. Record: the 2026-09-27 addendum under [Sprint 6](../../../sprints/done/plan-sprint-6.md)'s status table. `## Status` unchanged; no folder moved; no mover run. ⚠️ The *"deploy-coupled steps WAIT for Sprint 6"* note below is **read as superseded by this move** — those steps now wait for Sprint 7 (producer reading, open to owner correction).
 
@@ -21,7 +25,9 @@ Sprint 7
 📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
-**6** — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
+**24** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-09 by the owner ruling that moved this task off Sprint 7 (see `## Sprint`). ⚠️ Priority 24 is append rank, NOT a merit ranking — flagged for owner confirmation. **On merit this belongs directly below `0370`, at the top of that board**, because of the dated certificate fuse (renewal attempts from ~2026-10-21, expiry 2026-11-20 — both reported, not verified from the repo): until these alarms are on and tested, a failed renewal is silent. Not inserted there: closed rows sit below the top of that board, and ADR-035 never renumbers them. *Earlier values kept below as history.*
+
+~~**6**~~ — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-27 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ A **position** — Sprint 6's board order carried across — **not** a merit re-rank, and **not** owner-ruled. *Earlier values kept below as history.*
 
 > 📌 **2026-09-29 — rank 4 → 6.** Shifted down two by an OWNER-RULED placement that put `0339` + `0340` directly below `0337` on the [Sprint 7 board](../../../sprints/plan-sprint-7.md) (relayed by `fkit-lead`; see that board's 2026-09-29 `0339`/`0340` addendum). Not a merit change for this task.
 
@@ -98,6 +104,23 @@ for THESE MOVES ONLY — not a standing licence, not precedent.**
 
 📌 **`0220` (P5), `0221` (P6) and `0222` (Cleanup) were NOT ruled** — they keep their existing
 positions and the producer's ranks.
+
+---
+
+## 🟢 OWNER RULING 2026-10-09 — G3/G4 DEFERRAL LIFTED: switch on both alarms and test them in Sprint 8
+
+⛔ **Authority first.** Given **live via `AskUserQuestion` in the coordinating session on 2026-10-09**, relayed to a
+spawned `fkit-producer` holding **no owner channel of its own** (ADR-021/037). ⛔ **NOT producer precedent — one owner
+ruling, one task.** Asked: *"In Sprint 8, should 0219's two paused alarms (server-down alarm, backups-stopped alarm) be
+switched on? That means un-pausing them…"* → owner chose **"Yes, un-pause in Sprint 8 (Recommended)"** (option text:
+*"The pause is lifted. 0219 becomes real Sprint 8 work: switch on both alarms and test them."*).
+
+**Effect.** This **supersedes the 2026-09-19 G3/G4 deferral below and its 2026-10-02 re-affirmation — as to G3/G4 only.**
+Both are kept below as history. G3 (outside uptime check + renewal-log reader) and G4 (`last-backup.json` freshness
+reader) are now real Sprint 8 work: B3 and the drills B7–B10 are owed, no longer deferred. The 2026-09-13 hold-open
+ruling is **unchanged** — this task still does not close until the alerts have been watched arriving.
+
+*(History below — true from 2026-09-19 until the ruling above.)*
 
 ---
 
@@ -189,7 +212,9 @@ deploy; only its *confirmation* is deferred.
 ---
 
 ## Status
-🚧 Blocked — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
+🔄 In progress — 🟢 **G3/G4 DEFERRAL LIFTED 2026-10-09 BY OWNER RULING** (*"Yes, un-pause in Sprint 8 (Recommended)"* — see the 2026-10-09 block above). Built + reviewed 2026-09-13 (Part A, all of G1–G4) and deployed 2026-09-26 (B4). **Done so far:** B4 ✅, B5/V1 ✅ (rotation observed), B2's daily check exists and alerted the owner by email on 2026-09-25 (owner-side, not otherwise verified). **Left, all owner-side on the box or in the outside services, except the last item:** (1) **B3** — the two outside uptime monitors (`/health` and `/ready`), alerting to Telegram + email; (2) confirm **B2** alerts to the Telegram ops chat, not only email; (3) drills **B7–B10** — make each alarm fire on purpose and watch it arrive (failed renewal incl. `certbot.timer` → `disabled`, service stopped, stale backup record, then clear), and name the alert destinations in the worklog (no URLs or tokens); (4) **B6/V2 was only PARTIAL** — the 2026-09-26 prune kept the rollback image but removed the Postgres image tag the compose file names, which led to an unplanned Postgres minor upgrade (data intact). Fix direction (keep-list by tag, or pin compose by digest) **not decided — owner/architect call**; a code change by `fkit-coder` may follow. ⛔ The 2026-09-13 hold-open ruling stands: **no close until the alerts have been watched arriving.** ⚠️ `🔄 In progress`, not `🔲 Backlog`: the code is built and deployed — the sprint loop must not re-plan it.
+
+*(Status until 2026-10-09, kept verbatim as history:)* ~~🚧 Blocked~~ — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
 
 > 📌 **2026-10-02 —** G3/G4 deferral **re-affirmed** by owner ruling (*"Keep deferred (Recommended)"*), despite
 > `0285`/`0289` now being closed — see the dated note in the 2026-09-19 ruling block above. Status token unchanged.
@@ -229,7 +254,9 @@ deploy; only its *confirmation* is deferred.
 > compose by digest**. Owner/architect call.
 
 ## Owner
-fkit-coder
+fkit-coder + the owner (live steps)
+
+The owner (the person) runs B3, the B2 Telegram check and drills B7–B10 (outside services and the live box). `fkit-coder` owns any code change — chiefly a fix for the B6/V2 prune finding once its direction is decided — and the worklog record. *(Earlier value: `fkit-coder`.)*
 
 ## Depends on
 - [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.

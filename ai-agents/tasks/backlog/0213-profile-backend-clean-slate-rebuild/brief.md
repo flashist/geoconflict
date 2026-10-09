@@ -5,7 +5,11 @@
 
 ## Sprint
 
-Sprint 7
+Sprint 8
+
+📌 **Moved from Sprint 7 to Sprint 8 on 2026-10-09** — OWNER RULING typed by the owner in the coordinating session on 2026-10-09 (his own message, after a plain explanation that this epic's only unmet criterion is item 8 = `0219`'s P4 work, with item 9 partly met by the earlier owner ruling Q2), relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Move it to the Sprint 8"*. The epic follows its last open child phase, `0219` (P4), moved to [Sprint 8](../../../sprints/plan-sprint-8.md) the same day. Appended there at rank 25, directly below `0219` (see `## Priority`); the [Sprint 7](../../../sprints/plan-sprint-7.md) row now reads `➡️ Moved`. `## Status` unchanged (`🔲 Backlog` — open, waits only on `0219`). No folder moved; no mover run.
+
+*(Earlier value, kept as history — true until 2026-10-09:)* ~~Sprint 7~~
 
 📌 **Moved from Sprint 6 to Sprint 7 on 2026-09-29** — OWNER RULING 2026-09-29, typed directly by the owner in the `fkit lead` session (the owner's own message, not an `AskUserQuestion` answer), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Move 0213 into Sprint 7."* The epic joins its only open child phases, `0219` (P4) and `0221` (P6), already on [Sprint 7](../../../sprints/plan-sprint-7.md) since 2026-09-27. Sprint 7 is `🔲 Backlog` — **not started**. Record: the 2026-09-29 `0213` addendum under [Sprint 6](../../../sprints/done/plan-sprint-6.md)'s status table. `## Status` unchanged; no folder moved; no mover run.
 
@@ -16,7 +20,9 @@ Sprint 7
 📌 **Moved from Sprint 4 to Sprint 5 on 2026-09-23** — Sprint 4 rescope, an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021); ⛔ not producer precedent. Everything left in this task needs a deploy, the live box or production; Sprint 4 keeps only locally buildable work. `## Status` and `## Priority` were NOT changed; the folder did not move. Record: the *Sprint 4 rescope* addendum in [`plan-sprint-4.md`](../../../sprints/done/plan-sprint-4.md).
 
 ## Priority
-**14** — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-29 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ An **append position** — the owner named no placement, so it went after Sprint 7's highest rank (13) — **not** a merit re-rank and **not** owner-ruled; the owner may re-rank it. *Earlier values kept below as history.*
+**25** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-09 by the owner ruling that moved this task off Sprint 7 (see `## Sprint`). ⚠️ Priority 25 is append rank, NOT a merit ranking — flagged for owner confirmation. **On merit this belongs directly below `0219`**, because the epic closes when `0219` closes. 25 already sits there. *Earlier values kept below as history.*
+
+~~**14**~~ — board rank on [Sprint 7](../../../sprints/plan-sprint-7.md), set 2026-09-29 by the owner ruling that moved this task off Sprint 6 (see `## Sprint`). ⚠️ An **append position** — the owner named no placement, so it went after Sprint 7's highest rank (13) — **not** a merit re-rank and **not** owner-ruled; the owner may re-rank it. *Earlier values kept below as history.*
 
 ~~**29**~~ — board rank on [Sprint 6](../../../sprints/done/plan-sprint-6.md), shifted down two more later on 2026-09-26 by a fourth OWNER RULING (live via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021; ADR-037 §3): the owner moved `0311` + `0316` up to 14–15 — see the *RE-RANK 2026-09-26, FOURTH* addendum on that board. ⛔ Not a merit re-rank of this task. *Earlier values, kept below:*
 

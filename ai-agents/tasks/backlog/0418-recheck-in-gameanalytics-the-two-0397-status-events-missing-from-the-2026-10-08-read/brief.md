@@ -109,7 +109,7 @@ names, counts, dates and times only.
 - **Related:** [`0400`](../../done/0400-verify-0397-live-the-session-status-line-shows-the-right-state-in-production/brief.md)
   (its check 8 is the failed / pending part this task carries; `0400` itself is not closed by this filing),
   [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) (the events),
-  [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) (another later re-read,
+  [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) (another later re-read,
   different numbers), [`0411`](../0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)
   (loads where the flags never arrive fire no citizenship event).
 - **Producer's suggestion, not an owner ruling:** if the owner wants a known-positive check for `Restart`, he can press

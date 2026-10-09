@@ -156,3 +156,56 @@ _blank — not asked. This is piece 1; the planned re-read (with a weekend eveni
 
 - The `0396` profile deploy restarts the counters. **Piece 2 starts at the first point of the new profile version.**
   The planned re-read should cover the Sat 10 / Sun 11 Oct evenings and never compare across the restart.
+
+## 2026-10-09 — piece 2: `0396` profile deploy (`0.0.156-profile.4`) → now, read in the Uptrace web UI
+
+Read by the coordinating Claude Code session in the owner's own Chrome (owner already signed in to Uptrace), at the
+owner's request (*"Can't you do it via Uptrace Web UI?"*). **Owner approval for this production read**, given live in
+this session on 2026-10-09: the owner chose *"Read now"* (over waiting for the weekend). Read-only: Metric explorer
+only, nothing saved or changed in Uptrace. Two other routes failed first: the session's own SSH logins to the telemetry
+box were refused (no working key), so no ClickHouse query was run.
+
+**How.** Metric explorer, `geoconflict_profile_login_verification`, aggregation `sum(...)`, grouped by `outcome` and
+`service_version`, range "last 3 days" (ending about 2026-10-09T12:40Z), one point per hour. Browser time zone checked:
+Europe/Moscow (UTC+3); hours below are converted to UTC.
+
+⚠️ **Less exact than pieces 1 and 1-full.** The UI shows per-hour points and **rounded per-hour averages**, not exact
+window totals. The whole-window share below comes from those rounded averages, so read it as **about**, not exact.
+The evening hours were read point by point from the chart's hover, so those counts are exact per hour.
+
+**Window.** Version `0.0.156-profile.4` (the `0396` deploy) — first `.4` point in the 2026-10-08T06:00Z hour (that hour
+still also has `.3` points) — to about 2026-10-09T12:40Z. About **1.3 days**. ⚠️ Thursday → Friday only: **one weekday
+evening (Thu 8 Oct), no weekend.** Never compared across the restart.
+
+### Whole window (from rounded per-hour averages — approximate)
+
+| Outcome | Average per hour |
+|---|---|
+| `ok` | 412 |
+| `stale` | 11 |
+| `id_mismatch` | 0.067 |
+| `absent` | 0.067 |
+
+- **Stale share about 11 / (412 + 11) ≈ 2.6 %.** Piece 1 (`.3`, full): see above; `0392`: 3.25 %; before `0391`: 33.8 %.
+- `id_mismatch` and `absent`: both rare (a handful at most over the window; the hourly max was 1 and 2).
+- Stale-age brackets: **not read** this time.
+
+### Evening 20–23 UTC, Thu 8 Oct (exact, from the hover)
+
+| Hour (UTC) | ok | stale | stale % |
+|---|---|---|---|
+| 20 | 272 | 10 | 3.5 |
+| 21 | 142 | 4 | 2.7 |
+| 22 | 86 | 3 | 3.4 |
+| 23 | 58 | 3 | 4.9 |
+| **Total** | **558** | **20** | **3.5** |
+
+- Evening stale share **3.5 %** (20 of 578). Higher than piece 1's Wednesday evening (1.5 %), still far below the
+  42–52 % evenings before `0391`. `id_mismatch` and `absent`: 0 in all four hours.
+
+### Owner's take (verification step 3)
+
+**Close now** — OWNER RULING 2026-10-09, live via `AskUserQuestion` in the coordinating session: *"Close now
+(Recommended)"* (option text: *"The numbers are fine. The producer closes 0402 with your verdict, and the weekend goes
+unchecked."*). The question put to the owner: stale ≈ 2.6 % whole window, 3.5 % Thursday evening, vs 42–52 % before
+`0391`; no weekend data. ⚠️ **The weekend evenings were never read** — closed on the owner's judgment without them.

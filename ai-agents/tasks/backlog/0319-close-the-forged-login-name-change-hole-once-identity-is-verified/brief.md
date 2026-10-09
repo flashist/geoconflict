@@ -175,7 +175,7 @@ the numbers any more.
   the 2026-10-05 note above (ADR-122's owner-judgment look). This deploy no longer waits on it, and the worklog no
   longer needs to record a window, numbers and an owner's call on them.
 - **Still happens, non-blocking:** the numbers are monitored, and the owner re-reads them in a few days to inform later
-  decisions — task [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
+  decisions — task [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md). Nothing here
   waits on it.
 - **Unchanged:** the `Depends on` line; the 2026-10-05 *"deploy only after `0395` confirms `vfy: true` live"* note
   (`0395` confirmed `vfy: true` live 2026-10-07); the weekend-slot and commit-on-ask rules. This ruling removes only the

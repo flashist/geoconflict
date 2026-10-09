@@ -19,7 +19,7 @@ Sprint 7
 > Appended after this board's highest (51, `0400`), never inserted (ADR-035).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **MAY BE EXECUTED BY THE OWNER, or by an agent session with the owner's approval for read-only
@@ -94,7 +94,7 @@ worklog § *2026-10-07 — the read*, which follows `0373`'s Step 1):
   `0332` or `0323`. Each of those briefs carries a dated note saying so.
 - **Related:** [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (the first
   post-`0391` read, the method), [`0373`](../../done/0373-read-the-stale-login-data-and-choose-the-fix/brief.md) (the
-  baseline and the weekend-evening hours), [`0393`](../0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md)
+  baseline and the weekend-evening hours), [`0393`](../../backlog/0393-watch-paid-citizens-with-login-data-over-24-hours-old-and-decide-on-a-reopen-message/brief.md)
   (the paid-citizen slice of the same stale tail — separate task, separate question), ADR-122.
 - ⚠️ **ADR-122 is being updated separately** (by `fkit-architect`, 2026-10-07) to record that the look is no longer a
   gate. Until that lands, ADR-122's text still describes the gate; the owner ruling quoted above wins.

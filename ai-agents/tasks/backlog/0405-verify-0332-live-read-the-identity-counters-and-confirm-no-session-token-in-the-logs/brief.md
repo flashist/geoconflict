@@ -118,7 +118,7 @@ Nothing — this is a check, read-only after the owner's deploys.
 - **Blocks:** nothing. It does **not** block Sprint 7's deploy (owner's build/verify-split rule, 2026-09-29).
 - **Related:** ADR-124 (*Re-raise only if* — trigger 2 and the "token appears in a log" defect line) ·
   [`0404`](../../done/0404-refresh-the-game-popup-after-about-24-hours-start-screen-only/brief.md) (the `expired` case) ·
-  [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) (login-side numbers to
+  [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) (login-side numbers to
   compare with) · [`0323`](../../cancelled/0323-mark-a-server-confirmed-approved-name-in-matches/brief.md) (the first planned reader
   of the `verified` bit).
 - **Timing:** Uptrace keeps logs about 14 days in practice

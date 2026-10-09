@@ -137,7 +137,7 @@ Ideas, not commitments — the investigator picks what the new evidence makes wo
 - **Related:**
   - [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) —
     the tenure grant that a new record gets, which is how this incident showed up.
-  - [`0402`](../0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) — the login-verification
+  - [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) — the login-verification
     numbers (`id_mismatch` was 0), which rule out our code changing the id.
   - [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md) and
     [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) — live
