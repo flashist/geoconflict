@@ -91,6 +91,6 @@ the private-lobby row (record how).
   [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships
   ("Prod checks must pass too", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent).
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md),
-  [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+  [`0383`](../../done/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
   (the link's verify task), `0376`.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

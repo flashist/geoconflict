@@ -78,7 +78,7 @@ The owner picked **"Yandex link + code"**, whose option text was, verbatim:
 | [`0380`](../0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md) | Code path: on the Yandex build the invite copies the lobby code through the SDK clipboard; `#join=` stops working there | build |
 | [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md) | Owner checks `0380` in production | verify |
 | [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) | Yandex link: `getGameByID` + `payload`, read at startup and on late SDK recovery, consumed once | build |
-| [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) | Owner checks `0382` in production | verify |
+| [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) | Owner checks `0382` in production | verify |
 
 **ADR:** [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md) — ✅ accepted, "Accept as written" (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). *(Was: "pending (architect, 2026-10-04)".)*
 

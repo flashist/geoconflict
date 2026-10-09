@@ -103,13 +103,13 @@ format.
 3. `en.json` and `ru.json` both carry every new key.
 4. `npm test`, `npm run lint`, `npx tsc --noEmit` green.
 5. **Live check in production is a separate task:**
-   [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
    (build/verify split, owner rule 2026-09-29). Do not hold this task open for it.
 
 ## Notes
 
 - **Depends on:** [`0380`](../../done/0380-yandex-build-invites-copy-the-lobby-code-and-stop-honouring-join-links/brief.md)
-- **Blocks:** [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+- **Blocks:** [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
 - 🔗 **Dependency note — 2026-10-05 (added by a spawned `fkit-producer` at the close of `0389`; a dependency fact, not an
   owner ruling).** [`0389`](../../done/0389-make-the-private-lobby-code-easier-to-read-and-type/brief.md) changed
   private-lobby codes to **8 characters from `23456789ABCDEFGHJKMNPQRSTVWXYZ`** (any case typed; shown as `K7M4 PCRX`;

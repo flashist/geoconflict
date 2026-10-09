@@ -17,7 +17,7 @@ Sprint 8
 > **at the top of Sprint 8**, per the owner's standing build/verify-split rule (2026-09-29: the build task closes, its
 > verify task goes on top of the next sprint and does not block the current sprint's deploy). `0382` is **not**
 > included — its live check is the existing task
-> [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
+> [`0383`](../../done/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
 
 ## Priority
 18
@@ -261,7 +261,7 @@ The text to expect (ru) — `0421`'s approved text, as live in `0.0.161`:
   — all ✅ Done; the real gate is their **deploy** (pass 1 / pass 2), which no board tracks. *(`0421` added 2026-10-09
   with item 8 — owner ruling "Fold into 0420"; it is already deployed, in game `0.0.161`.)*
 - **Blocks:** nothing. It does **not** block Sprint 7's deploy (owner's build/verify-split rule, 2026-09-29).
-- **Not included:** `0382` — its live check is [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) (owner ruling 2026-10-08).
+- **Not included:** `0382` — its live check is [`0383`](../../done/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) (owner ruling 2026-10-08).
 - **Owner answers to the two open questions — ✅ ANSWERED 2026-10-08.** Both are the owner's own selections, given
   live via `AskUserQuestion` in the `fkit lead` session and relayed by `fkit-lead` to a spawned `fkit-producer` with no
   owner channel (ADR-021/037); ⛔ not producer precedent. No open questions remain on this brief.

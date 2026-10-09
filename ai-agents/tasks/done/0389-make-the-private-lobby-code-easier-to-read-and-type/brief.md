@@ -142,7 +142,7 @@ public-lobby ids; change `0380`'s or `0382`'s invite behaviour beyond the code t
   - [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) — its
     `InvitePayload` validates the code carried in the link. **Whichever of the two is built second must make that
     validator accept the new format** and run the payload through the same clean-up.
-  - [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
+  - [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
     — `0382`'s production check.
   - [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
     — the private-lobby production test; if this ships before it runs, that test covers the new code too.

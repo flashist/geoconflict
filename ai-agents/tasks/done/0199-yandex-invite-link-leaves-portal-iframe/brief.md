@@ -237,7 +237,7 @@ Uncommitted source from `0067`, `0068` and `0198`, plus an in-flight docs edit o
 >   (code part) → [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 >   (link part), each with an owner-run production verify task —
 >   [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
->   [`0383`](../../backlog/0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
+>   [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md).
 > - **ADR: [ADR-119](../../../knowledge-base/decisions/adr-119-yandex-invites-sdk-portal-link-plus-code.md)** — step 5. ✅ *(accepted — "Accept as written", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent)*. Written and promoted by `fkit-architect`, not the producer.
 >   *(Was: "ADR pending (architect, 2026-10-04)".)*
 > - ✅ **Q3 (flag cohort) RULED 2026-10-04: "Yes, link always lets them in"** — recorded in `0382` (a) and `0383`.
