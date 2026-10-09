@@ -4,9 +4,16 @@
 0228
 
 ## Sprint
-Backlog
+Sprint 8
 
-🚨 **THE BOARD IS THE PRODUCER'S CALL, NOT AN OWNER RULING.** The owner ruled, live on 2026-09-07,
+> ➡️ **2026-10-09 — MOVED from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md), for the private-lobby
+> release.** OWNER RULING typed by the owner in the coordinating Claude Code session (the owner's own message), relayed
+> to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"1. Yes move
+> to the Sprint 8 and brief a dedicated task for the Sprint 8 to turn the private lobbies on for everybody."* Was
+> ~~Backlog~~. **This board placement is now the owner's ruling**, not the producer's call; the two paragraphs below
+> are history. See the 2026-10-09 note under *Priority* for what this means for the task.
+
+*(History, kept as written:)* 🚨 **THE BOARD IS THE PRODUCER'S CALL, NOT AN OWNER RULING.** The owner ruled, live on 2026-09-07,
 exactly one thing: **this defect ("F4") gets its own task**, because it existed nowhere but inside
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md)'s Notes section. **The owner
 did NOT rule which board.** Placement on the Backlog board, and the `Low–Medium` rank below, are both
@@ -22,9 +29,27 @@ ADRs living in the fkit install share. This project's `ai-agents/knowledge-base/
 the `adr-1XX` series, so a relative link would not resolve.*
 
 ## Priority
-**Low–Medium *(producer's rank — NOT an owner ruling)*.** Ranked **below**
+28
+
+⚠️ **Priority 28 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
+`0376` (27), moved by the same ruling. **On merit this belongs directly below `0376`, near the top of the board**,
+because it is the one gate item whose answer nobody can predict — and if the race is reproduced, a fix needs a build
+and a deploy before the everyone-flag (`0428`) can go on — so starting it early keeps it off the release's critical
+path. 28 already sits there. Not inserted higher: closed rows sit below the top, and ADR-035 never renumbers them.
+
+📌 **2026-10-09 — why this is on Sprint 8, and what has not changed.** It is **release-gate item 3** in
+[`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md):
+the everyone-flag for private lobbies stays off until this is done. By the 2026-10-03 OWNER RULINGS (*"Only if it's
+proven"* and *"No, needs a real repro"*, both relayed by `fkit-lead`; ⛔ not producer precedent), this task **drops off
+the gate if the race is not actually reproduced** (in a test or live — code reasoning alone is not enough), and is
+fixed only if it is. **No new evidence as of 2026-10-09:** the live private-lobby run that day (`0420` item 1 / `0383`)
+recorded no glitch matching this race — nobody tried to trigger it, so that is not evidence either way. Phase 1
+(reachability) is unchanged. The flip itself is task `0428`, which depends on this one.
+
+*(History, kept as written — the old producer's rank, superseded by the Sprint 8 rank above:)*
+~~**Low–Medium *(producer's rank — NOT an owner ruling)*.** Ranked **below**
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) *(Medium)* and below
-[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)*.
+[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)*.~~
 
 🔴 **The rank is low for ONE reason and it is not "small change": NOBODY HAS SHOWN THIS ACTUALLY
 HAPPENS.** `0226` and `0227` describe defects whose mechanisms were traced end to end. This one
@@ -423,6 +448,8 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
 ---
 
 ## Notes
+
+- **Blocks:** `0428` (turning the private-lobby everyone-flag on — filed 2026-10-09), unless this task ends as *not reproduced*, which drops it off the release gate (2026-10-03 rulings).
 
 ### Cross-references
 

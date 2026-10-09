@@ -109,7 +109,7 @@ Then read the server log (read-only) for each lobby's `gameID`.
 
 - **Depends on:** [`0377`](../../done/0377-end-abandoned-unstarted-private-lobbies-after-a-short-idle-time-not-3-hours/brief.md)
   committed and deployed to the game server.
-- **Blocks:** nothing. It does **not** block Sprint 7's deploy (owner's build/verify-split rule, 2026-09-29).
+- **Blocks:** `0428` (turning private lobbies on for everyone). 📌 *2026-10-09 — OWNER RULING 2026-10-09, given live via `AskUserQuestion` in the coordinating Claude Code session, relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: "Yes, 0390 must pass first (Recommended)". Release-gate item 4 in `0354` now needs this live pass, not just `0377` built.* ~~nothing.~~ It does **not** block Sprint 7's deploy (owner's build/verify-split rule, 2026-09-29).
 - **Related:** [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (live check of private lobbies on Yandex) — both need a private lobby on the deployed build, so they can share one
   session; neither depends on the other.

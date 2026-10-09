@@ -158,6 +158,8 @@ No change to `resources/lang/*.json` is expected (entry text is self-contained).
 - **Related:** `0126` (the announcements feature), `0311` (no game name in player text — its test covers the news
   feed), `0012` (Personal tab in the same window), `0304` (per-device unread dot), the `update-announcements` skill.
 - Russian is the primary audience; the owner refines ru wording at the gate.
+- 📌 *2026-10-09:* turning private lobbies on for everyone is its own task, `0428` (Sprint 8) — a console flag, no deploy. At this task's text gate, check whether `0428` has run: name private lobbies for everyone only if `private_lobbies_all` will be on for all players when this entry ships.
+  📌 *2026-10-09 — OWNER RULING 2026-10-09, given live via `AskUserQuestion` in the coordinating Claude Code session, relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: asked whether to flip before or after the final Sprint 8 deploy, the owner chose **"Before the final deploy (Recommended)"** (option text: "Flip as soon as the gate is clear. The news update can then announce it in the same release."). So this entry **may announce private lobbies for everyone — provided `0428` has actually run by then.** The condition stays: if `0428` has not run at the text gate, leave it out.*
 - Weekend deploy slot, per the owner's standing rule (2026-09-29), unless the owner says otherwise.
 - Drafting help: the coder may ask the `fkit-producer` to cross-check the change list against closed task records;
   the coder owns the task and the draft.

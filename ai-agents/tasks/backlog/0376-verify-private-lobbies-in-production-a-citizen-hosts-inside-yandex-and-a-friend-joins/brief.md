@@ -7,12 +7,23 @@
 > `done/` and `cancelled/`: `0375`. `0376` and `0377` allocated in this run, in that order.
 
 ## Sprint
-Backlog
+Sprint 8
+
+> ➡️ **2026-10-09 — MOVED from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md).** OWNER RULING typed
+> by the owner in the coordinating Claude Code session (the owner's own message), relayed to a spawned `fkit-producer`
+> with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"1. Yes move to the Sprint 8 and brief a
+> dedicated task for the Sprint 8 to turn the private lobbies on for everybody."* Was ~~Backlog~~. The flip itself is
+> task `0428`, which depends on this one.
 
 ## Priority
-Unscheduled
+27
 
-> 📌 **Placement note.** No sprint was named, so this is on the Backlog board. The owner's standing build/verify rule
+⚠️ **Priority 27 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
+Sprint 8's highest (26, `0427`). **On merit this belongs directly below `0370`, at the top of the board**, because the
+owner's build/verify rule (2026-09-29) puts a verify task at the top of the next sprint, and what is left of it is
+small. Not inserted there: closed rows sit below the top, and ADR-035 never renumbers them. Was ~~Unscheduled~~.
+
+> 📌 **Placement note.** *(History — superseded 2026-10-09 by the move above.)* No sprint was named, so this is on the Backlog board. The owner's standing build/verify rule
 > (2026-09-29) puts a verify task at the top of the **next** sprint once its build task closes. When `0354` closes,
 > that placement is the producer's to propose and the owner's to confirm — it is **not** made here.
 
@@ -79,6 +90,42 @@ flags say. *(2026-10-03: but the friend must join inside Yandex Games — see be
   relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*. ~~The current values of
   `private_lobbies` and `citizenship_ui` are unknown as of 2026-10-03 (owner checking).~~ Record the exact values on
   the test day.
+
+### 📌 2026-10-09 — live evidence: what already passed, and what is still to do (do not repeat the passed checks)
+
+*Added 2026-10-09 by a spawned `fkit-producer` (no owner channel), from the results relayed by the coordinating
+session. Sources: `ai-agents/tasks/backlog/0420-…/worklog.md` (item 1 and item 6) and
+`ai-agents/tasks/done/0383-…/worklog.md` (run 1). Nothing below is new testing — it is a summary of those two worklogs.*
+
+**The run.** 2026-10-09, game `0.0.161`, run by the owner as `0420` item 1 together with `0383`.
+- **Host:** paid citizen account, marked as a tester, on the computer (Chrome), inside the Yandex Games page.
+- **Friend:** a second account — the owner's own non-citizen login — on a **phone**, **not a tester** (no tester
+  marker). This is **stronger** than precondition 3's non-citizen *tester* friend: since `0382` shipped, the
+  interim tester-friend limit in step 3 is lifted, as step 3 said it would be.
+- **Join route:** the Yandex Games invite link (`0382`), opened inside Yandex Games — **not** the old off-Yandex link
+  (verification step 3 satisfied for this route).
+
+| Step | Result 2026-10-09 | Source |
+|---|---|---|
+| Precondition 1 — `0354` deployed | **met** — version `0.0.161` | `0420` worklog |
+| Precondition 2 — console values recorded | **not done** — no console values recorded on the day | — |
+| Step 1 — visibility | **pass** — the tester sees three tabs *Мультиплеер \| Одиночная \| Приватная*; a flag-off non-tester sees two (`0420` item 6) | `0420` worklog |
+| Step 2 — Create inside Yandex | **pass** — the host created a private lobby and copied the invite | `0420` item 1, `0383` |
+| Step 2 — `0353` host-window check (no repeating `Uncaught (in promise)` while the lobby is created) | **not run / not recorded** | — |
+| Steps 2–3 — `0389` code checks (a) two groups `XXXX XXXX`, (b) join by typing the code in lowercase | **not recorded** — the join was by link, not by typing the code. **Remaining — kept in this task by OWNER RULING 2026-10-09** (*"Keep them in 0376"*); for (b) the friend needs the tester marker to see Join until `0428` turns the switch on | — |
+| Step 3 — join inside Yandex, host lists the friend | **pass** — by the Yandex invite link | `0383` step 3 |
+| Step 4 — Start, both in the same match | **pass** — the match started for both; console: no `403`, no "Не удалось начать игру"; game-server log (read-only counts, last 60 min): 1 private create line, 1 of 1 carrying the creator, 0 "creator not a citizen" refusals | `0420` item 1 |
+| Step 5 — play to a normal end, both see the end screen and return to the start screen | **not done** — the friend left the running match and returned to the menu (`0383` step 4), but the match was not played to its end and neither player's end-of-match screen nor the host's return was recorded | — |
+| Verification step 6 — owner states gate item 2 passed / not passed | **not done** | — |
+
+ℹ️ **Observation, not a fail:** after leaving the running match, opening the **same** invite link again put the friend
+**back into that match**, with a fast-forward replay to catch up with the host (owner's report, in both worklogs).
+
+**Still to do for this task:** (1) a match played to its **end** (step 5); (2) the `0353` host-window check in step 2;
+(3) record the console values (precondition 2); (4) the `0389` code checks (a) and (b) — **kept, by ruling** (📌 *2026-10-09 — OWNER RULING 2026-10-09, given live via `AskUserQuestion` in the coordinating Claude Code session, relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent: "Keep them in 0376 (Recommended)"; option text: "Done during the same friend test: about 2 extra minutes. The friend needs the tester marker to see the Join button until the switch is on."*) — **remaining steps**; ~~the owner may rule them covered or not needed;~~ (5) the
+owner's gate-item-2 statement. A second run can reuse the same host and phone friend for (1)–(3); for the
+code-typing check (4)(b) the friend must see the Join button, so a **tester** friend until the everyone-flag is on
+(`0428`). `0381`'s remaining code-join and old-link steps can share that run.
 
 ## What to build
 
@@ -151,7 +198,7 @@ Nothing is built. This is a live test, run by the owner with one other person.
 ## Notes
 
 - **Depends on:** [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) (done and deployed to production)
-- **Blocks:** nothing directly. 🚦 It is item 2 of the release gate in `0354` — the everyone-flag is not set until it
+- **Blocks:** `0428` (turning the everyone-flag on — filed 2026-10-09). ~~nothing directly.~~ 🚦 It is item 2 of the release gate in `0354` — the everyone-flag is not set until it
   passes (OWNER RULING 2026-10-03, relayed by `fkit-lead`; ⛔ not producer precedent).
 - **Not a dependency, by reading of the ruling:** `0228`, `0377` and `0301`. The ruling lists them as gate items, not
   as things the test must wait for. *Producer's reading, open to owner correction:* running this test before `0301`
