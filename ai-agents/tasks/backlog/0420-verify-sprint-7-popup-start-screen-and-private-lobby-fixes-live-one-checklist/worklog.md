@@ -56,8 +56,40 @@ tester marker on the phone. ⛔ Buy not tapped.
 | Item 8 (a) — text matches 0421's table | **pass** | owner, verbatim: *"2. Приватные лобби is not shown (… correct, because the phone doesn't have the console tweak for private lobby testing)"* — correct by design: that line shows only when the private-lobby rule is on (tester marker or the everyone flag), as the brief's table says ("when enabled") |
 | Item 5 — phone width: nothing clipped, no sideways scroll, "Закрыть" reachable | **pass** | owner, verbatim: *"3. Ok"* |
 | Item 6 — flag-off, non-tester player: exactly two tabs (Мультиплеер, Одиночная), no empty third; each on one line at phone width | **pass** | owner, verbatim: *"4. Ok"* |
-| Item 6 — three tabs at phone width (tester) | **not run yet** (phone has no tester marker) | — |
+| Item 6 — three tabs at phone width (tester) | **moved** — run on the computer instead, see below | — |
 | Item 8 — landscape (optional) | **pass — works; Buy and Close need a scroll in landscape, accepted by the owner** (no size target, owner ruling 2026-10-08) | owner, verbatim: *"Landscape popup works"*, then *"For landscape: buy and close are not visible without scroll, but that's ok"* |
+
+### Tester tabs at phone width, computer — 2026-10-09
+
+Paid account (has the tester marker), Chrome on the computer, DevTools phone view (Cmd+Shift+M, a phone preset such as
+iPhone 12 Pro), page reloaded. Steps given: three tabs "Мультиплеер | Одиночная | Приватная", each on one line, no "…";
+optional smaller ~360-wide phone; note if the third tab appears late.
+
+| Item / bullet | Result | Evidence |
+|---|---|---|
+| Item 6 — tester: three tabs in order, each on one line at phone width | **pass** | owner, verbatim: *"Part A: all good."* |
+| Item 6 — optional ~360-wide phone preset | **not recorded separately** — the owner's "all good" did not say whether it was run | — |
+| Item 6 — third tab appearing late | **not reported** (the owner reported nothing unusual) | — |
+| ⚠️ Method note | DevTools phone view on the computer, **not** a real phone | — |
+
+### Item 1 — private lobby start, computer host + phone friend — 2026-10-09 (reported ~12:00Z)
+
+Host: paid account (tester) on the computer, Chrome, Yandex Games. Friend: the non-citizen login on the owner's phone
+(no tester marker). The friend joined through an invite link (this run also covers `0383` — see its worklog). Steps
+given: Приватная → Create → invite link → open it on the phone → join → console filtered for `403` → host presses
+"Начать игру" → friend leaves the match and returns to the menu.
+
+| Item / bullet | Result | Evidence |
+|---|---|---|
+| Item 1 — host presses "Начать игру" → the match starts for both | **pass** | owner, verbatim: *"Part B: all good"* |
+| Item 1 — console: no `403` on start, no "Не удалось начать игру" window | **pass** | same |
+| Item 1 — game server log: create line carries the creator, no "creator not a citizen" refusal | **pass** — last 60 min: 1 private create line, 1 of 1 with the creator suffix, 0 "creator not a citizen" refusals | owner gave the OK in-session (~12:05Z); the coordinating session's own SSH login was refused, so the owner ran a read-only count command on the game server and pasted the three counts (counts only — no log line, id or lobby code) |
+| Start time | **not recorded** — the owner did not give it | — |
+
+ℹ️ Seen by the owner, outside this checklist: after leaving the running match, opening the **same** invite link again
+put the friend **back into that private match**, with a fast-forward replay to catch up with the host. Owner,
+verbatim: *"the player joins the private lobby again and sees the "fast forward" history of the match, to catch up
+with the host"*. Recorded as an observation, not a fail.
 
 ### Item 7 (B) — error-window copy
 
@@ -65,6 +97,6 @@ tester marker on the phone. ⛔ Buy not tapped.
 during this run. The Yandex SDK copy path stays unproven. Never recorded as passed.
 
 ### Still to run
-- ~~Item 8 (a) non-citizen on a phone~~ (done 2026-10-09, above); item 6 non-tester (2 tabs); items 5 and 6 at phone width; item 7 (A) on a phone.
-- Item 1 — private lobby start (paid host + second account), then the read-only game-log check (needs the owner's OK).
+- ~~Item 8 (a) non-citizen on a phone; item 6 non-tester (2 tabs); items 5 and 6 at phone width~~ (done 2026-10-09, above). Item 7 (A) on a phone: not run (optional — not required by the brief).
+- ~~Item 1 — private lobby start and the read-only game-log check~~ (done 2026-10-09, above).
 - Item 7 (B) — record **not checked live** (owner ruling 2026-10-08), unless an error window appears on its own.
