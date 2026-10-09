@@ -21,7 +21,7 @@ closed row, so no re-rank could lift this one any higher on this board. The urge
 rank number.)
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -102,7 +102,7 @@ otherwise.
   asserts `paid_only_title` (from `0408`) and `citizen_buy_title` / `citizen_buy_cta` (from `0409`) word for word. If
   the owner's approved new text changes any of them, that approval **supersedes** the earlier ruling for that string,
   and the test is updated to the new approved words — say so in the worklog.
-- ⚠️ **Conflict with the open verify checklist [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
+- ⚠️ **Conflict with the open verify checklist [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
   (Sprint 8).** Its item 2 quotes the `0408` sub-heading **"Только для платного гражданства:"** word for word, and its
   item 5 (`0417`) expects the popup at phone width to look "as before". If this task ships before `0420` is run, those
   items describe a popup that no longer exists. Not edited here — flagged for the owner (see the report / open

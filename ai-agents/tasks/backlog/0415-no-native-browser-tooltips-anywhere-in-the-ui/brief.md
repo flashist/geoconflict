@@ -8,17 +8,32 @@
 > `grep -rn 0415 ai-agents/tasks ai-agents/sprints`: no task hits before this filing.
 
 ## Sprint
-Backlog
+Sprint 8
 
-> 📌 **OWNER RULING, 2026-10-08, typed directly by the owner in the `fkit lead` session**, relayed verbatim by
+> 📌 **MOVED FROM BACKLOG TO SPRINT 8 — OWNER RULING, 2026-10-09**, given live via `AskUserQuestion` in the
+> coordinating Claude Code session (the owner's own selection), relayed to a spawned `fkit-producer` with no owner
+> channel (ADR-021/037); ⛔ not producer precedent. The owner reported two more tooltips live on `0.0.161` and asked
+> for a Sprint 8 task; the producer pointed out that this task already covers them. Question: *"How should it get into
+> Sprint 8?"* Owner chose, verbatim: **"Move 0415 into Sprint 8 (Recommended)"**. The option text was *"No duplicate
+> task; the whole tooltip job is done at once (fits the Yandex rule). Bigger: includes the in-game panels and that one
+> planning decision. Today's report is added to its brief."* ⇒ The whole task (§1 + §2) is pulled, unchanged in scope.
+> The [Backlog board](../../../sprints/backlog.md) row now reads `➡️ Moved to Sprint 8 — priority 20`.
+
+> 📌 *History — original filing.* **OWNER RULING, 2026-10-08, typed directly by the owner in the `fkit lead` session**, relayed verbatim by
 > `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
 > `fkit-lead` asked, verbatim: *"keep 0413/0414 split or merge them? And file the app-wide "no browser tooltips" task,
 > and where?"* Owner, verbatim: *"1. Merge. 2. Brief a task to the backlog."* ⇒ filed on the Backlog board.
 
 ## Priority
-Unscheduled
+20
 
-⚠️ The owner gave no rank. Filed on the unranked [Backlog board](../../../sprints/backlog.md) as an appended row
+⚠️ **Priority 20 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
+[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (19, the cancelled `0422`); the owner named the sprint, not a
+rank. **On merit this belongs directly below `0420`**, because the owner found these tooltips while running `0420`'s
+checklist and believes they break a Yandex Games rule — a compliance fix for the game's only storefront. Not inserted
+there: closed rows sit below the top of the board, and ADR-035 never renumbers them, so a new row always appends.
+
+*History (2026-10-08, while on the Backlog board):* the owner gave no rank. Filed on the unranked [Backlog board](../../../sprints/backlog.md) as an appended row
 (ADR-035) — its place on that board is **append order, not a merit ranking**. Needing a rank is the signal to pull it
 into a sprint. On merit it matters more than its board position suggests: the owner believes these tooltips break a
 Yandex Games rule (see *Context*), and the game is shipped through Yandex Games.
@@ -30,6 +45,27 @@ Yandex Games rule (see *Context*), and the game is shipped through Yandex Games.
 fkit-coder
 
 ## Context
+
+### New report — seen live 2026-10-09 (production game `0.0.161`, paid account, computer, inside Yandex Games)
+
+Found by the owner while running [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
+checklist; relayed verbatim by the coordinating session.
+
+- **Join-lobby button in the "Присоединиться к приватному лобби" window** (`JoinPrivateLobbyModal`). Hovering the blue
+  "Присоединиться к лобби" button shows a browser tooltip "Присоединиться к лобби". Owner, verbatim, with a screenshot:
+  *"There are no tooltip over the buttons on the PRIVATE tab, but there are tooltips when I hover over the button in
+  the popup"*. Source: `<o-button title=${translateText("private_lobby.join_lobby")}>` at
+  `src/client/JoinPrivateLobbyModal.ts:176`.
+- **Start button in the "Одиночная игра" window** (`SinglePlayerModal`). Hovering the blue "Начать игру" button shows a
+  browser tooltip "Начать игру". Owner, verbatim, with a screenshot: *"Confirmed: the START button also have the same
+  tooltip"*. Source: `<o-button title=${translateText("single_modal.start")}>` at `src/client/SinglePlayerModal.ts:398`.
+- **The two start-screen "Приватная" tab rows show no tooltip** — `0412` (done) removed theirs. That matches the owner's
+  report.
+- **Window titles (`o-modal`) — seen once, the other windows still to check.** The host-lobby window's tooltip
+  "Приватное лобби" was seen on 2026-10-08 (below). On 2026-10-09 it was not reported for the join or single-player
+  windows. **The coder checks each window** and does not assume the result. The mechanism is the same, so it is
+  expected.
+- Both new cases were already in this task's scope (§1). Today's report changes no scope — it only adds evidence.
 
 ### What was seen (2026-10-08, production game `0.0.157`, owner screenshots)
 
@@ -55,7 +91,11 @@ fkit-coder
 
 ### Where (inventory starting point — the coder completes it)
 
-- `<o-modal title=…>`: `FlagInputModal.ts:22`, `HostLobbyModal.ts:117`, `JoinPrivateLobbyModal.ts:65`, `HelpModal.ts`,
+- *Line numbers re-checked 2026-10-09 by the producer:* `FlagInputModal.ts:22`, `HostLobbyModal.ts:118` (was `:117`),
+  `JoinPrivateLobbyModal.ts:108` (was `:65`), `SinglePlayerModal.ts:75`. The `o-button` cases seen live are
+  `JoinPrivateLobbyModal.ts:176` and `SinglePlayerModal.ts:398`. Plain `title=` example: `HostLobbyModal.ts:620`
+  (`"Remove <username>"`, English). Lines move; the grep is the real list.
+- `<o-modal title=…>` (original list): `FlagInputModal.ts:22`, `HostLobbyModal.ts:117`, `JoinPrivateLobbyModal.ts:65`, `HelpModal.ts`,
   `AccountModal.ts`, `Matchmaking.ts` (per `fkit-lead`); the producer's grep also shows `<o-modal` in
   `TokenLoginModal.ts`, `NewsModal.ts`, `TerritoryPatternsModal.ts`, `UserSettingModal.ts`, `SinglePlayerModal.ts` and
   `graphics/layers/ChatModal.ts` — check each for `title`.
@@ -71,6 +111,12 @@ fkit-coder
 
 ### Dependencies and conflicts
 
+- **Update 2026-10-09:** `0412` and `0413` are both **done** (`ai-agents/tasks/done/`). Their "whichever lands
+  second" rule below is settled: this task builds on their code as it is now, and leaves `0412`'s two start-screen
+  rows as they are (no `title`).
+- **`0423` (Sprint 8, filed 2026-10-09 — dark thin scrollbar in every game window)** edits the same shared window file,
+  `src/client/components/baseComponents/Modal.ts`. Neither depends on the other: **whichever lands second rebases** and
+  must keep the other's change.
 - **`0412` (Sprint 7)** already removes the tooltip from the two private-lobby buttons ("Создать лобби" /
   "Присоединиться к лобби") as part of their restyle, and names this wider problem as out of its scope. This task
   covers **everything else**. No dependency either way: **whichever lands second rebases on the other and must not
@@ -129,12 +175,14 @@ panels — while every piece of visible text stays exactly as it is.
 3. **Hover spot-check, local, RU and EN, screenshots into the worklog** — hover each and see no browser tooltip:
    - start screen: Multiplayer / Solo tab buttons, "Создать лобби", "Присоединиться к лобби", the mission button,
      instructions (where present), the version / licence line;
-   - windows: host lobby (hover the heading and the body — today shows "Приватное лобби"), join private lobby, single
-     player, user settings, account, help, news, flag input, matchmaking;
+   - windows: host lobby (hover the heading and the body — today shows "Приватное лобби"), join private lobby (**its
+     "Присоединиться к лобби" button** — seen live 2026-10-09 — and the window body), single player (**its
+     "Начать игру" button** — seen live 2026-10-09 — and the window body), user settings, account, help, news, flag input, matchmaking;
    - in game: build menu, player panel, right sidebar, send-resources window, chat window.
 4. `npm test` and `npm run lint` pass.
 5. **Live check — left OPEN, not filed now.** After the deploy, inside the Yandex Games iframe, repeat a short version
-   of step 3 (start screen buttons, host and join windows, one in-game panel). Per the owner's build/verify split rule
+   of step 3 (start screen buttons, host and join windows, the join window's "Присоединиться к лобби" button, the
+   single-player window's "Начать игру" button, one in-game panel). Per the owner's build/verify split rule
    (2026-09-29), if this needs a deploy + owner check it becomes its own verify task at the top of the next sprint;
    **no verify task is filed now**.
 
@@ -142,6 +190,8 @@ panels — while every piece of visible text stays exactly as it is.
 
 - **Depends on:** nothing
 - **Blocks:** nothing
+- **2026-10-09: pulled into Sprint 8 whole, by owner ruling** (see *Sprint*). Not split. The owner chose the whole
+  task over a smaller Sprint 8 piece. Related new task: `0423` (same `Modal.ts` file; see *Dependencies*).
 - **Filed as one task, not split.** By the skill's smallest-shippable-unit rule it could be two (§1 base components,
   §2 every other `title`) — each can be built and shipped alone. Kept as one because the owner asked for *"a task"*
   and, the same day, twice ruled split proposals back into one task (`0412`: *"keep it in the same task"*; `0413`/`0414`:

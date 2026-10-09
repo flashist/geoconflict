@@ -143,6 +143,7 @@ The producer recommends; the owner decides. Put these to the owner in plain word
 
 - **Depends on:** `0417`
 - **Blocks:** nothing
+- **Scrollbar (2026-10-09, owner ruling *"Keep them in 0419"*):** the scrollbar item here should reuse [`0423`](../0423-dark-thin-scrollbar-in-every-game-window/brief.md)'s shared dark-scrollbar piece rather than copy the rules again.
 - Related: `0417` (the same change for the citizenship explainer — the approach this reuses), `0301` (the explainer
   popup).
 - **Shared files:** both HTML templates (`src/client/index.html` and `src/client/yandex-games_iframe.html`) host these

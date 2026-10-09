@@ -151,3 +151,19 @@ replaced. ⛔ Buy never tapped. All 8 (ru/en × non-citizen Buy/earned citizen's
 scroll, Buy and Close visible.** Text read off the page: the earned citizen's popup no longer has the free-route line
 (goes straight from the ad-free line to "Вы уже гражданин." / "You are already a citizen."); the non-citizen's popup
 still has it.
+
+## 2026-10-09 — Deployed (game version `0.0.161`)
+
+- **Committed** as `a0b2485` (owner, verbatim: *"Popups look good, commit"*). **Deployed** to production by the owner as
+  `d694bba` "DEPLOY prod: bump version to 0.0.161", tag `0.0.161`, pushed. Owner, verbatim: *"deploy is done"*
+  (2026-10-09).
+- **Checked live (by the coordinating session, read-only):** the public game page's main bundle carries the version
+  string `0.0.161`. That proves the build is out; it says nothing about the popup on screen.
+- **NOT checked live:** the popup text itself on the live site; any real phone inside the real Yandex Games frame
+  (Yandex's own bars take space); landscape. Every phone-size result above is **local** (`yandex-games_iframe.html`
+  served locally, browser window at 390 × 844 and 360 × 640).
+- The live check goes to a verify task filed at this task's close (owner's build/verify-split rule, 2026-09-29). It
+  does not block anything. It was first filed as `0422`, then — OWNER RULING *"Fold into 0420 (Recommended)"*,
+  2026-10-09 — folded into [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) as **item 8**; `0422` is cancelled.
+- `0420` items 2 and 5 updated to the popup as it now is (owner ruling *"Update 0420 after build (Recommended)"*),
+  by a spawned `fkit-producer`, 2026-10-09. Item 3's quoted text is unchanged by this task, so item 3 was left as is.

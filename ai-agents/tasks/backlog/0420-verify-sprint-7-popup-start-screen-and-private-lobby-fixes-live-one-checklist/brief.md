@@ -103,11 +103,26 @@ and which test accounts are used — **described by role only** (paid citizen / 
   lobby code.
 
 **Item 2 — `0408`: paid-only perk under its own sub-heading.** *(Source: `0408` brief, Verification steps 3 and 7;
-worklog § Plan gate.)* Open the citizenship explainer popup (any state — the block renders in every state):
-- The **"Что получают граждане"** list holds badge, name change and (when enabled) private lobby — **and not** the
+worklog § Plan gate. Text as changed by [`0421`](../../done/0421-citizenship-explainer-popup-shorter-text-so-the-buy-button-shows-without-scrolling-on-phones/brief.md), live in game `0.0.161`.)*
+
+> ✏️ **UPDATED 2026-10-09 — by OWNER RULING *"Update 0420 after build (Recommended)"*** (the owner's own selection,
+> live via `AskUserQuestion` in the coordinating session, 2026-10-08, recorded in `0421`'s brief, open point 4: once
+> `0421` is built, the producer updates this task's items 2 and 5). Applied by a spawned `fkit-producer` with no owner
+> channel (ADR-021/037) after `0421` was built and deployed (game `0.0.161`, 2026-10-09). ⛔ Not producer precedent.
+> `0421` shortened the popup text, so the expectations below are now `0421`'s approved text. The old expectations are
+> kept struck through as history.
+
+Open the citizenship explainer popup (any state — the block renders in every state):
+- ~~The **"Что получают граждане"** list holds badge, name change and (when enabled) private lobby — **and not** the
+  ad-free line.~~
+- ~~Directly under it: the sub-heading **"Только для платного гражданства:"**, and under that the line
+  **"Без полноэкранной рекламы перед матчами и после них"** (the old "только для купленного…" suffix is gone).~~
+- Directly under the title **"Что такое гражданство?"**, with **no heading** above it (no intro paragraph, no
+  "Что получают граждане" / "Граждане получают:" heading — `0421` removed both), a list holds
+  **"Значок ★ рядом с именем в матчах"**, **"Смена имени"** and (when enabled) **"Приватные лобби"** — **and not** the
   ad-free line.
-- Directly under it: the sub-heading **"Только для платного гражданства:"**, and under that the line
-  **"Без полноэкранной рекламы перед матчами и после них"** (the old "только для купленного…" suffix is gone).
+- Directly under it: the sub-heading **"Только с платным гражданством:"**, and under that the line
+  **"Без рекламы между уровнями"**.
 - Fully visible, not clipped or overlapping, inside the Yandex iframe.
 
 **Item 3 — `0409`: Buy button for earned citizens who have not paid — LOOK ONLY.** *(Source: `0409` brief, Verification
@@ -133,7 +148,12 @@ answers — placement "A: One line, no ✓", wording, look "Same as status lines
 worklog § owner answers Q1 "600 px", Q3 "Yes, fix it here", and § Not done here.)*
 - **Desktop and tablet:** the popup is visibly wider than before — up to **600 px**, never wider than the screen or the
   iframe. Headings, lists and buttons fully visible; nothing overlaps.
-- **Phone width:** looks as before — nothing clipped, no sideways scroll, "Закрыть" reachable.
+- ~~**Phone width:** looks as before — nothing clipped, no sideways scroll, "Закрыть" reachable.~~
+- **Phone width:** the same width rule as before, but the popup is now **shorter** — `0421` (game `0.0.161`) cut its
+  text. Nothing clipped, no sideways scroll, "Закрыть" reachable. *(✏️ Updated 2026-10-09 by the same OWNER RULING
+  *"Update 0420 after build (Recommended)"* as item 2 — see the note there. Whether the Buy button now shows without
+  scrolling on a real phone is `0421`'s own live check, **item 8** below (first filed as `0422`, then folded in here by
+  owner ruling *"Fold into 0420"*, 2026-10-09), not this item.)*
 - When the popup scrolls (short window), its scrollbar is **dark and thin**, not the light default (Chromium-based
   browser; Firefox not in scope).
 - All of it **inside the Yandex iframe**, which may be narrower than the browser window — that is what proves the
@@ -168,6 +188,53 @@ worklog § Unverified until live.)*
   - **Privacy:** that text carries a game id and a client id — **never paste the copied text anywhere** (not chat, a
     worklog, a brief or any tool). To confirm it arrived, record yes/no only.
 
+### Item 8 — `0421`: the shorter popup on a real phone (deployed in game `0.0.161`, 2026-10-09)
+
+> ➕ **ADDED 2026-10-09 — by OWNER RULING *"Fold into 0420 (Recommended)"*** (the owner's own selection, live via
+> `AskUserQuestion` in the coordinating session, 2026-10-09; option text: *"One checklist, one sitting. The producer
+> adds 0422's three checks to 0420 as a new item and cancels 0422 with a pointer to 0420."*). Relayed to a spawned
+> `fkit-producer` with no owner channel (ADR-021/037). ⛔ Not producer precedent.
+> **Outcome:** `0421`'s live check — first filed as its own verify task `0422` at `0421`'s close (owner's
+> build/verify-split rule, 2026-09-29) — is this item; `0422` is cancelled with a pointer here. The other seven items
+> are unchanged by this addition.
+
+*(Source: [`0421`](../../done/0421-citizenship-explainer-popup-shorter-text-so-the-buy-button-shows-without-scrolling-on-phones/brief.md) — approved-text table in its brief, *Notes → Live check*; worklog §
+Deployed.)* `0421` closed on **local** checks only (Yandex Games page served locally, 390 × 844 and 360 × 640: no
+scroll, Buy and Close visible). This item is the first look on a **real phone**, inside the real Yandex frame (Yandex's
+own bars take some of the screen). Run it in **ru**, **portrait**. Record the phone model and browser (or the Yandex
+app) — no ids.
+
+**There is no size target** (OWNER RULING 2026-10-08, in `0421`: *"Don't expect any size, we're just trying to make the
+text as small as possible, while preserving the meaning."*). A "Buy not visible without scrolling" result is a
+**question for the owner** (shorten again, or accept) — **not a failure**, and `0421` is not reopened for it.
+
+The text to expect (ru) — `0421`'s approved text, as live in `0.0.161`:
+
+| Line | Non-citizen (Buy) | Earned citizen, not paid | Paid citizen |
+|---|---|---|---|
+| Title | Что такое гражданство? | same | same |
+| List (no heading above it) | Значок ★ рядом с именем в матчах · Смена имени · Приватные лобби *(only where private lobbies are enabled)* | same | same |
+| Sub-heading, then one line | Только с платным гражданством: · Без рекламы между уровнями | same | same |
+| Free line | **Получите бесплатно за 100 XP** | **not shown** | **not shown** |
+| XP line | У вас N / 100 XP. | not shown | not shown |
+| Below | **Buy button** "Купить гражданство — <price>" | Вы уже гражданин. · Платное гражданство · button **"Купить платное гражданство — <price>"** | Вы уже гражданин. — **no Buy button** |
+| Last | Закрыть | Закрыть | Закрыть |
+
+**Gone** (must not appear): an intro paragraph, the headings "Что получают граждане" / "Граждане получают:", "Как
+получить бесплатно" and "Или купите сразу".
+
+- **(a) Non-citizen** (with a product to buy): the whole **Buy button is visible without scrolling** (yes / no — if no,
+  roughly how much is hidden); "Закрыть" visible without scrolling (yes / no); the text matches the *Non-citizen*
+  column line by line and no *Gone* line appears (yes / no — if no, which line, in words).
+- **(b) Earned test account, verified session:** **no** "Получите бесплатно за 100 XP" line; "Вы уже гражданин.", the
+  "Платное гражданство" heading and the button **"Купить платное гражданство — <price>"** visible without scrolling,
+  with "Закрыть" below. ⛔ **Do not tap the Buy button** — record that it was not tapped and that the account is still
+  earned afterwards. *(Same account and same popup as item 3 — run them together.)*
+- **(c) Paid test account, verified session:** **no** "Получите бесплатно" line and **no** Buy button; the rest matches
+  the *Paid citizen* column.
+- **Optional — landscape:** turn the phone sideways in (a); record whether the popup scrolls and whether Buy is
+  reachable by scrolling. **Not run** is allowed. Scrolling in landscape is expected and is not a failure.
+
 ## Verification steps
 
 1. `worklog.md` records, per pass: date, UTC time, deployed version, which tasks the deploy carried, accounts by role.
@@ -181,11 +248,18 @@ worklog § Unverified until live.)*
    build task silently. This task still closes, with the failure recorded.
 6. **No secret leaks:** no player id, Yandex id, client id, lobby code, token, host, IP, full URL, log line or clipboard
    content in any artifact — yes/no, counts, dates and times only.
+7. *(Added 2026-10-09 with item 8, owner ruling "Fold into 0420".)* Item 8 records the phone model and browser/app,
+   that **Buy was not tapped** in (b) and the earned account is still earned, and landscape as a result or **not
+   run**. **If (a)'s Buy is not visible without scrolling:** record roughly how much is hidden and put it to the owner
+   as a question (shorten again, or accept) — no size target, so **not** a failure of `0421`, which is not reopened.
+   A text mismatch (a line differs from `0421`'s table, a *Gone* line is back, the free line shows to a citizen, or a
+   Buy button shows to the paid account) is a failure and follows step 5.
 
 ## Notes
 
-- **Depends on:** [`0416`](../../done/0416-private-lobby-start-fails-with-403-because-the-container-nginx-drops-the-query-string-on-worker-routes/brief.md), [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md), [`0409`](../../done/0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md), [`0407`](../../done/0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md), [`0417`](../../done/0417-citizenship-explainer-popup-use-more-width-on-larger-screens/brief.md), [`0412`](../../done/0412-start-screen-private-tab-with-restyled-private-lobby-buttons/brief.md), [`0413`](../../done/0413-join-private-lobby-modal-replace-the-paste-button-that-cannot-read-the-clipboard-inside-yandex/brief.md)
-  — all ✅ Done; the real gate is their **deploy** (pass 1 / pass 2), which no board tracks.
+- **Depends on:** [`0416`](../../done/0416-private-lobby-start-fails-with-403-because-the-container-nginx-drops-the-query-string-on-worker-routes/brief.md), [`0408`](../../done/0408-explainer-popup-put-the-paid-only-ad-free-perk-under-its-own-paid-citizenship-sub-heading/brief.md), [`0409`](../../done/0409-explainer-popup-offer-a-buy-button-to-earned-citizens-who-have-not-paid-verified-sessions-only/brief.md), [`0407`](../../done/0407-thank-paid-citizens-for-supporting-the-game-on-the-citizenship-card/brief.md), [`0417`](../../done/0417-citizenship-explainer-popup-use-more-width-on-larger-screens/brief.md), [`0412`](../../done/0412-start-screen-private-tab-with-restyled-private-lobby-buttons/brief.md), [`0413`](../../done/0413-join-private-lobby-modal-replace-the-paste-button-that-cannot-read-the-clipboard-inside-yandex/brief.md), [`0421`](../../done/0421-citizenship-explainer-popup-shorter-text-so-the-buy-button-shows-without-scrolling-on-phones/brief.md)
+  — all ✅ Done; the real gate is their **deploy** (pass 1 / pass 2), which no board tracks. *(`0421` added 2026-10-09
+  with item 8 — owner ruling "Fold into 0420"; it is already deployed, in game `0.0.161`.)*
 - **Blocks:** nothing. It does **not** block Sprint 7's deploy (owner's build/verify-split rule, 2026-09-29).
 - **Not included:** `0382` — its live check is [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md) (owner ruling 2026-10-08).
 - **Owner answers to the two open questions — ✅ ANSWERED 2026-10-08.** Both are the owner's own selections, given
