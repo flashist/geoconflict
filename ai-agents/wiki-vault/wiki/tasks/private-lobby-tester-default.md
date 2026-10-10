@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 37 (append rank; moved in from the Backlog board 2026-10-04) / task `0354`
 
+> 🆕 **2026-10-10 sync — release-gate state.** Item 2 **passed** (`0376`, [[tasks/private-lobby-production-test]]);
+> item 4 **passed live** (`0390`, [[tasks/private-lobby-idle-end-live]]); item 6 **closed** with the old-`#join=` check
+> not run (`0381`, [[tasks/yandex-invite-copies-code-live]]); item 3 **reproduced and fixed, not deployed**, live check
+> `0433` pending (`0228`, [[tasks/join-lobby-race-fix]]). All agent-closed, not owner-verified. The flip (`0428`)
+> waits only on `0433`. The tester default itself was exercised live: the host saw the row through this task's tester
+> rule; the everyone-flag was unset.
+
 > 🆕 **2026-10-08 sync — now deployed.** `8d74090` is in game **`0.0.157`** (deployed 2026-10-08; checked with
 > `git tag --contains 8d74090`). No live check of this task's tester default is recorded in this window. `0401`'s
 > Snippet B set the tester marker on production for its locked-tap check ([[tasks/citizenship-explainer-popup-live]]).
@@ -67,3 +74,7 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, the invite-link half of gate item 6 (built 2026-10-08)
 - [[tasks/start-screen-private-tab]] — task `0412`, the Private tab shown under this task's rule
 - [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09
+- [[tasks/private-lobby-production-test]] — task `0376`, gate item 2
+- [[tasks/private-lobby-idle-end-live]] — task `0390`, gate item 4
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, gate item 6
+- [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3

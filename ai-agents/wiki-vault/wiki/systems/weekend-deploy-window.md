@@ -5,6 +5,18 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-10 sync — committed, waiting for a deploy** (commit `bcc9bf0`; `git tag --contains bcc9bf0` → none,
+> checked 2026-10-10):
+> - **Game client:** `0228` the lobby join-race fix ([[tasks/join-lobby-race-fix]]), `0415` no native tooltips
+>   ([[tasks/no-native-tooltips]]), `0423` the dark modal scrollbar ([[tasks/dark-modal-scrollbar]]). Weekend slot unless
+>   the owner says otherwise. Owner-run live checks after it: `0433` (`0228`) and `0429` (`0415` + `0423`).
+> - **Profile box:** `0425` tester roles — migration `008` and a new `tester-roles/` mount written by `setup-profile.sh`
+>   ([[tasks/tester-roles-command]]). Owner ruled its deploy **urgent, mid-week** (*"Urgent: after review passes"*) — an
+>   exception for this deploy only, not a change to the weekend rule. Deploy and first run: `0430` (open).
+> - Verify tasks closed 2026-10-10 on live reads, with runs recorded here as deploy context: `0351`
+>   ([[tasks/worker-reuses-page-map-live]]) and `0370` ([[tasks/public-lobby-one-minute-live]]). The runbook changed
+>   only by link repoints in this window.
+
 > # 🆕 2026-10-08 — A THIRD MID-WEEK DEPLOY RAN: S3b PROFILE `0.0.156-profile.4`, THEN GAME `0.0.157`
 >
 > - **Owner-run, Thu 2026-10-08 — mid-week exception, owner's call** (*"I am ready for making the release. Walk me
@@ -879,3 +891,9 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/authenticated-profile-read-live]] — task `0396` (2026-10-08): the third mid-week deploy — profile `.4` then game `0.0.157`
 - [[tasks/worker-route-query-string]] — task `0416`, the post-deploy Start 403, fixed in `nginx.conf` (built 2026-10-08, ships with the game image)
 - [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)
+- [[tasks/join-lobby-race-fix]] — task `0228`, committed `bcc9bf0`, waiting for a game deploy (live check `0433`)
+- [[tasks/no-native-tooltips]] — task `0415`, committed `bcc9bf0`, waiting for a game deploy (live check `0429`)
+- [[tasks/dark-modal-scrollbar]] — task `0423`, committed `bcc9bf0`, waiting for a game deploy
+- [[tasks/tester-roles-command]] — task `0425`: a profile deploy with migration `008`, ruled urgent mid-week (`0430`)
+- [[tasks/worker-reuses-page-map-live]] — task `0351`, the dev-box check (2026-10-10)
+- [[tasks/public-lobby-one-minute-live]] — task `0370`, whose Steps 1–3 ran in the 2026-10-03 window

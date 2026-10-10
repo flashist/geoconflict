@@ -289,3 +289,4 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/worker-start-failure-reporting]] — task `0348` (2026-09-30): the worker start limit is now 15 s
 - [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map
 - [[tasks/public-lobby-one-minute]] — task `0367` (2026-10-02): the public lobby window cut 120 s → 60 s
+- [[tasks/public-lobby-one-minute-live]] — task `0370`: the 60,000 ms public lobby window kept by owner ruling 2026-10-10

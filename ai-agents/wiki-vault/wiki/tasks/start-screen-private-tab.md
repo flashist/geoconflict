@@ -67,3 +67,4 @@ rule resolve switches to a stored Private tab unless the player already tapped a
 - [[tasks/join-modal-paste-hint]] — task `0413`, the Join window behind the moved button
 - [[decisions/sprint-7]] — the board (rank 57)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
+- [[tasks/no-native-tooltips]] — task `0415`, the app-wide tooltip removal; left this task's two rows as they were

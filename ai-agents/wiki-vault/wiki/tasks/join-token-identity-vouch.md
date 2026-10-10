@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 9 (append rank, not a merit rank) / task `0332`
 
+> 🆕 **2026-10-10 sync — VERIFIED LIVE: `0405` closed** ([[tasks/join-token-identity-vouch-live]]),
+> `(agent-closed — not owner-verified)`. Over ~49 h: `verified` on 94.75 % of 14,266 resolves, every warning outcome 0;
+> match-start verified share 95.3 % vs login 97.55 % — ADR-124 **trigger 2 recorded as NOT hit**, by owner ruling;
+> **0 token hits in ~3.0M log lines**. Coverage limits: no host nginx logs, no weekend evening. Also: the `verified` key
+> this task added to the resolve reply had left two exact-match integration tests stale — fixed by `0431`
+> ([[tasks/routes-it-test-verified-field]]).
+
 > 🆕 **2026-10-08 sync — DEPLOYED, NOT YET VERIFIED.** Both sides rode along with `0250` S3b: the profile side in
 > **`0.0.156-profile.4`** (06:41:41Z), the game side in **`0.0.157`** (06:56:17Z) — profile first, as required (`0396`'s
 > delta check named it as expected, nothing unexpected; [[tasks/authenticated-profile-read-live]]). Early watch only:
@@ -134,3 +141,5 @@ Coverage **reasoning-only second opinion** both rounds (Codex ran, found nothing
 - [[decisions/sprint-7]] — the board row (rank 9)
 - [[decisions/sprint-8]] — verify task `0405`
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): the deploy this task rode along in
+- [[tasks/join-token-identity-vouch-live]] — task `0405`, the live read (closed 2026-10-10)
+- [[tasks/routes-it-test-verified-field]] — task `0431`, the stale integration test this task's `verified` key broke

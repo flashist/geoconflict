@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 38 (append rank; moved in from the Backlog board 2026-10-04) / task `0380`
 
+> 🆕 **2026-10-10 sync — this task's live check `0381` is CLOSED** ([[tasks/yandex-invite-copies-code-live]]),
+> `(agent-closed — not owner-verified)`: the code is shown to the host (pass); **steps 3, 4, 5 not run** by owner rulings.
+> ⚠️ So the Yandex build **ignoring an old `#join=` link is unproven live**, and a code join inside Yandex is carried by
+> `0428` step 4b.
+
 > 🆕 **2026-10-08 sync — now deployed; the link half moved onto Sprint 7.** `8d74090` is in game **`0.0.157`**
 > (deployed 2026-10-08; checked with `git tag --contains`). The owner, live-testing private lobbies on `0.0.157`, saw no
 > invite link in the host window — this task is the code half; the link half `0382` and its check `0383` were moved onto
@@ -72,3 +77,4 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, the link half built on top of this (closed 2026-10-08)
 - [[tasks/join-modal-paste-hint]] — task `0413`, whose Part B reuses `copyText` for the error window
 - [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, this task's live check (closed 2026-10-10)

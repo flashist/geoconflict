@@ -166,3 +166,4 @@ implementation brief(s).
   in vault pages cites **this page** as the case where the hostname *is* the finding. Do not strip the
   host from this page; that question is closed.
 - [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`: the off-Yandex `#join=` check was not run live

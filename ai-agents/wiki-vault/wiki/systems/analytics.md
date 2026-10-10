@@ -771,3 +771,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (2026-10-08): first live explainer, locked-feature and purchase counts
 - [[tasks/start-screen-private-tab]] — task `0412`: `UI:Tap:PrivateTab`
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409`: `UI:Tap:PurchasePaidCitizenshipExplainer`
+- [[tasks/long-session-refresh-popup-live]] — task `0406`: first live counts of `Session:LongSessionRefresh:*` (0 `Refresh`)

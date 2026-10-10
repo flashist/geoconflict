@@ -3,6 +3,22 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-10 (latest, `4fb073a`): 148 rows, 103 open — three low-priority follow-ups filed (`0432`, `0434`,
+> `0435`).** Re-counted by me at `HEAD` = `4fb073a`, by each row's leading status glyph: 100 `🔲 Backlog` · 37 `➡️ Moved` ·
+> 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 145 / 100). All three appended (append order, not merit), each filed
+> by a spawned `fkit-producer` on an owner ruling relayed by `fkit-lead` during the Sprint 8 ship loop (⛔ not producer
+> precedent); each depends on nothing and blocks nothing:
+> - **`0432`** — a stopped `Transport` keeps its `EventBus` listeners and can leave a CONNECTING socket open after a
+>   join-over. Found by `0228`'s builder and reviewer ([[tasks/join-lobby-race-fix]]); pre-existing, reasoned from code,
+>   bounded by the page reload after each match. Owner: *"File, low-priority backlog"*.
+> - **`0434`** — the private-lobby host window keeps polling a lobby that no longer exists (seen live in `0390`: 404 once
+>   a second for 2 h 44 min+; [[tasks/private-lobby-idle-end-live]]). The *after* case of `0353`. Owner: *"Close 0390 +
+>   file task for (A) (Recommended)"*.
+> - **`0435`** — re-check the 1-minute public lobby numbers some time later, **no date**: the owner kept 1-minute lobbies
+>   on 2026-10-10 over the 15 % line and closed `0370` without its day-7 read ([[tasks/public-lobby-one-minute-live]]).
+>   Compares against `0370`'s **recorded** numbers; notes whether `0428` has turned private lobbies on for everyone (it
+>   inflates the GameAnalytics count).
+>
 > 🆕 **2026-10-09 (latest, `9dd117a`): 145 rows, 100 open — `0376`, `0228`, `0381` moved to Sprint 8.** Re-counted by
 > me at `HEAD` = `9dd117a`, by each row's leading status glyph: 97 `🔲 Backlog` · 37 `➡️ Moved` · 5 `✅ Done` · 3 `🚧
 > Blocked` · 3 `⛔ Cancelled` (was 145 / 103). The three open items of the private-lobby release gate
@@ -923,3 +939,7 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): the flags-timeout load filed as `0411` here
 - [[systems/yandex-games-platform-rules]] — the rule behind `0415` (Rule 1), `0010` (Rule 2) and the `0403` VK placement (Rule 3)
 - [[tasks/explainer-popup-wider]] — task `0417`, whose plan gate filed `0419` here
+- [[tasks/join-lobby-race-fix]] — task `0228` (moved to Sprint 8, done 2026-10-10); side finding `0432` filed here
+- [[tasks/private-lobby-idle-end-live]] — task `0390`; its side finding `0434` filed here
+- [[tasks/public-lobby-one-minute-live]] — task `0370`; its recheck `0435` filed here
+- [[tasks/no-native-tooltips]] — task `0415`, filed here 2026-10-08, moved to Sprint 8, done 2026-10-09

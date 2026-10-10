@@ -4,6 +4,22 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 🆕 **2026-10-10 (`4fb073a`) sync — four of the six gate items are now closed on live checks; `0428` waits only on
+> `0433`.** All `(agent-closed — not owner-verified)`, each on an owner ruling relayed by `fkit-lead`:
+> - **Item 2 PASSED** — `0376` ([[tasks/private-lobby-production-test]]): a paid citizen tester hosted inside Yandex
+>   Games on `0.0.161`, a **non-tester** friend joined by the Yandex invite link, the match started and ended. Owner:
+>   *"Gate item 2 passed, close both (Recommended)"*.
+> - **Item 4 PASSED live** — `0390` ([[tasks/private-lobby-idle-end-live]]): an abandoned lobby ended ~30 min after the
+>   host left; an occupied one did not. Side finding `0434` (host window keeps polling an ended lobby; Backlog, low).
+> - **Item 6 closed** — `0381` ([[tasks/yandex-invite-copies-code-live]]): the code is shown; **steps 3–5 not run** by
+>   owner rulings — the old-`#join=`-link check is **unproven live** (owner: no such links were ever handed out).
+> - **Item 3 — `0228` REPRODUCED AND FIXED** ([[tasks/join-lobby-race-fix]]), committed `bcc9bf0`, **not deployed**; its
+>   owner-run live check **`0433`** was added to `0428`'s *Depends on*.
+> - `0428` step 4b now also carries the **lowercase code-typing** check (`0389` (b)) and a **code join inside Yandex**
+>   (`0381` step 3) — owner ruling *"skip tester"* (the tester marker could not be set on the friend's iPhone). Both are
+>   **unproven live** until `0428` runs.
+> - ⛔ **The gate is not met; `private_lobbies_all` stays unset** (console screenshot 2026-10-10: not set).
+
 > 🆕 **2026-10-09 (`9dd117a`) sync — the release gate's three open items MOVED TO [[decisions/sprint-8]], and the
 > flip itself is now a task.** Owner ruling, verbatim: *"1. Yes move to the Sprint 8 and brief a dedicated task for the
 > Sprint 8 to turn the private lobbies on for everybody."* `0376` (item 2) → rank 27, `0228` (item 3) → 28, `0381`
@@ -195,3 +211,7 @@ of the perks would depend on it."*
 - [[tasks/yandex-invite-sdk-link]] — task `0382` (closed 2026-10-08): the invite link, second half of gate item 6
 - [[tasks/start-screen-private-tab]] — task `0412` (closed 2026-10-08): the row moved into a *Приватная* tab
 - [[tasks/join-modal-paste-hint]] — task `0413` (closed 2026-10-08): the Join window's paste fix
+- [[tasks/private-lobby-production-test]] — task `0376`, gate item 2, passed 2026-10-10
+- [[tasks/private-lobby-idle-end-live]] — task `0390`, gate item 4's live pass
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, gate item 6's last check, closed 2026-10-10
+- [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3, fixed (not deployed); live check `0433`

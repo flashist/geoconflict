@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 61 (ADR-035 append rank; moved in from the Backlog board 2026-10-08) / task `0383`
 
+> 📌 *2026-10-10 sync: the "`0381` still open" line below is now history — `0381` closed 2026-10-10
+> ([[tasks/yandex-invite-copies-code-live]]) with steps 3–5 not run, by owner rulings; gate item 6 is closed. In `0376`'s
+> run the same day a **non-tester** friend on an iPhone again joined by the Yandex invite link
+> ([[tasks/private-lobby-production-test]]).*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-09. **Owner-run** live check, game `0.0.161`, run
 > together with `0420` item 1 (private-lobby start). Nothing was built. Results relayed by the coordinating session.
 
@@ -54,3 +59,5 @@ shapes only.
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature the gate guards
 - [[decisions/sprint-7]] — the board (rank 61)
 - [[decisions/sprint-8]] — `0420`, whose item 1 ran in the same sitting
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, closed 2026-10-10
+- [[tasks/private-lobby-production-test]] — task `0376`, a second live join by the invite link

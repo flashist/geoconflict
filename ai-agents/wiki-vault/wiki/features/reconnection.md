@@ -69,3 +69,4 @@ Source: `ai-agents/tasks/done/0077-reconnection-analytics/brief.md`
 - [[tasks/rejoin-after-failed-match-start]] — task `0347` (2026-09-30): the session is saved before the worker starts
 - [[tasks/worker-start-failure-reporting]] — task `0348` (2026-09-30): real crash reason, 15 s limit, leftover worker stopped
 - [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map; a leave during the start stops it
+- [[tasks/worker-reuses-page-map-live]] — task `0351`: `0035`'s worker start checked on the dev box (2026-10-10)

@@ -76,3 +76,5 @@ case — is it real, how bad, how likely, how hard to fix, and a recommendation.
 - [[decisions/sprint-7]] — the board; [[decisions/sprint-backlog]] carries `0228`, `0252` and `0354`
 - [[tasks/private-lobby-idle-end]] — task `0377`, the build for case 3 (30-minute idle end)
 - [[tasks/private-lobby-tester-default]] — task `0354`, requested at this task's close
+- [[tasks/join-lobby-race-fix]] — task `0228`: case 1 observed live (S3) and fixed 2026-10-10
+- [[tasks/private-lobby-idle-end-live]] — task `0390`: the 30-minute idle end confirmed live

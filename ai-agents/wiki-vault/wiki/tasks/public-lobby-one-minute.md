@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 31 (append position; owner-placed directly below `0366`, with the top group) / task `0367`
 
+> 🆕 **2026-10-10 sync — THE TEST IS DECIDED: KEEP 1 MINUTE, by owner ruling, overriding the 15 % line.**
+> `0370` ([[tasks/public-lobby-one-minute-live]]) closed `(agent-closed — not owner-verified)`. Lone-player share
+> 11.8 % → **17.7 %** (6-day; over 15 % every day); GameAnalytics multiplayer entries/day **+30 %**. The owner chose
+> *"Keep 1 minute"* — the 15 % line was **not met** and was overridden, not re-read. No revert task. ⚠️ The day-7 read
+> was **not run**; a no-date recheck is `0435` on the Backlog board. The *"a test, not a settled change"* line below was
+> true when written.
+
 > ✅ **Built and closed 2026-10-02; committed in `2247699`.** ⚠️ **Not deployed** — it rides a weekend
 > game-server slot (target 2026-10-03/04). Committed is not deployed.
 >
@@ -112,3 +119,4 @@ map before the start.
 - [[tasks/hardening-harness-speedup]] — task `0371`, filed at this close to fix the red `npm test`
 - [[systems/weekend-deploy-window]] — the 2026-10-03 window whose game deploy (`0.0.156`) put this live
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`: the telemetry restart an hour before `0370`'s Step 1 query (no data gap)
+- [[tasks/public-lobby-one-minute-live]] — task `0370`, the read that decided it (keep, 2026-10-10)

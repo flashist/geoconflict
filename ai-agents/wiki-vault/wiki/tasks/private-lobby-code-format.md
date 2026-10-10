@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 42 (append rank — owner placed it "End of Sprint 7"; merit agrees) / task `0389`
 
+> 🆕 **2026-10-10 sync — live check (a) passed, (b) moved.** In `0376`'s run on `0.0.161`
+> ([[tasks/private-lobby-production-test]]) the code showed as two groups `XXXX XXXX` with none of the confusable
+> characters — **(a) pass**. **(b), typing the code in lowercase, was NOT run** (owner ruling *"skip tester"*); it moved to
+> `0428` step 4b, so lowercase typing stays **unproven live** until then.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** — touches `src/core/`, the game server and the client; no game deploy since `0.0.156`. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* **No separate
 > verify task:** the live check after deploy lives in **`0376`** step 3 (the lobby-code check) — OWNER RULING
@@ -61,3 +66,4 @@ host-window **retry on `409` dropped** (the server's `409 game_id_taken` refusal
 - [[decisions/sprint-7]] — the board (rank 42)
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, whose payload validator accepts this format
 - [[tasks/join-modal-paste-hint]] — task `0413`: the Join window's paste fix; this task's clean-up of typed or pasted codes unchanged
+- [[tasks/private-lobby-production-test]] — task `0376`, where check (a) passed

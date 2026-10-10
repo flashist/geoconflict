@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 63 (ADR-035 append rank) / task `0417`
 
+> 🆕 **2026-10-10 sync — this popup's copied scrollbar rules were replaced by a shared piece.** `0423`
+> ([[tasks/dark-modal-scrollbar]]) moved the dark scrollbar into `DarkScrollbarStyles.ts`, used by every shadow-DOM window,
+> and removed this task's four copied rules — same values, look unchanged (checked). Committed `bcc9bf0`, not deployed.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Weekend-slot deploy. The look inside the real Yandex iframe → `0420` ([[decisions/sprint-8]]).
@@ -47,3 +51,4 @@ the scrollbar.
 - [[decisions/sprint-backlog]] — `0419`, the same change for other small popups
 - [[decisions/sprint-7]] — the board (rank 63)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
+- [[tasks/dark-modal-scrollbar]] — task `0423`, which replaced this popup's copied scrollbar rules with a shared piece

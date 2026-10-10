@@ -3,6 +3,13 @@
 **Layer**: shared
 **Key files**: `ai-agents/knowledge-base/yandex-games-platform-rules.md`, `ai-agents/knowledge-base/PROJECT.md`
 
+> 🆕 **2026-10-10 sync — Rule 1 is BUILT app-wide, NOT yet deployed.** `0415` ([[tasks/no-native-tooltips]]) closed
+> `(agent-closed — not owner-verified)` 2026-10-09: `o-button`'s `title` → `label`, `o-modal`'s `title` → `heading`,
+> every other native tooltip removed (three icon-only controls keep an `aria-label`), a template guard in `npm test`.
+> Committed `bcc9bf0`; `git tag --contains bcc9bf0` → none (2026-10-10). Its live hover check inside the Yandex iframe is
+> `0429` (owner-run; a native tooltip cannot be screenshotted). **Until that deploy, native tooltips still exist live.**
+> The knowledge-base note changed only by a link repoint in this window.
+
 ## Summary
 
 The rules Geoconflict follows **because it ships on Yandex Games**, in one place — check this page before building
@@ -131,3 +138,4 @@ Approval takes days and is an **external blocker** on any paid feature — plan 
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature whose buttons `0412` fixes under Rule 1
 - [[tasks/start-screen-private-tab]] — task `0412`, Rule 1 applied to the private-lobby buttons (built 2026-10-08)
 - [[decisions/sprint-8]] — `0415` (rank 20, pulled in 2026-10-09) makes Rule 1 true app-wide
+- [[tasks/no-native-tooltips]] — task `0415`, which builds Rule 1 app-wide (committed, not deployed)

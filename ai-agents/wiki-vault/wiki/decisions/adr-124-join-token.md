@@ -3,6 +3,11 @@
 **Date**: 2026-10-07
 **Status**: accepted
 
+> 🆕 **2026-10-10 sync — verified live by `0405`** ([[tasks/join-token-identity-vouch-live]]): match-start verified
+> share 95.3 % vs login 97.55 % (not-verified 4.7 % vs 2.45 %, counted differently). Put to the owner as **re-raise
+> trigger 2** — ruling *"Not 'much worse', leave it (Recommended)"*: **trigger 2 NOT hit**, no task, Decision 4 not
+> revisited. No session token found in any log searched. The canonical ADR file did not change in this window.
+
 > Project ADR-124 — see [[decisions/adr-numbering-two-series]]. ⚠️ **Vault slug abbreviated** from the knowledge-base
 > counterpart (the vault's standing style, not drift).
 > **Drafted and accepted 2026-10-07.** Drafted by `fkit-architect` for task `0332` (phase 1), with no owner channel;
@@ -175,3 +180,5 @@ who") counts as *"presented to players"* under ADR-115's re-raise trigger. Owner
 - [[tasks/verified-login-shadow-mode]] — task `0325`, which named the second step this ADR designs
 - [[tasks/authenticated-profile-read]] — task `0250`, whose design report §6 first named the join token
 - [[tasks/verified-login-enforce]] — task `0340`, S3a: the verified session the token carries
+- [[tasks/join-token-identity-vouch-live]] — task `0405`: trigger 2 not hit (owner ruling 2026-10-10)
+- [[tasks/routes-it-test-verified-field]] — task `0431`: the integration test updated for the resolve reply's `verified` key

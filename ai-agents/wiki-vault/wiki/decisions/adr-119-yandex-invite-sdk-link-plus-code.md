@@ -3,6 +3,11 @@
 **Date**: 2026-10-04
 **Status**: accepted
 
+> 🆕 **2026-10-10 sync — gate item 6 closed.** `0381` ([[tasks/yandex-invite-copies-code-live]]) closed
+> `(agent-closed — not owner-verified)` with the code shown (pass) and **steps 3–5 not run** by owner rulings; `0383`
+> passed 2026-10-09. ⚠️ So the Yandex build **ignoring old `#join=` links is unproven live**, and a code join inside
+> Yandex is carried by `0428` step 4b. The canonical ADR file changed only by a link repoint in this window.
+
 > 🆕 **2026-10-08 sync — the link half is BUILT too:** `0382` done 2026-10-08 (agent-closed — not owner-verified),
 > committed `a555111`, ⚠️ **not deployed** (`git tag --contains` → none). SDK URL via `getGameByID`, fetched before the
 > click; link built with the `URL` API; payload read at startup and on late SDK recovery; consume-once in
@@ -165,3 +170,4 @@ fallback (dropped **on evidence** — it does not contain this game).
 - [[tasks/private-lobby-code-format]] — task `0389`, the new code format `0382` must accept
 - [[systems/yandex-games-platform-rules]] — Rule 3 (no off-portal links) cites this ADR and its requirement numbers
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, the link half (built 2026-10-08, not deployed)
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, the code half's live check (closed 2026-10-10; old-link check not run)

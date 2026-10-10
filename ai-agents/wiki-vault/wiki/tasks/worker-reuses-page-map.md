@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 24 (append rank; part of the owner-ruled top reconnect run) / task `0035` — moved in from `sprint-backlog.md` 2026-09-29
 
+> 🆕 **2026-10-10 sync — `0351` PASSED on the dev box** ([[tasks/worker-reuses-page-map-live]]), closed
+> `(agent-closed — not owner-verified)`: one public match on `0.0.155-dev.1` started, `Worker:InitSuccess` 1 s after
+> start, and the page requested each map file once. ⚠️ **The worker's own requests were not observed** — the evidence that
+> the second, worker-side download is gone is indirect. Second match and the `Worker:InitFailed` read not taken.
+
 > ✅ Done (agent-closed — not owner-verified), 2026-09-30. Committed in `9cb8ee4`; **not in any deploy yet**
 > (latest game tag `0.0.155`). 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).* Its proof on the real dev box is verify task **`0351`**, Sprint 8 rank 2
 > ([[decisions/sprint-8]]); it does not block Sprint 7's deploy.
@@ -68,3 +73,4 @@ join the player already left.
 - [[decisions/sprint-backlog]] — this task's old row on `sprint-backlog.md` (now a Moved pointer) and the new `0352`
 - [[systems/architecture-overview]] — its worker-init line now names the 15 s limit and this map hand-over
 - [[tasks/client-null-id-errors]] — task `0032`, which made the loader cache hold only the map source and build fresh maps per game — the source this task hands to the worker
+- [[tasks/worker-reuses-page-map-live]] — task `0351`, the dev-box check (passed 2026-10-10)

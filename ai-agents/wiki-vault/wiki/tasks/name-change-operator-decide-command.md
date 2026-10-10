@@ -69,3 +69,5 @@ by hand on the profile box. Give the operator a working, documented Approve **an
 - [[decisions/sprint-6]] — the board carrying this task
 - [[systems/player-profile-store]] — the profile store, updated 2026-09-28 with this task's change
 - [[tasks/config-parity-guard-arm-enforce]] — task `0298` (2026-09-28): the config guards' first real report-only run, then armed `--enforce`
+- [[tasks/tester-roles-command]] — task `0425`, a second operator command built the same way
+- [[systems/profile-tester-roles]] — that command's runbook

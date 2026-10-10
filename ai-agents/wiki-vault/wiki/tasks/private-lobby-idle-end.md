@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 39 (append rank; moved in from the Backlog board 2026-10-04) / task `0377`
 
+> 🆕 **2026-10-10 sync — `0390` PASSED live** ([[tasks/private-lobby-idle-end-live]]), closed `(agent-closed — not
+> owner-verified)`: case 1 (abandoned after a join) ended ~30 min after the host left; case 3 (occupied) was not ended;
+> no collateral over ~6 h of log. **Not run:** case 2 (never joined — unit tests only) and joining an ended lobby. Side
+> finding filed as `0434` (Backlog, low): the host window keeps polling an ended lobby once a second, 404 each time.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-04; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** — server-only, needs a game-server deploy, none since `0.0.156`. 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).* Its live check is **`0390`** (Sprint 8,
 > rank 7): an abandoned private lobby ends after 30 minutes and an occupied one does not.
@@ -49,3 +54,4 @@ ever joined.
 - [[systems/networking]] — game-server lobby lifecycle
 - [[decisions/sprint-7]] — the board (rank 39)
 - [[decisions/sprint-8]] — `0390`, the live check (rank 7)
+- [[tasks/private-lobby-idle-end-live]] — task `0390`, the live check (passed 2026-10-10)

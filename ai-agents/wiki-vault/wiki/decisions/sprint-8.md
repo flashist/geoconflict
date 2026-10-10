@@ -5,6 +5,34 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-10 (latest, `4fb073a`): 34 rows — 15 `✅ Done` · 9 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 10 OPEN** (was 30 / 18), counted by me by each row's leading status glyph. Line-3 banner **still
+> `🔲 Backlog — 2026-09-29`** — never flipped, though the ship loop ran on this board. Twelve rows closed
+> `✅ Done (agent-closed — not owner-verified)`, each on an owner ruling relayed by `fkit-lead` to a spawned
+> `fkit-producer` (⛔ not producer precedent); four rows appended (ADR-035 append ranks, flagged for owner confirmation):
+> - **Built (code committed `bcc9bf0`; `git tag --contains` → none — NOT deployed):** **20 `0415`** no native tooltips
+>   ([[tasks/no-native-tooltips]]) · **21 `0423`** dark modal scrollbar ([[tasks/dark-modal-scrollbar]]) · **22 `0425`**
+>   SSH-only tester roles, nothing run on the box ([[tasks/tester-roles-command]]) · **28 `0228`** join race
+>   **reproduced 9/9 and fixed** ([[tasks/join-lobby-race-fix]]) · **33 `0431`** stale integration test, test-only
+>   ([[tasks/routes-it-test-verified-field]]).
+> - **Verify tasks closed on live reads:** **1 `0370`** — owner **kept 1-minute lobbies, overriding the 15 % line**; day-7
+>   read not run ([[tasks/public-lobby-one-minute-live]]) · **5 `0351`** — dev-box pass; the worker's own requests not
+>   observed ([[tasks/worker-reuses-page-map-live]]) · **7 `0390`** — idle end passed on cases 1 and 3
+>   ([[tasks/private-lobby-idle-end-live]]) · **15 `0405`** — vouch live, ADR-124 trigger 2 not hit, 0 token hits
+>   ([[tasks/join-token-identity-vouch-live]]) · **16 `0406`** — popup fires; **main question unanswered, no data**
+>   ([[tasks/long-session-refresh-popup-live]]) · **27 `0376`** — **gate item 2 passed**
+>   ([[tasks/private-lobby-production-test]]) · **29 `0381`** — code shown; steps 3–5 not run by owner rulings
+>   ([[tasks/yandex-invite-copies-code-live]]).
+> - **Appended:** **31 `0429`** — owner-run hover check of `0415` inside the Yandex iframe, plus `0423`'s scrollbar
+>   (*"Bottom of Sprint 8"*) · **32 `0430`** — owner-run deploy of `0425` (mid-week, *"Urgent: after review passes"*) and the
+>   first `apply earned-citizen` + `restore`; on merit the top group · **33 `0431`** — done the next day · **34 `0433`** —
+>   owner-run live check of `0228` after its deploy; on merit directly above `0428`, which now depends on it.
+> - 🚦 **`0428`** (the everyone-flag) now waits **only on `0433`**. Its step 4b also carries the lowercase code-typing
+>   check and a code join inside Yandex (owner: *"skip tester"*). ⛔ `private_lobbies_all` still unset.
+> - Follow-ups filed on the Backlog board: `0432`, `0434`, `0435` ([[decisions/sprint-backlog]]).
+> - **Still open on this board:** `0343`, `0418`, `0420`, `0426`, `0213` (Backlog), `0219` (In progress), `0428`, `0429`,
+>   `0430`, `0433`.
+>
 > 🆕 **2026-10-09 (latest, `9dd117a`): 30 rows — 3 `✅ Done` · 17 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 18 OPEN** (was 25 / 14), counted by me by each row's leading status glyph. Line-3 banner **still
 > `🔲 Backlog` — not started.** Five rows appended (ADR-035 append ranks — positions, not merit ranks; each flagged for
@@ -349,3 +377,16 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/jest-full-run-lock]] — task `0427` (26): one full jest run at a time; done 2026-10-09
 - [[tasks/private-lobby-citizen-perk]] — the six-item release gate whose open items `0376` (27), `0228` (28), `0381` (29) moved here; the flip is `0428` (30)
 - [[tasks/yandex-invite-copies-code]] — task `0380`, verified by `0381` (29)
+- [[tasks/public-lobby-one-minute-live]] — task `0370` (1): keep 1 minute, by owner ruling 2026-10-10
+- [[tasks/worker-reuses-page-map-live]] — task `0351` (5): dev-box pass 2026-10-10
+- [[tasks/private-lobby-idle-end-live]] — task `0390` (7): passed live 2026-10-10
+- [[tasks/join-token-identity-vouch-live]] — task `0405` (15): closed 2026-10-10
+- [[tasks/long-session-refresh-popup-live]] — task `0406` (16): closed as is 2026-10-10
+- [[tasks/no-native-tooltips]] — task `0415` (20): built, not deployed; live check `0429` (31)
+- [[tasks/dark-modal-scrollbar]] — task `0423` (21): built, not deployed
+- [[tasks/tester-roles-command]] — task `0425` (22): built; deploy and first run `0430` (32)
+- [[systems/profile-tester-roles]] — `0425`'s runbook
+- [[tasks/private-lobby-production-test]] — task `0376` (27): gate item 2 passed
+- [[tasks/join-lobby-race-fix]] — task `0228` (28): reproduced and fixed; live check `0433` (34)
+- [[tasks/yandex-invite-copies-code-live]] — task `0381` (29): closed, steps 3–5 not run
+- [[tasks/routes-it-test-verified-field]] — task `0431` (33): test-only fix

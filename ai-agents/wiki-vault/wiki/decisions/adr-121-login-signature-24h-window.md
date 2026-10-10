@@ -113,3 +113,4 @@ window bump — rejected (`past_15m_20m` only ~11 % of stale).
 - [[tasks/long-session-refresh-popup]] — task `0404` (2026-10-07): the 23 h refresh popup; its `AfterRefreshPopup` boot kind measures whether a refresh gets new signed data
 - [[decisions/adr-124-join-token]] — ADR-124 (2026-10-07): the join token; its unverified-share estimate rests on this window
 - [[tasks/post-0340-login-reread]] — task `0402`, the post-`0340` login-numbers re-read (closed 2026-10-09, ≈2.6 % stale, no weekend read)
+- [[tasks/long-session-refresh-popup-live]] — task `0406`: whether a refresh yields a verified pass is still unanswered (no data)

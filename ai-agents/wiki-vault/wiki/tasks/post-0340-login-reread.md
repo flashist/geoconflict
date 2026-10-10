@@ -61,3 +61,4 @@ None in source. Three read-only reads, each with the owner's approval in session
 - [[tasks/authenticated-profile-read-live]] — task `0396`, whose profile deploy split the window into two pieces
 - [[systems/weekend-deploy-window]] — the runbook that pointed at this re-read before the `0396` deploy
 - [[decisions/sprint-7]] — the board (rank 52)
+- [[tasks/join-token-identity-vouch-live]] — task `0405`, which read login outcomes the same way

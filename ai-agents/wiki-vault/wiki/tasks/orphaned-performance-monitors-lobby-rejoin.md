@@ -96,3 +96,4 @@ The diff **also fixes the *monitor* half of F4** (the `:675-686` await interleav
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[decisions/sprint-backlog]] — where `0228` and `0229` are tracked
 - [[decisions/codex-second-opinion-mandatory]] — this task's review ledger records a **Codex OUTAGE** (three failed attempts, treated as a second Claude pass), the counter-fact that keeps that record honest
+- [[tasks/join-lobby-race-fix]] — task `0228`, the `gameStop` half found in this task's audit: reproduced and fixed 2026-10-10

@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0275`
 
+> 📌 *2026-10-10 sync: the drill's table inventory grew from 10 to **11** — `tester_role_snapshots` (migration `008`,
+> task `0425`, [[systems/profile-tester-roles]]). Without it, `verify.sql`'s uncovered-tables check would have turned the
+> drill red; `0425`'s review added it (`ai-agents/knowledge-base/profile-backup-restore-runbook.md` updated to match). The
+> "all 10 tables" result below is this task's 2026-09-16 proof on the schema of that day — **it has not been re-run on
+> the 11-table schema**; `0425` proved only the drill's SQL path, on a throwaway Postgres.*
+
 ## Goal
 
 **Re-prove the restore path against the schema the box actually runs.**
@@ -92,3 +98,4 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the weekly-copy half, proven separately
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, which required this re-proof before `PROFILE_INTERNAL_TOKEN` was set
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): every deliberate Postgres upgrade reuses this restore drill against the new image before the live switch
+- [[systems/profile-tester-roles]] — migration `008`'s `tester_role_snapshots`, the drill's 11th table

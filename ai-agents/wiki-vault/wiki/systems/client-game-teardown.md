@@ -11,6 +11,21 @@ This page exists because the audit that found these holes ran across seven tasks
 
 ⛔ **Everything on this page is repository state as of `HEAD` = `c910452`, 2026-09-07. NOTHING IS DEPLOYED.** The owner deploys at the next weekend slot.
 
+> 🆕 **2026-10-10 sync — `0228` REPRODUCED AND FIXED** ([[tasks/join-lobby-race-fix]]), closed
+> `(agent-closed — not owner-verified)`. Phase 1 reproduced the race **9/9 with real clicks** on a slowed network after
+> >5 min on the start screen (public leave dropped; double-tap Join lists the joiner twice; Escape during a join leaves
+> the joiner listed). The fix is a new `src/client/LobbyJoinSequence.ts` (latest join wins, a leave cancels a join still
+> being set up); `Main.gameStop` is now a read-only getter over it. **`0227`'s generation mint and `onGameEnd` guard are
+> kept intact.** It closes the `Main`-level window only. Committed `bcc9bf0`; **no tag contains it — not deployed**
+> (2026-10-10); live check `0433` open. Side finding `0432`: a stopped `Transport` keeps its `EventBus` listeners.
+> The `0228` rows below are kept as written (true when written).
+>
+> ⚠️ **Stale on this page, flagged — not re-ingested by this sync:** the site map and the class table below still mark
+> **`0231`, `0232` and `0233` "open"**, but all three briefs sit in `ai-agents/tasks/done/` with status
+> `✅ Done (agent-closed — not owner-verified)` (first committed under `done/` in `6822210` / `a953271`, 2026-09-13/14). Their outcomes are **not** recorded in the vault —
+> no task page exists for any of them. This sync saw only link repoints in them, so it does not invent their results;
+> a dedicated ingest of their briefs and worklogs is needed.
+
 ## Architecture
 
 ### The seam — added by task `0227`, and dormant at its headline site
@@ -141,6 +156,7 @@ Every leaked `PerformanceMonitor` keeps emitting `Performance:*` events, which i
 - [[tasks/mobile-quick-wins]] — where `Performance:FPS:*` was originally used as a measurement, now inflated by these leaks
 - [[decisions/sprint-4]] — the board carrying `0225`, `0227`, `0231`, `0232`, `0233`
 - [[decisions/sprint-backlog]] — the board carrying `0228` and `0229`
+- [[tasks/join-lobby-race-fix]] — task `0228`, reproduced and fixed 2026-10-10 (not deployed)
 - [[tasks/worker-start-failure-reporting]] — task `0348`: site B stops the worker; `init_failed` for the start only
 - [[tasks/worker-reuses-page-map]] — task `0035`: leaving during the start stops the worker
 - [[tasks/rejoin-after-failed-match-start]] — task `0347`: the reconnect session is saved before site B can run

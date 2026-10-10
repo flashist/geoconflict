@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 40 (append rank; moved in from the Backlog board 2026-10-04) / task `0353`
 
+> 🆕 **2026-10-10 sync — checked live, and an *after* case found.** In `0376`'s run on `0.0.161`
+> ([[tasks/private-lobby-production-test]]) the host window showed **no repeating errors** while a lobby was created —
+> this fix holds live. `0390` ([[tasks/private-lobby-idle-end-live]]) found the mirror case: once a lobby has **ended**,
+> the host window keeps polling it once a second (404 each time, 2 h 44 min+). Filed as `0434` (Backlog, low).
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-05; committed in `8d74090` (2026-10-05). ⚠️ **Not
 > deployed** (client-only; no game deploy since `0.0.156`). 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `8d74090` is an ancestor of tag `0.0.157`; `0396` worklog).*
 
@@ -42,3 +47,6 @@ closed it.
 - [[systems/networking]] — worker-routed lobby requests
 - [[decisions/sprint-7]] — the board (rank 40)
 - [[tasks/private-lobby-idle-end]] — task `0377`, the server-side private-lobby fix in the same batch
+- [[tasks/private-lobby-production-test]] — task `0376`, where this fix was checked live
+- [[tasks/private-lobby-idle-end-live]] — task `0390`, which found the *after* case (`0434`)
+- [[tasks/join-lobby-race-fix]] — task `0228`, the other host-window join-setup fix

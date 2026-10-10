@@ -202,3 +202,5 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/session-verified-status-line-live]] — task `0400` (2026-10-08): the not-confirmed state that explains Decision 4 is live (unverified states not checked live)
 - [[tasks/paid-citizen-thank-you-line]] — task `0407` (2026-10-08): the paid thank-you shows only on a verified read (Decision 4)
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (2026-10-08): the popup's earned-citizen Buy shows only on a verified, not-paid read (Decision 4)
+- [[systems/profile-tester-roles]] — an unverified login hides a role-set paid flag and pins citizen XP at 100
+- [[tasks/join-token-identity-vouch-live]] — task `0405`: login verified share 97.55 % compared with match start

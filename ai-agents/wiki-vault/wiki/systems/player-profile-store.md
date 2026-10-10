@@ -3,6 +3,14 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🆕 **2026-10-10 sync — migration `008` and an operator command are BUILT, NOT on the box.** `0425`
+> ([[tasks/tester-roles-command]], runbook [[systems/profile-tester-roles]]) adds `migrations/008_tester_role_snapshots.sql`
+> (one snapshot row per tester) and an SSH-only `tester-role` command (`show` / `apply` / `restore` of five fixed roles
+> on one hand-kept allowlist of testers; every `apply` / `restore` is a production write). Committed `bcc9bf0`; ⚠️ **no
+> profile deploy carries it yet** — that deploy (ruled urgent, mid-week) and the first run are verify task `0430` (open).
+> The backup restore drill now compares **11** tables (`tester_role_snapshots` added; `verify.sql` and
+> `profile-backup-restore-runbook.md` updated) — see [[tasks/profile-backup-restore-reproof-006]].
+
 > 🆕 **2026-10-08 sync — S3b AND THE `0332` VOUCH ARE LIVE: profile `0.0.156-profile.4`** (commit `55598f2`), deployed
 > by the owner Thu 2026-10-08, deploy record 06:41:41Z, a mid-week exception; **before** game `0.0.157`
 > ([[tasks/authenticated-profile-read-live]], `0396`). A verified paid caller now reads `is_paid_citizen: true`; an
@@ -601,3 +609,5 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): deployed `0.0.156-profile.4` (S3b + `0332` vouch)
 - [[systems/yandex-games-platform-rules]] — Rule 4: why the profile API sits on the `api.` subdomain
 - [[decisions/sprint-8]] — `0219` (rank 24, G3/G4 un-paused 2026-10-09) and the epic `0213` (rank 25)
+- [[systems/profile-tester-roles]] — the SSH-only tester-role command and its runbook (migration `008`)
+- [[tasks/tester-roles-command]] — task `0425`, which built it

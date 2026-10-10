@@ -120,3 +120,4 @@ Per owner ruling A2, **no segfault mitigation was purchased** — no `--maxWorke
 - [[tasks/analytics-p1-ad-impression-baseline]] — task `0020`, which ruled out this task's segfault before re-running
 - [[tasks/jest-worker-cap]] — task `0399` (2026-10-06): the 4-worker cap that supersedes A2 for background-throttling timeouts only
 - [[tasks/jest-full-run-lock]] — task `0427` (2026-10-09): `--forceExit` on the unit run only; the integration rule above stands
+- [[tasks/routes-it-test-verified-field]] — task `0431`: `npm run test:integration` green again, 178/178 (2026-10-10)

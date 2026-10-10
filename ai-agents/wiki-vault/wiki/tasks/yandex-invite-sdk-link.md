@@ -80,3 +80,5 @@ not overridden). The 2026-10-04 "ask Yandex support" step was dropped by owner r
 - [[tasks/join-modal-paste-hint]] — task `0413`, the same Join window's paste fix, built the same day
 - [[systems/flashist-init]] — the facade's late SDK recovery that the second payload read hooks into
 - [[decisions/sprint-7]] — the board (rank 60)
+- [[tasks/private-lobby-production-test]] — task `0376`, whose friend joined by this link on 2026-10-10
+- [[tasks/yandex-invite-copies-code-live]] — task `0381`, whose steps 1 and 6 this task superseded

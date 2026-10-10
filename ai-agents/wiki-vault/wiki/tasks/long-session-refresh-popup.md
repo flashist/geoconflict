@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 53 (append rank, not a merit rank — flagged; moved in from Sprint 8 rank 14 on 2026-10-07) / task `0404`
 
+> 🆕 **2026-10-10 sync — `0406` closed "as is"** ([[tasks/long-session-refresh-popup-live]]), `(agent-closed — not
+> owner-verified)`. **The popup fires in production** (`Due` 42, `Shown` 3, `PreemptedByStaleBuild` 11). ⚠️ **The main
+> question — do refreshed players come back verified? — is UNANSWERED: no data** (0 `Refresh` presses, so no
+> `AfterRefreshPopup` login). Open question recorded, no task: 3 shown, 0 pressed, though the popup has no close button.
+> So R2 is still **not** claimable as fixed by verification.
+
 > 🆕 **2026-10-08 sync — DEPLOYED, NOT YET VERIFIED.** The code (`077c9e3`) is in game **`0.0.157`**, deployed
 > 2026-10-08 (container started 06:56:17Z) — checked: `git tag --contains 077c9e3` lists `0.0.157`; `0396`'s worklog names
 > `0404` in the image ([[tasks/authenticated-profile-read-live]]). Its verify-live task `0406` is still open. The
@@ -92,3 +98,4 @@ only on the main screen."* Two benefits: a fresh login pass, and fresh game code
 - [[decisions/sprint-7]] — the board row (rank 53)
 - [[decisions/sprint-8]] — the original filing (rank 14, now `➡️ Moved`) and verify task `0406`
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): its worklog records the game deploy that shipped this task
+- [[tasks/long-session-refresh-popup-live]] — task `0406`, the live read (closed as is 2026-10-10)
