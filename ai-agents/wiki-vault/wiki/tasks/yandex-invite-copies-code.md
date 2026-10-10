@@ -78,3 +78,4 @@ friendlier code became `0389` ([[tasks/private-lobby-code-format]]).
 - [[tasks/join-modal-paste-hint]] — task `0413`, whose Part B reuses `copyText` for the error window
 - [[tasks/yandex-invite-sdk-link-live]] — task `0383`, the live check of `0382`’s invite link — passed 2026-10-09
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, this task's live check (closed 2026-10-10)
+- [[decisions/windoworigin-url-join-defect]] — the standalone `windowOrigin` invite this build leaves unchanged off Yandex

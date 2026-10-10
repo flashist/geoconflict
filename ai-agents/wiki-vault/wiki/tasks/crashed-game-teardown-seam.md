@@ -6,6 +6,8 @@
 
 > 🚨 **CLOSED WITH ITS HEADLINE ACCEPTANCE CRITERION UNMET FOR SITE A. Site A was NOT fixed and CANNOT be fixed from these two files — it is unreachable dead code.**
 >
+> 📌 *2026-10-10 lint: true of this task, still. Site A became reachable later through task `0232` (done 2026-09-13, `6822210`, in production tags from `0.0.152`): the worker now sends the error as `game_error`, and `0232`'s browser check saw the modal, `stop()` and `onGameEnd()` run on a real forced tick fault. The seam kept by owner ruling is now live — see [[systems/client-game-teardown]].*
+>
 > **`✅ Done (agent-closed — not owner-verified)`.** Three review rounds, three Codex passes.
 >
 > ⛔ **NOT DEPLOYED as of 2026-09-07** (commit `c910452`). Nothing here describes production behaviour. 📌 *2026-10-08 lint: shipped since — `c910452` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; still never observed in production.*

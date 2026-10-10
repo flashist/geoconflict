@@ -52,3 +52,5 @@ flag conditions not visible.
 - [[tasks/private-lobby-code-format]] — task `0389`, checks (a) and (b)
 - [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3, whose live check `0433` is what `0428` still waits on
 - [[decisions/sprint-8]] — the board (rank 27)
+- [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` invite defect whose private-lobby production check this is
+- [[decisions/yandex-invite-portal-boundary]] — why the friend had to join inside Yandex Games, never through our own site

@@ -82,3 +82,4 @@ not overridden). The 2026-10-04 "ask Yandex support" step was dropped by owner r
 - [[decisions/sprint-7]] — the board (rank 60)
 - [[tasks/private-lobby-production-test]] — task `0376`, whose friend joined by this link on 2026-10-10
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, whose steps 1 and 6 this task superseded
+- [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` invite this replaces on the Yandex build

@@ -24,7 +24,10 @@
 > - **Task `0199` is done** `(agent-closed — not owner-verified)`, closed 2026-10-04; its brief moved to
 >   `tasks/done/0199-yandex-invite-link-leaves-portal-iframe/`. Task page: [[tasks/yandex-invite-link-decision]].
 >   Build `0380` → `0382`, verify `0381` / `0383`, on the Backlog board. **Private lobbies remain hidden in
->   production** (owner-attested 2026-10-03, not agent-verified).
+>   production** (owner-attested 2026-10-03, not agent-verified). 📌 *2026-10-10 lint: all four are now done — `0382`
+>   shipped in `0.0.160`, `0383` passed 2026-10-09, `0381` closed 2026-10-10 with its off-Yandex `#join=` step not run
+>   live. Private lobbies are still off for everyone except testers (the everyone-flag is `0428`, Backlog) —
+>   [[tasks/private-lobby-production-test]].*
 > - The *Consequences* bullet *"The invite-link host is frozen pending this ruling"* is **discharged** — the ruling
 >   exists; changes now follow ADR-119.
 >

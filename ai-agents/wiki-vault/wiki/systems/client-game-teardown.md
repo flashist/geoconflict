@@ -9,7 +9,7 @@ A client match owns three long-lived things: the **`ClientGameRunner`** (plus it
 
 This page exists because the audit that found these holes ran across seven tasks in three days (2026-09-07) and the findings are easy to confuse with each other. **The single most misread thing in this area is the difference between "bounded" and "accumulating."** They are not the same defect class and they were ranked differently on purpose.
 
-⛔ **Everything on this page is repository state as of `HEAD` = `c910452`, 2026-09-07. NOTHING IS DEPLOYED.** The owner deploys at the next weekend slot.
+⛔ **Everything on this page is repository state as of `HEAD` = `c910452`, 2026-09-07. NOTHING IS DEPLOYED.** The owner deploys at the next weekend slot. 📌 *2026-10-10 lint: true when written. `0225`/`0227` ship from `0.0.142`; `0231`/`0232`/`0233` from `0.0.152` (2026-09-26); `0228` is still not deployed.*
 
 > 🆕 **2026-10-10 sync — `0228` REPRODUCED AND FIXED** ([[tasks/join-lobby-race-fix]]), closed
 > `(agent-closed — not owner-verified)`. Phase 1 reproduced the race **9/9 with real clicks** on a slowed network after
@@ -20,11 +20,39 @@ This page exists because the audit that found these holes ran across seven tasks
 > (2026-10-10); live check `0433` open. Side finding `0432`: a stopped `Transport` keeps its `EventBus` listeners.
 > The `0228` rows below are kept as written (true when written).
 >
-> ⚠️ **Stale on this page, flagged — not re-ingested by this sync:** the site map and the class table below still mark
+> ~~⚠️ **Stale on this page, flagged — not re-ingested by this sync:** the site map and the class table below still mark
 > **`0231`, `0232` and `0233` "open"**, but all three briefs sit in `ai-agents/tasks/done/` with status
 > `✅ Done (agent-closed — not owner-verified)` (first committed under `done/` in `6822210` / `a953271`, 2026-09-13/14). Their outcomes are **not** recorded in the vault —
 > no task page exists for any of them. This sync saw only link repoints in them, so it does not invent their results;
-> a dedicated ingest of their briefs and worklogs is needed.
+> a dedicated ingest of their briefs and worklogs is needed.~~ ✅ *Resolved by the 2026-10-10 lint — see the next block.*
+>
+> 📌 **2026-10-10 lint — `0231`, `0232` and `0233` are DONE; outcomes from their briefs + worklogs.** All three
+> `✅ Done (agent-closed — not owner-verified)`, built 2026-09-13/14 by the Sprint 4 ship loop, code in `6822210`
+> (`0231`, `0232`) and `a953271` (`0233`); ✔️ both commits are in every production-deploy tag from `0.0.152`
+> (2026-09-26) on (`git tag --contains`). ⚠️ **Not owner-verified, and no production check of these fixes is recorded.**
+> Still no task page for any of the three — the rows and sections below are kept as written and marked in place.
+> - **`0232` — the tick crash now reaches the main thread.** New worker→main message `game_error`
+>   (`WorkerMessages.ts`, `Worker.worker.ts`, `WorkerClient.ts`); non-`Error` throws are reported too
+>   (`GameRunner.ts`); a post-init worker `error` event now also reaches the callback. ⇒ **site A is reachable**: the
+>   crash modal shows, `stop()` runs, `onGameEnd()` fires. Before the fix, **observed** in a browser (single- and
+>   multiplayer): one `Game tick error` line, the map froze, no modal, worker and `Performance:*` events kept running.
+>   Left open: async throws inside the worker's message handlers stay silent → `0251` (Backlog).
+> - **`0231` — `stop()` now runs on every exit route.** `joinLobby`'s closure calls `runner.stop()`; the 20 s
+>   connection-check `setTimeout` handle is stored and cleared; `stop()` is a latch (`isStopped`), removes the five
+>   `EventBus` listeners and is idempotent. **Measured first, in a browser** (dev): the shipped exit buttons are a
+>   **full page navigation**, so the leak **cannot accumulate through them**; it accumulated only on in-page routes
+>   (hash / Back / a synthetic `leave-lobby`) — +1 interval, +1 worker, +5 listeners per leave in singleplayer, and in
+>   multiplayer the left runner reconnected and rejoined the match. The crash-before-20 s ghost rejoin (`0232` §4.5)
+>   was also observed and is gone after the fix. Left open: the wider in-page per-game leak (canvas, rAF loop,
+>   `Transport` listeners, lobby poll) → `0252` (Backlog); several runners on one transport (`0229`, Backlog).
+> - **`0233` — kick and pre-runner lobby error now tear down.** Site 1 (mid-game server `error`, the tab kick) calls
+>   `this.stop()` after the modal; site 3 (lobby `error` before a runner exists) runs `left = true;
+>   transport.leaveGame(); onGameEnd();`. **Site 2 (desync) deliberately NOT changed** — owner ruling, and measured: the
+>   game keeps running after a desync, so the monitor should keep running too. Before/after browser numbers: site 1
+>   went from 66 `Performance:*` lines and 11 reconnect sockets in 60 s to 0 and 0. Left open: a kick leaves the
+>   reconnect session in storage → `0256` (Backlog).
+> - Both worklogs say plainly: **no frequency or severity figure was measured** — the "do not write a figure" rule
+>   below still holds.
 
 ## Architecture
 
@@ -46,15 +74,15 @@ This is the fact most likely to mislead a reader of `Main.ts`. `gameStop` is the
 |---|---|---|---|
 | `beforeunload` | ✅ | — (page is going) | fixed by `0225` |
 | `SendWinnerEvent` — game won/ended | ✅ stops and nulls | ❌ | fixed by `0225` |
-| `handleLeaveLobby()` | ✅ stops and nulls | ❌ **runner, worker, 1 s interval and 5 listeners all survive** | monitor fixed by `0225`; runner is **`0231`, open** |
+| `handleLeaveLobby()` | ✅ stops and nulls | ❌ **runner, worker, 1 s interval and 5 listeners all survive** | monitor fixed by `0225`; runner is **`0231`, ~~open~~** — 📌 *2026-10-10 lint: runner now stopped, `0231` done* |
 | `onHashUpdate` (popstate / hashchange) | ✅ indirectly, via `handleLeaveLobby()` | ❌ | same as above |
 | `handleJoinLobby()` — joining while a game runs | ✅ **fixed by `0225`** (was the accumulating leak) | ❌ | `gameStop` half is **`0228`, open** |
-| worker `ErrorUpdate` → `stop()` (**site A**) | ⚠️ **seam wired, but UNREACHABLE** | ⚠️ same | **`0232`, open** |
+| worker `ErrorUpdate` → `stop()` (**site A**) | ⚠️ **seam wired, but UNREACHABLE** | ⚠️ same | **`0232`, ~~open~~** — 📌 *2026-10-10 lint: reachable since `0232` (done); `stop()` and `onGameEnd()` run* |
 | worker-init failure → bare `return` (**site B**) | ✅ fixed by `0227` | n/a — no runner exists | done |
 | `createClientGame` rejects, no `.catch` (**site C**) | ✅ fixed by `0227` | n/a — no runner exists | done |
-| mid-game server `error` — the tab kick | ❌ | ❌ | **`0233`, open** |
-| desync modal | ❌ | ❌ | **`0233`, open** |
-| lobby error, pre-runner | ❌ | ❌ | **`0233`, open — and whether a monitor is even running here is UNSETTLED** |
+| mid-game server `error` — the tab kick | ❌ | ❌ | **`0233`, ~~open~~** — 📌 *2026-10-10 lint: fixed by `0233` (`this.stop()` after the modal)* |
+| desync modal | ❌ | ❌ | **`0233`, ~~open~~** — 📌 *2026-10-10 lint: deliberately left running (owner ruling; the game continues after a desync)* |
+| lobby error, pre-runner | ❌ | ❌ | **`0233`, ~~open — and whether a monitor is even running here is UNSETTLED~~** — 📌 *2026-10-10 lint: fixed by `0233`; measured — a monitor IS live when the kick lands in the build window* |
 
 > 🆕 **2026-09-30 — site B grew, and the start can now be stopped** (committed `9cb8ee4`, not yet released) 📌 *2026-10-08 lint: released since — game `0.0.156`, 2026-10-03 (✔️ `9cb8ee4` is an ancestor of tag `0.0.156`).*.
 > `0348` ([[tasks/worker-start-failure-reporting]]): the worker-init failure path now calls `worker?.cleanup()`, so a
@@ -69,12 +97,16 @@ This is the fact most likely to mislead a reader of `Main.ts`. `gameStop` is the
 | `0225` (done) | the `PerformanceMonitor` on mid-game lobby join | **Accumulating** — one permanently unstoppable monitor per join; **observed, with a negative control** |
 | `0227` (done) | the monitor on the three crash / init-failure paths | **Bounded** — at most one dead game's monitor, cleared by the next leave or join |
 | `0228` (open) | `handleJoinLobby()`'s stale `gameStop` across three awaits | **Bounded** — ⚠️ and **reachability UNPROVEN**; "unreachable, closed" is a legitimate outcome |
-| `0233` (open) | the tab-kick, desync and lobby-error modals | **Bounded** — cleared by a later leave or join |
-| `0231` (open) | the **whole runner + worker + 1 s interval + 5 listeners**, on ~~the NORMAL leave path~~ **EVERY path** *(reframed 2026-09-08)* | **Accumulating — ⚠️ REASONED, NOT OBSERVED. The reframe widened the SCOPE, not the EVIDENCE** |
+| `0233` (~~open~~ done — 📌 *2026-10-10 lint*) | the tab-kick, desync and lobby-error modals | **Bounded** — cleared by a later leave or join |
+| `0231` (~~open~~ done — 📌 *2026-10-10 lint; accumulation then MEASURED, in-page routes only*) | the **whole runner + worker + 1 s interval + 5 listeners**, on ~~the NORMAL leave path~~ **EVERY path** *(reframed 2026-09-08)* | **Accumulating — ⚠️ REASONED, NOT OBSERVED. The reframe widened the SCOPE, not the EVIDENCE** |
 
 ## Gotchas / Known Issues
 
 ### 🚨 A worker game-tick crash reaches nothing — the crash branch is dead code (`0232`, open)
+
+> 📌 *2026-10-10 lint: history. `0232` is done (code in `6822210`): the `ErrorUpdate` now crosses as `game_error`
+> and the crash branch is reachable. The freeze below was then **observed** before the fix. See the 2026-10-10 lint
+> block at the top of this page.*
 
 The chain, read from code at `c910452`:
 
@@ -117,6 +149,10 @@ this.stopPerformanceMonitor();
 ⚠️ **A related mint sits inside `0228`'s window:** `0227` added `const joinGeneration = ++this.joinGeneration;` at `Main.ts:694`, between `handleJoinLobby`'s guard block and its assignment. It touches `this.joinGeneration`, never `this.gameStop`, so **`0228`'s mechanism is unchanged** — but **any fix to `0228` must leave that mint and its ordering intact.** Inverting it is literally the `R4` defect `0227`'s review round 2 caught. ✅ **Still exactly three awaits in that window; `0227` added none.**
 
 ### 🚨 The runner survives every game — not just abandoned ones (`0231`, open, REFRAMED 2026-09-08)
+
+> 📌 *2026-10-10 lint: history. `0231` is done (code in `6822210`): `stop()` now runs on every exit route. Its step 1
+> measured the leak before fixing it — reachable only on in-page routes, since the shipped exit buttons reload the
+> page. See the 2026-10-10 lint block at the top of this page.*
 
 `ClientGameRunner.stop()` has **exactly one caller** — the worker error branch at `ClientGameRunner.ts:525`, i.e. the crash path, which per `0232` is **unreachable dead code**. ⇒ 🚨 **`stop()` DOES NOT RUN ON ANY PATH AT `c910452`** — not on a normal leave, not on a crash, not on `beforeunload`. **"Orphaned runner on a normal leave" is a SPECIAL CASE of "the runner is never torn down, ever."**
 

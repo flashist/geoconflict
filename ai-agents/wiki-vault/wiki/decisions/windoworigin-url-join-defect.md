@@ -26,6 +26,7 @@
 > residual below is answered: `sdk` and `payload` are load-bearing on the Yandex path — see
 > [[tasks/yandex-invite-link-decision]]. And the private-lobby re-enablement this banner anticipates now has a named
 > production check: `0376` (plus `0381` / `0383` for the invite), all on the Backlog board.
+> 📌 *2026-10-10 lint: since then — `0380` live in game `0.0.157` and `0382` shipped in `0.0.160` ([[tasks/yandex-invite-copies-code]], [[tasks/yandex-invite-sdk-link]]); `0383` passed live 2026-10-09 ([[tasks/yandex-invite-sdk-link-live]]); `0376` and `0381` closed 2026-10-10 on Sprint 8 ([[tasks/private-lobby-production-test]], [[tasks/yandex-invite-copies-code-live]]). ⚠️ `0381` did not run the off-Yandex `#join=` step live. The standalone `windowOrigin` invite was not re-checked.*
 
 ## Context
 

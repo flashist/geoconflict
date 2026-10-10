@@ -61,3 +61,4 @@ shapes only.
 - [[decisions/sprint-8]] — `0420`, whose item 1 ran in the same sitting
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, closed 2026-10-10
 - [[tasks/private-lobby-production-test]] — task `0376`, a second live join by the invite link
+- [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` invite defect behind the Yandex invite link

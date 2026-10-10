@@ -46,3 +46,5 @@ The host saw the private-lobby row through `0354`'s tester rule; the everyone-fl
 - [[decisions/yandex-invite-portal-boundary]] — why an invite must stay on the player's portal
 - [[decisions/sprint-8]] — the board (rank 29)
 - [[tasks/private-lobby-citizen-perk]] — the feature whose release gate item 6 this closes
+- [[decisions/windoworigin-url-join-defect]] — the `#join=` invite whose off-Yandex step was not run live
+- [[tasks/yandex-invite-link-decision]] — task `0199`, the decision whose two live checks this and `0383` are

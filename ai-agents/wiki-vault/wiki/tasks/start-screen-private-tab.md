@@ -52,7 +52,7 @@ rule resolve switches to a stored Private tab unless the player already tapped a
   tooltips, so this is proven by absence, not by eye.
 - Not seen on dev: the two-tab (rule off) screen — unit tests only.
 - ⚠️ `0401`'s check 4 (the locked-tap path) now needs a switch to the Private tab first.
-- The app-wide tooltip fix is a separate task, `0415` (Backlog board).
+- The app-wide tooltip fix is a separate task, `0415` (Backlog board). 📌 *2026-10-10 lint: `0415` was pulled into Sprint 8 and closed 2026-10-09 — committed `bcc9bf0`, not deployed; live check `0429` — [[tasks/no-native-tooltips]].*
 
 ## Related
 
