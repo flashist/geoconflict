@@ -78,3 +78,5 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[tasks/private-lobby-idle-end-live]] — task `0390`, gate item 4
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, gate item 6
 - [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3
+- [[systems/profile-tester-roles]] — the **server-side** tester allowlist of `0425`; a different "tester" from this task's client marker
+- [[tasks/tester-roles-command]] — task `0425`, which deliberately does not read this task's marker

@@ -4,8 +4,9 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
-> 🆕 **2026-10-10 (`4fb073a`) sync — four of the six gate items are now closed on live checks; `0428` waits only on
-> `0433`.** All `(agent-closed — not owner-verified)`, each on an owner ruling relayed by `fkit-lead`:
+> 🆕 **2026-10-10 (`4fb073a`) sync — five of the six gate items are now closed (1 and 5 earlier; 2, 4, 6 today); only
+> item 3 is left, and `0428` waits only on `0433`.** Today's closes are all `(agent-closed — not owner-verified)`, each on
+> an owner ruling relayed by `fkit-lead`:
 > - **Item 2 PASSED** — `0376` ([[tasks/private-lobby-production-test]]): a paid citizen tester hosted inside Yandex
 >   Games on `0.0.161`, a **non-tester** friend joined by the Yandex invite link, the match started and ended. Owner:
 >   *"Gate item 2 passed, close both (Recommended)"*.

@@ -78,3 +78,5 @@ the private-lobby switch, so it reaches every player.
 - [[tasks/host-window-poll-before-lobby]] — task `0353`, the other host-window join-setup fix
 - [[decisions/sprint-8]] — the board (rank 28); `0433` at 34
 - [[decisions/sprint-backlog]] — side finding `0432`
+- [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy
+- [[tasks/private-lobby-production-test]] — task `0376`, the gate item checked live the same day (no `0228` glitch seen)

@@ -89,3 +89,4 @@ recommended: a read-only `player_identities` lookup by Yandex id on the box.
 - [[tasks/profile-backup-restore-reproof-006]] — the restore drill, now 11 tables
 - [[tasks/private-lobby-tester-default]] — the unrelated client-side tester marker
 - [[decisions/adr-116-verified-login]] — why an unverified login hides paid state
+- [[decisions/sprint-8]] — `0425` (22) and its owner-run deploy + first run `0430` (32)

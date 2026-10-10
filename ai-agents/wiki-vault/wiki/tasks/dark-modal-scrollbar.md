@@ -41,3 +41,4 @@ shadow-DOM `o-modal`. Visual polish only — no platform rule.
 - [[tasks/explainer-popup-wider]] — task `0417`, the reference look whose copied rules this replaced
 - [[tasks/no-native-tooltips]] — task `0415`, same `Modal.ts`
 - [[decisions/sprint-8]] — the board (rank 21)
+- [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy

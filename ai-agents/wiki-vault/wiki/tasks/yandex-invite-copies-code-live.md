@@ -45,3 +45,4 @@ The host saw the private-lobby row through `0354`'s tester rule; the everyone-fl
 - [[tasks/private-lobby-tester-default]] — task `0354`, the release gate
 - [[decisions/yandex-invite-portal-boundary]] — why an invite must stay on the player's portal
 - [[decisions/sprint-8]] — the board (rank 29)
+- [[tasks/private-lobby-citizen-perk]] — the feature whose release gate item 6 this closes

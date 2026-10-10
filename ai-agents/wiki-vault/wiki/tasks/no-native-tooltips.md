@@ -48,3 +48,4 @@ exactly as it is.
 - [[tasks/dark-modal-scrollbar]] — task `0423`, same `Modal.ts`
 - [[decisions/sprint-8]] — the board (rank 20); live check `0429` at 31
 - [[decisions/sprint-backlog]] — where it was filed on 2026-10-08
+- [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy

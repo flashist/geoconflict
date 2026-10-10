@@ -143,3 +143,4 @@ Coverage **reasoning-only second opinion** both rounds (Codex ran, found nothing
 - [[tasks/authenticated-profile-read-live]] — task `0396` (closed 2026-10-08): the deploy this task rode along in
 - [[tasks/join-token-identity-vouch-live]] — task `0405`, the live read (closed 2026-10-10)
 - [[tasks/routes-it-test-verified-field]] — task `0431`, the stale integration test this task's `verified` key broke
+- [[tasks/long-session-refresh-popup-live]] — task `0406`, which cites `0405`'s `expired` read for this task's R2
