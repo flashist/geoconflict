@@ -27,7 +27,7 @@ Sprint 8
 > renumber a closed row.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **MAY BE EXECUTED BY THE OWNER (human), or by an agent for the read-only part.** Making and

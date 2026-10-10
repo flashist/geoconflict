@@ -137,14 +137,14 @@ public-lobby ids; change `0380`'s or `0382`'s invite behaviour beyond the code t
   together and ship in one game deploy (client and server together). Shipped alone, the validation or clean-up does
   nothing visible, and the new generator without them would break joins. Nothing in it ships usefully alone.
 - **Related:**
-  - [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
+  - [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
     — `0380`'s production check. Format-neutral; if this ships first, its check simply sees the new code.
   - [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md) — its
     `InvitePayload` validates the code carried in the link. **Whichever of the two is built second must make that
     validator accept the new format** and run the payload through the same clean-up.
   - [`0383`](../0383-verify-0382-in-production-a-yandex-invite-link-opens-the-join-window-once-on-the-friends-portal/brief.md)
     — `0382`'s production check.
-  - [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+  - [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
     — the private-lobby production test; if this ships before it runs, that test covers the new code too.
   - [`0377`](../../done/0377-end-abandoned-unstarted-private-lobbies-after-a-short-idle-time-not-3-hours/brief.md) — shorter
     life for idle lobbies means fewer live codes at once, which helps a shorter code (fewer collisions, fewer targets
@@ -161,7 +161,7 @@ public-lobby ids; change `0380`'s or `0382`'s invite behaviour beyond the code t
      are mainly Russian-speaking and `А/A`, `С/C`, `О/O` are invisible mistakes; mapping them costs a small table and
      tests.
 - 📌 *(Added 2026-10-05.)* **The live check after deploy (Verification step 6) lives in
-  [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)**,
+  [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)**,
   step 3's lobby-code check — no separate verify task is filed. **OWNER RULING 2026-10-05**, given live via
   `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: the owner chose
   **"Add to 0376"**.

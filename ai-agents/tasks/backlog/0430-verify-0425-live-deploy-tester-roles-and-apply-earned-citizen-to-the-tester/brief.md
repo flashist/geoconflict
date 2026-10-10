@@ -132,7 +132,7 @@ item.
 - **Depends on:** `0425` committed (then deployed by step a).
 - **Unblocks:** [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
   earned-account items (3a, 8b and the earned part of item 4), and possibly
-  [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md) (only
+  [`0376`](../../done/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md) (only
   if its host must be an earned citizen — its brief allows "earned or paid"; the owner decides).
 - Build task: [`0425`](../../done/0425-ssh-only-tester-roles-apply-a-fixed-test-role-to-an-allowlisted-tester-and-restore-it/brief.md)
   (closed 2026-10-09, agent-closed — not owner-verified). Its `worklog.md` has the checks (client caches, paid display,

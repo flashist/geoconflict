@@ -39,7 +39,7 @@ The deploy itself is the owner's; the checks after it are read-only.
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
 [`0358`](../0358-verify-0355-in-production-the-profile-deploy-is-tagged-with-its-version/brief.md) and
-[`0351`](../../backlog/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
+[`0351`](../0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md).)*
 
 ## Context
 

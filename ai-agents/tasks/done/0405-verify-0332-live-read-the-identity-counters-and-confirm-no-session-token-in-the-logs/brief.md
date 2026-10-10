@@ -23,7 +23,7 @@ Sprint 8
 > as with [`0390`](../0390-verify-0377-live-an-abandoned-private-lobby-ends-after-30-minutes-and-an-occupied-one-does-not/brief.md).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The two deploys are the owner's (weekend slot). The

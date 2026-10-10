@@ -28,7 +28,7 @@ small. Not inserted there: closed rows sit below the top, and ADR-035 never renu
 > that placement is the producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human) and a second person.** It needs a real citizen account inside the
@@ -126,6 +126,12 @@ session. Sources: `ai-agents/tasks/backlog/0420-…/worklog.md` (item 1 and item
 owner's gate-item-2 statement. A second run can reuse the same host and phone friend for (1)–(3); for the
 code-typing check (4)(b) the friend must see the Join button, so a **tester** friend until the everyone-flag is on
 (`0428`). `0381`'s remaining code-join and old-link steps can share that run.
+
+> 📌 **2026-10-10 — CLOSED `✅ Done (agent-closed — not owner-verified)`.** Second run done; steps 2–5, the `0353`
+> check and `0389` (a) passed; console values recorded; `0389` (b) not run (OWNER RULING *"skip tester"*, typed — moved to
+> `0428` step 4b). Gate item 2 **passed** — OWNER RULING verbatim **"Gate item 2 passed, close both (Recommended)"**,
+> relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent. The *Still to do* list above is history.
+> Full record: [`worklog.md`](worklog.md).
 
 ## What to build
 

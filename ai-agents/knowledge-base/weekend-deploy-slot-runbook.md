@@ -1803,9 +1803,9 @@ real purchase.** This is the first profile deploy carrying `0309` (committed 202
 - [`0298`](../tasks/done/0298-config-parity-guard-first-real-report-only-production-run-then-arm-enforce/worklog.md)
   — its owner step 3 record (guard output, names only) now **exists** for the game and profile deploys of this
   window (above); appended to its worklog. Still missing: dev's guard output and the profile on-box value check.
-- [`0370`](../tasks/backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md)
+- [`0370`](../tasks/done/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md)
   Step 1 — delegated to an `fkit-coder` on 2026-10-03; its result is in `0370`'s own worklog (not repeated here).
-- [`0351`](../tasks/backlog/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md)
+- [`0351`](../tasks/done/0351-verify-0035-on-the-dev-box-a-public-match-starts-and-each-map-file-downloads-once/brief.md)
   (verify `0035` on dev) — **now runnable**: the dev box has the new code since this window.
 
 ### Still owed from this window

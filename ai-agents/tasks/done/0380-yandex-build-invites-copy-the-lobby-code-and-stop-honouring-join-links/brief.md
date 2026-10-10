@@ -109,13 +109,13 @@ can copy today's link, so this is not an outage fix.
 4. `en.json` and `ru.json` both carry every new key.
 5. `npm test`, `npm run lint`, `npx tsc --noEmit` green.
 6. **Live check in production is a separate task:**
-   [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
+   [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
    (build/verify split, owner rule 2026-09-29). Do not hold this task open for it.
 
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md), [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
+- **Blocks:** [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md), [`0382`](../../done/0382-yandex-build-invite-link-via-the-sdk-portal-url-and-payload-consumed-once/brief.md)
 - 🚦 **Release gate:** half of item 6 in
   [`0354`'s *Release gate*](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md) —
   the item is met by the link + code build (`0380` + `0382`).
@@ -132,7 +132,7 @@ can copy today's link, so this is not an outage fix.
   work inside the iframe (the SDK has no clipboard read). Typing the code still works. `0381` records what happens.
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md) (decision task; probe in its
   worklog), [`0198`](../../done/0198-private-lobby-start-url-double-slash/brief.md) (fixed the path on the same line),
-  [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+  [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (the production lobby test — joins by code inside Yandex).
 - **Privacy:** no app id, catalog URL, player id, host or secret in any artifact.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

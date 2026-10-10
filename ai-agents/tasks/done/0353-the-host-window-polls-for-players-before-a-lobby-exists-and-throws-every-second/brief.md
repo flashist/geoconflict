@@ -97,7 +97,7 @@ bug; `src/client/Transport.ts` (`0252`'s).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
 - 📌 **2026-10-05 — where the live check lives.** This fix has not been checked on the live site after a deploy. No
   separate verify task is filed: the live check is a step-2 check item in
-  [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+  [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (DevTools console open during Create → no repeating `Uncaught (in promise)` errors; player list fills and refreshes
   once the lobby exists). **OWNER RULING 2026-10-05**, given live via `AskUserQuestion` in the `fkit lead` session,
   relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel; ⛔ not producer precedent. Owner's choice:

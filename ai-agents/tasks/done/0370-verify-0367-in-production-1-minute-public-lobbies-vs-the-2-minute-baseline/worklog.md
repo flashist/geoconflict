@@ -286,3 +286,245 @@ committed.
 ### Decision log
 
 - Owner ruling recorded (above). No judgment call by the producer.
+
+## 2026-10-10 — Step 4: day-4 snapshot (late), plus a 6-day interim read (NOT Step 5)
+
+Run by: `fkit-coder`, spawned by `fkit-lead` on the OWNER's live instruction in the `fkit lead` session today
+(*"it looks like you can do all the checks yourself, can't you? Just make the checks, tell me the numbers and ask the
+question"*). Read-only on every server. No source code written, nothing committed, no file moved, `## Status`
+untouched.
+
+**Query run:** 2026-10-10, 08:24:11–08:24:13 UTC (one session, all three windows), plus a side run minutes later.
+
+⚠️ **Timing.** Step 4 was due 2026-10-08 00:00 UTC; it is read here on 2026-10-10. The 4-day numbers do not depend on
+when they are read (rows unchanged — see the Before re-check). The **6-day** table is an **interim**, **NOT the day-7
+Step 5 read** — that needs 2026-10-04 → 2026-10-11 00:00 UTC and is only possible after 2026-10-11 00:00 UTC.
+2026-10-10 (incomplete) is excluded. GameAnalytics was **not read** in this run (Step 4's owner-read half is open).
+
+### Query
+
+Step 1's query text, only the two dates changed, plus one extra output column `sum(humans) AS
+real_player_match_entries` (as the 2026-10-06 interim did). Windows: **day-4** 2026-10-04 → 2026-10-08;
+**6-day** 2026-10-04 → 2026-10-10; **Before** 2026-09-26 → 2026-10-03. Access as Step 1 (password-file fallback,
+`clickhouse-client --readonly=1` in the `clickhouse` compose service, credentials from the container's own
+environment, host redacted). `SELECT`s only.
+
+### Per-day (After, 1-minute window)
+
+| day (UTC) | public lobbies | public matches with ≥1 real player | exactly 1 real player | **lone share** | avg real players | median | real-player match entries |
+|---|---|---|---|---|---|---|---|
+| 2026-10-04 Sun | 1 445 | 1 157 | 293 | **25.3 %** | 3.32 | 3 | 3 844 |
+| 2026-10-05 Mon | 1 446 | 1 233 | 196 | **15.9 %** | 5.31 | 5 | 6 542 |
+| 2026-10-06 Tue | 1 445 | 1 253 | 198 | **15.8 %** | 5.22 | 5 | 6 546 |
+| 2026-10-07 Wed | 1 447 | 1 217 | 214 | **17.6 %** | 5.00 | 4 | 6 080 |
+| 2026-10-08 Thu | 1 446 | 1 242 | 194 | **15.6 %** | 5.75 | 5 | 7 147 |
+| 2026-10-09 Fri | 1 446 | 1 268 | 208 | **16.4 %** | 5.57 | 5 | 7 060 |
+
+### Totals
+
+| window | public lobbies | public matches with ≥1 real player | exactly 1 | **lone share** | lone ÷ all lobbies | avg | median | real-player match entries |
+|---|---|---|---|---|---|---|---|---|
+| **Before** 09-26 → 10-03 (7 d, 2-min) | 5 069 | 4 636 (662/day) | 545 | **11.8 %** (0.1176) | 10.8 % | 7.41 | 6 | 34 354 (4 908/day) |
+| **Day-4** 10-04 → 10-08 (4 d, 1-min) — Step 4 | 5 783 | 4 860 (1 215/day) | 901 | **18.5 %** (0.1854) | 15.6 % | 4.73 | 4 | 23 012 (5 753/day) |
+| **6-day interim** 10-04 → 10-10 (6 d, 1-min) — NOT Step 5 | 8 675 | 7 370 (1 228/day) | 1 303 | **17.7 %** (0.1768) | 15.0 % | 5.05 | 4 | 37 219 (6 203/day) |
+
+Same-weekday comparison (each After day against the Before day with the same weekday; derived from the per-day rows
+above and Step 1's table):
+
+| | Before | After | change |
+|---|---|---|---|
+| Sun–Wed (day-4 days) lone share | 334 / 2 617 = 12.8 % | 901 / 4 860 = **18.5 %** | +5.8 pts |
+| Sun–Wed real-player match entries | 19 225 | 23 012 | **+19.7 %** |
+| Sun–Fri (6-day days) lone share | 456 / 3 980 = 11.5 % | 1 303 / 7 370 = **17.7 %** | +6.2 pts |
+| Sun–Fri real-player match entries | 30 808 | 37 219 | **+20.8 %** |
+
+### Reading (plain language — not a verdict; the owner rules keep/revert)
+
+- **Lone share is over the owner's 15 % line on both reads:** day-4 **18.5 %**, 6-day **17.7 %**, vs **11.8 %** Before.
+  **Every** After day is over 15 % (lowest 15.6 %, Thu); the **worst Before day was 13.6 %**. Sunday 10-04 (25.3 %) is
+  the high point, but weekdays alone still run 15.6–17.6 %.
+- ⚠️ **Arithmetic, not a read:** 1 303 lone matches are already in. For the 7-day share to come in at 15 % or under,
+  Saturday 10-10 would need at least ~1 317 real-player matches with **zero** lone ones (1 303 ÷ 0.15 = 8 687 total);
+  with zero lone and Saturday's likely ~1 200 matches it would still be 15.2 %. So the Step 5 number will almost
+  certainly also be over 15 %; Step 5 still has to be run.
+- **Players per match fell:** avg 7.41 → 4.73 (day-4) / 5.05 (6-day); median 6 → 4. Lobbies doubled by construction
+  (~724 → ~1 446/day).
+- **More playing happened:** real-player match entries **+20.8 %** on matched weekdays (Sun–Fri). This counts
+  player-in-match starts, **not unique players** — it may be people playing more matches, not more people. The ruled
+  "holds steady or rises" signal is GameAnalytics `Game:Mode:Multiplayer`, **not read here**.
+- So on these numbers the two halves of the rule point opposite ways: activity up, lone share over the line.
+
+### Checks
+
+- **Before reproduces exactly:** all seven rows (09-26 → 10-02) match Step 1 row for row; totals 5 069 / 4 636 / 545 /
+  0.1176 / 7.41 / 6.
+- ⚠️ **Retention:** oldest row in `uptrace.logs_index` today = **2026-09-26 00:00:00 UTC** — exactly the Before window's
+  first day. It will very likely be gone tomorrow; Step 1's recorded numbers stand regardless. (`max(time)` reads
+  2026-10-10 16:32 UTC, ahead of the clock — some log rows carry future timestamps; it does not affect these windows,
+  all of which end in the past.)
+- **No telemetry restart in the After window:** all Uptrace compose containers started 2026-10-03 ~09:05 UTC (deploy day,
+  excluded). **No gap:** every one of the 144 hours 10-04 → 10-10 has 59–61 public lobbies.
+- Only `prod` sends `sending start message` since 2026-10-03.
+- **Log strings unchanged at HEAD (`bcc9bf0`):** `"sending start message"` — now `src/server/GameServer.ts:688`, still
+  logged once per active client inside `start()`; the Worker's `creating ${Public|Private}… game with id ${id}` — now
+  `src/server/Worker.ts:321`, text identical to `f712263`. Only the line numbers moved. `gameCreationRate()` still
+  `60 * 1000` at HEAD.
+
+### ⚠️ Game deploys inside the After window — possible confounders
+
+Version-bump commit times (UTC; commit time, **not a verified go-live time**):
+
+| version | commit | time (UTC) |
+|---|---|---|
+| 0.0.157 | `c12cd8e` | 2026-10-08 06:51 |
+| 0.0.158 | `fc4fdcd` | 2026-10-08 19:49 |
+| 0.0.159 | `3ec3017` | 2026-10-08 19:53 |
+| 0.0.160 | `67889bf` | 2026-10-08 19:55 |
+| 0.0.161 | `d694bba` | 2026-10-09 07:31 |
+
+`f712263..d694bba` touches 59 files under `src/` (tasks incl. private-lobby work `0353 0354 0374 0377 0380 0389`, and
+`0332` identity counting in `GameServer.ts`). Not checked whether any of it changes who joins public lobbies. Thu/Fri
+(10-08/09) — the days these deploys land on — read 15.6 % / 16.4 %, in line with Mon–Wed, so no visible step; the
+day-4 window (10-04 → 10-07) has **no** game deploy in it. Lobby creation shows no gap around them.
+
+### Not done
+
+- GameAnalytics day-4 / 6-day numbers — **not read** (owner-read half of Step 4).
+- Step 5 (day-7) and Step 6 (ruling) — not yet possible / owner's.
+
+### Decision log
+
+none — read-only reading only; no fix, no judgment call on keep/revert (that is the owner's).
+
+## 📌 2026-10-10 — Step 4 GameAnalytics half, and Step 6: OWNER RULING "Keep 1 minute"
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037), on facts and an **OWNER RULING relayed by
+`fkit-lead`** from the `fkit lead` session. ⛔ Not producer precedent. `## Status` untouched (`🔲 Backlog`); no mover
+run; nothing committed; no wiki write.
+
+### Step 4 — GameAnalytics half (the part the entry above lists as "not read")
+
+**Who read it, and how.** `fkit-lead`, 2026-10-10, **read-only through the owner's Chrome** with the owner already
+logged in; nothing saved. ⚠️ As in Step 2, the brief says this half is **owner-read**; the **lead** read it — recorded,
+not hidden.
+
+**Query — same as Step 2.** Explore · Event category **Design** · Aggregation **Count** · Event filter 01 = `Game`,
+02 = `Mode`, 03 = `Multiplayer` · Date range **"Past 14 days" = 26 Sep – 9 Oct 2026**, daily, current day excluded.
+GameAnalytics' own day boundary / time zone still **not checked**.
+
+**Label: "multiplayer match entries per day"** — one per client per match, private lobbies included. **NOT matches.**
+
+⚠️ **Demo-mode caveat again.** The page DOM again contained the *"You're viewing data in Demo mode / Exit Demo"* text —
+same as Step 2 caveat 1. Judged real data on the same grounds; **not proven.** Supporting check: the 7 Before days
+**reproduce Step 2 exactly**, day by day.
+
+| Day | Entries | window |
+|---|---|---|
+| Sat 26 Sep | 3.39K | Before |
+| Sun 27 Sep | 2.98K | Before |
+| Mon 28 Sep | 4.72K | Before |
+| Tue 29 Sep | 4.87K | Before |
+| Wed 30 Sep | 5.11K | Before |
+| Thu 1 Oct | 5.30K | Before |
+| Fri 2 Oct | 5.62K | Before |
+| Sat 3 Oct | 3.91K | deploy day — **excluded** |
+| Sun 4 Oct | 3.68K | After (day-4) |
+| Mon 5 Oct | 6.22K | After (day-4) |
+| Tue 6 Oct | 6.37K | After (day-4) |
+| Wed 7 Oct | 5.92K | After (day-4) |
+| Thu 8 Oct | 6.75K | After (6-day only) |
+| Fri 9 Oct | 6.80K | After (6-day only) |
+
+GameAnalytics' own 14-day total: **71.62K** (the rounded daily values sum to 71.64K — 3-significant-figure rounding).
+
+| window | total | per day | vs Before |
+|---|---|---|---|
+| **Before** 26 Sep – 2 Oct (7 d) | 31.99K *(sum of the rounded values; Step 2 recorded 31.98K)* | **4.57K** | — |
+| **Day-4** 4 – 7 Oct (4 d) | 22.19K | **5.55K** | +21 % |
+| **6-day** 4 – 9 Oct (6 d) — interim, NOT Step 5 | 35.74K | **5.96K** | **+30 %** |
+
+**Same weekday, week on week:** every After day is above the same weekday the week before — Sun +23 %, Mon +32 %,
+Tue +31 %, Wed +16 %, Thu +27 %, Fri +21 % (range **+16 % to +32 %**). Note the day-4 window is Sun–Wed while Before
+is a full week, so the same-weekday figures are the fairer read.
+
+**Reading against the rule:** entries per day **rose** — the first half of the Step 6 rule (*"hold steady or rise"*)
+**passes**.
+
+### Step 6 — OWNER RULING 2026-10-10: keep 1-minute lobbies
+
+**OWNER RULING given live 2026-10-10 via `AskUserQuestion`** in the `fkit lead` session, relayed by `fkit-lead`.
+
+- **Answer (verbatim):** **"Keep 1 minute"**
+- **Option text (verbatim):** *"Accept the higher one-player share in exchange for more matches; record that you
+  overrode the 15% line."*
+
+**What was put to the owner:**
+- (a) Multiplayer match entries per day **+30 %** (6-day) — **passes**.
+- (b) Lone-player share **11.8 % → 17.7 %** (6-day; day-4 **18.5 %**), **over 15 % on every day** since the change —
+  **fails** the Step 3 line. Average real players per match **~7.4 → ~5**.
+- By the Step 3 rule this read as **revert**. The day-7 number cannot realistically fall below 15 %.
+- Caveat: game deploys **0.0.157 – 0.0.161** on 8–9 Oct fall inside the 6-day After window (the day-4 window has none) —
+  see the confounder table in the entry above.
+- **Lead's recommendation was revert. The owner chose keep.**
+
+⚠️ **The owner OVERRODE the 15 % line set in Step 3.** Recorded plainly: the lone-player criterion failed and the
+owner kept the change anyway, trading a higher share of one-real-player matches for more match entries. This is the
+owner's call under Step 6 (*"The owner rules keep or revert"*), not a re-reading of the threshold — the 15 % line
+itself is unchanged and was not met.
+
+**Outcome:**
+- **1-minute public lobbies stay** (`0367` stands as shipped).
+- **No revert task filed** — verification step 8 (*"If revert: a new task …"*) does not apply.
+- Verification step 7 (*"Step 6 recorded: the owner's keep/revert ruling, verbatim, with the date"*) — **met by this
+  entry.**
+
+### What remains
+
+- **Step 5 — the day-7 read is NOT yet run.** After window **2026-10-04 → 2026-10-11 00:00 UTC** (i.e. through
+  10-10 inclusive), both sources. It is now **informational only** — the decision is already made and Step 5 cannot
+  change it. Verification step 6 (*"Step 5 recorded"*) stays open until then.
+- **Task stays open** (`🔲 Backlog`) for Step 5. Either the driver runs it after 2026-10-11 00:00 UTC, or the owner
+  is asked whether to close without it (dropping an informational read is the owner's call, not the producer's).
+- Close only via `/fkit-task-done` (producer-only), carrying `(agent-closed — not owner-verified)` if no owner is
+  present.
+
+### Decision log
+
+- Owner ruling recorded (above). No judgment call by the producer. Arithmetic (window sums, per-day means, % changes,
+  same-weekday deltas) re-checked by the producer from the per-day values; agrees with the lead's figures.
+
+## 📌 2026-10-10 — CLOSED `✅ Done (agent-closed — not owner-verified)`; Step 5 NOT run; recheck filed as `0435`
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037), which ran `/fkit-task-done`. ⛔ Not producer
+precedent. Nothing committed; no wiki write.
+
+**Authority — OWNER RULING 2026-10-10, typed by the owner in the `fkit lead` session** (the owner's own message, not an
+`AskUserQuestion` answer), relayed verbatim by `fkit-lead`: *"Regarding 0370 - you can close the task, but add one task
+to Backlog, to recheck the numbers after a while (no specific date, whenever we got back to the task)"*.
+
+**Result of the test.**
+- **Step 6 — OWNER RULING "Keep 1 minute"** (2026-10-10, entry above): 1-minute public lobbies stay. The owner
+  **overrode the Step 3 line of 15 %**: lone-player share **17.7 %** over the 6-day After interim (day-4 **18.5 %**) vs
+  **11.8 %** Before; multiplayer match entries per day **+30 %** (6-day, GameAnalytics `Game:Mode:Multiplayer`, 5.96K vs
+  4.57K/day). No revert task (verification step 8 does not apply).
+
+**What was NOT done — stated plainly.**
+- ⚠️ **Step 5, the day-7 read (After window 2026-10-04 → 2026-10-11 00:00 UTC), was NOT run** — neither the server query
+  nor GameAnalytics. The owner closed the task first. The scheduled night read was **cancelled by `fkit-lead`**.
+- ⇒ **Verification step 6 ("Step 5 recorded") is NOT met.** It is carried, in a looser form (a recent 7-day window, not
+  this exact one), by the new recheck task
+  [`0435`](../../backlog/0435-recheck-the-1-minute-public-lobby-numbers-some-time-later/brief.md) on the Backlog board.
+- Verification steps 1–5 and 7 are met by the entries above (Step 4's GameAnalytics half was read by `fkit-lead`, not the
+  owner — recorded there). Step 8 n/a. Step 9: nothing failed to read. Step 10: no host, IP, URL or credential here.
+
+**Retention — why the Before numbers are safe.** Uptrace keeps about 14 days of rows. On 2026-10-10 the oldest row was
+2026-09-26 00:00 UTC — the first day of the Before window — so the Before window's **raw rows age out about now**. That
+does not matter for a later recheck: Step 1's Before numbers (per-day table and 7-day totals: lone share **11.8 %**,
+avg **7.41** real players, **~662** matches/day with a real player) and Step 2's GameAnalytics Before numbers
+(**4.57K** entries/day) are **recorded in this worklog**, and `0435` compares against these recorded figures, not
+against a fresh query of the old window.
+
+### Decision log
+
+- Close performed on the owner's typed ruling (above); marker `(agent-closed — not owner-verified)` because the closing
+  producer was spawned with no owner present. No judgment call by the producer on keep/revert.

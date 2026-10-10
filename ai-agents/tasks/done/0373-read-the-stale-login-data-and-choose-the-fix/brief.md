@@ -59,7 +59,7 @@ has GameAnalytics access). The Uptrace / ClickHouse queries are read-only and ar
 session that has access (standing rule: read-only checks are run, not handed over).
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0370`](../../backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
+[`0370`](../0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
 
 ## Context
 

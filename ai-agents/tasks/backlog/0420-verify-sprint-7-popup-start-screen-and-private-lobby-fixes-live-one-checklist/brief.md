@@ -68,7 +68,7 @@ after the weekend deploy. After pass 2 ships `0417`, glance at the popup once mo
 that items 2–3 were looked at in.
 
 **How each item overlaps existing tasks (checked 2026-10-08):**
-- **`0416` vs [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+- **`0416` vs [`0376`](../../done/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   and [`0401`](../../done/0401-verify-0301-live-the-citizenship-explainer-popup-works-in-production/brief.md) check 4 — not
   covered, so it stays here.** `0376` step 4 (*"the host starts the match"*) would exercise the fix, but `0376` does
   not look for the 403 in the console or read the game log's create line, it needs a second person inside Yandex, and

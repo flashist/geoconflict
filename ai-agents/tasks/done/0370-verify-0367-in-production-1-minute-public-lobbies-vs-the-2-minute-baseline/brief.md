@@ -25,7 +25,7 @@ Sprint 8
 > (Step 1 runs on deploy day), which they do not.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **PARTLY EXECUTED BY THE OWNER (human).** The GameAnalytics numbers are owner-read (no agent has
@@ -64,7 +64,7 @@ revert. The owner sets the number for "noticeably" once the "before" numbers are
 measured ~14 days on 2026-10-02 (rows back to 2026-09-18), matching
 [`0259`](../../done/0259-investigate-uptrace-retention-not-applied/brief.md)'s finding that Uptrace CE ignores the
 configured 7 days and drops data on a fixed ~14-day horizon (follow-up
-[`0263`](../0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) still open). The owner's Q2
+[`0263`](../../backlog/0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) still open). The owner's Q2
 ruling stands as given. ⚠️ **Why Step 1 still must run on deploy day:** by the day-7 "after" read, the oldest day of
 the "before" window is ~15 days old and may already be gone. Re-check retention before relying on it either way — if
 `0263` ever makes the 7-day setting bite, the timing is tighter still.
@@ -186,7 +186,7 @@ lone-player share did not rise by more than the Step 3 number. Otherwise revert.
   (2026-10-03/04), read-only, when the owner tells `fkit-lead` or a coder to run it (see Step 1).
 - **Retention:** observed ~14 days (2026-10-02), not the configured 7 — see *Context*. Uptrace retention is **not**
   changed, by owner ruling (plan Q2, 2026-10-02).
-- **Related:** [`0263`](../0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) (Uptrace
+- **Related:** [`0263`](../../backlog/0263-confirm-uptrace-ce-14-day-retention-hard-cap-or-configurable/brief.md) (Uptrace
   retention); [`0363`](../../done/0363-verify-0356-in-production-the-telemetry-deploy-is-tagged-with-its-version/brief.md)
   (⚠️ a telemetry deploy restarts the Uptrace stack — do not run it in the middle of a Step 1/4/5 query; restart does
   not delete stored data).
@@ -196,3 +196,11 @@ lone-player share did not rise by more than the Step 3 number. Otherwise revert.
   the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent): after the interim look (lone 20.5 %), no
   revert now; if the **day-4** lone share (Step 4, 2026-10-08) is still over 15 %, the owner decides keep vs revert in
   time for the 2026-10-10/11 deploy. Steps above are not edited. Details: `worklog.md`, *2026-10-06 — OWNER RULING*.
+- 📌 **2026-10-10 — CLOSED `✅ Done (agent-closed — not owner-verified)`** on an **OWNER RULING typed by the owner** in
+  the `fkit lead` session (the owner's own message), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
+  channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Regarding 0370 - you can close the task, but add one task
+  to Backlog, to recheck the numbers after a while (no specific date, whenever we got back to the task)"*. Step 6 ruled
+  **"Keep 1 minute"** (2026-10-10, overriding the 15 % line). ⚠️ **Step 5 (day-7 read) was NOT run** — verification
+  step 6 is **not met**; it is carried by the new recheck task
+  [`0435`](../../backlog/0435-recheck-the-1-minute-public-lobby-numbers-some-time-later/brief.md) on the Backlog board.
+  Details: `worklog.md`, *2026-10-10 — CLOSED*.

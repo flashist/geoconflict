@@ -28,7 +28,7 @@ the top, and ADR-035 never renumbers them. Was ~~Unscheduled~~.
 > placement is the producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** It needs the live Yandex Games page with a host who can open
@@ -82,6 +82,12 @@ open, and the host listed them; after leaving, Join did not reopen. Invite **cod
 
 **Verification steps:** step 2 is superseded with step 1; step 4 (paste button) is answered by `0420`; steps 1, 3, 5
 and 6 still apply. Release-gate item 6 in `0354` is met when **this** check passes — `0383` already passed.
+
+> 📌 **2026-10-10 — CLOSED `✅ Done (agent-closed — not owner-verified)`** on OWNER RULING verbatim **"Gate item 2 passed,
+> close both (Recommended)"**, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent. Step 2
+> passed. Step 3 not run (moved to `0428` step 4b, OWNER RULING *"skip tester"*, typed). Step 4 not run (OWNER RULING,
+> typed: *"We didn't have private lobbies with private links before, so no links existed before"*) — the Yandex build
+> ignoring `#join=` stays **unproven live**. Step 5 not run. Full record: [`worklog.md`](worklog.md).
 
 ## What to build
 

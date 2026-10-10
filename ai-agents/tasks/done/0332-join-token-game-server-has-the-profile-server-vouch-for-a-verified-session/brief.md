@@ -399,7 +399,7 @@ R3 ✅ fixed · R4 ✅ ADR-124 note (owner ruling). Ledger [`review.md`](review.
 the game image** (plan §6). Not proved live.
 
 **Verify task filed** (owner's build/verify-split rule, 2026-09-29):
-[`0405`](../../backlog/0405-verify-0332-live-read-the-identity-counters-and-confirm-no-session-token-in-the-logs/brief.md),
+[`0405`](../0405-verify-0332-live-read-the-identity-counters-and-confirm-no-session-token-in-the-logs/brief.md),
 on [Sprint 8](../../../sprints/plan-sprint-8.md). It does not block Sprint 7's deploy.
 
 **Unchanged by this close:** the four forged-id risks stay owner-accepted (Q2–Q5); ADR-115 residual 1 stays open;

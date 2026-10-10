@@ -38,7 +38,7 @@ Sprint 8
 > board's 2026-09-30 addendum. ⛔ Not producer precedent for re-ranking.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** A live, read-only check in the owner's own browser against

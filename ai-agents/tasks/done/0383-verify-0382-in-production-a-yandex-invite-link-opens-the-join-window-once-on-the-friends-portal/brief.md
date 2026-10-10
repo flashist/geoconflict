@@ -45,7 +45,7 @@ owner's build/verify split rule (2026-09-29).
 end to end — and covers what the probe left untested where it can: mobile, a third domain.
 
 **Precondition the producer cannot settle:** as in
-[`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
+[`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md),
 the host must be able to see the private-lobby row in production (`0354` deployed, or the owner's console setup).
 ✅ **The friend is a NON-TESTER** (cannot see the lobby buttons): question (a) in `0382` is ruled **"Yes, link always
 lets them in"** (OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). Step 3 proves it. *(Was: "depends on owner question (a) … run step 3 with a friend
@@ -92,8 +92,8 @@ how the host saw the row.
 - 🚦 Bears on release-gate item 6 in
   [`0354`](../../done/0354-show-private-lobbies-to-testers-by-default-and-add-an-everyone-flag/brief.md). ✅ Item 6 is met only when this check has **passed** in production, not just when the build ships
   ("Prod checks must pass too", OWNER RULING 2026-10-04, given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent).
-- **Can share a session with** [`0381`](../../backlog/0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
-  and [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+- **Can share a session with** [`0381`](../0381-verify-0380-in-production-the-yandex-invite-copies-the-code-and-old-join-links-are-ignored/brief.md)
+  and [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   if the builds ship together. Producer's suggestion, owner's call.
 - **Related:** [`0199`](../../done/0199-yandex-invite-link-leaves-portal-iframe/brief.md).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

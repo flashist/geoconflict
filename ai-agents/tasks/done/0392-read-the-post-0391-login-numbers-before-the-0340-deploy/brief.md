@@ -56,7 +56,7 @@ this task before an agent runs it. **The pass/fail call is recorded against the 
 fail is the owner's.**
 
 *(The field names the accountable fkit seat, because the owner vocabulary admits no person — the same form as
-[`0370`](../../backlog/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
+[`0370`](../0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md).)*
 
 ## Context
 
