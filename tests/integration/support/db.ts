@@ -16,6 +16,7 @@ import type { ProfileRepo } from "../../../src/profile-server/Routes";
 
 /** Every row-holding profile table — ONE list, so a new table is cleared everywhere. */
 const PROFILE_TABLES = [
+  "tester_role_snapshots",
   "player_messages",
   "processed_purchases",
   "purchase_intents",

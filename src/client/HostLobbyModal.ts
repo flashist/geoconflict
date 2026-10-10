@@ -115,7 +115,7 @@ export class HostLobbyModal extends LitElement {
   render() {
     return html`
       <o-modal
-        title=${translateText("host_modal.title")}
+        heading=${translateText("host_modal.title")}
         @modal-close=${this.handleModalClose}
       >
         <div class="lobby-id-box">
@@ -617,7 +617,7 @@ export class HostLobbyModal extends LitElement {
                         <button
                           class="remove-player-btn"
                           @click=${() => this.kickPlayer(client.clientID)}
-                          title="Remove ${client.username}"
+                          aria-label="Remove ${client.username}"
                         >
                           ×
                         </button>

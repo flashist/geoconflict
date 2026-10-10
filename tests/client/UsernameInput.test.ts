@@ -229,7 +229,8 @@ describe("UsernameInput — approved name lock (task 0321)", () => {
     expect(input(el).value).toBe(name);
     expect(input(el).readOnly).toBe(true);
     expect(input(el).getAttribute("aria-readonly")).toBe("true");
-    expect(input(el).getAttribute("title")).toBe(LOCKED_HINT);
+    // Task 0415: no native browser tooltip; the hint shows visibly on focus.
+    expect(input(el).hasAttribute("title")).toBe(false);
     expect(el.querySelector("#username-lock-icon")).not.toBeNull();
     expect(el.getCurrentUsername()).toBe(name);
     expect(el.isValid()).toBe(true);

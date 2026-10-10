@@ -494,7 +494,7 @@ owner's to make, not mine.
 ### F4 — a separate observation from the same audit. NOT in this task's scope. **Now filed as `0228`.**
 
 ✅ **RESOLVED 2026-09-07 — the owner ruled, live, that F4 gets its own task.** It is now
-**[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** and no longer lives only in this
+**[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** and no longer lives only in this
 paragraph. The description below is kept for continuity; **`0228` is the authority.**
 
 During the same audit a second, **unrelated** issue was recorded:
@@ -549,7 +549,7 @@ as outstanding.
 ## Open questions for the owner
 
 1. ✅ **RESOLVED 2026-09-07 — ~~Should F4 be filed as its own task?~~** Owner ruled **yes**, live.
-   Filed as **[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** on the Backlog board.
+   Filed as **[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** on the Backlog board.
 2. ✅ **RESOLVED 2026-09-07 — ~~Board: confirm or overrule.~~ The owner ruled TWICE on the same day,
    and both rulings are recorded.** First they **confirmed `Backlog`** (the producer's recommendation),
    when the brief covered **one** site. After the correction above widened it to **three** sites, the

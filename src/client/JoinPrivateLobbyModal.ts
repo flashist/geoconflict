@@ -105,7 +105,7 @@ export class JoinPrivateLobbyModal extends LitElement {
   render() {
     return html`
       <o-modal
-        title=${translateText("private_lobby.title")}
+        heading=${translateText("private_lobby.title")}
         @modal-close=${this.handleModalClose}
       >
         <div class="lobby-id-box">
@@ -173,7 +173,7 @@ export class JoinPrivateLobbyModal extends LitElement {
         <div class="flex justify-center">
           ${!this.hasJoined
             ? html` <o-button
-                title=${translateText("private_lobby.join_lobby")}
+                label=${translateText("private_lobby.join_lobby")}
                 block
                 @click=${this.joinLobby}
               ></o-button>`

@@ -9,10 +9,12 @@
 // Create now leaves the public lobby for real at the tap.
 //
 // Uses the REAL o-modal and the REAL HostLobbyModal. Main.ts's `Client` cannot
-// run in jest, so a small harness stands in for its lobby state: `gameStop`,
-// `handleLeaveLobby`'s gate (`if null return; gameStop(); gameStop = null`) and
-// `handleJoinLobby`'s stop-then-replace — a copy of Main's logic, as 0327's
-// tests did.
+// run in jest, so a small harness stands in for it. Since task 0228 (review R2)
+// its lobby state is the REAL LobbyJoinSequence that Main delegates to, called
+// in Main's order: a join takes a ticket before its setup awaits and connects
+// only if still current; a leave stops a connected join or cancels one still
+// being set up; Create's `isInLobby` is `isInLobbyOrJoining()`. Only the glue
+// around those calls is copied from Main, as 0327's tests did.
 
 jest.mock("../../resources/images/RandomMap.webp", () => "random-map.webp", {
   virtual: true,
@@ -57,6 +59,7 @@ import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
 import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import { HostLobbyModal } from "../../src/client/HostLobbyModal";
 import { openHostLobbyFromStartScreen } from "../../src/client/HostLobbyOpen";
+import { LobbyJoinSequence } from "../../src/client/LobbyJoinSequence";
 import { PrivateLobbyCodeSchema } from "../../src/core/Schemas";
 import {
   beginJoiningLobby,
@@ -87,30 +90,35 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
   let fetchMock: jest.Mock;
   let answerCreate: ((answer: CreateAnswer) => void) | null;
 
-  // Main.ts stand-in.
-  let gameStop: jest.Mock | null;
+  // Main.ts stand-in, on the real LobbyJoinSequence (task 0228).
+  let lobbyJoins: LobbyJoinSequence;
+  // Main's `gameStop`: the connected join's stopper.
+  const gameStop = () => lobbyJoins.currentStopper();
   let publicStop: jest.Mock;
   let privateStop: jest.Mock;
   let leaveLobbyDependency: jest.Mock;
   let clearPublicLobbyHighlight: jest.Mock;
   // Task 0336: also Main's presence wiring — the leave reports back on the
   // start screen, and a join counts as away from its first line.
+  // Main.handleLeaveLobby: a connected join is stopped and the start screen
+  // reset; a join still being set up is only cancelled (no reset).
   const mainLeaveLobby = () => {
-    if (gameStop === null) return;
-    gameStop();
-    gameStop = null;
-    reportBackOnStartScreen();
+    if (lobbyJoins.leave() === "left") {
+      reportBackOnStartScreen();
+    }
   };
   // Task 0336 R3: Main's join awaits server config, cosmetics and the Yandex
-  // id before it sets `gameStop`. A test holds that window open by setting
+  // id before it connects. A test holds that window open by setting
   // `mainSetup`; left null, the stand-in finishes at once (0333's tests).
   let mainSetup: Promise<void> | null;
   const onJoin = (e: Event) => {
     const endJoining = beginJoiningLobby();
     joins.push(e as CustomEvent);
-    if (gameStop !== null) gameStop();
+    // Main.joinLobbyFromEvent: stop a connected join, then take a ticket.
+    if (gameStop() !== null) lobbyJoins.leave();
+    const join = lobbyJoins.beginJoin();
     const finishSetup = () => {
-      gameStop = privateStop;
+      if (join.isCurrent()) join.connected(privateStop);
     };
     if (mainSetup === null) {
       finishSetup();
@@ -133,7 +141,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
 
   async function tapCreate(): Promise<void> {
     openHostLobbyFromStartScreen({
-      isInLobby: () => gameStop !== null,
+      isInLobby: () => lobbyJoins.isInLobbyOrJoining(),
       leaveLobby: leaveLobbyDependency,
       clearPublicLobbyHighlight,
       openHostModal: () => modal.open(),
@@ -193,10 +201,10 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     global.fetch = fetchMock as unknown as typeof fetch;
 
     resetStartScreenPresenceForTests();
-    setStartScreenPresenceSource(() => gameStop !== null);
+    setStartScreenPresenceSource(() => gameStop() !== null);
+    lobbyJoins = new LobbyJoinSequence();
     publicStop = jest.fn();
     privateStop = jest.fn();
-    gameStop = null;
     mainSetup = null;
     leaveLobbyDependency = jest.fn(mainLeaveLobby);
     clearPublicLobbyHighlight = jest.fn();
@@ -224,7 +232,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
   });
 
   const joinPublicLobby = () => {
-    gameStop = publicStop;
+    lobbyJoins.beginJoin().connected(publicStop);
   };
 
   it("1. in a public lobby, ✕ before create answers: the public connection is stopped once, nothing is joined", async () => {
@@ -235,7 +243,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     await answer({ ok: true });
 
     expect(publicStop).toHaveBeenCalledTimes(1);
-    expect(gameStop).toBeNull();
+    expect(gameStop()).toBeNull();
     expect(joins).toHaveLength(0);
     expect(leaves).toHaveLength(0);
     expect(clearPublicLobbyHighlight).toHaveBeenCalled();
@@ -249,7 +257,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     await clickClose();
 
     expect(publicStop).toHaveBeenCalledTimes(1);
-    expect(gameStop).toBeNull();
+    expect(gameStop()).toBeNull();
     expect(joins).toHaveLength(0);
     expect(leaves).toHaveLength(0);
   });
@@ -262,7 +270,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
 
     expect(oModal().isModalOpen).toBe(true);
     expect(publicStop).toHaveBeenCalledTimes(1);
-    expect(gameStop).toBeNull();
+    expect(gameStop()).toBeNull();
     expect(joins).toHaveLength(0);
   });
 
@@ -304,7 +312,7 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     expect(privateStop).toHaveBeenCalledTimes(1);
     expect(leaves).toHaveLength(1);
     expect(leaves[0].detail).toEqual({ lobby: LOBBY_ID });
-    expect(gameStop).toBeNull();
+    expect(gameStop()).toBeNull();
   });
 
   it("5. 0327 regression: in a public lobby, create answers, join, ✕: one public stop, one private stop, one leave-lobby", async () => {
@@ -313,14 +321,14 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
     await tapCreate();
     await answer({ ok: true });
     expect(joins).toHaveLength(1);
-    expect(gameStop).toBe(privateStop);
+    expect(gameStop()).toBe(privateStop);
     await clickClose();
 
     expect(publicStop).toHaveBeenCalledTimes(1);
     expect(privateStop).toHaveBeenCalledTimes(1);
     expect(leaves).toHaveLength(1);
     expect(leaves[0].detail).toEqual({ lobby: LOBBY_ID });
-    expect(gameStop).toBeNull();
+    expect(gameStop()).toBeNull();
   });
 
   // Task 0336: 0333's leave at the Create tap wakes whatever waits for the
@@ -367,16 +375,47 @@ describe("Create from a public lobby leaves it at the tap (task 0333)", () => {
       await tapCreate();
       await answer({ ok: true });
       expect(joins).toHaveLength(1);
-      expect(gameStop).toBeNull();
+      expect(gameStop()).toBeNull();
       expect(await isSettled(waiting)).toBe(false);
 
       finishMainSetup();
       await flush();
-      expect(gameStop).toBe(privateStop);
+      expect(gameStop()).toBe(privateStop);
       expect(await isSettled(waiting)).toBe(false);
 
       await clickClose();
       expect(leaves).toHaveLength(1);
+      expect(await isSettled(waiting)).toBe(true);
+    });
+
+    // Task 0228: the window closes while Main is still setting up the join.
+    // The leave cancels that join — it never connects, nothing to stop.
+    // A cancelled setup does not report the start screen (Main.handleLeaveLobby
+    // skips the reset); the waiter is woken only when Main's own join marker
+    // (0336) ends after its setup finishes. Review R3: the waiter is taken once
+    // the join exists, so it is really waiting.
+    it("H4b. create answers, ✕ while Main is still setting up: the join is cancelled and never connects", async () => {
+      let finishMainSetup: () => void = () => {};
+      mainSetup = new Promise<void>((resolve) => {
+        finishMainSetup = resolve;
+      });
+
+      await tapCreate();
+      await answer({ ok: true });
+      expect(joins).toHaveLength(1);
+      expect(lobbyJoins.isInLobbyOrJoining()).toBe(true);
+      const waiting = whenOnStartScreen();
+      expect(await isSettled(waiting)).toBe(false);
+
+      await clickClose();
+      expect(leaves).toHaveLength(1);
+      expect(lobbyJoins.isInLobbyOrJoining()).toBe(false);
+      expect(await isSettled(waiting)).toBe(false);
+
+      finishMainSetup();
+      await flush();
+      expect(gameStop()).toBeNull();
+      expect(privateStop).not.toHaveBeenCalled();
       expect(await isSettled(waiting)).toBe(true);
     });
 

@@ -66,7 +66,7 @@ export class AccountModal extends LitElement {
     return html`
       <o-modal
         id="account-modal"
-        title="${translateText("account_modal.title") || "Account"}"
+        heading="${translateText("account_modal.title") || "Account"}"
       >
         ${this.renderInner()}
       </o-modal>
@@ -384,21 +384,11 @@ export class AccountButton extends LitElement {
       return html``;
     }
 
-    let buttonTitle = "";
-    if (this.loggedInEmail) {
-      buttonTitle = translateText("account_modal.logged_in_as", {
-        email: this.loggedInEmail,
-      });
-    } else if (this.loggedInDiscord) {
-      buttonTitle = translateText("account_modal.logged_in_with_discord");
-    }
-
     return html`
       <div class="fixed top-4 right-4 z-[9999]">
         <button
           @click="${this.open}"
           class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center text-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-4"
-          title="${buttonTitle}"
         >
           ${this.renderIcon()}
         </button>

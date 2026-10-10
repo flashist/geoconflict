@@ -115,7 +115,7 @@ producer precedent for re-ranking anything else.**
 **The ruling: this row sits ABOVE the `PerformanceMonitor` family**
 ([`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md),
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md),
-[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)) on the Sprint 4 board — directly below
+[`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md)) on the Sprint 4 board — directly below
 [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md), the task that handed it
 its unfinished half.
 
@@ -233,7 +233,7 @@ one day** against a normal ~700K.
    emitter block within one user's day. The three `PerformanceMonitor` leak tasks
    ([`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md),
    [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md),
-   [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)) all show the client re-entering
+   [`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md)) all show the client re-entering
    game-lifecycle paths without clean teardown. ⚠️ **None of them is known to touch the session
    emitters, and none is being asserted as the cause here** — the pattern is a place to look, nothing
    more.

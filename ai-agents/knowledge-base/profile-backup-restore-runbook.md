@@ -147,9 +147,10 @@ Run this against a **throwaway** Postgres container, never prod. Record the wall
 > nothing) if any data table already has a row. Once real players exist, re-plan the drill; never bypass
 > the refusal.
 
-**`006` inventory the drill must preserve** — 10 base tables: `players`, `player_identities`,
+**`006` inventory the drill must preserve** — 11 base tables: `players`, `player_identities`,
 `player_match_xp_credits`, `player_name_history`, `player_cosmetic_ownership`, `purchase_intents`,
-`processed_purchases`, `player_messages`, `player_xp_grants`, `schema_migrations`. Two sequences
+`processed_purchases`, `player_messages`, `player_xp_grants`, `schema_migrations`, and
+`tester_role_snapshots` (migration `008`, task `0425`; the seed writes no rows to it). Two sequences
 (`player_name_history_id_seq`, `player_messages_id_seq`). Three partial indexes
 (`players_display_name_uq`, `player_name_history_one_pending_uq`, `player_messages_unread_idx`).
 `processed_purchases.player_id` has **no** foreign key (a receipt outlives a deleted player), so cleanup
@@ -212,7 +213,8 @@ select format('sequences: player_messages_id_seq=%s/%s player_name_history_id_se
   (select last_value from player_messages_id_seq), (select is_called from player_messages_id_seq),
   (select last_value from player_name_history_id_seq), (select is_called from player_name_history_id_seq));" \
   | tee /root/drill0275/before.txt; echo "exit=${PIPESTATUS[0]}"
-#    Expect exit=0, every count 0, and schema_migrations: 001_…,002_…,003_…,004_…,006_player_identity.sql.
+#    Expect exit=0, every count 0, and schema_migrations: 001_…,002_…,003_…,004_…,006_player_identity.sql,
+#    007_name_change_dismiss_and_clear.sql,008_tester_role_snapshots.sql.
 #    A table missing (psql ERROR) or an extra migration is a schema-drift finding → STOP.
 ```
 
@@ -241,7 +243,7 @@ tail -1 /root/drill0275/source.txt                                     # must be
 #    Must also show `uncovered_tables: none`, and these counts in verify.sql's own (alphabetical) order:
 #      player_cosmetic_ownership 4 · player_identities 9 · player_match_xp_credits 24 ·
 #      player_messages 6 · player_name_history 6 · player_xp_grants 3 · players 8 ·
-#      processed_purchases 3 · purchase_intents 5 · schema_migrations 5
+#      processed_purchases 3 · purchase_intents 5 · schema_migrations 7 · tester_role_snapshots 0
 #    Non-zero exit, a missing sentinel or a wrong count → STOP → abort path.
 /opt/profile/backup.sh 2>&1 | tail -20; echo "exit=${PIPESTATUS[0]}"   # PIPESTATUS, not $? (0218)
 cat /opt/profile/backups/last-backup.json
@@ -311,7 +313,7 @@ fi
 #    SRC_EXIT was lost with the shell, re-run step 2's verify command (not the backup) and repeat step 5.
 #    A diff → STOP → abort path (interpret it as 0218 C5: count, digest, sequence or shape line).
 #    verify.sql fingerprints: a coverage line (`uncovered_tables: none` — a table added by a future
-#    migration shows up here by name); per-table row count + md5 content digest for all 10 tables;
+#    migration shows up here by name); per-table row count + md5 content digest for all 11 tables;
 #    `last_value` + `is_called` of both sequences; constraint count + digest of every constraint
 #    DEFINITION (catches a lost `on delete cascade`, not just a lost name); index count + digest of
 #    every index DEFINITION (catches a lost partial `where`); spot checks — bigint xp above int4,
@@ -385,7 +387,7 @@ it: that run falls on the next UTC date and writes the next date's key (`profile
 smoke backup — see the warning at the top of this section.) Leave it.
 
 **Pass criteria (`006` schema):** step 5 printed `IDENTICAL` — both `verify_exit=0`, both outputs ending in
-`verify_end: complete`, and **no differences** across all **10** tables, **both** sequences and the
+`verify_end: complete`, and **no differences** across all **11** tables, **both** sequences and the
 constraint- and index-**definition** digests; the fingerprint shows `uncovered_tables: none`;
 `behaviour.sql` prints every expected line above. After the abort path/step 7: the live data tables are back
 to 0 rows, `MIGRATIONS UNCHANGED`, the throwaway and its volume are gone, the identity is shredded, and

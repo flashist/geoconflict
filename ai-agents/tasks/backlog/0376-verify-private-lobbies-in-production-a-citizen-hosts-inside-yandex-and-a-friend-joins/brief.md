@@ -84,7 +84,7 @@ flags say. *(2026-10-03: but the friend must join inside Yandex Games — see be
   error ([`0353`](../../done/0353-the-host-window-polls-for-players-before-a-lobby-exists-and-throws-every-second/brief.md),
   console noise only); a closed lobby window that keeps its "joining" mark
   ([`0374`](../../done/0374-lobby-windows-end-their-joining-mark-on-close-not-only-when-the-request-settles/brief.md)); the
-  close-during-join race ([`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)). If one of them breaks the
+  close-during-join race ([`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md)). If one of them breaks the
   flow, say so plainly — that is a finding, not a pass.
 - **Console state.** ✅ **Hidden is CONFIRMED — OWNER-ATTESTED 2026-10-03, not agent-verified.** Owner's words,
   relayed by `fkit-lead`: *"the lobbies are switched off, nobody can use them"*. ~~The current values of

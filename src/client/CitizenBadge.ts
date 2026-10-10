@@ -35,7 +35,6 @@ export function renderCitizenBadge(): TemplateResult | typeof nothing {
     class="citizen-badge inline-flex items-center leading-none text-amber-300"
     role="img"
     aria-label=${translateText("citizen_badge.aria_label")}
-    title=${translateText("citizen_badge.tooltip")}
     >${CITIZEN_BADGE_GLYPH}</span
   >`;
 }

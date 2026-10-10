@@ -57,7 +57,6 @@ export const actionButton = (props: ActionButtonProps): TemplateResult => {
     <button
       @click=${onClick}
       class="${buttonClass}"
-      title="${title}"
       type="button"
       aria-label="${title}"
       ?disabled=${disabled}

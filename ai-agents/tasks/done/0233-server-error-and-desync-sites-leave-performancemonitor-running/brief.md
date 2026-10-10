@@ -103,7 +103,7 @@ player typically leaves promptly after the kick modal — which would make the l
 |---|---|---|
 | [`0225`](../0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | monitor orphaned on lobby rejoin | Bounded |
 | [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) | monitor survives a crashed/failed game — ⚠️ **CLOSED 2026-09-07 with its HEADLINE site (the crash path) NOT fixed**: that branch is unreachable dead code, tracked as [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md). The worker-init and `createClientGame`-rejection sites *are* fixed and runtime-verified. | Bounded |
-| [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
+| [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
 | [`0231`](../0231-orphaned-clientgamerunner-on-normal-leave-lobby/brief.md) | whole runner + worker + 1 s interval on normal leave | Accumulating — ⚠️ reasoned, not observed |
 | [`0232`](../0232-worker-tick-error-never-reaches-main-thread/brief.md) | worker tick faults never reach the main thread at all | — |
 | **`0233` (this task)** | **the three remaining `showErrorModal` sites that stop nothing** | ⚠️ **Unmeasured — see above** |

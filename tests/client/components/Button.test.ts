@@ -12,9 +12,9 @@ describe("OButton subtitle support", () => {
     document.body.innerHTML = "";
   });
 
-  it("renders title-only buttons exactly as before", async () => {
+  it("renders label-only buttons exactly as before", async () => {
     const button = await appendButton((element) => {
-      element.title = "Play";
+      element.label = "Play";
     });
 
     expect(button.textContent).toContain("Play");
@@ -54,7 +54,7 @@ describe("OButton subtitle support", () => {
 
   it("renders no icon, chevron, or menu-row class by default", async () => {
     const button = await appendButton((element) => {
-      element.title = "Play";
+      element.label = "Play";
     });
 
     expect(
@@ -92,7 +92,7 @@ describe("OButton locked look", () => {
   it("stays clickable — never disabled — so the tap reaches the handler", async () => {
     const onClick = jest.fn();
     const button = await appendButton((element) => {
-      element.title = "Create";
+      element.label = "Create";
       element.locked = true;
     });
     button.addEventListener("click", onClick);
@@ -105,11 +105,53 @@ describe("OButton locked look", () => {
 
   it("is not locked by default", async () => {
     const button = await appendButton((element) => {
-      element.title = "Create";
+      element.label = "Create";
     });
 
     expect(button.querySelector(".c-button--locked")).toBeNull();
     expect(button.querySelector(".c-button__lock")).toBeNull();
+  });
+});
+
+// Task 0415: `label` (upstream `title`) must never become a `title` attribute —
+// browsers show that as a native hover tooltip, which Yandex Games forbids.
+describe("OButton no native tooltip", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("renders the label text with no title attribute on the host or inside", async () => {
+    const button = await appendButton((element) => {
+      element.label = "Начать игру";
+    });
+
+    expect(button.querySelector(".c-button__title")!.textContent).toBe(
+      "Начать игру",
+    );
+    expect(button.hasAttribute("title")).toBe(false);
+    expect(button.querySelector("[title]")).toBeNull();
+  });
+
+  it("the label attribute in markup renders as text, not as a title", async () => {
+    document.body.innerHTML = `<o-button label="Join Lobby"></o-button>`;
+    const button = document.querySelector("o-button") as OButton;
+    await button.updateComplete;
+
+    expect(button.label).toBe("Join Lobby");
+    expect(button.textContent).toContain("Join Lobby");
+    expect(button.hasAttribute("title")).toBe(false);
+    expect(button.querySelector("[title]")).toBeNull();
+  });
+
+  it("translationKey still wins over label, with no title anywhere", async () => {
+    const button = await appendButton((element) => {
+      element.label = "Play";
+      element.translationKey = "main.single_player";
+    });
+
+    expect(button.textContent).toContain("main.single_player");
+    expect(button.hasAttribute("title")).toBe(false);
+    expect(button.querySelector("[title]")).toBeNull();
   });
 });
 

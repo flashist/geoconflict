@@ -366,7 +366,6 @@ export class PlayerPanel extends LitElement implements Layer {
           class="inline-flex items-center gap-2 rounded-full border border-red-400/30
             bg-red-500/10 px-2.5 py-0.5 text-sm font-semibold text-red-200
             shadow-[inset_0_0_8px_rgba(239,68,68,0.12)]"
-          title=${translateText("player_panel.traitor")}
         >
           <img
             src=${traitorIcon}
@@ -437,7 +436,6 @@ export class PlayerPanel extends LitElement implements Layer {
         <div class="flex-1 min-w-0">
           <h2
             class="text-xl font-bold tracking-[-0.01em] text-zinc-50 truncate"
-            title=${other.name()}
           >
             ${other.isCitizen() ? renderCitizenBadge() : ""} ${other.name()}
           </h2>
@@ -447,7 +445,6 @@ export class PlayerPanel extends LitElement implements Layer {
               class=${`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold ${chip.classes}`}
               role="status"
               aria-label=${chip.aria}
-              title=${translateText(chip.labelKey)}
             >
               <span aria-hidden="true" class="leading-none">${chip.icon}</span>
               <span class="tracking-tight"
@@ -579,7 +576,6 @@ export class PlayerPanel extends LitElement implements Layer {
                              rounded-md border border-white/10 bg-white/[0.05]
                              px-2.5 py-1 text-[14px] text-zinc-100
                              hover:bg-white/[0.08] active:scale-[0.99] transition"
-                      title=${p.name()}
                     >
                       <span class="truncate">${p.name()}</span>
                     </li>`,
@@ -828,7 +824,6 @@ export class PlayerPanel extends LitElement implements Layer {
                 class="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center
                      rounded-full bg-zinc-700 text-white shadow hover:bg-red-500 transition-colors"
                 aria-label=${translateText("common.close") || "Close"}
-                title=${translateText("common.close") || "Close"}
               >
                 ✕
               </button>

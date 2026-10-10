@@ -30,7 +30,7 @@ export class TokenLoginModal extends LitElement {
     return html`
       <o-modal
         id="token-login-modal"
-        title="${translateText("token_login_modal.title")}"
+        heading="${translateText("token_login_modal.title")}"
       >
         ${this.email ? this.loginSuccess(this.email) : this.loggingIn()}
       </o-modal>

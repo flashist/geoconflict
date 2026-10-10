@@ -72,7 +72,7 @@ export class SinglePlayerModal extends LitElement {
 
   render() {
     return html`
-      <o-modal title=${translateText("single_modal.title")}>
+      <o-modal heading=${translateText("single_modal.title")}>
         <div class="options-layout">
           <!-- Map Selection -->
           <div class="options-section">
@@ -395,7 +395,7 @@ export class SinglePlayerModal extends LitElement {
         </div>
 
         <o-button
-          title=${translateText("single_modal.start")}
+          label=${translateText("single_modal.start")}
           @click=${this.startGame}
           blockDesktop
         ></o-button>

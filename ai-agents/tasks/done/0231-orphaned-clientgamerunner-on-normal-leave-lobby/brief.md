@@ -310,7 +310,7 @@ does not exist yet, and its final shape is `0227`'s to settle.
 |---|---|---|
 | [`0225`](../../done/0225-orphaned-performance-monitors-on-lobby-rejoin/brief.md) | `PerformanceMonitor` orphaned on lobby rejoin | Bounded |
 | [`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md) | `PerformanceMonitor` survives a crashed/failed game | Bounded |
-| [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
+| [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) | stale `gameStop` across three awaits | Bounded |
 | **`0231` (this task)** | **the whole runner + worker + 1 s interval + 5 listeners, on the NORMAL leave path** | **Accumulating — ⚠️ reasoned, not observed** |
 
 ⛔ **This does not explain, address, or close

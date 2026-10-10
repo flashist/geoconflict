@@ -257,7 +257,6 @@ export class SendResourceModal extends LitElement {
           @click=${() => this.closeModal()}
           class="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-700 text-white shadow hover:bg-red-500 transition-colors focus-visible:ring-2 focus-visible:ring-white/30 focus:outline-none"
           aria-label=${this.i18n.closeLabel()}
-          title=${this.i18n.closeLabel()}
         >
           ✕
         </button>
@@ -274,7 +273,6 @@ export class SendResourceModal extends LitElement {
           <!-- Available -->
           <span
             class="inline-flex items-center gap-1 rounded-full bg-indigo-600/15 px-2 py-0.5 ring-1 ring-indigo-400/40 text-indigo-100"
-            title=${this.i18n.availableTooltip()}
           >
             <span class="opacity-90">${this.i18n.availableChip()}</span>
             <span class="font-mono tabular-nums">${this.format(total)}</span>
@@ -310,7 +308,6 @@ export class SendResourceModal extends LitElement {
                 this.sendAmount = this.clampSend(raw);
               }}
               ?aria-pressed=${active}
-              title="${pct}%"
             >
               ${label}
             </button>
@@ -390,7 +387,6 @@ export class SendResourceModal extends LitElement {
                 <div
                   class="pointer-events-none absolute top-1/2 -translate-y-1/2 h-3 w-[2px] bg-amber-400/80 shadow"
                   style="left:${capPercent}%;"
-                  title=${this.i18n.capTooltip()}
                 ></div>
                 <div
                   class="pointer-events-none absolute top-full mt-1.5 -translate-x-1/2 select-none"

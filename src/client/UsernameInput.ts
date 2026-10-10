@@ -252,7 +252,6 @@ export class UsernameInput extends LitElement {
         .value=${this.username}
         ?readonly=${this.isLocked}
         aria-readonly=${ifDefined(this.isLocked ? "true" : undefined)}
-        title=${ifDefined(lockedHint)}
         @input=${this.handleChange}
         @change=${this.handleChange}
         @focus=${this.handleFocus}

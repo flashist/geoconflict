@@ -1247,7 +1247,7 @@ all carried from Sprint 6 on 2026-09-27.
 > - All three **depend on [`0327`](../../tasks/done/0327-closing-a-joined-private-lobby-window-does-not-leave-the-lobby/brief.md)**
 >   (Sprint 6, still in progress). `0333` and `0334` are `fkit-coder` fixes in the same file with no logical
 >   dependency on each other; `0335` is an `fkit-architect` investigation. `0335` **links, does not absorb**,
->   [`0228`](../../tasks/backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) (case 1) and
+>   [`0228`](../../tasks/done/0228-handlejoinlobby-stale-gamestop-race/brief.md) (case 1) and
 >   [`0252`](../../tasks/backlog/0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md)
 >   (case 2) — any fix it recommends for those goes into those tasks, both left unedited here.
 >

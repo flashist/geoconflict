@@ -663,6 +663,14 @@ mkdir -p "$PROFILE_DIR/alerts" && chmod 700 "$PROFILE_DIR/alerts"
 # different signals (Telegram-delivery heartbeat vs alert-path reachability) that must
 # never be confusable. ⛔ And never backups/, for the reason stated just above.
 mkdir -p "$PROFILE_DIR/digest" && chmod 700 "$PROFILE_DIR/digest"
+# tester-roles/ (task 0425): bind-mounted into profile-api below for the SSH-only
+# `npm run tester-role` command. It holds the tester ALLOWLIST, which the owner creates
+# and edits BY HAND (root:root 0600), and the command's run log (runs.log).
+# ⛔ This script only creates the directory. It must NEVER create, write or overwrite the
+# allowlist: a file outside everything a deploy writes is what lets a hand edit survive
+# every redeploy (profile.env, by contrast, is rewritten below on every run). The
+# hardening harness asserts this. ⛔ Never backups/, for the reason stated above.
+mkdir -p "$PROFILE_DIR/tester-roles" && chmod 700 "$PROFILE_DIR/tester-roles"
 
 # ── Internal service token + DATABASE_URL ─────────────────────────────────────
 # The service-to-service token (shared with the game server in T6) MUST stay stable
@@ -1078,11 +1086,18 @@ services:
     # NAME_CHANGE_DIGEST_MARKER_PATH in src/profile-server/NameChangeDigest.ts, which the
     # hardening harness asserts. A SIBLING of alerts/, never the same directory: the two
     # markers are different signals and must not be confusable.
+    # Task 0425: SSH-only tester roles. The container path MUST equal TESTER_ROLE_DIR in
+    # src/profile-server/TesterRoleCommand.ts (the hardening harness asserts it). It holds
+    # the owner's hand-edited tester allowlist and the command's run log. A DIRECTORY
+    # mount on purpose: a FILE mount whose host file does not exist yet makes Docker
+    # create a directory in its place. Its own directory, never alerts/, digest/ or
+    # backups/.
     # ⛔ No dollar sign, no backtick and no command substitution may EVER appear in this
     # heredoc (task 0282) — the delimiter is quoted, and the harness enforces all three.
     volumes:
       - ./alerts:/var/lib/profile/alerts
       - ./digest:/var/lib/profile/digest
+      - ./tester-roles:/var/lib/profile/tester-roles
     # Same retention as postgres above (0219, G1). Compose owns it — see the note there.
     logging:
       driver: json-file
@@ -1142,6 +1157,7 @@ echo "Written: docker-compose.yml (0600)"
 echo "         alerts/ is bind-mounted into profile-api — the alert-path probe marker (task 0284)"
 echo "         is written in the container and read on the host by checks.sh."
 echo "         digest/ likewise — the name-change digest's freshness marker (task 0283)."
+echo "         tester-roles/ likewise — the tester allowlist (owner-edited) and run log (task 0425)."
 
 # Every `docker compose` command below resolves the project from this directory.
 cd "$PROFILE_DIR"

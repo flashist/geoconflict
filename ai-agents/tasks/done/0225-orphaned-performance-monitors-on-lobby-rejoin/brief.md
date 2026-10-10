@@ -351,14 +351,14 @@ byte-unchanged.
 
 The diff **also fixes the *monitor* half of F4** (the `:675-686` await interleave): a second join's
 `restartPerformanceMonitor` stops the first's monitor, so the count stays 1 where pre-diff it was 2.
-**The `gameStop` half is now [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md).**
+**The `gameStop` half is now [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md).**
 
 ### Follow-ups spawned from this task
 
 - **[`0227`](../0227-crashed-game-leaves-performancemonitor-running/brief.md)** — crashed-game
   monitor. Now **three** sites, not one: correcting the brief under R1 surfaced a third, **site C at
   `ClientGameRunner.ts:215`** (`.then((r) => r?.start())` with **no `.catch`**).
-- **[`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)** — the `gameStop` race
+- **[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** — the `gameStop` race
   (F4's remaining half).
 - **[`0229`](../../backlog/0229-double-onjoin-constructs-a-second-clientgamerunner/brief.md)** —
   **F3's ROOT CAUSE**, filed on the owner's live ruling 2026-09-07. `0225` contained F3's *monitor*

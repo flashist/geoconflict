@@ -8,6 +8,7 @@ import {
   type CitizenshipOffer,
 } from "./CitizenshipOffer";
 import { CITIZENSHIP_GRANTED_MID_SESSION_EVENT } from "./CitizenshipRestartOffer";
+import { darkScrollbarStyles } from "./components/baseComponents/DarkScrollbarStyles";
 import { FlashistFacade, flashistConstants } from "./flashist/FlashistFacade";
 import { isPrivateLobbyRowEnabled } from "./PrivateLobbyAccess";
 import { translateText } from "./Utils";
@@ -49,142 +50,126 @@ export class CitizenshipExplainerModal extends LitElement {
   // popup that was closed meanwhile (e.g. by a match start).
   private showGeneration = 0;
 
-  static styles = css`
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      /* Above the Instructions o-modal (9999), which stays open underneath. */
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.visible {
-      display: flex;
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
+  // The game's dark scrollbar (task 0417's look; shared since task 0423 —
+  // see DarkScrollbarStyles.ts for why it is copied into shadow roots).
+  static styles = [
+    darkScrollbarStyles,
+    css`
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Above the Instructions o-modal (9999), which stays open underneath. */
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
       }
-      to {
-        opacity: 1;
+
+      .modal-overlay.visible {
+        display: flex;
+        animation: fadeIn 0.3s ease-out;
       }
-    }
 
-    .modal-box {
-      background-color: rgba(28, 28, 30, 0.95);
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      color: white;
-      /* Task 0417: grows with the screen up to a comfortable reading width. */
-      width: 600px;
-      max-width: 90vw;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-sizing: border-box;
-      text-align: left;
-    }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
 
-    /* The app's dark scrollbar (styles.css), copied: page styles do not reach
-       into this component. No scrollbar-color here — in Chromium it turns
-       these rules off. */
-    .modal-box::-webkit-scrollbar {
-      width: 8px;
-    }
+      .modal-box {
+        background-color: rgba(28, 28, 30, 0.95);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        color: white;
+        /* Task 0417: grows with the screen up to a comfortable reading width. */
+        width: 600px;
+        max-width: 90vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        text-align: left;
+      }
 
-    .modal-box::-webkit-scrollbar-track {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 4px;
-    }
+      .modal-box h2 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+      }
 
-    .modal-box::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-    }
+      .modal-box h3 {
+        margin: 16px 0 6px;
+        font-size: 15px;
+        font-weight: bold;
+      }
 
-    .modal-box::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
+      .modal-box h4 {
+        margin: 4px 0 6px;
+        font-size: 13px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.85);
+      }
 
-    .modal-box h2 {
-      margin: 0 0 12px;
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-    }
+      .modal-box p,
+      .modal-box li {
+        margin: 0 0 8px;
+        font-size: 14px;
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.85);
+      }
 
-    .modal-box h3 {
-      margin: 16px 0 6px;
-      font-size: 15px;
-      font-weight: bold;
-    }
+      .modal-box ul {
+        margin: 0;
+        padding-left: 20px;
+      }
 
-    .modal-box h4 {
-      margin: 4px 0 6px;
-      font-size: 13px;
-      font-weight: bold;
-      color: rgba(255, 255, 255, 0.85);
-    }
+      .modal-box .muted {
+        color: #98989f;
+        font-size: 13px;
+      }
 
-    .modal-box p,
-    .modal-box li {
-      margin: 0 0 8px;
-      font-size: 14px;
-      line-height: 1.45;
-      color: rgba(255, 255, 255, 0.85);
-    }
+      .modal-box .error {
+        margin: 6px 0 0;
+        color: #f87171;
+        font-size: 12px;
+        text-align: center;
+      }
 
-    .modal-box ul {
-      margin: 0;
-      padding-left: 20px;
-    }
+      .modal-box button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+      }
 
-    .modal-box .muted {
-      color: #98989f;
-      font-size: 13px;
-    }
+      .modal-box .primary-btn {
+        background: #2563eb;
+      }
 
-    .modal-box .error {
-      margin: 6px 0 0;
-      color: #f87171;
-      font-size: 12px;
-      text-align: center;
-    }
+      .modal-box .primary-btn:hover {
+        background: #1d4ed8;
+      }
 
-    .modal-box button {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      transition: background-color 0.2s ease;
-    }
+      .modal-box .close-btn {
+        margin-top: 16px;
+        background: rgba(255, 255, 255, 0.1);
+      }
 
-    .modal-box .primary-btn {
-      background: #2563eb;
-    }
-
-    .modal-box .primary-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .modal-box .close-btn {
-      margin-top: 16px;
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .modal-box .close-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-  `;
+      .modal-box .close-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    `,
+  ];
 
   connectedCallback() {
     super.connectedCallback();

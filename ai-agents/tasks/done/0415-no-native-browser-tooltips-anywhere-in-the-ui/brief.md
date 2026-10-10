@@ -39,7 +39,7 @@ into a sprint. On merit it matters more than its board position suggests: the ow
 Yandex Games rule (see *Context*), and the game is shipped through Yandex Games.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -48,7 +48,7 @@ fkit-coder
 
 ### New report — seen live 2026-10-09 (production game `0.0.161`, paid account, computer, inside Yandex Games)
 
-Found by the owner while running [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
+Found by the owner while running [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
 checklist; relayed verbatim by the coordinating session.
 
 - **Join-lobby button in the "Присоединиться к приватному лобби" window** (`JoinPrivateLobbyModal`). Hovering the blue

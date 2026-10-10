@@ -148,7 +148,6 @@ export class PlayerStatsTreeView extends LitElement {
                     ? "border-white/60 text-white"
                     : "border-white/20 text-gray-300"}"
                   @click=${() => this.setMode(m)}
-                  title=${translateText("player_stats_tree.mode")}
                 >
                   ${this.labelForMode(m)}
                 </button>
@@ -167,7 +166,6 @@ export class PlayerStatsTreeView extends LitElement {
                     ? "border-white/60 text-white"
                     : "border-white/20 text-gray-300"}"
                   @click=${() => this.setDifficulty(d)}
-                  title=${translateText("difficulty.difficulty")}
                 >
                   ${translateText(`difficulty.${d}`)}
                 </button>`,

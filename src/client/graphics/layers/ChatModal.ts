@@ -73,7 +73,7 @@ export class ChatModal extends LitElement {
 
   render() {
     return html`
-      <o-modal title="${translateText("chat.title")}">
+      <o-modal heading="${translateText("chat.title")}">
         <div class="chat-columns">
           <div class="chat-column">
             <div class="column-title">${translateText("chat.category")}</div>

@@ -5,6 +5,11 @@
 // Grant invariant (brief "sole authority", 2026-06-13): `is_paid_citizen` /
 // `citizenship_purchased_at` are written by grantPaidPurchase ONLY — the single
 // code path reachable exclusively through HMAC-verified /complete or /reconcile.
+// ONE documented exception (task 0425, owner ruling 2026-10-09): the SSH-only,
+// allowlisted tester-role command (src/profile-server/TesterRoleRepository.ts) sets
+// both flags for its `paid-citizen` role and puts the tester's own values back on
+// `restore` — with NO purchase record (no processed_purchases or purchase_intents
+// row). It is no route; it runs only inside the profile container on the box.
 
 import { Pool, PoolClient } from "pg";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";

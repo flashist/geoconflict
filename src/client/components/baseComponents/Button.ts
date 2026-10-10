@@ -5,7 +5,10 @@ import { translateText } from "../../Utils";
 
 @customElement("o-button")
 export class OButton extends LitElement {
-  @property({ type: String }) title = "";
+  // Flashist Adaptation: task 0415 — upstream names this `title`, which is also
+  // the HTML attribute browsers show as a hover tooltip. `label` puts no
+  // attribute on the page, so the button never gets a native tooltip.
+  @property({ type: String }) label = "";
   @property({ type: String }) translationKey = "";
   @property({ type: String }) subtitleTranslationKey = "";
   @property({ type: String }) icon = "";
@@ -49,7 +52,7 @@ export class OButton extends LitElement {
         <span class="c-button__text">
           <span class="c-button__title"
             >${`${this.translationKey}` === ""
-              ? `${this.title}`
+              ? `${this.label}`
               : `${translateText(this.translationKey)}`}</span
           >
           ${this.locked

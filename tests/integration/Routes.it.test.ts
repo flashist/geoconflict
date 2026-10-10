@@ -311,7 +311,9 @@ RUN("profile API over real Postgres (integration)", () => {
 
     // Create via the internal endpoint (no psql seeding). The internal response
     // carries the internal id (ADR-113 point 3), the citizen flag and — since task
-    // 0322 — the approved display name (null here: a new player has none).
+    // 0322 — the approved display name (null here: a new player has none), and —
+    // since task 0332 (ADR-124) — the session vouch `verified` (false here: no
+    // session token is sent).
     const created = await resolveOverHttp(P);
     expect(created.status).toBe(200);
     const playerId = await playerIdOf(P);
@@ -319,6 +321,7 @@ RUN("profile API over real Postgres (integration)", () => {
       playerId,
       isCitizen: false,
       displayName: null,
+      verified: false,
     });
 
     // Credit once, then idempotently again — keyed (game_id, player_id).
@@ -368,6 +371,7 @@ RUN("profile API over real Postgres (integration)", () => {
       playerId,
       isCitizen: false,
       displayName: "Approved_Name",
+      verified: false,
     });
 
     const without = await resolveOverHttp("yandex-http-2");

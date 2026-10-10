@@ -2613,6 +2613,46 @@ awk '/^check_name_change_digest\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$C" | 
   && pass "profile-checks.sh: check 12 has the negative-age guard (a future-dated marker must never read GREEN)" \
   || fail "profile-checks.sh: check 12 has NO negative-age guard — clock skew would hold it green while no digest arrived (0283 owner ruling)"
 
+# ── Structural: SSH-only tester roles (task 0425) ────────────────────────────
+echo "== Structural: SSH-only tester roles (task 0425) =="
+P="$REPO_ROOT/setup-profile.sh"
+TR_MODULE="$REPO_ROOT/src/profile-server/TesterRoleCommand.ts"
+# Drift guard: the compose bind mount's CONTAINER path must equal TESTER_ROLE_DIR, or the
+# command reads an allowlist that is not the owner's file — it would then refuse every run
+# (fail closed), which is safe but means the tool silently never works.
+TR_DIR=$(sed -n 's/^export const TESTER_ROLE_DIR = "\(\/var\/[^"]*\)";$/\1/p' "$TR_MODULE" | head -1)
+[ -n "$TR_DIR" ] && pass "TesterRoleCommand.ts: read TESTER_ROLE_DIR ($TR_DIR)" \
+  || fail "TesterRoleCommand.ts: could not read TESTER_ROLE_DIR (its shape changed — the drift guard is vacuous)"
+TR_MOUNT_TARGET=$(sed -n 's/^[[:space:]]*- \.\/tester-roles:\(\/[^[:space:]]*\)$/\1/p' "$P" | head -1)
+[ -n "$TR_MOUNT_TARGET" ] && pass "setup-profile.sh: compose bind-mounts ./tester-roles ($TR_MOUNT_TARGET)" \
+  || fail "setup-profile.sh: no './tester-roles:<container path>' bind mount — the command could never see the owner's allowlist"
+[ -n "$TR_DIR" ] && [ "$TR_DIR" = "$TR_MOUNT_TARGET" ] \
+  && pass "the tester-roles bind mount target equals TESTER_ROLE_DIR" \
+  || fail "DRIFT: TesterRoleCommand.ts reads '$TR_DIR' but compose mounts '$TR_MOUNT_TARGET' — every tester-role run would refuse"
+# Its own directory: never the alert marker's, the digest marker's, or backups/ (mounting
+# backups/ would expose every encrypted dump to the app container).
+{ [ -n "$TR_MOUNT_TARGET" ] && [ "$TR_MOUNT_TARGET" != "$MOUNT_TARGET" ] && [ "$TR_MOUNT_TARGET" != "$DIGEST_MOUNT_TARGET" ] \
+    && printf '%s' "$TR_MOUNT_TARGET" | grep -qv 'backups'; } \
+  && pass "the tester-roles mount has its OWN directory (not alerts/, not digest/, not backups/)" \
+  || fail "the tester-roles bind mount collides with another directory ('$TR_MOUNT_TARGET')"
+grep -q 'mkdir -p "\$PROFILE_DIR/tester-roles" && chmod 700 "\$PROFILE_DIR/tester-roles"' "$P" \
+  && pass "setup-profile.sh: creates tester-roles/ 0700 before the compose file mounts it" \
+  || fail "setup-profile.sh: tester-roles/ is not created 0700 — Docker would create it root-owned and world-readable"
+# ⛔ The allowlist is the OWNER's hand-edited file. A deploy that creates, writes, copies over,
+# moves or deletes anything in tester-roles/ would wipe or forge it on the next redeploy.
+# Lint-level over the comment-stripped script: any line naming tester-roles may only be the
+# mkdir/chmod line, the compose mount line, or an echo — never a redirect or a file writer.
+TR_LINES=$(grep -v '^[[:space:]]*#' "$P" | grep 'tester-roles' || true)
+[ -n "$TR_LINES" ] && pass "setup-profile.sh: found its tester-roles lines (the checks below are not vacuous)" \
+  || fail "setup-profile.sh: no tester-roles line at all — the checks below would be vacuous"
+TR_WRITERS=$(printf '%s\n' "$TR_LINES" | grep -E '>|(^|[^a-z_-])(tee|cp|install|mv|touch|rm|truncate|dd|ln)([^a-z_-]|$)' || true)
+[ -z "$TR_WRITERS" ] \
+  && pass "setup-profile.sh: never writes, copies, moves or deletes anything in tester-roles/ (the allowlist is the owner's)" \
+  || fail "setup-profile.sh: a line writes into tester-roles/ — a redeploy would overwrite or delete the owner's tester allowlist: $TR_WRITERS"
+grep -v '^[[:space:]]*#' "$P" | grep -q 'tester-roles/allowlist' \
+  && fail "setup-profile.sh: names tester-roles/allowlist outside a comment — nothing in a deploy may touch the owner's allowlist" \
+  || pass "setup-profile.sh: never names the allowlist file outside a comment"
+
 # ── Structural: version-tagged profile deploys (task 0355) ────────────────────
 # LINTS over the text; the behaviour is T20–T32 above. What these catch: the shipped-files
 # pathspec drifting away from what Dockerfile.profile actually copies (a changed file that

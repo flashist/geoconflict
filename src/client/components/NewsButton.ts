@@ -101,7 +101,6 @@ export class NewsButton extends LitElement {
         <button
           class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-[#0075ff] text-white shadow-lg transition-colors duration-300 hover:bg-[#0068de] focus:outline-none"
           @click=${this.handleClick}
-          title=${translateText("announcements.title")}
           aria-label=${translateText("announcements.title")}
         >
           <img

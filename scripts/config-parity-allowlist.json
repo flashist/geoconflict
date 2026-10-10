@@ -99,6 +99,13 @@
       "reason": "The rejection reason the operator types into the Reject line's `docker compose exec -e` on the profile box (task 0312); read only by the one-shot src/profile-server/decideNameChange.ts, never by the server. Never a deploy input."
     },
     {
+      "name": "TESTER_ROLE_OPERATOR",
+      "pipeline": "profile",
+      "class": "runtime-supplied",
+      "phase": 1,
+      "reason": "Who ran the SSH-only tester-role command, set per run by the runbook's `docker compose exec -e TESTER_ROLE_OPERATOR=...` on the profile box (task 0425) and written only into the box-side run log; self-reported, since the container cannot see the SSH user. Read only by the one-shot src/profile-server/testerRole.ts, never by the server. Unset is logged as \"unknown\". Never a deploy input."
+    },
+    {
       "name": "STORAGE_ENDPOINT",
       "pipeline": "game",
       "class": "optional",

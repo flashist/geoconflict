@@ -76,7 +76,7 @@ export class FlagInput extends LitElement {
           class="border rounded-lg flex cursor-pointer border-black/30
           dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)]
           "
-          title=${translateText("flag_input.button_title")}
+          aria-label=${translateText("flag_input.button_title")}
         >
           <span
             id="flag-preview"

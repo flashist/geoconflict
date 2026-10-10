@@ -75,7 +75,7 @@ by name.
 
 ### How this relates to existing tasks — link, don't absorb
 
-- **Case 1 is [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md)'s race** (Backlog board). This
+- **Case 1 is [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)'s race** (Backlog board). This
   investigation measures it **as reached through `0327`'s close routes** and says how bad that is. If a fix is
   warranted, the recommendation is to fix it **in `0228`** (the producer updates `0228`'s brief and, with the
   owner, its rank) — not to file a second task for the same race.
@@ -149,7 +149,7 @@ agent-closed marker). The rulings below were given **live by the owner via `AskU
 
 | Case | Owner ruling (verbatim option) | Where it is recorded |
 |---|---|---|
-| 1 — close within a split second of joining; the join completes with the window closed | **"Add to task 0228"** | Dated note on [`0228`](../../backlog/0228-handlejoinlobby-stale-gamestop-race/brief.md) (§3). No new task; `0228`'s rank and status unchanged. |
+| 1 — close within a split second of joining; the join completes with the window closed | **"Add to task 0228"** | Dated note on [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) (§3). No new task; `0228`'s rank and status unchanged. |
 | 2 — Transport listener leak, +24 inert bus listeners per private join | **"Note it on task 0252"** | Dated note on [`0252`](../../backlog/0252-in-page-leave-wider-per-game-leak-renderer-transport-lobby-poll/brief.md). Rank kept (Medium, owner's). |
 | 3 — orphan private lobby when the host closes before `create_game` answers; the empty lobby lingers 3 h | **"Accept, revisit later"** | **Here.** Accepted as a known leftover. **Revisit before private lobbies open to all players.** Nothing filed. If fixed later: server-side only, ~10–20 lines in `GameServer.phase()` (idle unstarted-private-lobby cleanup, covers every abandoned private lobby). The old "wait for `0322`" ordering no longer applies — `0322` is done. |
 | 4 — `isStarting` stays true after the host's Start until the next `open()` | **"Accept as known"** | **Here.** Accepted as a known leftover; zero player effect. Nothing filed. |

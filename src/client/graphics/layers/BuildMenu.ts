@@ -13,6 +13,7 @@ import samlauncherIcon from "../../../../resources/images/SamLauncherIconWhite.s
 import shieldIcon from "../../../../resources/images/ShieldIconWhite.svg";
 import { translateText } from "../../../client/Utils";
 import { EventBus } from "../../../core/EventBus";
+import { darkScrollbarStyles } from "../../components/baseComponents/DarkScrollbarStyles";
 import {
   BuildableUnit,
   Gold,
@@ -169,194 +170,199 @@ export class BuildMenu extends LitElement implements Layer {
     }
   }
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    .build-menu {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-      background-color: #1e1e1e;
-      padding: 15px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      max-width: 95vw;
-      max-height: 95vh;
-      overflow-y: auto;
-    }
-    .build-description {
-      font-size: 0.6rem;
-    }
-    .build-row {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      width: 100%;
-    }
-    .build-button {
-      position: relative;
-      width: 120px;
-      height: 140px;
-      border: 2px solid #444;
-      background-color: #2c2c2c;
-      color: white;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      margin: 8px;
-      padding: 10px;
-      gap: 5px;
-    }
-    .build-button:not(:disabled):hover {
-      background-color: #3a3a3a;
-      transform: scale(1.05);
-      border-color: #666;
-    }
-    .build-button:not(:disabled):active {
-      background-color: #4a4a4a;
-      transform: scale(0.95);
-    }
-    .build-button:disabled {
-      background-color: #1a1a1a;
-      border-color: #333;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-    .build-button:disabled img {
-      opacity: 0.5;
-    }
-    .build-button:disabled .build-cost {
-      color: #ff4444;
-    }
-    .build-icon {
-      font-size: 40px;
-      margin-bottom: 5px;
-    }
-    .build-name {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 5px;
-      text-align: center;
-    }
-    .build-cost {
-      font-size: 14px;
-    }
-    .hidden {
-      display: none !important;
-    }
-    .build-count-chip {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      background-color: #2c2c2c;
-      color: white;
-      padding: 2px 10px;
-      border-radius: 10000px;
-      transition: all 0.3s ease;
-      font-size: 12px;
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      border: 1px solid #444;
-    }
-    .build-button:not(:disabled):hover > .build-count-chip {
-      background-color: #3a3a3a;
-      border-color: #666;
-    }
-    .build-button:not(:disabled):active > .build-count-chip {
-      background-color: #4a4a4a;
-    }
-    .build-button:disabled > .build-count-chip {
-      background-color: #1a1a1a;
-      border-color: #333;
-      cursor: not-allowed;
-    }
-    .build-count {
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    @media (max-width: 768px) {
+  // Flashist Adaptation: task 0423 — the game's dark scrollbar for the menu,
+  // which scrolls on short screens (shadow DOM; page styles do not reach it).
+  static styles = [
+    darkScrollbarStyles,
+    css`
+      :host {
+        display: block;
+      }
       .build-menu {
-        padding: 10px;
-        max-height: 80vh;
-        width: 80vw;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background-color: #1e1e1e;
+        padding: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 95vw;
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+      .build-description {
+        font-size: 0.6rem;
+      }
+      .build-row {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
       }
       .build-button {
-        width: 140px;
-        height: 120px;
-        margin: 4px;
-        padding: 6px;
+        position: relative;
+        width: 120px;
+        height: 140px;
+        border: 2px solid #444;
+        background-color: #2c2c2c;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 8px;
+        padding: 10px;
         gap: 5px;
       }
+      .build-button:not(:disabled):hover {
+        background-color: #3a3a3a;
+        transform: scale(1.05);
+        border-color: #666;
+      }
+      .build-button:not(:disabled):active {
+        background-color: #4a4a4a;
+        transform: scale(0.95);
+      }
+      .build-button:disabled {
+        background-color: #1a1a1a;
+        border-color: #333;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .build-button:disabled img {
+        opacity: 0.5;
+      }
+      .build-button:disabled .build-cost {
+        color: #ff4444;
+      }
       .build-icon {
-        font-size: 28px;
+        font-size: 40px;
+        margin-bottom: 5px;
       }
       .build-name {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        text-align: center;
+      }
+      .build-cost {
+        font-size: 14px;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .build-count-chip {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: #2c2c2c;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 10000px;
+        transition: all 0.3s ease;
         font-size: 12px;
-        margin-bottom: 3px;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        border: 1px solid #444;
       }
-      .build-cost {
-        font-size: 11px;
+      .build-button:not(:disabled):hover > .build-count-chip {
+        background-color: #3a3a3a;
+        border-color: #666;
+      }
+      .build-button:not(:disabled):active > .build-count-chip {
+        background-color: #4a4a4a;
+      }
+      .build-button:disabled > .build-count-chip {
+        background-color: #1a1a1a;
+        border-color: #333;
+        cursor: not-allowed;
       }
       .build-count {
         font-weight: bold;
-        font-size: 10px;
+        font-size: 14px;
       }
-      .build-count-chip {
-        padding: 1px 5px;
-      }
-    }
 
-    @media (max-width: 480px) {
-      .build-menu {
-        padding: 8px;
-        max-height: 70vh;
+      @media (max-width: 768px) {
+        .build-menu {
+          padding: 10px;
+          max-height: 80vh;
+          width: 80vw;
+        }
+        .build-button {
+          width: 140px;
+          height: 120px;
+          margin: 4px;
+          padding: 6px;
+          gap: 5px;
+        }
+        .build-icon {
+          font-size: 28px;
+        }
+        .build-name {
+          font-size: 12px;
+          margin-bottom: 3px;
+        }
+        .build-cost {
+          font-size: 11px;
+        }
+        .build-count {
+          font-weight: bold;
+          font-size: 10px;
+        }
+        .build-count-chip {
+          padding: 1px 5px;
+        }
       }
-      .build-button {
-        width: calc(50% - 6px);
-        height: 100px;
-        margin: 3px;
-        padding: 4px;
-        border-width: 1px;
+
+      @media (max-width: 480px) {
+        .build-menu {
+          padding: 8px;
+          max-height: 70vh;
+        }
+        .build-button {
+          width: calc(50% - 6px);
+          height: 100px;
+          margin: 3px;
+          padding: 4px;
+          border-width: 1px;
+        }
+        .build-icon {
+          font-size: 24px;
+        }
+        .build-name {
+          font-size: 10px;
+          margin-bottom: 2px;
+        }
+        .build-cost {
+          font-size: 9px;
+        }
+        .build-count {
+          font-weight: bold;
+          font-size: 8px;
+        }
+        .build-count-chip {
+          padding: 0 3px;
+        }
+        .build-button img {
+          width: 24px;
+          height: 24px;
+        }
+        .build-cost img {
+          width: 10px;
+          height: 10px;
+        }
       }
-      .build-icon {
-        font-size: 24px;
-      }
-      .build-name {
-        font-size: 10px;
-        margin-bottom: 2px;
-      }
-      .build-cost {
-        font-size: 9px;
-      }
-      .build-count {
-        font-weight: bold;
-        font-size: 8px;
-      }
-      .build-count-chip {
-        padding: 0 3px;
-      }
-      .build-button img {
-        width: 24px;
-        height: 24px;
-      }
-      .build-cost img {
-        width: 10px;
-        height: 10px;
-      }
-    }
-  `;
+    `,
+  ];
 
   @state()
   private _hidden = true;
@@ -430,9 +436,6 @@ export class BuildMenu extends LitElement implements Layer {
                     @click=${() =>
                       this.sendBuildOrUpgrade(buildableUnit, this.clickedTile)}
                     ?disabled=${!enabled}
-                    title=${!enabled
-                      ? translateText("build_menu.not_enough_money")
-                      : ""}
                   >
                     <img
                       src=${item.icon}

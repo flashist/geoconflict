@@ -236,7 +236,7 @@ export class UserSettingModal extends LitElement {
 
   render() {
     return html`
-      <o-modal title="${translateText("user_setting.title")}">
+      <o-modal heading="${translateText("user_setting.title")}">
         <div class="modal-overlay">
           <div class="modal-content user-setting-modal">
             <div class="flex mb-4 w-full justify-center">

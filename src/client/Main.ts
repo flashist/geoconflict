@@ -56,6 +56,7 @@ import {
 import { JoinPrivateLobbyModal } from "./JoinPrivateLobbyModal";
 import "./LangSelector";
 import { LanguageModal } from "./LanguageModal";
+import { JoinTicket, LobbyJoinSequence } from "./LobbyJoinSequence";
 import {
   isLongSessionRefreshShowing,
   startLongSessionRefreshChecker,
@@ -171,17 +172,26 @@ export interface PreloadMapConfig {
 }
 
 class Client {
-  private gameStop: (() => void) | null = null;
+  // Task 0228: owns the connected join's stopper and the join still being set
+  // up, so a leave or a second join during the setup awaits is not lost.
+  private readonly lobbyJoins = new LobbyJoinSequence();
+  // Read-only view of the connected join's stopper: null on the start screen
+  // and while a join is still being set up.
+  private get gameStop(): (() => void) | null {
+    return this.lobbyJoins.currentStopper();
+  }
   private gameHasStarted = false;
   private gameHasEnded = false;
   private perfMonitorStop: (() => void) | null = null;
-  // Incremented on every joinLobby call, so a superseded game's teardown
-  // callback can tell it is no longer the current game.
+  // The join-mint counter: incremented right before every joinLobby call, so
+  // each join carries its own number. It does NOT say which game owns the live
+  // monitor — monitorGeneration below does, and teardown guards key on that.
   private joinGeneration = 0;
   // The generation that actually owns the live monitor — set where the monitor
-  // is started, not where the join was minted. handleJoinLobby awaits between
-  // the two (Main.ts:707), so two joins can interleave and the last to mint is
-  // not necessarily the one whose monitor is running.
+  // is started (onJoin, when the server's start message arrives), not where
+  // the join was minted, so the last to mint is not taken to be the one whose
+  // monitor is running. The Yandex-id await (now in loadJoinSetup) once sat
+  // between the mint and the start; since task 0228 it runs before the mint.
   private monitorGeneration = 0;
   // "Restart to apply" after a mid-session citizenship grant (task 0303).
   private readonly citizenshipRestartOffer: CitizenshipRestartOffer =
@@ -250,7 +260,8 @@ class Client {
       console.warn("License Credits element not found");
     } else {
       // Flashist Adaptation: showing the name of the game instead of version
-      licenseCredits.title = version;
+      // (task 0415: no `title` here — it made a native browser tooltip, and the
+      // version is already in the visible text below)
       licenseCredits.innerText =
         translateText("main.license_text") + "\n" + version;
     }
@@ -374,14 +385,14 @@ class Client {
     }
 
     const missionButton = document.getElementById("single-play-mission") as
-      | (HTMLElement & { title: string; disable: boolean })
+      | (HTMLElement & { label: string; disable: boolean })
       | null;
     if (!missionButton) {
       console.warn("Single play mission button element not found");
     } else {
       const updateMissionButtonLabel = () => {
         const level = getNextMissionLevel();
-        missionButton.title = translateText("main.play_mission", { level });
+        missionButton.label = translateText("main.play_mission", { level });
         missionButton.disable = Object.values(GameMapType).length === 0;
       };
       updateMissionButtonLabel();
@@ -554,7 +565,8 @@ class Client {
       privateLobbyAccess.onCreateTap(() => {
         if (this.usernameInput?.isValid()) {
           openHostLobbyFromStartScreen({
-            isInLobby: () => this.gameStop !== null,
+            // Task 0228: a join still being set up counts, so it is cancelled.
+            isInLobby: () => this.lobbyJoins.isInLobbyOrJoining(),
             leaveLobby: () => void this.handleLeaveLobby(),
             clearPublicLobbyHighlight: () => this.publicLobby.leaveLobby(),
             openHostModal: () => hostModal.open(),
@@ -603,7 +615,8 @@ class Client {
     const onHashUpdate = () => {
       // Reset the UI to its initial state
       this.joinModal.close();
-      if (this.gameStop !== null) {
+      // Task 0228: also cancels a join still being set up.
+      if (this.lobbyJoins.isInLobbyOrJoining()) {
         this.handleLeaveLobby();
       }
 
@@ -819,17 +832,32 @@ class Client {
     }
     if (this.gameStop !== null) {
       console.log("joining lobby, stopping existing game");
-      this.gameStop();
+      // Calls the stopper once and clears it (task 0228).
+      this.lobbyJoins.leave();
       this.stopPerformanceMonitor();
     }
-    const config = await getServerConfigFromClient();
+    // Task 0228: the latest join wins. The ticket is taken before the first
+    // await, so a later join or a leave during setup makes this one stale. A
+    // throw before it connects ends the join as before, without leaving it
+    // "being set up" (review R1).
+    await this.lobbyJoins.runJoin((join) => this.setUpAndConnect(join, event));
+  }
 
-    const pattern = this.userSettings.getSelectedPatternName(
-      await fetchCosmetics(),
-    );
+  private async setUpAndConnect(
+    join: JoinTicket,
+    event: CustomEvent<JoinLobbyEvent>,
+  ) {
+    const lobby = event.detail;
+    const { config, pattern, yandexPlayerId } = await this.loadJoinSetup();
+    if (!join.isCurrent()) {
+      console.log(
+        `joining lobby ${lobby.gameID}: replaced or left while setting up, not joining`,
+      );
+      return;
+    }
 
     const joinGeneration = ++this.joinGeneration;
-    this.gameStop = joinLobby(
+    const stop = joinLobby(
       this.eventBus,
       {
         gameID: lobby.gameID,
@@ -846,7 +874,7 @@ class Client {
         playerName: this.usernameInput?.getCurrentUsername() ?? "",
         token: getPlayToken(),
         clientID: lobby.clientID,
-        yandexPlayerId: await FlashistFacade.instance.getYandexUniqueId(),
+        yandexPlayerId,
         gameStartInfo: lobby.singlePlayGameStartInfo ?? lobby.gameRecord?.info,
         gameRecord: lobby.gameRecord,
         isReconnect: lobby.isReconnect,
@@ -912,6 +940,19 @@ class Client {
         this.stopPerformanceMonitor();
       },
     );
+    join.connected(stop);
+  }
+
+  // Everything a join awaits before it connects. The Yandex id is awaited here,
+  // not inside joinLobby's arguments, so the isCurrent() check after this sees
+  // everything that happened during it (task 0228).
+  private async loadJoinSetup() {
+    const config = await getServerConfigFromClient();
+    const pattern = this.userSettings.getSelectedPatternName(
+      await fetchCosmetics(),
+    );
+    const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
+    return { config, pattern, yandexPlayerId };
   }
 
   async startTutorial(): Promise<void> {
@@ -1073,12 +1114,21 @@ class Client {
 
   private async handleLeaveLobby(/* event: CustomEvent */) {
     if (this.gameStop === null) {
+      // Task 0228: a join still being set up has no stopper yet. Cancel it, so
+      // it stops before connecting instead of joining after the player left.
+      // No start-screen reset: its onPrestart never ran, and its presence
+      // marker (task 0336) ends on its own and wakes the start-screen waiters.
+      // Only the public card's own highlight may still say "joined".
+      if (this.lobbyJoins.leave() === "cancelled-setup") {
+        console.log("leaving lobby, cancelling a join still being set up");
+        this.publicLobby.leaveLobby();
+      }
       return;
     }
     console.log("leaving lobby, cancelling game");
     this.logActiveMatchAbandon();
-    this.gameStop();
-    this.gameStop = null;
+    // Calls the stopper once and clears it.
+    this.lobbyJoins.leave();
     reportBackOnStartScreen();
     this.stopPerformanceMonitor();
     clearReconnectSession();

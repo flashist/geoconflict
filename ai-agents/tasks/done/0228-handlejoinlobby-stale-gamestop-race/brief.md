@@ -49,7 +49,7 @@ recorded no glitch matching this race — nobody tried to trigger it, so that is
 *(History, kept as written — the old producer's rank, superseded by the Sprint 8 rank above:)*
 ~~**Low–Medium *(producer's rank — NOT an owner ruling)*.** Ranked **below**
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) *(Medium)* and below
-[`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)*.~~
+[`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md) *(Medium–High)*.~~
 
 🔴 **The rank is low for ONE reason and it is not "small change": NOBODY HAS SHOWN THIS ACTUALLY
 HAPPENS.** `0226` and `0227` describe defects whose mechanisms were traced end to end. This one
@@ -57,7 +57,7 @@ describes a window in which an interleaving is *possible*. **A brief for a theor
 is worth less than a demonstration of a real one**, and that difference is the whole rank.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -450,6 +450,7 @@ straight after `0225` is a perfectly good call and costs nothing to switch.**
 ## Notes
 
 - **Blocks:** `0428` (turning the private-lobby everyone-flag on — filed 2026-10-09), unless this task ends as *not reproduced*, which drops it off the release gate (2026-10-03 rulings).
+- 📌 **2026-10-10 — closed (agent-closed — not owner-verified)** by a spawned `fkit-producer` on the OWNER RULING *"Close it (Recommended)"* (live `AskUserQuestion`, `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent). Outcome: **reproduced** (9/9, slowed network, real clicks) and **fixed in code**; not committed, not deployed. The close note, with what is NOT proven, is the 2026-10-10 addendum on [Sprint 8](../../../sprints/plan-sprint-8.md). The live check is [`0433`](../../backlog/0433-verify-0228-live-quick-leave-double-join-and-close-during-a-lobby-join/brief.md) (OWNER RULING *"File it, before 0428 (Recommended)"*); `0428` waits for it. Side finding: [`0432`](../../backlog/0432-stopped-transport-leaks-eventbus-listeners-and-connecting-sockets-after-a-join-over/brief.md).
 
 ### Cross-references
 

@@ -86,8 +86,8 @@ Nothing is built. The owner makes one console change and runs the checks below; 
 count if the owner allows it in-session.
 
 **Preconditions (check all, record each in `worklog.md`):**
-1. `0376`, `0228`, `0381` and `0390` are closed *(`0390` added 2026-10-09, owner ruling — see Notes)* with their gate item recorded as passed — or, for `0228`, recorded as *not
-   reproduced* (so it drops off the gate by the 2026-10-03 rulings), or reproduced **and** fixed **and** deployed.
+1. `0376`, `0228`, `0381`, `0390` and `0433` are closed *(`0390` added 2026-10-09, `0433` added 2026-10-10, owner rulings — see Notes)* with their gate item recorded as passed — or, for `0228`, recorded as *not
+   reproduced* (so it drops off the gate by the 2026-10-03 rulings), or reproduced **and** fixed **and** deployed. *(2026-10-10: `0228` was reproduced and fixed; it still needs its commit and deploy, and a passed live check `0433`.)*
 2. Gate items 1, 4 and 5 are still true (`0354`, `0377`, `0301` closed; nothing reverted). Record the state of `0390`
    (the live check of item 4) and the owner's answer to open question 1.
 3. Record the game version live in production.
@@ -138,7 +138,8 @@ count if the owner allows it in-session.
 
 ## Notes
 
-- **Depends on:** `0376`, `0228`, `0381`, `0390`
+- **Depends on:** `0376`, `0228`, `0381`, `0390`, `0433`
+- 📌 *2026-10-10: `0433` added to Depends on — OWNER RULING 2026-10-10, given live via `AskUserQuestion` in the `fkit lead` session (at `0228`'s close, `/fkit-sprint-ship-loop` on Sprint 8), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim **"File it, before 0428 (Recommended)"** — option text: "Owner-run live check, at the bottom of Sprint 8, and 0428 waits for it, since 0228 is a private-lobby gate item." State of gate item 3 on 2026-10-10: [`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md) REPRODUCED (9/9, slowed network, real clicks) and FIXED in code — closed `✅ Done (agent-closed — not owner-verified)`; **not committed, not deployed.** Item 3 is met only when `0228` is committed and deployed **and** its live check [`0433`](../0433-verify-0228-live-quick-leave-double-join-and-close-during-a-lobby-join/brief.md) has passed. The gate table above (state 2026-10-09) is kept as written.*
 - 📌 *2026-10-09: `0390` added to Depends on — OWNER RULING 2026-10-09, given live via `AskUserQuestion` in the coordinating Claude Code session, relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Asked "Must 0390 pass before private lobbies go on for everyone?", the owner chose **"Yes, 0390 must pass first (Recommended)"** (option text: "0428 also waits for 0390. Cheap: create a lobby, leave, and check 30+ minutes later that it's gone."). Gate item 4 now needs `0390`'s live pass, not just `0377` built.*
 - **Blocks:** nothing by dependency. `0426`'s text may name private lobbies only if this task has run before `0426`'s
   deploy (see below).

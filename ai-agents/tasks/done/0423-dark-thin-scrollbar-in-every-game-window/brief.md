@@ -25,7 +25,7 @@ Sprint 8
 platform rule is involved), while `0415` is a Yandex-rules fix in the same file. 21 is already directly below `0415`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -35,7 +35,7 @@ fkit-coder
 ### What was seen (2026-10-09, production game `0.0.161`, paid account, computer, inside Yandex Games)
 
 The owner's screenshot of the **"Одиночная игра" window** (`SinglePlayerModal`, built on the shared `o-modal`), taken
-while running [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
+while running [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
 checklist, shows the browser's **default light scrollbar** on the right. It is not the dark, thin scrollbar the rest of
 the game uses. Relayed by the coordinating session.
 
@@ -65,7 +65,7 @@ the game uses. Relayed by the coordinating session.
 - **Chromium-based browsers only** (the Yandex browser and Chrome), the same as `0417`. Firefox keeps its default
   scrollbar, as it does for the rest of the app.
 - **Out of scope (assumption — reversible):** the seven small standalone popups listed in
-  [`0419`](../0419-other-small-standalone-popups-use-more-width-on-larger-screens/brief.md) (Backlog board). `0419`
+  [`0419`](../../backlog/0419-other-small-standalone-popups-use-more-width-on-larger-screens/brief.md) (Backlog board). `0419`
   already carries a scrollbar item for them, and none of them scrolls today. If this task builds one shared scrollbar
   piece, `0419` should reuse it instead of copying the rules again. Recorded in *Notes*.
 - **No change** to window size, layout, text, or behaviour. Only how the scrollbar looks.

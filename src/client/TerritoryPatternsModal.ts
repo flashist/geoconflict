@@ -160,7 +160,6 @@ export class TerritoryPatternsModal extends LitElement {
             <div
               class="w-12 h-12 rounded-lg border-2 border-white/30 cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg"
               style="background-color: ${hexCode};"
-              title="${hexCode}"
               @click=${() => this.selectColor(hexCode)}
             ></div>
           `,
@@ -174,7 +173,7 @@ export class TerritoryPatternsModal extends LitElement {
     return html`
       <o-modal
         id="territoryPatternsModal"
-        title="${this.activeTab === "patterns"
+        heading="${this.activeTab === "patterns"
           ? translateText("territory_patterns.title")
           : translateText("territory_patterns.colors")}"
       >

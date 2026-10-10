@@ -25,7 +25,7 @@ Unscheduled
 
 **Producer's rank, stated as the producer's: `Medium`** — the same rank class as its two siblings
 [`0227`](../../done/0227-crashed-game-leaves-performancemonitor-running/brief.md) and
-[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md), and **below** them in one specific
+[`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md), and **below** them in one specific
 sense: those two have **confirmed mechanisms**, and this one has an **unproven reachability** whose
 first phase may well end in *close it*. **This board is unranked by design**, so the Priority cell
 reads `—`; the ranking above exists only so the owner can act on it in one edit if they pull this
@@ -256,7 +256,7 @@ completeness, not a green signal:
   game stops the runner but never tells `Main`. Now **three** sites, after `0225`'s review corrected a
   wrong exclusion in its brief. **Overlaps this task's file** (`ClientGameRunner.ts`) but not its
   defect.
-- **[`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md)** — sibling. The `gameStop` half of
+- **[`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md)** — sibling. The `gameStop` half of
   F4, reachability likewise unproven.
 - ⚠️ **All three siblings are open and none blocks this one.** They touch overlapping files, so
   whoever picks two of them up in sequence will have the context loaded — a scheduling convenience,

@@ -31,7 +31,7 @@ export class MatchmakingModal extends LitElement {
     return html`
       <o-modal
         id="matchmaking-modal"
-        title="${translateText("matchmaking_modal.title")}"
+        heading="${translateText("matchmaking_modal.title")}"
       >
         ${this.renderInner()}
       </o-modal>
@@ -173,7 +173,6 @@ export class MatchmakingButton extends LitElement {
         <button
           @click="${this.open}"
           class="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center text-xl focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-offset-4"
-          title="${translateText("matchmaking_modal.title")}"
         >
           Matchmaking
         </button>

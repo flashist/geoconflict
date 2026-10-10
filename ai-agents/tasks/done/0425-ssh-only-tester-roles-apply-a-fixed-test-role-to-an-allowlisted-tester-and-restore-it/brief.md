@@ -30,7 +30,7 @@ top group regardless of the number.**
 ✅ **CONFIRMED 2026-10-09 — OWNER RULING *"Leave it at 22"*** (the owner's own selection, live via `AskUserQuestion` in the coordinating Claude Code session, relayed to a spawned `fkit-producer`; ⛔ not producer precedent). Question: *"Move 0425 up to rank 20?"* Option text: *"Number stays; the board notes already say to treat it as part of the top group."* Rank 22 stands; no row moved.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -44,12 +44,12 @@ fkit-coder
 ### Why now — there is no earned-citizen test account (2026-10-08 incident, task `0424`)
 
 Since the 2026-10-08 incident recorded in
-[`0424`](../0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md), the
+[`0424`](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md), the
 owner's earned test account logs in as a **new, non-citizen record** (tenure gift, 50 XP; the old earned record is
 intact but no longer reached). So every live check that needs an **earned citizen** is blocked:
-[`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) items 3a,
+[`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) items 3a,
 8b and the earned part of item 4, and possibly
-[`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+[`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
 (its host may be *"earned or paid"*, so it may not strictly need earned — the owner decides).
 
 ### How the request took shape (coordinating session, 2026-10-09)
@@ -205,12 +205,12 @@ the box; tests; a runbook entry.
 ## Notes
 
 - **Depends on:** nothing.
-- **Blocks:** [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
+- **Blocks:** [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
   (items 3a, 8b and the earned part of item 4);
-  [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
+  [`0376`](../../backlog/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (only if its host must be an earned citizen — its brief allows *"earned or paid"*).
 - **Related:**
-  - [`0424`](../0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md) —
+  - [`0424`](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md) —
     the incident that removed the earned test account.
   - [`0253`](../../done/0253-tenure-xp-grant-for-existing-players-at-citizenship-launch-research-and-rule/brief.md) —
     the one-time tenure gift the "brand-new" role resets.

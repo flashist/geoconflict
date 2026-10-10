@@ -191,7 +191,7 @@ window disappears with the route; under option B it needs its own guard.**
 - **Multiple `start` messages on one `joinLobby` transport build multiple runners; only the last is
   reachable from the closure** — 0229's shape, now observed by 0231 in after-1b c3 under the
   `TerritoryLayer` failure. Not this brief; it stays with 0229.
-- [`0228`](../0228-handlejoinlobby-stale-gamestop-race/brief.md) (stale `gameStop` across awaits) and
+- [`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md) (stale `gameStop` across awaits) and
   [`0233`](../../done/0233-server-error-and-desync-sites-leave-performancemonitor-running/brief.md) (the three
   modal sites) touch the same `Main.ts` seams — coordinate line numbers, do not fold them in.
 - [`0232`](../../done/0232-worker-tick-error-never-reaches-main-thread/brief.md) /

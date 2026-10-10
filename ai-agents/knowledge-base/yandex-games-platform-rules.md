@@ -31,7 +31,7 @@ browser box that appears on hover, e.g. "Join Lobby" in English over a Russian b
   - [`0412`](../tasks/done/0412-start-screen-private-tab-with-restyled-private-lobby-buttons/brief.md)
     — removes the native tooltip from the two private-lobby buttons ("Создать лобби",
     "Присоединиться к лобби"). 🔲 Backlog.
-  - [`0415`](../tasks/backlog/0415-no-native-browser-tooltips-anywhere-in-the-ui/brief.md) — app-wide
+  - [`0415`](../tasks/done/0415-no-native-browser-tooltips-anywhere-in-the-ui/brief.md) — app-wide
     removal (`o-button` / `o-modal` `title`, and every other `title` attribute). 🔲 Backlog.
 - **Until `0415` ships, native tooltips still exist in the live UI.** Do not add new ones.
 

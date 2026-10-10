@@ -22,6 +22,7 @@ import {
 import type { InboxMessage } from "../core/profile/InboxContract";
 import { translateText } from "../client/Utils";
 import "./components/baseComponents/Modal";
+import { darkScrollbarStyles } from "./components/baseComponents/DarkScrollbarStyles";
 
 type NewsTab = "global" | "personal";
 
@@ -74,145 +75,149 @@ export class NewsModal extends LitElement {
     }
   };
 
-  static styles = css`
-    :host {
-      display: block;
-    }
+  // Flashist Adaptation: task 0423 — the game's dark scrollbar (shadow DOM).
+  static styles = [
+    darkScrollbarStyles,
+    css`
+      :host {
+        display: block;
+      }
 
-    .news-container {
-      overflow-y: auto;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
+      .news-container {
+        overflow-y: auto;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
 
-    /* Tab strip — same look as the start-screen tabs (StartScreenTabs.ts),
+      /* Tab strip — same look as the start-screen tabs (StartScreenTabs.ts),
        written as plain CSS because this component renders in a shadow root. */
-    .news-tabs {
-      display: flex;
-      gap: 3px;
-      border-radius: 10px;
-      background: rgba(28, 28, 30, 0.85);
-      padding: 3px;
-      margin: 1rem 1rem 0;
-      box-sizing: border-box;
-      width: calc(100% - 2rem);
-    }
+      .news-tabs {
+        display: flex;
+        gap: 3px;
+        border-radius: 10px;
+        background: rgba(28, 28, 30, 0.85);
+        padding: 3px;
+        margin: 1rem 1rem 0;
+        box-sizing: border-box;
+        width: calc(100% - 2rem);
+      }
 
-    .news-tab {
-      flex: 1;
-      padding: 7px 8px;
-      border: 0;
-      border-radius: 8px;
-      font-size: 13px;
-      line-height: 1.25;
-      font-weight: 700;
-      cursor: pointer;
-      background: transparent;
-      color: #8e8e93;
-      transition:
-        color 0.2s ease,
-        background-color 0.2s ease;
-    }
+      .news-tab {
+        flex: 1;
+        padding: 7px 8px;
+        border: 0;
+        border-radius: 8px;
+        font-size: 13px;
+        line-height: 1.25;
+        font-weight: 700;
+        cursor: pointer;
+        background: transparent;
+        color: #8e8e93;
+        transition:
+          color 0.2s ease,
+          background-color 0.2s ease;
+      }
 
-    .news-tab:hover {
-      color: #fff;
-    }
+      .news-tab:hover {
+        color: #fff;
+      }
 
-    .news-tab[aria-selected="true"] {
-      background: #2563eb;
-      color: #fff;
-    }
+      .news-tab[aria-selected="true"] {
+        background: #2563eb;
+        color: #fff;
+      }
 
-    .announcement-card {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      color: #f4f4f5;
-      line-height: 1.5;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 1rem;
-    }
+      .announcement-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        color: #f4f4f5;
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+      }
 
-    .announcement-card.unread {
-      border-color: rgba(59, 130, 246, 0.6);
-    }
+      .announcement-card.unread {
+        border-color: rgba(59, 130, 246, 0.6);
+      }
 
-    .announcement-header {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
+      .announcement-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
 
-    .announcement-title {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1.3;
-      color: #fff;
-    }
+      .announcement-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: #fff;
+      }
 
-    .announcement-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      color: #d4d4d8;
-      font-size: 0.92rem;
-    }
+      .announcement-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        color: #d4d4d8;
+        font-size: 0.92rem;
+      }
 
-    .announcement-tag {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 999px;
-      padding: 0.2rem 0.55rem;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      text-transform: uppercase;
-    }
+      .announcement-tag {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+      }
 
-    .announcement-tag.new {
-      background: rgba(34, 197, 94, 0.16);
-      color: #86efac;
-    }
+      .announcement-tag.new {
+        background: rgba(34, 197, 94, 0.16);
+        color: #86efac;
+      }
 
-    .announcement-tag.upcoming {
-      background: rgba(245, 158, 11, 0.16);
-      color: #fcd34d;
-    }
+      .announcement-tag.upcoming {
+        background: rgba(245, 158, 11, 0.16);
+        color: #fcd34d;
+      }
 
-    .announcement-tag.update {
-      background: rgba(59, 130, 246, 0.16);
-      color: #93c5fd;
-    }
+      .announcement-tag.update {
+        background: rgba(59, 130, 246, 0.16);
+        color: #93c5fd;
+      }
 
-    .announcement-body {
-      margin: 0;
-      white-space: pre-wrap;
-      color: #e4e4e7;
-    }
+      .announcement-body {
+        margin: 0;
+        white-space: pre-wrap;
+        color: #e4e4e7;
+      }
 
-    .empty-state {
-      color: #ddd;
-      line-height: 1.5;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 8px;
-      padding: 1rem;
-    }
-  `;
+      .empty-state {
+        color: #ddd;
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        padding: 1rem;
+      }
+    `,
+  ];
 
   render() {
     const showPersonal = this.inbox.available && this.activeTab === "personal";
 
     return html`
       <o-modal
-        title=${translateText("announcements.title")}
+        heading=${translateText("announcements.title")}
         @modal-close=${this.handleModalClosed}
       >
         <div class="options-layout">

@@ -77,10 +77,18 @@ describe("renderCitizenBadge (task 0068)", () => {
     return host.innerHTML;
   }
 
-  it("routes both visible strings through translateText", () => {
+  it("routes its screen-reader name through translateText", () => {
     const html = renderToHtml();
-    expect(html).toContain(`t:${SECTION}.tooltip`);
     expect(html).toContain(`t:${SECTION}.aria_label`);
+  });
+
+  // Task 0415: no native browser tooltip (Yandex Games rule). The
+  // `citizen_badge.tooltip` key is kept in en/ru but no longer rendered.
+  it("carries no title attribute (no native browser tooltip)", () => {
+    const host = document.createElement("div");
+    render(renderCitizenBadge(), host);
+    expect(host.querySelector("[title]")).toBeNull();
+    expect(renderToHtml()).not.toContain(`t:${SECTION}.tooltip`);
   });
 
   it("is announced to screen readers", () => {

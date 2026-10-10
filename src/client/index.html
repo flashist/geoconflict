@@ -183,7 +183,7 @@
         <territory-patterns-modal class="w-[20%] md:w-[15%]">
           <button id="territory-patterns-input-preview-button"
             class="w-full border p-[4px] rounded-lg flex cursor-pointer border-black/30 dark:border-gray-300/60 bg-white/70 dark:bg-[rgba(55,65,81,0.7)] justify-center"
-            title="Pick a pattern!"></button>
+            aria-label="Pick a pattern!"></button>
         </territory-patterns-modal>
         <username-input class="relative w-full"></username-input>
       </div>
@@ -201,9 +201,9 @@
       </div>
 
       <div id="singleplayer-tab-content" class="flex flex-col gap-2.5 hidden">
-        <o-button id="single-player" title="Custom Game" translationKey="main.single_player"
+        <o-button id="single-player" translationKey="main.single_player"
           subtitleTranslationKey="main.single_player_subtitle" icon="🗺️" chevron menurow block></o-button>
-        <o-button id="single-play-mission" title="" subtitleTranslationKey="main.play_mission_subtitle" icon="🎯"
+        <o-button id="single-play-mission" subtitleTranslationKey="main.play_mission_subtitle" icon="🎯"
           chevron menurow block></o-button>
       </div>
 
@@ -229,7 +229,7 @@
         </div>
       </div>
 
-      <o-button id="help-button" class="mt-auto" title="Instructions" translationKey="main.instructions"
+      <o-button id="help-button" class="mt-auto" translationKey="main.instructions"
         subtitleTranslationKey="main.instructions_subtitle" icon="📖" chevron menurow block secondary></o-button>
       <div class="container__row">
         <lang-selector class="w-full"></lang-selector>
@@ -242,12 +242,12 @@
     <news-button class="component-hideable"></news-button>
   </div>
   <div id="start-screen-utility-buttons" class="fixed bottom-4 right-4 z-50 flex items-end gap-2">
-    <button id="feedback-button" title="Feedback"
+    <button id="feedback-button"
       class="rounded-full shadow-lg transition-colors duration-300 flex items-center justify-center"
       style="width: 40px; height: 40px; background-color: #0075ff;">
       <img src="../../resources/images/FeedbackIconWhite.svg" alt="Feedback" style="width: 28px; height: 28px" />
     </button>
-    <button id="settings-button" title="Settings"
+    <button id="settings-button"
       class="rounded-full p-2 shadow-lg transition-colors duration-300 flex items-center justify-center"
       style="width: 80px; height: 80px; background-color: #0075ff">
       <img src="../../resources/images/SettingIconWhite.svg" alt="Settings" style="width: 72px; height: 72px" />

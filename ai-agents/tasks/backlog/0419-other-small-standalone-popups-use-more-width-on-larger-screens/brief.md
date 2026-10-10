@@ -143,7 +143,11 @@ The producer recommends; the owner decides. Put these to the owner in plain word
 
 - **Depends on:** `0417`
 - **Blocks:** nothing
-- **Scrollbar (2026-10-09, owner ruling *"Keep them in 0419"*):** the scrollbar item here should reuse [`0423`](../0423-dark-thin-scrollbar-in-every-game-window/brief.md)'s shared dark-scrollbar piece rather than copy the rules again.
+- **Scrollbar (2026-10-09, owner ruling *"Keep them in 0419"*):** the scrollbar item here should reuse [`0423`](../../done/0423-dark-thin-scrollbar-in-every-game-window/brief.md)'s shared dark-scrollbar piece rather than copy the rules again.
+  - ℹ️ **Note, 2026-10-09 (builder's finding at `0423`'s close, relayed by `fkit-lead` — informational, not an owner
+    ruling):** `FeedbackModal`'s `<textarea>` sits in shadow DOM and still shows the light default scrollbar. Fix:
+    add the shared `darkScrollbarStyles` (new in `src/client/components/baseComponents/DarkScrollbarStyles.ts`, from
+    `0423`) to `FeedbackModal`'s `static styles`. Left here because the owner ruled `FeedbackModal` belongs to `0419`.
 - Related: `0417` (the same change for the citizenship explainer — the approach this reuses), `0301` (the explainer
   popup).
 - **Shared files:** both HTML templates (`src/client/index.html` and `src/client/yandex-games_iframe.html`) host these

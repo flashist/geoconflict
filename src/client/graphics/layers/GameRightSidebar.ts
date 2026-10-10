@@ -13,7 +13,6 @@ import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { PauseGameEvent } from "../../Transport";
 import { clearReconnectSession } from "../../ReconnectSession";
-import { translateText } from "../../Utils";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { ShowSettingsModalEvent } from "./SettingsModal";
@@ -165,7 +164,6 @@ export class GameRightSidebar extends LitElement implements Layer {
           ${this.maybeRenderReplayButtons()}
           <div
             class="w-6 h-6 cursor-pointer"
-            title=${translateText("feedback_modal.button_tooltip")}
             @click=${this.onFeedbackButtonClick}
           >
             <img
