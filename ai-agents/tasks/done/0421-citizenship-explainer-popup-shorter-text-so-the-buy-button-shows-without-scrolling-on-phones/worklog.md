@@ -164,6 +164,6 @@ still has it.
   served locally, browser window at 390 × 844 and 360 × 640).
 - The live check goes to a verify task filed at this task's close (owner's build/verify-split rule, 2026-09-29). It
   does not block anything. It was first filed as `0422`, then — OWNER RULING *"Fold into 0420 (Recommended)"*,
-  2026-10-09 — folded into [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) as **item 8**; `0422` is cancelled.
+  2026-10-09 — folded into [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) as **item 8**; `0422` is cancelled.
 - `0420` items 2 and 5 updated to the popup as it now is (owner ruling *"Update 0420 after build (Recommended)"*),
   by a spawned `fkit-producer`, 2026-10-09. Item 3's quoted text is unchanged by this task, so item 3 was left as is.

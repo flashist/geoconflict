@@ -26,7 +26,7 @@ Sprint 8
 > ADR-035. Rank barely matters here: the deploy, not the rank, decides when it can start.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, by hand, inside the Yandex Games iframe, after the deploy. No agent

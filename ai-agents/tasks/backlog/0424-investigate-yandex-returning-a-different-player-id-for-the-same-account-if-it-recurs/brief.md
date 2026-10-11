@@ -140,7 +140,7 @@ Ideas, not commitments — the investigator picks what the new evidence makes wo
   - [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) — the login-verification
     numbers (`id_mismatch` was 0), which rule out our code changing the id.
   - [`0376`](../../done/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md) and
-    [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) — live
+    [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) — live
     checks that use the earned test account. ⚠️ **If that account now resolves to a fresh, non-citizen record, any live
     check that needs an earned citizen will not get one from it** until this is understood or the record is recovered.
 - **No secrets:** this brief deliberately records no ids, fingerprints, hosts or account names.

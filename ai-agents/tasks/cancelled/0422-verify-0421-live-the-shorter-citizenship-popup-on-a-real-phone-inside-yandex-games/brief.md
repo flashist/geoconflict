@@ -52,7 +52,7 @@ the text as small as possible, while preserving the meaning."* So "Buy visible w
 a "no" is worth knowing — but it is not a failure of `0421`, and it does not reopen it. A "no" goes back to the owner
 as a question (see *Verification steps*).
 
-**Overlap with [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
+**Overlap with [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
 — read before running.** `0420` items 2, 3 and 5 look at the same popup (its text, the earned account's Buy button, the
 phone width), and items 2 and 5 were updated to `0421`'s text on 2026-10-09. What only this task asks: a **real phone**,
 **Buy visible without scrolling**, the **"get it free" line absent for citizens**. The two can be run in one sitting
@@ -127,7 +127,7 @@ failure (`0421` open point 3).
 - **Depends on:** [`0421`](../../done/0421-citizenship-explainer-popup-shorter-text-so-the-buy-button-shows-without-scrolling-on-phones/brief.md)
   — built, deployed in game `0.0.161` (2026-10-09).
 - **Blocks:** nothing. It does not block any deploy (owner's build/verify-split rule, 2026-09-29).
-- Related: [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
+- Related: [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
   (items 2, 3 and 5 — same popup, same accounts; run together if convenient), `0409` (the earned account's Buy button),
   `0401` (the earned test account must stay earned).
 - ❓ **OPEN QUESTION for the owner — keep this task separate, or fold it into `0420`?** The producer judges folding is

@@ -100,3 +100,24 @@ during this run. The Yandex SDK copy path stays unproven. Never recorded as pass
 - ~~Item 8 (a) non-citizen on a phone; item 6 non-tester (2 tabs); items 5 and 6 at phone width~~ (done 2026-10-09, above). Item 7 (A) on a phone: not run (optional — not required by the brief).
 - ~~Item 1 — private lobby start and the read-only game-log check~~ (done 2026-10-09, above).
 - Item 7 (B) — record **not checked live** (owner ruling 2026-10-08), unless an error window appears on its own.
+
+### Earned test account — unblocked by `0430` — 2026-10-11 (~07:00Z)
+
+The owner's non-citizen login (XP 51 before) was given the `earned-citizen` tester role by `0430` (applied 06:47Z,
+fkit lead, owner's OK in session). Login verified (the session token's verified flag was true). Full reload → the
+account showed as earned citizen. Game `0.0.163`. Russian.
+
+| Item / bullet | Result | Evidence |
+|---|---|---|
+| Item 4 — earned-only account: no paid thank-you line on the start-screen card | **pass** | owner, verbatim: *"1. Ok."* |
+| Item 3 (a) — popup: "Вы уже гражданин.", "Платное гражданство", blue Buy button above "Закрыть"; Buy **not tapped** | **pass** | owner, verbatim: *"2. Ok."* |
+| Item 8 (b) — real phone, portrait: no "Получите бесплатно…" line; "Вы уже гражданин.", heading and Buy visible without scrolling, "Закрыть" below; Buy **not tapped** | **pass** — iPhone 16e | owner, verbatim: *"3. Ok (iPhone 16e, but there are quite a lot of free space for even "shorter" by height screens)"* |
+| Browser / Yandex app on the phone | **not recorded** — the owner gave the model only | — |
+| Account still earned afterwards (Buy not tapped) | yes — not tapped per the steps given; no purchase reported | — |
+
+Owner's observation (item 8): plenty of spare height on the iPhone 16e, so shorter phones should fit too — an
+inference from one phone, not a measurement on a shorter one.
+
+### Still to run (updated 2026-10-11)
+- None required. Item 7 (B) stays **not checked live** (owner ruling 2026-10-08). Item 7 (A) on a phone: not run
+  (optional). The earned role is removed by `0430` step (e) `restore`.

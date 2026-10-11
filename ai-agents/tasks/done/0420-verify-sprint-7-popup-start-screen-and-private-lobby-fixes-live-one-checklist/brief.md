@@ -36,7 +36,7 @@ Sprint 8
 > `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent): no re-rank; read it as the top group.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, inside the Yandex Games shell, on his own test accounts, after

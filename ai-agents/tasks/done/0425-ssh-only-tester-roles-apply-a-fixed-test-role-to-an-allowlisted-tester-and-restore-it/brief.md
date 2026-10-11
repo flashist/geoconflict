@@ -47,7 +47,7 @@ Since the 2026-10-08 incident recorded in
 [`0424`](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md), the
 owner's earned test account logs in as a **new, non-citizen record** (tenure gift, 50 XP; the old earned record is
 intact but no longer reached). So every live check that needs an **earned citizen** is blocked:
-[`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) items 3a,
+[`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md) items 3a,
 8b and the earned part of item 4, and possibly
 [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
 (its host may be *"earned or paid"*, so it may not strictly need earned — the owner decides).
@@ -205,7 +205,7 @@ the box; tests; a runbook entry.
 ## Notes
 
 - **Depends on:** nothing.
-- **Blocks:** [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
+- **Blocks:** [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)
   (items 3a, 8b and the earned part of item 4);
   [`0376`](../0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md)
   (only if its host must be an earned citizen — its brief allows *"earned or paid"*).

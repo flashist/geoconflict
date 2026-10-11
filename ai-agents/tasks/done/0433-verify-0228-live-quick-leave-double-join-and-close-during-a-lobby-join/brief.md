@@ -27,7 +27,7 @@ Sprint 8
 > always appends. Rank barely matters: the deploy of `0228`, not the rank, decides when it can start.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, by hand, inside the Yandex Games page, after `0228` is deployed.
@@ -53,7 +53,7 @@ fix the same 9 runs were clean. `0228` closed on that local proof, agent-closed 
 the live check.**
 
 **Why it gates private lobbies for everyone.** `0228` is item 3 of the private-lobby release gate (`0354`). By owner
-ruling (2026-10-10, above) [`0428`](../0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md)
+ruling (2026-10-10, above) [`0428`](../../backlog/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md)
 — turning private lobbies on for everyone — waits for this check.
 
 **What `0228` did NOT prove — this task covers each where it can be seen:**
@@ -135,3 +135,4 @@ and whether a console line above was seen (desktop only).
   for (b) and (c)), `0432` (a separate leak `0228`'s builder noticed; not part of this check).
 - Deploy: weekend slot (owner rule 2026-09-29) unless the owner says otherwise.
 - Filed 2026-10-10 by a spawned `fkit-producer` at `0228`'s close, on the owner ruling above. ⛔ Not producer precedent.
+- 📌 **2026-10-11 — closed `✅ Done (agent-closed — not owner-verified)`** by a spawned `fkit-producer` on the OWNER RULING (2026-10-11, `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent), verbatim: *"I checked the main and easy points, but I didn't do something that I am thinking an overkill for us (phone join-close, etc.). Let's consider this check to be done and everything is ok"*. ⚠️ Checks not itemized; (c) phone join-close **not run**; slow network and the 5-minute wait **not recorded** — this shows **no regression on the main paths**, not that the `0228` fix works live under the conditions it targets. Evidence: `worklog.md`. `0428` no longer waits on this task.

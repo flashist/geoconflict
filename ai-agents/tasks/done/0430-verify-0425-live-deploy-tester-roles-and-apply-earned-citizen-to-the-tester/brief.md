@@ -31,7 +31,7 @@ Sprint 8
 > (31, `0429`). **Read it as the top group regardless of the number.**
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, on the profile box over SSH and on the tester's own device. Every
@@ -130,14 +130,14 @@ item.
 ## Notes
 
 - **Depends on:** `0425` committed (then deployed by step a).
-- **Unblocks:** [`0420`](../0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
+- **Unblocks:** [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
   earned-account items (3a, 8b and the earned part of item 4), and possibly
   [`0376`](../../done/0376-verify-private-lobbies-in-production-a-citizen-hosts-inside-yandex-and-a-friend-joins/brief.md) (only
   if its host must be an earned citizen — its brief allows "earned or paid"; the owner decides).
 - Build task: [`0425`](../../done/0425-ssh-only-tester-roles-apply-a-fixed-test-role-to-an-allowlisted-tester-and-restore-it/brief.md)
   (closed 2026-10-09, agent-closed — not owner-verified). Its `worklog.md` has the checks (client caches, paid display,
   statistics, the tenure gift) and the full verification table.
-- Related: [`0424`](../0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md) —
+- Related: [`0424`](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md) —
   if the tester's Yandex id changes again, the role and snapshot stay on the old record (runbook *Recovery*).
 - Deploy: **mid-week, by owner ruling** — an exception for this deploy only, not a change to the weekend-slot rule.
 - No ids, hosts, URLs or secrets belong in this brief or its worklog.

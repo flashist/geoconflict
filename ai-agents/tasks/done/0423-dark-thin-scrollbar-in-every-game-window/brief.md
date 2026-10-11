@@ -35,7 +35,7 @@ fkit-coder
 ### What was seen (2026-10-09, production game `0.0.161`, paid account, computer, inside Yandex Games)
 
 The owner's screenshot of the **"Одиночная игра" window** (`SinglePlayerModal`, built on the shared `o-modal`), taken
-while running [`0420`](../../backlog/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
+while running [`0420`](../../done/0420-verify-sprint-7-popup-start-screen-and-private-lobby-fixes-live-one-checklist/brief.md)'s
 checklist, shows the browser's **default light scrollbar** on the right. It is not the dark, thin scrollbar the rest of
 the game uses. Relayed by the coordinating session.
 
