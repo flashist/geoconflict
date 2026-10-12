@@ -169,6 +169,17 @@ if (alertWebhookToken.length === 0) {
       "(alerts will be dropped)",
   );
 }
+// SSH security alerts (task 0443): the bearer token every box's ssh-alerts.sh agent sends.
+// 🚨 NEVER box-generated — a value only this box knows would reject every agent's events. Blank
+// ⇒ the route answers 503 to everything and the agents keep their events spooled. The warn
+// names the VARIABLE only. A LITERAL process.env read, so the config-parity checker sees it.
+const sshAlertToken = process.env.PROFILE_SSH_ALERT_TOKEN ?? "";
+if (sshAlertToken.length === 0) {
+  log.warn(
+    "PROFILE_SSH_ALERT_TOKEN is not set — the SSH alert route answers 503 " +
+      "(no login / fail2ban / daily SSH alerts are delivered)",
+  );
+}
 const nameChange = new NameChangeRepository(pool, inbox, {
   token: telegramToken,
   chatId: telegramChatId,
@@ -196,6 +207,15 @@ const app = createApp(
     tenureGrant: profiles,
     alertRelay: {
       secret: alertWebhookToken,
+      telegram: {
+        token: telegramToken,
+        chatId: telegramChatId,
+        proxyUrl: telegramProxyUrl,
+        threadId: telegramTopicAlerts,
+      },
+    },
+    sshAlerts: {
+      token: sshAlertToken,
       telegram: {
         token: telegramToken,
         chatId: telegramChatId,

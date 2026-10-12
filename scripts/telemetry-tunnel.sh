@@ -59,9 +59,15 @@ fi
 ALLOW_PASSWORD_FALLBACK="${ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK:-${ALLOW_SSH_PASSWORD_FALLBACK:-}}"
 
 SSH_CMD=(ssh -o StrictHostKeyChecking=no -N -L 14318:localhost:14318)
+# Owned by this script: set only in the password branch below. Cleared first so a value
+# inherited from the shell or a .env* file never reaches the EXIT trap's rm -f.
+SSH_PASSWORD_FILE=""
 
 if [ -n "$SSH_KEY_PATH" ]; then
-    SSH_CMD+=(-i "$SSH_KEY_PATH")
+    # IdentitiesOnly (task 0441, mirror of build-deploy-profile.sh 0221): offer ONLY this key.
+    # Every other agent key ssh tries first is a failed auth that counts toward MaxAuthTries
+    # and the box's fail2ban jail, and can ban the operator.
+    SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
 elif [ -n "$SSH_PASSWORD" ]; then
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based telemetry tunnel is disabled by default."
@@ -74,7 +80,16 @@ elif [ -n "$SSH_PASSWORD" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for telemetry tunnel."
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -N -L 14318:localhost:14318)
+    # Task 0441: the password goes to sshpass as a 0600 FILE (-f), never on the command line
+    # (-p), where any local process could read it with `ps`. The tunnel runs until Ctrl-C, so
+    # INT/TERM go through `exit` and the EXIT trap removes the file then too.
+    SSH_PASSWORD_FILE=$(mktemp)
+    trap 'rm -f "$SSH_PASSWORD_FILE"' EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    chmod 600 "$SSH_PASSWORD_FILE"
+    printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
+    SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh -o StrictHostKeyChecking=no -N -L 14318:localhost:14318)
 else
     echo "Error: No telemetry SSH authentication configured."
     echo "Provide TELEMETRY_SSH_KEY. Password fallback is deprecated."

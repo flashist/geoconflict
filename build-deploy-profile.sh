@@ -43,6 +43,9 @@ BACKUP_SCRIPT="./profile-backup.sh"
 # The daily operability checker (task 0219). Same transport; setup-profile.sh installs it to
 # /opt/profile/checks.sh and schedules it.
 CHECKS_SCRIPT="./profile-checks.sh"
+# The SSH security alert agent (task 0443). Same transport; setup-profile.sh installs it with
+# its own `install` subcommand (the token on stdin).
+SSH_ALERTS_SCRIPT="./ssh-alerts.sh"
 
 print_header() {
     echo "======================================================"
@@ -144,6 +147,10 @@ if [ ! -f "$CHECKS_SCRIPT" ]; then
     echo "Error: $CHECKS_SCRIPT not found"
     exit 1
 fi
+if [ ! -f "$SSH_ALERTS_SCRIPT" ]; then
+    echo "Error: $SSH_ALERTS_SCRIPT not found"
+    exit 1
+fi
 if [ ! -f "$BACKUP_SCRIPT" ]; then
     echo "Error: $BACKUP_SCRIPT not found"
     exit 1
@@ -190,7 +197,7 @@ fi
 # Provenance: the build copies the LIVE worktree, but the tag names a commit. So the deploy
 # is REFUSED, before anything is built, when there is no git commit at all or when any file
 # it ships has uncommitted or untracked changes (owner ruling at 0355's plan gate). The check is
-# SCOPED to what ships — Dockerfile.profile's COPY sources, the three SCP'd scripts, this script
+# SCOPED to what ships — Dockerfile.profile's COPY sources, the four SCP'd scripts, this script
 # and its helper — so a note under ai-agents/ never blocks a deploy. The harness asserts every
 # COPY source is in PROFILE_SHIPPED_PATHS (no drift).
 # What it proves, exactly: at the moment of this check, `git status` reports no modified,
@@ -209,7 +216,7 @@ if [ "$GIT_COMMIT" = "unknown" ]; then
     exit 1
 fi
 
-PROFILE_SHIPPED_PATHS=(package.json package-lock.json tsconfig.json src migrations Dockerfile.profile setup-profile.sh profile-backup.sh profile-checks.sh build-deploy-profile.sh scripts/deploy-version-tag.sh)
+PROFILE_SHIPPED_PATHS=(package.json package-lock.json tsconfig.json src migrations Dockerfile.profile setup-profile.sh profile-backup.sh profile-checks.sh ssh-alerts.sh build-deploy-profile.sh scripts/deploy-version-tag.sh)
 if DIRTY_SHIPPED=$(deploy_shipped_tree_dirty "${PROFILE_SHIPPED_PATHS[@]}"); then
     echo "Error: files this deploy ships have uncommitted changes — refusing to deploy."
     echo "       The image would not match commit ${GIT_COMMIT}. Nothing was built."
@@ -551,6 +558,8 @@ REMOTE_SCRIPT="/root/setup-profile.sh"
 REMOTE_BACKUP_SCRIPT="/root/profile-backup.sh"
 # setup-profile.sh installs this to /opt/profile/checks.sh (its PROFILE_CHECKS_SRC default).
 REMOTE_CHECKS_SCRIPT="/root/profile-checks.sh"
+# setup-profile.sh installs the agent from here (its PROFILE_SSH_ALERTS_SRC default).
+REMOTE_SSH_ALERTS_SCRIPT="/root/ssh-alerts.sh"
 
 print_header "DEPLOYING PROFILE BACKEND TO ${PROFILE_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
@@ -650,6 +659,10 @@ echo "Uploaded to ${REMOTE_BACKUP_SCRIPT}"
 chmod +x "$CHECKS_SCRIPT"
 "${SCP_CMD[@]}" "$CHECKS_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_CHECKS_SCRIPT}"
 echo "Uploaded to ${REMOTE_CHECKS_SCRIPT}"
+# And the SSH security alert agent (0443) — same transport.
+chmod +x "$SSH_ALERTS_SCRIPT"
+"${SCP_CMD[@]}" "$SSH_ALERTS_SCRIPT" "${REMOTE_USER}@${PROFILE_SERVER_HOST}:${REMOTE_SSH_ALERTS_SCRIPT}"
+echo "Uploaded to ${REMOTE_SSH_ALERTS_SCRIPT}"
 
 # ── Run setup remotely ────────────────────────────────────────────────────────
 
@@ -706,6 +719,10 @@ chmod 600 "$LOCAL_TMPENV"
     printf "export TELEGRAM_TOPIC_ALERTS=%q\n" "${TELEGRAM_TOPIC_ALERTS:-}"
     printf "export TELEGRAM_TOPIC_NAME_CHANGES=%q\n" "${TELEGRAM_TOPIC_NAME_CHANGES:-}"
     printf "export PROFILE_ALERT_WEBHOOK_TOKEN=%q\n" "${PROFILE_ALERT_WEBHOOK_TOKEN:-}"
+    # Task 0443. The SSH alert token every box's agent sends — the SAME value goes into the game
+    # (.env.secret) and telemetry (.env.telemetry.secret) deploys. Never generated on the box.
+    # Empty = the box reuses its persisted value (0220); to clear it, rm the persist file on the box.
+    printf "export PROFILE_SSH_ALERT_TOKEN=%q\n" "${PROFILE_SSH_ALERT_TOKEN:-}"
     # Login session HMAC key (task 0271). Blank is the NORMAL case: the box reuses its persisted
     # key, or generates one on the first deploy. A value set here rotates the key — every live
     # session 401s once and the client silently logs in again. Not shared with the game server.

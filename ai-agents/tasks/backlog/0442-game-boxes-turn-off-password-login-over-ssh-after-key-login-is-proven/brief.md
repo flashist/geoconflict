@@ -15,7 +15,7 @@ Sprint 8
 > 📌 **OWNER RULING, 2026-10-12, given live via `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead` to a
 > spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"File it to the
 > current sprint, and it should be our top priority to work on."* Second half of the producer's split; first half is
-> [`0441`](../0441-game-boxes-install-an-ssh-key-and-switch-game-deploys-to-key-login/brief.md).
+> [`0441`](../../done/0441-game-boxes-install-an-ssh-key-and-switch-game-deploys-to-key-login/brief.md).
 
 > 📌 **OWNER RULING, 2026-10-12 (later the same day), given live via `AskUserQuestion` in the `fkit lead` session**,
 > relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
@@ -60,11 +60,16 @@ SSHD*. Read it before planning. It already solves the traps:
 
 ## What to build
 
-1. **Gate:** `0441` closed, its verification shows a key-only login and a full deploy over the key on every in-scope box
+1. **Gate:** ~~`0441` closed, its verification shows~~ **`0445` closed (re-pointed 2026-10-12, see *Notes*), its
+   verification shows** a key-only login and a full deploy over the key on every in-scope box
    (game boxes **and telemetry**).
    If not, stop.
-2. **Choose how the change is applied** (open question 1): baked into `setup.sh` — and `setup-telemetry.sh` for the
-   telemetry box — the way `0221` did it for the profile box (repeatable, re-applied if the box is rebuilt), or a one-off owner-run step written in the runbook. Either way,
+2. ~~**Choose how the change is applied** (open question 1): baked into `setup.sh` — and `setup-telemetry.sh` for the
+   telemetry box — the way `0221` did it for the profile box (repeatable, re-applied if the box is rebuilt), or a one-off owner-run step written in the runbook.~~
+   **Overtaken 2026-10-12 — see open question 1 (ruled).** Game boxes: the sshd section goes in the every-deploy root
+   step **`setup-game-host.sh`** (created by `0443`) — written there by this task if `0443` has landed, otherwise moved
+   there later by [`0446`](../0446-game-boxes-rebuild-from-scripts-alone-move-the-hand-set-up-parts-into-the-every-deploy-root-step/brief.md).
+   Telemetry: `setup-telemetry.sh` already runs as root on every telemetry deploy, so its section goes there. Either way,
    the same guards and rollback as `0221`.
 3. **The settings:** password login off, keyboard-interactive off, empty passwords off, key login on; root login per
    `0441` open question 2 (recommended: `prohibit-password`, key-only). Keep `MaxAuthTries` as is unless the plan shows a
@@ -95,17 +100,29 @@ scope, owner ruling 2026-10-12**; changing fail2ban or `MaxStartups` settings; l
 3. `sshd -T` and `sshd -T -C user=root,…` show password login off and the chosen root setting.
 4. A full game deploy to each game box, and a telemetry deploy, completes over the key.
 5. `fail2ban-client status sshd` shows the jail up; the failed-attempt counter still grows over a few hours.
-6. If done in `setup.sh` / `setup-telemetry.sh`: the deploy hardening harness covers the new section in each (as it does
+6. If done in ~~`setup.sh`~~ `setup-game-host.sh` (per the 2026-10-12 ruling, open question 1) / `setup-telemetry.sh`: the deploy hardening harness covers the new section in each (as it does
    for `setup-profile.sh`) and `npm test` is green.
 7. Runbook names no host, address, key contents or password.
 
 ## Notes
-- **Depends on:** 0441
+- **Depends on:** 0445
+- *Re-pointed 2026-10-12 from `0441` to `0445`* — 📌 **OWNER RULING, 2026-10-12, given live via `AskUserQuestion` in the `fkit lead` session** (driver of `fkit-sprint-ship-loop`), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim selection: *"Close; verify task in Sprint 8 (Recommended)"* — *"… 0442 then waits on that verify task."* `0441` closed on its repo work (agent-closed, not owner-verified); the key installs, key-only login checks and proof deploys this task's gate needs now live in [`0445`](../0445-verify-0441-on-the-boxes-install-the-ssh-keys-prove-key-only-login-and-deploy-over-the-key/brief.md).
 - **Blocks:** nothing
+- **Related:** [`0443`](../../done/0443-ssh-security-alerts-to-telegram-on-all-three-boxes-logins-fail2ban-down-daily-counts/brief.md) (creates `setup-game-host.sh`, the game boxes' every-deploy root step); [`0446`](../0446-game-boxes-rebuild-from-scripts-alone-move-the-hand-set-up-parts-into-the-every-deploy-root-step/brief.md) (moves the hand-set-up parts, incl. these sshd settings if this task ships first, into that step).
 - **Open questions for the owner** (recommended default first):
-  1. **How to apply.** *Recommended: in `setup.sh`, copying `0221`'s section, so a rebuilt box comes back hardened and the
+  1. ~~**How to apply.** *Recommended: in `setup.sh`, copying `0221`'s section, so a rebuilt box comes back hardened and the
      deploy test checks it.* Alternative: a one-off command list in the runbook — quicker, but a rebuilt box would come
-     back with passwords on.
+     back with passwords on.~~
+     ✅ **OVERTAKEN — RULED 2026-10-12** (struck, not deleted, so it is not re-asked). 📌 **OWNER RULING, given live via
+     `AskUserQuestion` in the `fkit lead` session while planning `0443` (its Q6)**, relayed by `fkit-sprint-ship-loop` to
+     a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim free text:
+     *"ideally, everything should be set-up out of the install/update scripts"* → selected **"Way A: every deploy, root
+     step (Recommended)"**. ⇒ Host setup goes in an **every-deploy root step, `setup-game-host.sh`**, created by `0443`
+     — not `setup.sh` (one-time, never re-run by a deploy, so it would not reach the existing boxes) and not a one-off
+     runbook step. **The sshd section lands there: via this task itself if `0443`'s root step exists when this task is
+     planned, else via [`0446`](../0446-game-boxes-rebuild-from-scripts-alone-move-the-hand-set-up-parts-into-the-every-deploy-root-step/brief.md)**
+     (`0446` open question 1 holds the same order). Telemetry is unchanged by this ruling: `setup-telemetry.sh` already
+     runs as root on every telemetry deploy.
   2. **Root password after the change.** *Recommended: keep it, stored in the password manager, as the provider-console
      way in; SSH will ignore it.* Alternative: rotate it at the same time.
 - Root-login policy and which boxes: decided in `0441`'s open questions 2 and 3; this task follows them. Telemetry is in

@@ -30,6 +30,9 @@ const NODE_DIR = path.dirname(process.execPath);
 // helper build-deploy-profile.sh sources right after its guard (task 0355).
 const COPIED = [
   "deploy.sh",
+  // Task 0443: the root step deploy.sh ships after the game update.
+  "setup-game-host.sh",
+  "ssh-alerts.sh",
   "build-deploy.sh",
   "build-deploy-profile.sh",
   "update.sh",
@@ -134,12 +137,17 @@ function runScript(
 
 // Enough for deploy.sh to reach the ssh on a dev deploy. Fake by construction:
 // a documentation-range address (RFC 5737) and a key file that is not a key.
+// Task 0443: the root step needs the SSH alert token + PROFILE_API_URL, or it is SKIPPED and
+// deploy.sh exits 3 after the game is live (owner ruling Q-A1). Both are fake here; the stub
+// ssh "succeeds", so the step reads OK.
 function deployEnv(tree: Tree, env: "dev" | "prod"): Record<string, string> {
   return {
     [`SERVER_HOST_${env.toUpperCase()}`]: "203.0.113.10",
     DOCKER_USERNAME: "acme",
     DOCKER_REPO: "game",
     SSH_KEY: path.join(tree.root, "fake-key"),
+    PROFILE_SSH_ALERT_TOKEN: "0443-fake-ssh-alert-token-not-real",
+    PROFILE_API_URL: "https://api.example.invalid",
   };
 }
 
@@ -157,7 +165,7 @@ it("a PATH without node really has no node (the no-node cases below depend on it
 // ── deploy.sh ─────────────────────────────────────────────────────────────────
 describe("deploy.sh — the armed name guard and value guard", () => {
   maybe(
-    "a clean tree deploys: exit 0, and the ssh ran (step 3, second half)",
+    "a clean tree deploys: exit 0, and the ssh ran (step 3, second half; 0443: then the root step)",
     () => {
       const tree = makeTree();
       const run = runScript(
@@ -170,7 +178,8 @@ describe("deploy.sh — the armed name guard and value guard", () => {
         "enforce (blocking: game, client) — no required findings",
       );
       expect(run.status).toBe(0);
-      expect(run.calls).toEqual(["scp", "ssh"]);
+      // update.sh copy, the update run, then the 0443 root step (one root login).
+      expect(run.calls).toEqual(["scp", "ssh", "ssh"]);
     },
   );
 
@@ -211,7 +220,8 @@ describe("deploy.sh — the armed name guard and value guard", () => {
         "enforce (blocking: game, client) — no blocking findings; 1 finding(s) for other deploys printed above, not blocking",
       );
       expect(run.status).toBe(0);
-      expect(run.calls).toEqual(["scp", "ssh"]);
+      // update.sh copy, the update run, then the 0443 root step (one root login).
+      expect(run.calls).toEqual(["scp", "ssh", "ssh"]);
     },
   );
 

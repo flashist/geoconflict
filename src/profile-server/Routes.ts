@@ -98,6 +98,11 @@ import {
 } from "./SessionToken";
 import { vouchForSession, type ResolveVouchOutcome } from "./SessionVouch";
 import {
+  createSshAlertsRoute,
+  SSH_ALERTS_PATH,
+  type SshAlertsConfig,
+} from "./SshAlerts";
+import {
   metricPlatform,
   noopProfileMetrics,
   statusClassOf,
@@ -201,6 +206,8 @@ export interface AppOptions {
   metrics?: ProfileMetrics;
   /** Task 0277. Absent ⇒ the alert webhook route is not mounted at all. */
   alertRelay?: AlertRelayConfig;
+  /** Task 0443. Absent ⇒ the SSH alert route is not mounted at all. */
+  sshAlerts?: SshAlertsConfig;
   /**
    * Task 0253. Absent ⇒ `POST /v1/profile/tenure-grant` answers 503
    * `tenure_grant_unavailable` (the name-change / inbox fail-closed pattern).
@@ -469,6 +476,8 @@ export function createApp(
   // Task 0277. Undefined ⇒ no route, which is how every existing test and caller
   // keeps its behaviour unchanged without opting out of anything.
   const alertRelayConfig = options?.alertRelay;
+  // Task 0443. Undefined ⇒ no SSH alert route (every existing test and caller unchanged).
+  const sshAlertsConfig = options?.sshAlerts;
   // Task 0253. Undefined ⇒ the tenure-grant route fails closed with 503.
   const tenureGrant = options?.tenureGrant;
   // Task 0325. "" ⇒ the login's signature check counts `no_secret`, nothing else.
@@ -948,6 +957,15 @@ export function createApp(
   if (alertRelayConfig !== undefined) {
     const relay = createAlertRelay(alertRelayConfig, metrics);
     app.post(ALERT_WEBHOOK_PATH, relay.limiter, relay.handler);
+  }
+
+  // ── SSH security alerts (task 0443) ────────────────────────────────────────
+  // Each box's ssh-alerts.sh agent posts here with its own bearer token
+  // (PROFILE_SSH_ALERT_TOKEN — NOT internalAuth, which is tied to PROFILE_INTERNAL_TOKEN).
+  // Ordinary status codes on purpose; everything else lives in SshAlerts.ts.
+  if (sshAlertsConfig !== undefined) {
+    const sshAlerts = createSshAlertsRoute(sshAlertsConfig);
+    app.post(SSH_ALERTS_PATH, sshAlerts.limiter, sshAlerts.handler);
   }
 
   // ── Yandex payments (task 0019) ────────────────────────────────────────────

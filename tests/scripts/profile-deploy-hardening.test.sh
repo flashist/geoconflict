@@ -13,7 +13,11 @@
 # setup-telemetry.sh, build-deploy-telemetry.sh, setup.sh (unattended-apt ordering
 # only, task 0286), and update.sh + nginx.conf for container log retention
 # (task 0060), and nginx.conf's worker route keeping its query string (task 0416).
-# It is NOT complete coverage: deploy.sh, build.sh and build-deploy.sh
+# Since task 0441 it also drives deploy.sh's SSH auth block and scripts/telemetry-tunnel.sh
+# (IdentitiesOnly on the key path, sshpass -f with a 0600 file on the password path), and since
+# task 0443 deploy.sh's every-deploy ROOT step (run_game_host_setup) plus the SSH alert agent's
+# wiring into the profile and telemetry pipelines.
+# It is NOT complete coverage: the rest of deploy.sh, build.sh and build-deploy.sh
 # have no assertions here at all. New structural checks belong here rather than in a
 # second harness nothing runs.
 #
@@ -185,6 +189,9 @@ exit 97
 EOF
 
     # sshpass stub: record argv + the mode of the -f file, then dispatch to scp/ssh stub.
+    # Also records the file's first line (what real sshpass -f sends) to sshpass.pwline, so a
+    # test can prove the file holds the password (0441 review R3). Not a *.argv file: the
+    # leak checks grep *.argv and calls.log, and the synthetic password belongs in this one.
     cat > "$BIN/sshpass" <<EOF
 #!/bin/bash
 read -r W < "$STUB_HOME/work"
@@ -192,6 +199,8 @@ echo "sshpass \$*" >> "\$W/sshpass.argv"
 if [ "\$1" = "-f" ] && [ -f "\$2" ]; then
     if stat -f '%Lp' "\$2" >/dev/null 2>&1; then m=\$(stat -f '%Lp' "\$2"); else m=\$(stat -c '%a' "\$2"); fi
     echo "\$2 \$m" >> "\$W/sshpass.filemode"
+    IFS= read -r pw < "\$2" || true
+    printf '%s\n' "\$pw" >> "\$W/sshpass.pwline"
     shift 2
 fi
 exec "\$@"
@@ -208,6 +217,17 @@ if printf '%s' "\$last" | grep -q 'geoconflict-deploy-role'; then
     cat "\$W/marker" 2>/dev/null || true               # emit the configured role marker
     exit 0
 fi
+# Task 0443: deploy.sh's ROOT step (one root@ login carrying a tar stream on stdin).
+# ssh.capture_stdin → keep that stdin in ssh.root.stdin (only then is stdin read, so no other
+# call can block on a terminal); ssh.root_fail → exit 255 (key refused / unreachable);
+# ssh.root_rc → exit with that code (setup-game-host.sh's FAILED=1 / SKIPPED=3).
+case " \$* " in
+  *" root@"*" setup-game-host.sh "*|*" root@"*"/setup-game-host.sh"*)
+    [ -f "\$W/ssh.capture_stdin" ] && cat > "\$W/ssh.root.stdin"
+    [ -f "\$W/ssh.root_fail" ] && exit 255
+    [ -f "\$W/ssh.root_rc" ] && exit "\$(cat "\$W/ssh.root_rc")"
+    ;;
+esac
 [ -f "\$W/fail_deploy" ] && exit 1                      # inject a mid-deploy failure
 exit 0
 EOF
@@ -256,6 +276,8 @@ run_deploy() {  # extra env passed as VAR=VAL ... ; sets RC + populates $WORK lo
     : > "$RUN/profile-backup.sh"; chmod +x "$RUN/profile-backup.sh"
     # …and ./profile-checks.sh since task 0219 (same precondition, same reason).
     : > "$RUN/profile-checks.sh"; chmod +x "$RUN/profile-checks.sh"
+    # …and ./ssh-alerts.sh since task 0443 (same precondition, same reason).
+    : > "$RUN/ssh-alerts.sh"; chmod +x "$RUN/ssh-alerts.sh"
     : > "$RUN/Dockerfile.profile"
     # Task 0355: the version-name helper the script sources, and a package.json carrying the
     # game version it reads (read-only). HELPER_STUB=absent (a caller shell variable, like
@@ -466,6 +488,8 @@ run_deploy PROFILE_CHECKS_PING_URL="$SECRET_PING"
 [ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC (expected 0); see $WORK/out.log"
 grep -q 'profile-checks.sh' "$WORK/scp.argv" 2>/dev/null && pass "profile-checks.sh was SCP'd to the box" \
   || fail "profile-checks.sh never reached scp"
+grep -q 'ssh-alerts.sh .*:/root/ssh-alerts.sh' "$WORK/scp.argv" 2>/dev/null && pass "ssh-alerts.sh was SCP'd to /root/ssh-alerts.sh (0443)" \
+  || fail "ssh-alerts.sh never reached scp (0443)"
 n=$(grep -c '^export PROFILE_CHECKS_PING_URL=' "$WORK/staged.env" 2>/dev/null || true); n=${n:-0}
 [ "$n" = "1" ] && pass "exactly one export PROFILE_CHECKS_PING_URL line" \
   || fail "expected 1 export PROFILE_CHECKS_PING_URL line, got $n"
@@ -1235,6 +1259,9 @@ if [ "$HAVE_REPORT" = 1 ]; then
     # ⛔ The TELEGRAM_TOPIC_* pair is deliberately NOT set here: blank is a supported
     # state meaning the General topic, so they must read OPTIONAL even on a clean box.
     PROFILE_ALERT_WEBHOOK_TOKEN='0277-F@ke alert "token"$notreal'
+    # Task 0443: the SSH alert token. A fully-configured box HAS one — without it the SSH
+    # alert route answers 503 to every box.
+    PROFILE_SSH_ALERT_TOKEN='0443-F@ke ssh "alert"$notreal'
   }
   # (i) clean config → zero findings, returns 0.
   clean_config
@@ -1285,6 +1312,17 @@ if [ "$HAVE_REPORT" = 1 ]; then
   grep -q 'FINDING.*PROFILE_ALERT_WEBHOOK_TOKEN' "$RDIR/alert_tok.txt" \
     && pass "alert-token: the finding names PROFILE_ALERT_WEBHOOK_TOKEN" \
     || fail "alert-token: empty relay secret is not reported — an operator would scroll past the one state that means every alert is silently dropped"
+  # (iv-c) Task 0443 — the SSH alert token: empty means no box's SSH alert is delivered.
+  clean_config
+  PROFILE_SSH_ALERT_TOKEN=''
+  report_config_values > "$RDIR/ssh_tok.txt"; rc=$?
+  n=$(grep -c 'FINDING' "$RDIR/ssh_tok.txt" || true)
+  [ "$rc" -eq 0 ] && [ "${n:-0}" = "1" ] && grep -q 'FINDING.*PROFILE_SSH_ALERT_TOKEN' "$RDIR/ssh_tok.txt" \
+    && pass "ssh-alert-token: empty → exactly 1 finding, naming PROFILE_SSH_ALERT_TOKEN, exit still 0" \
+    || fail "ssh-alert-token: rc=$rc findings=${n:-0}: $(grep FINDING "$RDIR/ssh_tok.txt" | head -3)"
+  grep -q 'OK.*PROFILE_SSH_ALERT_TOKEN' "$RDIR/clean.txt" && ! grep -qF '0443-F@ke ssh' "$RDIR/clean.txt" \
+    && pass "clean: PROFILE_SSH_ALERT_TOKEN reports OK, and its value is never echoed" \
+    || fail "clean: no OK row for PROFILE_SSH_ALERT_TOKEN, or its value was echoed"
   clean_config
   grep -q 'OK.*PROFILE_ALERT_WEBHOOK_TOKEN' "$RDIR/clean.txt" \
     && pass "clean: PROFILE_ALERT_WEBHOOK_TOKEN row reports OK when set" \
@@ -2744,6 +2782,7 @@ run_telemetry_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK
     RUN="$WORK/trun"; rm -rf "$RUN"; mkdir -p "$RUN/scripts"
     cp "$REPO_ROOT/build-deploy-telemetry.sh" "$RUN/build-deploy-telemetry.sh"
     cp "$REPO_ROOT/setup-telemetry.sh" "$RUN/setup-telemetry.sh"
+    cp "$REPO_ROOT/ssh-alerts.sh" "$RUN/ssh-alerts.sh"      # task 0443: shipped alongside
     # HELPER_STUB=absent (a caller shell variable, as in run_deploy) leaves the helper out.
     if [ "${HELPER_STUB:-}" != "absent" ] && [ -f "$REPO_ROOT/scripts/deploy-version-tag.sh" ]; then
         cp "$REPO_ROOT/scripts/deploy-version-tag.sh" "$RUN/scripts/deploy-version-tag.sh"
@@ -2865,8 +2904,8 @@ grep -q 'setup-telemetry.sh' "$WORK/out.log" && grep -q 'scripts/deploy-version-
 grep -q 'Commit, then redeploy' "$WORK/out.log" && pass "…saying 'Commit, then redeploy'" || fail "no 'Commit, then redeploy' hint"
 [ ! -f "$WORK/ssh.argv" ] && pass "…before even the read-only preflight SSH" || fail "an SSH ran before the refusal"
 tel_no_box "T44"
-grep -qE '^git status --porcelain --untracked-files=normal -- setup-telemetry\.sh build-deploy-telemetry\.sh scripts/deploy-version-tag\.sh $' "$WORK/git.argv" 2>/dev/null \
-  && pass "the dirty check is scoped to exactly the three shipped telemetry files" || fail "git status was not scoped to the telemetry shipped paths"
+grep -qE '^git status --porcelain --untracked-files=normal -- setup-telemetry\.sh ssh-alerts\.sh build-deploy-telemetry\.sh scripts/deploy-version-tag\.sh $' "$WORK/git.argv" 2>/dev/null \
+  && pass "the dirty check is scoped to exactly the four shipped telemetry files (ssh-alerts.sh since 0443)" || fail "git status was not scoped to the telemetry shipped paths"
 
 echo "== T45: uncommitted changes OUTSIDE the shipped files (docs, src/, package.json) still deploy and tag (0356) =="
 TNEW; printf ' M ai-agents/tasks/backlog/notes.md\n M src/core/game/GameImpl.ts\n M package.json\n?? scratch.txt\n' > "$WORK/dirty"
@@ -2982,6 +3021,40 @@ run_telemetry_deploy SSH_PASSWORD_FILE="$DECOY"
 [ -f "$DECOY" ] && pass "inherited SSH_PASSWORD_FILE target survived a FAILED key-auth deploy" \
   || fail "a failed key-auth deploy DELETED the file named by an inherited SSH_PASSWORD_FILE"
 
+# every_call_has <argv file> <command> <fixed string> — every line of <argv file> that starts
+# with "<command> " contains <fixed string>, and there is at least one such line. Lines that do
+# not start with "<command> " are the continuation lines of a multi-line remote command (deploy.sh
+# sends its env heredoc as one ssh argument), not separate calls.
+every_call_has() {
+    local total good
+    total=$(grep -c "^$2 " "$1" 2>/dev/null || true); total=${total:-0}
+    good=$(grep "^$2 " "$1" 2>/dev/null | grep -cF -- "$3" || true); good=${good:-0}
+    [ "$total" -gt 0 ] && [ "$total" = "$good" ]
+}
+# key_branch <file> — the lines of the LAST top-level `if [ -n "$SSH_KEY_PATH" ]; then` block
+# that runs up to an `elif` (the auth branch; an earlier block of the same shape that ends in
+# `fi` — the ~-expansion check — is skipped), comment lines dropped.
+key_branch() {
+    awk '/^if \[ -n "\$SSH_KEY_PATH" \]; then$/{b=1; buf=""; next} b && /^fi$/{b=0} b && /^elif/{printf "%s", buf; exit} b && !/^[[:space:]]*#/{buf=buf $0 "\n"}' "$1"
+}
+
+echo "== T55: telemetry key auth — every ssh/scp call offers ONLY the key (IdentitiesOnly=yes, task 0441) =="
+# A multi-key agent would otherwise offer each of its keys first; every rejected key is a failed
+# auth that counts toward MaxAuthTries and fail2ban, and can ban the operator.
+TNEW
+run_telemetry_deploy
+[ "$RC" -eq 0 ] && pass "key-auth telemetry deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+every_call_has "$WORK/ssh.argv" ssh "-o IdentitiesOnly=yes -i $WORK/fixture_ssh_key" \
+  && pass "every ssh call (the preflight included) carries -o IdentitiesOnly=yes -i <key> ($(grep -c '^ssh ' "$WORK/ssh.argv") calls)" \
+  || fail "an ssh call lacks '-o IdentitiesOnly=yes -i <key>' (see $WORK/ssh.argv)"
+every_call_has "$WORK/scp.argv" scp "-o IdentitiesOnly=yes -i $WORK/fixture_ssh_key" \
+  && pass "every scp call carries -o IdentitiesOnly=yes -i <key> ($(grep -c '^scp ' "$WORK/scp.argv") calls)" \
+  || fail "an scp call lacks '-o IdentitiesOnly=yes -i <key>' (see $WORK/scp.argv)"
+[ ! -f "$WORK/sshpass.argv" ] && pass "sshpass never ran on the key path" || fail "sshpass ran on the key path"
+n_ido=$(key_branch "$REPO_ROOT/build-deploy-telemetry.sh" | grep -c 'IdentitiesOnly=yes' || true)
+[ "${n_ido:-0}" = "2" ] && pass "build-deploy-telemetry.sh: -o IdentitiesOnly=yes on both SCP_CMD and SSH_CMD in the key branch" \
+  || fail "build-deploy-telemetry.sh: IdentitiesOnly=yes appears ${n_ido:-0} time(s) in the key branch, expected 2"
+
 echo "== Every telemetry run: never a forced/bulk tag push, no unstubbed git call (0356) =="
 grep -qE '^git push ' "$TEL_GIT_ALL" && pass "telemetry runs did push tags (the lint below is not vacuous)" || fail "no telemetry run pushed a tag (the lint below would be vacuous)"
 grep -E '^git push ' "$TEL_GIT_ALL" | grep -qE ' (-f|--force|--force-with-lease|--tags|--follow-tags|--mirror|--all|--delete|-d) ' \
@@ -3064,6 +3137,323 @@ awk '/DEPLOY-TARGET PREFLIGHT/{if(!p)p=NR} /^trap finalize_telemetry_deploy EXIT
 awk '/^finalize_telemetry_deploy\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$BT" | grep -q 'rm -f "\$SSH_PASSWORD_FILE"' \
   && pass "build-deploy-telemetry.sh: finalize_telemetry_deploy still removes the sshpass password file" \
   || fail "build-deploy-telemetry.sh: finalize_telemetry_deploy does not remove \$SSH_PASSWORD_FILE — replacing the old trap would leak it"
+
+# ══ Task 0441: game deploy (deploy.sh) and telemetry tunnel SSH auth ══════════
+# deploy.sh is driven end to end with the same shared stubs (no new executable per test — the
+# 0371 lesson). The two config guards it runs are stubbed as plain .mjs files read by the real
+# node: the parity check exits 0; the value check lists one source and drains its stdin. update.sh
+# is an empty file that is only scp'd, never run. `env -i` with an allow-list, as above: the run
+# folder has no .env* file, so none of the operator's real env files can load.
+GAME_HOST="203.0.113.30"                                  # documentation range — not a real box
+SSH_ALERT_TOKEN_FAKE='0443-F@ke ssh "alert" token$notreal'   # spaces/specials — must never reach any argv
+run_game_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK logs
+    RUN="$WORK/grun"; rm -rf "$RUN"; mkdir -p "$RUN/scripts"
+    cp "$REPO_ROOT/deploy.sh" "$RUN/deploy.sh"
+    # Task 0443: the root step's two shipped files (the real ones — the tar stream is checked).
+    cp "$REPO_ROOT/setup-game-host.sh" "$REPO_ROOT/ssh-alerts.sh" "$RUN/"
+    : > "$WORK/ssh.capture_stdin"
+    : > "$RUN/update.sh"
+    printf 'process.exit(0);\n' > "$RUN/scripts/check-config-parity.mjs"
+    printf '%s\n' \
+        'if (process.argv.includes("--list-sources")) { console.log("DOCKER_IMAGE"); process.exit(0); }' \
+        'process.stdin.resume(); process.stdin.on("end", () => process.exit(0));' \
+        > "$RUN/scripts/check-config-values.mjs"
+    : > "$WORK/game_ssh_key"; chmod 600 "$WORK/game_ssh_key"
+    rm -f "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" "$WORK/sshpass.filemode" \
+          "$WORK/sshpass.pwline" "$WORK/scp.called" "$WORK/calls.log" "$WORK/ssh.root.stdin"
+    # The root step (0443) needs PROFILE_SSH_ALERT_TOKEN + PROFILE_API_URL, or it is SKIPPED and
+    # the deploy exits 3 (owner ruling Q-A1). Both are set by default; a test blanks one by
+    # passing it again ("$@" comes later, and the later assignment wins).
+    ( cd "$RUN"
+      env -i \
+        PATH="$BIN:$PATH" HOME="$WORK/home" TMPDIR="${TMPDIR:-/tmp}" \
+        SERVER_HOST_DEV="$GAME_HOST" DOCKER_USERNAME=acme DOCKER_REPO=game \
+        PROFILE_SSH_ALERT_TOKEN="$SSH_ALERT_TOKEN_FAKE" PROFILE_API_URL="https://api.example.invalid" \
+        "$@" \
+        bash deploy.sh dev 0.0.1 > "$WORK/out.log" 2>&1 )
+    RC=$?
+}
+game_key_options() { printf '%s' "-o IdentitiesOnly=yes -i $WORK/game_ssh_key"; }
+
+echo "== T60: game deploy, key path — every ssh/scp call offers ONLY the key, no fallback (0441) =="
+NEW
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key"
+[ "$RC" -eq 0 ] && pass "key-auth game deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+every_call_has "$WORK/ssh.argv" ssh "$(game_key_options)" && pass "every ssh call carries -o IdentitiesOnly=yes -i <key>" \
+  || fail "an ssh call lacks '-o IdentitiesOnly=yes -i <key>' (see $WORK/ssh.argv)"
+every_call_has "$WORK/scp.argv" scp "$(game_key_options)" && pass "every scp call carries -o IdentitiesOnly=yes -i <key>" \
+  || fail "an scp call lacks '-o IdentitiesOnly=yes -i <key>' (see $WORK/scp.argv)"
+[ ! -f "$WORK/sshpass.argv" ] && pass "sshpass never ran on the key path" || fail "sshpass ran on the key path"
+grep -q 'password-based SSH fallback' "$WORK/out.log" && fail "the key path printed the password-fallback line" \
+  || pass "no password-fallback line on the key path"
+
+echo "== T61: game deploy, password fallback — sshpass -f with a 0600 file, never -p, removed after (0441) =="
+NEW
+run_game_deploy SSH_PASS_DEV="$SECRET_PW" ALLOW_SSH_PASSWORD_FALLBACK_DEV=1
+# Task 0443 (owner ruling Q-A1): the game deploys, then the root step is SKIPPED (never a root
+# login by password) and the deploy exits 3 — see T68.
+[ "$RC" -eq 3 ] && pass "password-path game deploy went out, then exited 3 (root step skipped, 0443)" || fail "deploy exited $RC (expected 3); see $WORK/out.log"
+grep -q '^sshpass -p' "$WORK/sshpass.argv" 2>/dev/null && fail "sshpass invoked with -p (password in argv)" \
+  || pass "sshpass never used the -p form"
+n_f=$(grep -c '^sshpass -f ' "$WORK/sshpass.argv" 2>/dev/null || true)
+[ "${n_f:-0}" -ge 2 ] && pass "sshpass used -f <file> for both the scp and the ssh ($n_f calls)" || fail "expected 2 'sshpass -f' calls, got ${n_f:-0}"
+if [ -s "$WORK/sshpass.filemode" ] && awk '$2!="600"{bad=1} END{exit bad+0}' "$WORK/sshpass.filemode"; then
+  pass "the password file was mode 0600 on every use"; else fail "the password file was not 0600 (or sshpass never read one)"; fi
+if [ -s "$WORK/sshpass.pwline" ] && ! grep -qvxF -- "$SECRET_PW" "$WORK/sshpass.pwline"; then
+  pass "the password file's first line is the password on every use"; else fail "the password file did not hold the password (or sshpass never read one)"; fi
+grep -rqF "$SECRET_PW" "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null && fail "SSH password LEAKED into an argv" \
+  || pass "the password never appears in any ssh/scp/sshpass argv"
+pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
+[ -n "$pwfile" ] && [ ! -f "$pwfile" ] && pass "the password file is gone after a successful deploy" || fail "password file left after success (${pwfile:-none})"
+grep -q 'Using deprecated password-based SSH fallback' "$WORK/out.log" && pass "the deprecation warning printed" \
+  || fail "no 'Using deprecated password-based SSH fallback' warning"
+
+echo "== T62: game deploy, password fallback, the remote step fails — the password file is still removed (0441) =="
+NEW; : > "$WORK/fail_deploy"
+run_game_deploy SSH_PASS_DEV="$SECRET_PW" ALLOW_SSH_PASSWORD_FALLBACK_DEV=1
+[ "$RC" -ne 0 ] && pass "the failed deploy failed (rc=$RC)" || fail "fail_deploy did not fail the game deploy"
+pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
+[ -n "$pwfile" ] && [ ! -f "$pwfile" ] && pass "the password file is gone after a FAILED deploy" || fail "password file left after failure (${pwfile:-none})"
+
+echo "== T63: game deploy, password without the fallback flag — refused before any ssh (0441) =="
+NEW
+run_game_deploy SSH_PASS_DEV="$SECRET_PW"
+[ "$RC" -eq 1 ] && pass "refused with rc=1" || fail "expected rc=1, got $RC; see $WORK/out.log"
+grep -q 'disabled by default' "$WORK/out.log" && pass "said password deploy is disabled by default" || fail "no 'disabled by default' message"
+[ ! -f "$WORK/ssh.argv" ] && [ ! -f "$WORK/scp.argv" ] && [ ! -f "$WORK/sshpass.argv" ] \
+  && pass "no ssh, scp or sshpass call" || fail "an ssh/scp/sshpass call ran despite the refusal"
+
+echo "== T64: game deploy, key AND password set (the post-0441 env shape) — the key wins (0441) =="
+NEW
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" SSH_PASS_DEV="$SECRET_PW" ALLOW_SSH_PASSWORD_FALLBACK_DEV=1
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ ! -f "$WORK/sshpass.argv" ] && pass "sshpass never ran — the key path was used" || fail "sshpass ran although a key is set"
+every_call_has "$WORK/ssh.argv" ssh "$(game_key_options)" && every_call_has "$WORK/scp.argv" scp "$(game_key_options)" \
+  && pass "every ssh/scp call is on the key, with IdentitiesOnly=yes" || fail "an ssh/scp call is not on the key with IdentitiesOnly=yes"
+grep -q 'password-based SSH fallback' "$WORK/out.log" && fail "printed the password-fallback line" || pass "no password-fallback line"
+
+echo "== T65: game deploy, key path — an INHERITED SSH_PASSWORD_FILE is not deleted at exit (0441; mirrors T54) =="
+NEW
+DECOY="$WORK/operator-file-not-ours"; printf 'keep me\n' > "$DECOY"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" SSH_PASSWORD_FILE="$DECOY"
+[ "$RC" -eq 0 ] && pass "key-auth deploy with an inherited SSH_PASSWORD_FILE exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ -f "$DECOY" ] && pass "the inherited SSH_PASSWORD_FILE target survived a successful deploy" \
+  || fail "a successful key-auth deploy DELETED the file named by an inherited SSH_PASSWORD_FILE"
+: > "$WORK/fail_deploy"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" SSH_PASSWORD_FILE="$DECOY"
+[ "$RC" -ne 0 ] && pass "key-auth failed deploy failed (rc=$RC)" || fail "fail_deploy did not fail the key-auth deploy"
+[ -f "$DECOY" ] && pass "the inherited SSH_PASSWORD_FILE target survived a FAILED deploy" \
+  || fail "a failed key-auth deploy DELETED the file named by an inherited SSH_PASSWORD_FILE"
+
+echo "== T66: telemetry tunnel, password fallback — sshpass -f with a 0600 file, never -p, removed after (0441) =="
+# scripts/telemetry-tunnel.sh (npm run telemetry:tunnel). The ssh stub returns at once, standing
+# in for the tunnel being closed.
+NEW
+TUN="$WORK/tunrun"; mkdir -p "$TUN"; cp "$REPO_ROOT/scripts/telemetry-tunnel.sh" "$TUN/telemetry-tunnel.sh"
+rm -f "$WORK/ssh.argv" "$WORK/sshpass.argv" "$WORK/sshpass.filemode" "$WORK/sshpass.pwline" "$WORK/calls.log"
+( cd "$TUN"
+  env -i PATH="$BIN:$PATH" HOME="$WORK/home" TMPDIR="${TMPDIR:-/tmp}" \
+    TELEMETRY_SERVER_HOST="$TEL_HOST" TELEMETRY_SSH_PASSWORD="$SECRET_PW" ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1 \
+    bash telemetry-tunnel.sh > "$WORK/out.log" 2>&1 )
+RC=$?
+[ "$RC" -eq 0 ] && pass "password-path tunnel exited 0" || fail "tunnel exited $RC; see $WORK/out.log"
+grep -q '^sshpass -p' "$WORK/sshpass.argv" 2>/dev/null && fail "sshpass invoked with -p (password in argv)" || pass "sshpass never used the -p form"
+grep -q '^sshpass -f ' "$WORK/sshpass.argv" 2>/dev/null && pass "sshpass used -f <file>" || fail "sshpass did not use -f"
+if [ -s "$WORK/sshpass.filemode" ] && awk '$2!="600"{bad=1} END{exit bad+0}' "$WORK/sshpass.filemode"; then
+  pass "the password file was mode 0600"; else fail "the password file was not 0600 (or sshpass never read one)"; fi
+if [ -s "$WORK/sshpass.pwline" ] && ! grep -qvxF -- "$SECRET_PW" "$WORK/sshpass.pwline"; then
+  pass "the password file's first line is the password"; else fail "the password file did not hold the password (or sshpass never read one)"; fi
+grep -rqF "$SECRET_PW" "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null && fail "SSH password LEAKED into an argv" \
+  || pass "the password never appears in any argv"
+pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
+[ -n "$pwfile" ] && [ ! -f "$pwfile" ] && pass "the password file is gone after the tunnel closes" || fail "password file left behind (${pwfile:-none})"
+
+echo "== Structural: game deploy + telemetry tunnel SSH auth (0441) =="
+D="$REPO_ROOT/deploy.sh"; TT="$REPO_ROOT/scripts/telemetry-tunnel.sh"
+grep -nE '^[^#]*sshpass -p' "$D" >/dev/null && fail "deploy.sh: a 'sshpass -p' (password in argv) is back" || pass "deploy.sh: no 'sshpass -p'"
+grep -nE '^[^#]*sshpass -p' "$TT" >/dev/null && fail "telemetry-tunnel.sh: a 'sshpass -p' (password in argv) is back" || pass "telemetry-tunnel.sh: no 'sshpass -p'"
+n_ido=$(awk '/^elif \[ -n "\$SSH_KEY_PATH" \]; then$/{b=1; next} b && /^fi$/{exit} b && !/^[[:space:]]*#/{print}' "$D" | grep -c 'IdentitiesOnly=yes' || true)
+[ "${n_ido:-0}" = "2" ] && pass "deploy.sh: -o IdentitiesOnly=yes on both SCP_CMD and SSH_CMD in the key branch" \
+  || fail "deploy.sh: IdentitiesOnly=yes appears ${n_ido:-0} time(s) in the key branch, expected 2"
+n_ido=$(key_branch "$TT" | grep -c 'IdentitiesOnly=yes' || true)
+[ "${n_ido:-0}" = "1" ] && pass "telemetry-tunnel.sh: -o IdentitiesOnly=yes on SSH_CMD in the key branch" \
+  || fail "telemetry-tunnel.sh: IdentitiesOnly=yes appears ${n_ido:-0} time(s) in the key branch, expected 1"
+for f in "$D" "$TT"; do
+  grep -qxE "[[:space:]]*trap 'exit 130' INT" "$f" && grep -qxE "[[:space:]]*trap 'exit 143' TERM" "$f" \
+    && pass "$(basename "$f"): INT/TERM traps route a Ctrl-C through exit, so the EXIT cleanup runs" \
+    || fail "$(basename "$f"): no 'trap exit 130 INT' / 'trap exit 143 TERM' — a Ctrl-C could skip the password-file cleanup"
+done
+
+# ══ Task 0443: deploy.sh's every-deploy ROOT step (run_game_host_setup) ════════
+# Driven end to end with the same shared stubs (no new executable — the 0371 lesson): the ssh
+# stub keeps the root call's stdin (ssh.capture_stdin, set by run_game_deploy) and fails it on
+# ssh.root_fail (255) or ssh.root_rc. Owner rulings: the step runs AFTER the game update; any
+# result but OK — FAILED or SKIPPED — exits 3 after a "game IS deployed, host setup NOT done"
+# banner (Q-A1); there is no switch to skip it (Q-A2).
+root_calls() { grep -c '^ssh .* root@' "$WORK/ssh.argv" 2>/dev/null || true; }
+
+echo "== T67: game deploy, key path + token + URL — ONE root login by key, the token only in the tar stream (0443) =="
+NEW
+GSTAGE="$WORK/gtmp"; mkdir -p "$GSTAGE"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" TMPDIR="$GSTAGE"
+[ "$RC" -eq 0 ] && pass "deploy exited 0" || fail "deploy exited $RC; see $WORK/out.log"
+[ "$(root_calls)" = "1" ] && pass "exactly ONE root@ ssh call" || fail "expected 1 root@ ssh call, got $(root_calls)"
+RLINE=$(grep '^ssh .* root@' "$WORK/ssh.argv" 2>/dev/null | head -1)
+for opt in "-o BatchMode=yes" "-o PasswordAuthentication=no" "-o KbdInteractiveAuthentication=no" "$(game_key_options)"; do
+  printf '%s' "$RLINE" | grep -qF -- "$opt" && pass "root call carries '$opt'" || fail "root call lacks '$opt': $RLINE"
+done
+printf '%s' "$RLINE" | grep -qF "root@$GAME_HOST" && pass "root call targets root@<the deploy host>" || fail "root call target wrong"
+for frag in 'umask 077' 'trap "rm -rf' '--no-same-owner' '</dev/null' 'setup-game-host.sh" "$d/host.env"'; do
+  printf '%s' "$RLINE" | grep -qF -- "$frag" && pass "remote command has '$frag'" || fail "remote command lacks '$frag'"
+done
+grep -rqF "$SSH_ALERT_TOKEN_FAKE" "$WORK"/*.argv "$WORK/calls.log" 2>/dev/null && fail "the SSH alert TOKEN leaked into an argv" \
+  || pass "the SSH alert token appears in no ssh/scp argv and not in calls.log"
+TX="$WORK/tarx"; rm -rf "$TX"; mkdir -p "$TX"
+if [ -s "$WORK/ssh.root.stdin" ] && tar -xf "$WORK/ssh.root.stdin" -C "$TX" 2>/dev/null; then
+  pass "the root call's stdin is a tar archive"
+else
+  fail "the root call's stdin is not a readable tar archive"
+fi
+[ "$(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | sort | tr '\n' ' ')" = "host.env setup-game-host.sh ssh-alerts.sh " ] \
+  && pass "it holds exactly host.env, setup-game-host.sh and ssh-alerts.sh" || fail "archive listing: $(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | tr '\n' ' ')"
+tar -tvf "$WORK/ssh.root.stdin" 2>/dev/null | grep ' host.env$' | grep -q '^-rw-------' \
+  && pass "host.env is 0600 inside the archive" || fail "host.env is not 0600 in the archive: $(tar -tvf "$WORK/ssh.root.stdin" 2>/dev/null | grep host.env)"
+got=$( . "$TX/host.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SSH_ALERT_TOKEN-}" )
+[ "$got" = "$SSH_ALERT_TOKEN_FAKE" ] && pass "host.env round-trips the token (spaces/quotes/\$ intact)" || fail "host.env token did not round-trip"
+got=$( . "$TX/host.env" >/dev/null 2>&1; printf '%s|%s' "${PROFILE_API_URL-}" "${GAME_ENV-}" )
+[ "$got" = "https://api.example.invalid|dev" ] && pass "host.env carries PROFILE_API_URL and GAME_ENV=dev" || fail "host.env: '$got'"
+cmp -s "$TX/setup-game-host.sh" "$REPO_ROOT/setup-game-host.sh" && cmp -s "$TX/ssh-alerts.sh" "$REPO_ROOT/ssh-alerts.sh" \
+  && pass "the shipped scripts are byte-identical to the repo's" || fail "a shipped script differs from the repo's"
+awk '/^ssh .*update-openfront\.sh/{u=NR} /^ssh .* root@/{r=NR} END{exit !(u>0 && r>u)}' "$WORK/calls.log" \
+  && pass "the root call runs AFTER the update call (the game is live first)" || fail "the root call is not after the update call"
+[ -z "$(ls -A "$GSTAGE" 2>/dev/null)" ] && pass "the local staging dir is gone after the deploy" || fail "left in TMPDIR: $(ls -A "$GSTAGE")"
+grep -q 'GAME HOST SETUP OK' "$WORK/out.log" && grep -q 'DEPLOYMENT COMPLETED SUCCESSFULLY' "$WORK/out.log" \
+  && pass "the final banner reports GAME HOST SETUP OK" || fail "no OK banner"
+
+echo "== T68: game deploy, password path — the root step is SKIPPED (never by password), deploy exits 3 (0443, Q-A1) =="
+NEW
+run_game_deploy SSH_PASS_DEV="$SECRET_PW" ALLOW_SSH_PASSWORD_FALLBACK_DEV=1
+[ "$RC" -eq 3 ] && pass "exit 3 (game live, host setup not done)" || fail "expected exit 3, got $RC"
+[ "$(root_calls)" = "0" ] && pass "no root@ call at all" || fail "a root@ call ran on the password path"
+grep -q 'root@' "$WORK/sshpass.argv" 2>/dev/null && fail "sshpass was used for a root login" || pass "sshpass was never used for root"
+grep -q 'update-openfront.sh' "$WORK/ssh.argv" && pass "the game update itself still ran" || fail "the game update did not run"
+grep -q 'GAME IS DEPLOYED — HOST SETUP NOT DONE' "$WORK/out.log" && grep -q 'GAME HOST SETUP SKIPPED: no SSH key' "$WORK/out.log" \
+  && pass "loud banner: game IS deployed, host setup SKIPPED, with the reason" || fail "banner missing: $(grep -A3 'HOST SETUP' "$WORK/out.log" | head -5)"
+grep -q 'DEPLOYMENT COMPLETED SUCCESSFULLY' "$WORK/out.log" && fail "printed the success banner" || pass "no success banner"
+
+echo "== T69: blank PROFILE_SSH_ALERT_TOKEN / blank PROFILE_API_URL — SKIPPED, no root call, exit 3 (0443, Q-A1) =="
+for blank in PROFILE_SSH_ALERT_TOKEN PROFILE_API_URL; do
+  NEW
+  run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" "$blank="
+  [ "$RC" -eq 3 ] && [ "$(root_calls)" = "0" ] && grep -q "GAME HOST SETUP SKIPPED: $blank is empty" "$WORK/out.log" \
+    && pass "blank $blank → SKIPPED (named), no root call, exit 3" || fail "blank $blank: rc=$RC root_calls=$(root_calls)"
+done
+
+echo "== T70: the root login fails (255) or a section fails — FAILED banner, exit 3, staging removed (0443, Q-A1) =="
+NEW; : > "$WORK/ssh.root_fail"
+GSTAGE="$WORK/gtmp"; mkdir -p "$GSTAGE"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" TMPDIR="$GSTAGE"
+[ "$RC" -eq 3 ] && pass "root login refused → exit 3" || fail "expected exit 3, got $RC"
+grep -q 'GAME HOST SETUP FAILED: the root login was refused' "$WORK/out.log" && grep -q 'task 0445' "$WORK/out.log" \
+  && pass "FAILED banner names the cause (root key / ssh-add / 0445)" || fail "no root-refused cause in the banner"
+grep -q 'The new game version IS live' "$WORK/out.log" && pass "…and says the game IS live" || fail "the banner does not say the game is live"
+[ -z "$(ls -A "$GSTAGE" 2>/dev/null)" ] && pass "the local staging dir is removed after a failure" || fail "left in TMPDIR: $(ls -A "$GSTAGE")"
+NEW; echo 1 > "$WORK/ssh.root_rc"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key"
+[ "$RC" -eq 3 ] && grep -q 'GAME HOST SETUP FAILED: setup-game-host.sh reported a FAILED section' "$WORK/out.log" \
+  && pass "a FAILED section on the box → FAILED banner, exit 3" || fail "section failure: rc=$RC"
+NEW; echo 3 > "$WORK/ssh.root_rc"
+run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key"
+[ "$RC" -eq 3 ] && grep -q 'GAME HOST SETUP SKIPPED: setup-game-host.sh skipped a section' "$WORK/out.log" \
+  && pass "a SKIPPED section on the box → SKIPPED banner, exit 3" || fail "section skip: rc=$RC"
+
+echo "== T71: telemetry deploy — a PROFILE_SSH_ALERT_TOKEN with a single quote is refused before the box (0443 review R10) =="
+TNEW
+run_telemetry_deploy PROFILE_SSH_ALERT_TOKEN="0443-quote'd-token-not-real"
+[ "$RC" -ne 0 ] && grep -q "PROFILE_SSH_ALERT_TOKEN contains a single quote" "$WORK/out.log" \
+  && pass "refused (rc=$RC), naming the variable" || fail "a quoted token was not refused (rc=$RC); see $WORK/out.log"
+grep -qF "quote'd-token" "$WORK/out.log" && fail "the token's value was printed" || pass "the token's value is never printed"
+tel_no_box "quoted token"
+
+echo "== Structural: deploy.sh root step (0443) =="
+ROOT_LINE=$(grep -E '^[[:space:]]*ROOT_SSH_CMD=\(' "$D" | head -1)
+[ -n "$ROOT_LINE" ] && pass "deploy.sh: ROOT_SSH_CMD is defined" || fail "deploy.sh: no ROOT_SSH_CMD=( … )"
+printf '%s' "$ROOT_LINE" | grep -q 'sshpass' && fail "deploy.sh: ROOT_SSH_CMD uses sshpass — a root login by password" || pass "deploy.sh: ROOT_SSH_CMD never uses sshpass"
+printf '%s' "$ROOT_LINE" | grep -q 'BatchMode=yes' && pass "deploy.sh: ROOT_SSH_CMD has BatchMode=yes (no prompt, no password fallback)" || fail "deploy.sh: ROOT_SSH_CMD lacks BatchMode=yes"
+n_exit_traps=$(grep -cE '^[[:space:]]*trap .*EXIT' "$D" || true)   # local traps only, not the remote command's
+[ "${n_exit_traps:-0}" = "1" ] && grep -qx 'trap deploy_cleanup EXIT' "$D" \
+  && pass "deploy.sh: 'trap deploy_cleanup EXIT' is the ONLY local EXIT trap (0444 folds into it)" || fail "deploy.sh: $n_exit_traps EXIT trap line(s), or not deploy_cleanup"
+awk '/^deploy_cleanup\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$D" | grep -q 'rm -f "\$SSH_PASSWORD_FILE"' \
+  && awk '/^deploy_cleanup\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$D" | grep -q 'rm -rf "\$HOST_SETUP_STAGE_DIR"' \
+  && pass "deploy.sh: deploy_cleanup removes the password file AND the staging dir" || fail "deploy.sh: deploy_cleanup misses a temp file"
+awk '/^trap deploy_cleanup EXIT$/{t=NR} /^if \[ -n "\$SSH_PASSWORD" \] && \[ -z "\$SSH_KEY_PATH" \]; then$/{p=NR} END{exit !(t>0 && p>t)}' "$D" \
+  && pass "deploy.sh: the cleanup trap is installed before the password file can exist" || fail "deploy.sh: the cleanup trap is not above the password branch"
+awk '/Failed to execute update script on server/{u=NR} /^run_game_host_setup \|\| /{c=NR; n++} /^print_header "DEPLOYMENT COMPLETED SUCCESSFULLY"$/{d=NR} END{exit !(n==1 && u>0 && c>u && c<d)}' "$D" \
+  && pass "deploy.sh: ONE run_game_host_setup call, after the update block's check and before DEPLOYMENT COMPLETED" \
+  || fail "deploy.sh: the run_game_host_setup call is missing, duplicated or misplaced"
+grep -v '^[[:space:]]*#' "$D" | grep -q 'GAME_HOST_SETUP' && fail "deploy.sh: a GAME_HOST_SETUP switch exists — owner ruling Q-A2 is: no switch" || pass "deploy.sh: no GAME_HOST_SETUP skip switch (owner ruling Q-A2)"
+
+echo "== Structural: the SSH alert agent in the profile + telemetry pipelines (0443) =="
+SA="$REPO_ROOT/ssh-alerts.sh"; SGH="$REPO_ROOT/setup-game-host.sh"
+[ -x "$SA" ] && [ -x "$SGH" ] && pass "ssh-alerts.sh and setup-game-host.sh are executable" || fail "ssh-alerts.sh / setup-game-host.sh lost the executable bit"
+SA_VER=$(sed -n 's/^SSH_ALERTS_AGENT_VERSION=\([0-9][0-9]*\)$/\1/p' "$SA" | head -1)
+TS_VER=$(sed -n 's/^export const SSH_ALERTS_AGENT_VERSION = \([0-9][0-9]*\);$/\1/p' "$REPO_ROOT/src/profile-server/SshAlerts.ts" | head -1)
+[ -n "$SA_VER" ] && [ "$SA_VER" = "$TS_VER" ] && pass "agent version: ssh-alerts.sh ($SA_VER) = SshAlerts.ts ($TS_VER)" \
+  || fail "DRIFT: ssh-alerts.sh agent version '$SA_VER' ≠ SshAlerts.ts '$TS_VER' — the digest would flag every box (or none) as outdated"
+SA_PATH=$(sed -n 's/^EVENTS_PATH="\(.*\)"$/\1/p' "$SA" | head -1)
+TS_PATH=$(sed -n 's/^export const SSH_ALERTS_PATH = "\(.*\)";$/\1/p' "$REPO_ROOT/src/profile-server/SshAlerts.ts" | head -1)
+[ -n "$SA_PATH" ] && [ "$SA_PATH" = "$TS_PATH" ] && pass "events path: ssh-alerts.sh = SshAlerts.ts ($SA_PATH)" || fail "DRIFT: events path '$SA_PATH' ≠ '$TS_PATH'"
+SA_DIR=$(sed -n 's/^export const SSH_ALERTS_STATE_DIR = "\(.*\)";$/\1/p' "$REPO_ROOT/src/profile-server/SshAlerts.ts" | head -1)
+SA_MOUNT=$(sed -n 's/^[[:space:]]*- \.\/ssh-alerts:\(\/[^[:space:]]*\)$/\1/p' "$P" | head -1)
+[ -n "$SA_DIR" ] && [ "$SA_DIR" = "$SA_MOUNT" ] && pass "the ./ssh-alerts bind mount target equals SSH_ALERTS_STATE_DIR ($SA_DIR)" \
+  || fail "DRIFT: SshAlerts.ts stores in '$SA_DIR' but compose mounts '$SA_MOUNT'"
+grep -q 'mkdir -p "\$PROFILE_DIR/ssh-alerts" && chmod 700 "\$PROFILE_DIR/ssh-alerts"' "$P" \
+  && pass "setup-profile.sh: creates ssh-alerts/ 0700 before compose mounts it" || fail "setup-profile.sh: ssh-alerts/ is never created 0700"
+for spec in "setup-profile.sh:$P:.ssh_alert_token:persist_or_reuse_secret" "setup-telemetry.sh:$TS:.ssh_alert_token:persist_or_reuse_probe_value"; do
+  label=${spec%%:*}; rest=${spec#*:}; path=${rest%%:*}; rest=${rest#*:}; file=${rest%%:*}; fn=${rest#*:}
+  line=$(grep -E "^${fn}[[:space:]]+PROFILE_SSH_ALERT_TOKEN[[:space:]]" "$path" | head -1)
+  [ -n "$line" ] && printf '%s' "$line" | grep -qF "/$file\"" && ! printf '%s' "$line" | grep -qE 'generate[[:space:]]*$' \
+    && pass "$label: PROFILE_SSH_ALERT_TOKEN is persist-or-reuse to $file, NEVER generated" \
+    || fail "$label: PROFILE_SSH_ALERT_TOKEN is not persist-or-reuse to $file (or is generated): '$line'"
+done
+printf '%s\n' "$PROFILE_ENV_BLOCK" | grep -qE '^PROFILE_SSH_ALERT_TOKEN=' && pass "profile.env carries PROFILE_SSH_ALERT_TOKEN" || fail "profile.env lacks PROFILE_SSH_ALERT_TOKEN"
+grep -qE '^[[:space:]]*printf "export PROFILE_SSH_ALERT_TOKEN=%q' "$B" && pass "build-deploy-profile.sh: stages PROFILE_SSH_ALERT_TOKEN" || fail "build-deploy-profile.sh: never stages PROFILE_SSH_ALERT_TOKEN"
+grep -qE "^export PROFILE_SSH_ALERT_TOKEN='\\\$\{PROFILE_SSH_ALERT_TOKEN:-\}'$" "$BT" && pass "build-deploy-telemetry.sh: stages PROFILE_SSH_ALERT_TOKEN" || fail "build-deploy-telemetry.sh: never stages PROFILE_SSH_ALERT_TOKEN"
+case " $(printf '%s' "$SHIPPED_LINE" | sed -E 's/^PROFILE_SHIPPED_PATHS=\((.*)\)$/\1/') " in *" ssh-alerts.sh "*) pass "PROFILE_SHIPPED_PATHS covers ssh-alerts.sh";; *) fail "PROFILE_SHIPPED_PATHS lacks ssh-alerts.sh";; esac
+case "$TSHIP" in *" ssh-alerts.sh "*) pass "TELEMETRY_SHIPPED_PATHS covers ssh-alerts.sh";; *) fail "TELEMETRY_SHIPPED_PATHS lacks ssh-alerts.sh";; esac
+grep -qE '^"\$\{SCP_CMD\[@\]\}" "\$SSH_ALERTS_SCRIPT" ' "$B" && grep -qE '^"\$\{SCP_CMD\[@\]\}" "\$SSH_ALERTS_SCRIPT" ' "$BT" \
+  && pass "both build-deploy scripts SCP ssh-alerts.sh on their existing transport" || fail "a build-deploy script does not SCP ssh-alerts.sh"
+grep -qF 'bash "$PROFILE_SSH_ALERTS_SRC" install --box profile --url "http://127.0.0.1:${PROFILE_PORT}"' "$P" \
+  && pass "setup-profile.sh: installs the agent as box 'profile' over loopback" || fail "setup-profile.sh: no 'install --box profile' over loopback"
+grep -qF 'bash "$SSH_ALERTS_SRC" install --box telemetry --url "$SSH_ALERTS_BASE_URL"' "$TS" \
+  && grep -qF 'SSH_ALERTS_BASE_URL="${SSH_ALERTS_BASE_URL%/internal/v1/alerts/webhook}"' "$TS" \
+  && pass "setup-telemetry.sh: installs as box 'telemetry', URL derived from the probe URL (exact path removed)" || fail "setup-telemetry.sh: agent install / URL derivation missing"
+for f in "$P" "$TS" "$SGH"; do
+  grep -E 'ssh-alerts\.sh"? install' "$f" | grep -v '^[[:space:]]*#' | grep -qE '(PROFILE_SSH_ALERT_TOKEN|--token)[^|]*$' \
+    && fail "$(basename "$f"): the SSH alert token may be in the install command's argv" \
+    || pass "$(basename "$f"): the token reaches 'install' on stdin, never in its argv"
+done
+# The SSH alerts section on the profile box sits OUTSIDE the fail2ban and sshd awk ranges.
+awk '/CONFIGURING FAIL2BAN/{f=NR} /HARDENING SSHD/{h=NR} /SSH SECURITY ALERTS \(0443\)/{a=NR} END{exit !(f>0 && h>f && a>h)}' "$P" \
+  && pass "setup-profile.sh: the SSH SECURITY ALERTS section is after the fail2ban + sshd sections" || fail "setup-profile.sh: the SSH SECURITY ALERTS section is inside or before the fail2ban/sshd ranges"
+# The daily SSH digest: exactly one cron line, 08:10 UTC, stdin closed, logged; its npm script
+# and entry file exist; the entry never imports Server/Routes/Telemetry (the 0283 trap).
+SSH_DIGEST_CRON=$(printf '%s\n' "$CRON_HEADER" | grep -E 'npm run digest:ssh-security' || true)
+[ "$(printf '%s\n' "$SSH_DIGEST_CRON" | grep -c .)" = "1" ] && printf '%s' "$SSH_DIGEST_CRON" | grep -qE '^10 8 \* \* \* root docker compose -f \$PROFILE_DIR/docker-compose\.yml exec -T profile-api npm run digest:ssh-security </dev/null >> /var/log/[A-Za-z0-9._-]+\.log 2>&1$' \
+  && pass "cron header: exactly ONE SSH digest line, 08:10 UTC, stdin closed, logged" || fail "cron header: SSH digest line missing, duplicated or malformed: '$SSH_DIGEST_CRON'"
+SSH_DIGEST_ENTRY=$(sed -n 's/^[[:space:]]*"digest:ssh-security": ".* \(src\/[^ "]*\.ts\)",\{0,1\}$/\1/p' "$REPO_ROOT/package.json" | head -1)
+[ -n "$SSH_DIGEST_ENTRY" ] && [ -f "$REPO_ROOT/$SSH_DIGEST_ENTRY" ] && pass "package.json: digest:ssh-security → $SSH_DIGEST_ENTRY exists" || fail "package.json: no digest:ssh-security script, or its entry is missing"
+SSH_DIGEST_CODE=$(sed -e 's#//.*##' "$REPO_ROOT/${SSH_DIGEST_ENTRY:-missing}" 2>/dev/null | grep -v '^[[:space:]]*\*')
+printf '%s\n' "$SSH_DIGEST_CODE" | grep -qE '["'"'"']\./SshSecurityDigest(\.[jt]s)?["'"'"']' && pass "ssh digest entry: the specifier scan matches its own import (not vacuous)" || fail "ssh digest entry: cannot find ./SshSecurityDigest — the import checks would be vacuous"
+for forbidden in Server Routes Telemetry; do
+  printf '%s\n' "$SSH_DIGEST_CODE" | grep -qE "[\"']\./${forbidden}(\.[jt]s)?[\"']" \
+    && fail "ssh digest entry: references ./$forbidden — the cron job would bind a port / start an exporter" \
+    || pass "ssh digest entry: does not reference ./$forbidden"
+done
+for f in "$REPO_ROOT/src/profile-server/SshSecurityDigest.ts" "$REPO_ROOT/src/profile-server/SshAlerts.ts"; do
+  sed -e 's#//.*##' "$f" | grep -qE "[\"']\./(Server|Routes|Telemetry)(\.[jt]s)?[\"']" \
+    && fail "$(basename "$f"): imports Server/Routes/Telemetry — the digest CLI would pull it in" || pass "$(basename "$f"): no Server/Routes/Telemetry import"
+done
 
 echo "== Every run_deploy: no git call the stub does not know (0355 review R4) =="
 [ "$RUN_DEPLOY_COUNT" -gt 0 ] && [ "$UNSTUBBED_RUNS" -eq 0 ] \

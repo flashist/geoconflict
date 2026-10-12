@@ -26,6 +26,8 @@
 #                               ⚠️ No " and no \ — it is embedded in a JSON body, and this
 #                               script REFUSES to deploy a token containing either
 #   Both are persist-or-reuse: blank on a redeploy REUSES what is already on the box.
+#   PROFILE_SSH_ALERT_TOKEN — the SSH alert agent's token (task 0443), the SAME value the
+#                               profile box holds. Persist-or-reuse, NEVER generated here.
 #   TELEMETRY_DEPLOY_VERSION — this deploy's name, <X.Y.Z>-telemetry.<N> (task 0356)
 #   TELEMETRY_DEPLOY_COMMIT  — the 40-hex commit it was deployed from (task 0356)
 #   Both only feed the version marker; unset or malformed (e.g. a hand run) → "unknown".
@@ -39,6 +41,7 @@
 #   6. Adds weekly backup cron jobs for PostgreSQL
 #   7. Adds daily disk usage monitoring
 #   8. Writes the alert-path liveness probe + its hourly cron (task 0284)
+#   8b. Installs/updates the SSH security alert agent from ssh-alerts.sh (task 0443)
 #   9. Writes the version marker $UPTRACE_DIR/deployed-version, last, once every step
 #      above succeeded (task 0356)
 #  10. Prints connection info and DSN for the game server
@@ -58,6 +61,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 UPTRACE_DIR="/opt/uptrace"
 BACKUP_DIR="$UPTRACE_DIR/backups"
+# The SSH security alert agent (task 0443), SCP'd by build-deploy-telemetry.sh.
+SSH_ALERTS_SRC="${SSH_ALERTS_SRC:-/root/ssh-alerts.sh}"
 
 print_header() {
     echo "======================================================"
@@ -1027,8 +1032,8 @@ print_header "CONFIGURING THE ALERT-PATH LIVENESS PROBE"
 # secret the relay does not, so every probe fails its secret check and the profile box pages
 # EVERY DAY about a guard that was never wired. To clear either value, rm its persist file
 # here and redeploy.
-persist_or_reuse_probe_value() {  # $1 variable name   $2 persist file (root-only, 0600)
-    local name="$1" file="$2" value
+persist_or_reuse_probe_value() {  # $1 variable name   $2 persist file (root-only, 0600)   $3 what stays off when empty
+    local name="$1" file="$2" off="${3:-the alert-path probe stays OFF}" value
     value="${!name:-}"
     if [ -n "$value" ]; then
         ( umask 077; printf '%s' "$value" > "$file" )
@@ -1043,7 +1048,7 @@ persist_or_reuse_probe_value() {  # $1 variable name   $2 persist file (root-onl
         printf -v "$name" '%s' "$value"
         echo "⚠️  Reusing persisted $name from $file — the deploy supplied no value"
     else
-        echo "$name: not supplied and nothing persisted — written EMPTY (the alert-path probe stays OFF)"
+        echo "$name: not supplied and nothing persisted — written EMPTY ($off)"
     fi
     return 0
 }
@@ -1218,6 +1223,36 @@ exit 1
 PROBEEOF
 chmod 700 "$UPTRACE_DIR/alert-probe.sh"
 echo "Written: alert-probe.sh (0700)"
+
+# ── SSH security alerts (task 0443) ───────────────────────────────────────────
+# The agent that reports every successful ssh login, fail2ban down/back and the daily counts
+# from THIS box, to the profile box's relay. It needs no new setting: its base URL is the
+# probe's URL above with the exact path /internal/v1/alerts/webhook removed (both routes live
+# on the profile box, behind the same /internal/ allow list this box is already on). Any other
+# shape is SKIPPED with a warning rather than guessed. The token is persist-or-reuse and NEVER
+# generated (a box-minted one is rejected on every event); it goes in on STDIN, never in argv.
+# NON-FATAL: a broken alert agent must not undo a good telemetry deploy, and the daily SSH
+# digest shows this box as NO REPORT when it is not reporting.
+print_header "SSH SECURITY ALERTS (0443)"
+persist_or_reuse_probe_value PROFILE_SSH_ALERT_TOKEN "$UPTRACE_DIR/.ssh_alert_token" "the SSH alert agent is not installed"
+SSH_ALERTS_BASE_URL="${TELEMETRY_ALERT_PROBE_URL:-}"
+SSH_ALERTS_BASE_URL="${SSH_ALERTS_BASE_URL%/internal/v1/alerts/webhook}"
+if [ -z "${PROFILE_SSH_ALERT_TOKEN:-}" ]; then
+    echo "⚠️  WARNING: PROFILE_SSH_ALERT_TOKEN is empty — the SSH alert agent is NOT installed or updated"
+    echo "   on this box. Set it in .env.telemetry.secret (the profile box's value) and redeploy."
+elif [ -z "${TELEMETRY_ALERT_PROBE_URL:-}" ] || [ "$SSH_ALERTS_BASE_URL" = "${TELEMETRY_ALERT_PROBE_URL:-}" ]; then
+    echo "⚠️  WARNING: TELEMETRY_ALERT_PROBE_URL is empty or does not end in /internal/v1/alerts/webhook —"
+    echo "   the SSH alert agent's address cannot be derived from it, so the agent is NOT installed or updated."
+elif [ ! -f "$SSH_ALERTS_SRC" ]; then
+    echo "⚠️  WARNING: $SSH_ALERTS_SRC not found — the deploy path did not ship ssh-alerts.sh."
+    echo "   SSH alerts on this box are missing or out of date. Re-run via build-deploy-telemetry.sh."
+elif printf '%s\n' "$PROFILE_SSH_ALERT_TOKEN" \
+        | bash "$SSH_ALERTS_SRC" install --box telemetry --url "$SSH_ALERTS_BASE_URL"; then
+    echo "✅ SSH alert agent installed/up to date for this box."
+else
+    echo "⚠️  WARNING: the SSH alert agent install FAILED (output above). The deploy is NOT aborted;"
+    echo "   SSH alerts on this box may be missing or out of date until the next deploy succeeds."
+fi
 
 # ── Backup cron jobs ──────────────────────────────────────────────────────────
 

@@ -6,6 +6,13 @@ the name-change notifications, and the traps that make alerting fail **silently*
 ⛔ **No hostnames, IP addresses, chat ids, topic ids or secrets appear in this file, deliberately.**
 Every one of them lives in the gitignored deploy env files, or on the box.
 
+> **SSH security alerts (task `0443`) use the same Alerts topic but a different route** —
+> `POST /internal/v1/ssh-alerts/events`, with its own token `PROFILE_SSH_ALERT_TOKEN` and **ordinary**
+> status codes (a 401 there disables nothing: the sender is our own agent, which retries). Their
+> runbook — what each message means, how to test it, how to switch it off — is
+> `docs/vps-deployment-guide.md` §8. Nothing in this file applies to that route, and the daily SSH
+> digest proves nothing about this one (the 0284 probe still does).
+
 ---
 
 ## What it is

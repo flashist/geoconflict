@@ -127,6 +127,96 @@ run_config_value_guard() {
     return "$status"
 }
 
+# ── Game host setup: the every-deploy ROOT step (task 0443, owner ruling "Way A") ────
+# Ships setup-game-host.sh + ssh-alerts.sh + a 0600 host.env to the box in ONE root login and
+# runs setup-game-host.sh there. It is called only AFTER the update block below succeeded —
+# the new game is already live, so a broken root step can never block a release.
+#
+# Owner ruling Q-A1 (2026-10-12): ANY result but OK — FAILED, or SKIPPED for any reason
+# (password path, blank token or URL) — fails the deploy, after a loud "game IS deployed, host
+# setup NOT done" banner. So this returns non-zero for every skip as well, and sets
+# HOST_SETUP_RESULT / HOST_SETUP_REASON for that banner. There is deliberately no switch to
+# skip it (owner ruling Q-A2).
+#
+# 🚨 NEVER a root login by password. Without an SSH key the step is skipped, not attempted:
+# BatchMode=yes allows no prompt of any kind, so a rejected key fails at once instead of
+# falling back to a typed password, and IdentitiesOnly keeps it to ONE failed auth — far below
+# MaxAuthTries and the box's fail2ban threshold. ROOT_SSH_CMD is defined HERE, outside the
+# auth branch below, and never touches SSH_CMD / SCP_CMD (the 0441 harness counts that branch).
+#
+# The token is never in any argv: host.env is written by the printf BUILTIN and travels inside a
+# ustar stream on ssh's stdin. On the box it lands 0600 in a fresh 0700 directory that a trap
+# removes on every exit; --no-same-owner keeps it root's, whoever packed it.
+#
+# Like run_config_value_guard above, this is called from an `||` list, where set -e is OFF —
+# so every exit path is an explicit `return`.
+run_game_host_setup() {
+    local setup_script alerts_script remote_cmd rc
+    HOST_SETUP_RESULT="FAILED"
+    HOST_SETUP_REASON=""
+    if [ -z "$SSH_KEY_PATH" ]; then
+        HOST_SETUP_RESULT="SKIPPED"
+        HOST_SETUP_REASON="no SSH key for ${ENV} — the root step never logs in by password (set ${SSH_KEY_VAR} or SSH_KEY)"
+        return 1
+    fi
+    if [ -z "${PROFILE_SSH_ALERT_TOKEN:-}" ]; then
+        HOST_SETUP_RESULT="SKIPPED"
+        HOST_SETUP_REASON="PROFILE_SSH_ALERT_TOKEN is empty — set it in .env.secret (the same value as on the profile box)"
+        return 1
+    fi
+    if [ -z "${PROFILE_API_URL:-}" ]; then
+        HOST_SETUP_RESULT="SKIPPED"
+        HOST_SETUP_REASON="PROFILE_API_URL is empty — the SSH alert agent would have nowhere to send"
+        return 1
+    fi
+    setup_script="$(dirname "$0")/setup-game-host.sh"
+    alerts_script="$(dirname "$0")/ssh-alerts.sh"
+    if [ ! -f "$setup_script" ] || [ ! -f "$alerts_script" ]; then
+        HOST_SETUP_REASON="setup-game-host.sh or ssh-alerts.sh is missing next to deploy.sh"
+        return 1
+    fi
+    HOST_SETUP_STAGE_DIR=$(mktemp -d) || {
+        HOST_SETUP_STAGE_DIR=""
+        HOST_SETUP_REASON="could not create a local staging directory"
+        return 1
+    }
+    chmod 700 "$HOST_SETUP_STAGE_DIR"
+    if ! ( umask 077
+           printf '%s=%q\n' \
+               PROFILE_SSH_ALERT_TOKEN "$PROFILE_SSH_ALERT_TOKEN" \
+               PROFILE_API_URL "$PROFILE_API_URL" \
+               GAME_ENV "$ENV" > "$HOST_SETUP_STAGE_DIR/host.env" ) \
+        || ! cp "$setup_script" "$alerts_script" "$HOST_SETUP_STAGE_DIR/"; then
+        HOST_SETUP_REASON="could not stage the host setup files locally"
+        return 1
+    fi
+    ROOT_SSH_CMD=(ssh -o BatchMode=yes -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    # shellcheck disable=SC2016 — expanded on the BOX, not here
+    remote_cmd='umask 077; d=$(mktemp -d /root/.gc-host-setup.XXXXXX) || exit 1; trap "rm -rf \"$d\"" EXIT; tar --no-same-owner -xf - -C "$d" && bash "$d/setup-game-host.sh" "$d/host.env" </dev/null'
+    # ONE login, not scp + ssh: half the failed attempts when the root key is missing, and one
+    # login alert per deploy instead of two. ustar avoids macOS's extended headers; only ssh's
+    # status is judged — tar can take a harmless SIGPIPE once the box has read the archive.
+    COPYFILE_DISABLE=1 tar --format=ustar -C "$HOST_SETUP_STAGE_DIR" -cf - host.env setup-game-host.sh ssh-alerts.sh \
+        | "${ROOT_SSH_CMD[@]}" "root@${SERVER_HOST}" "$remote_cmd"
+    rc=${PIPESTATUS[1]}
+    rm -rf "$HOST_SETUP_STAGE_DIR"
+    HOST_SETUP_STAGE_DIR=""
+    if [ "$rc" -eq 0 ]; then
+        HOST_SETUP_RESULT="OK"
+        HOST_SETUP_REASON=""
+        return 0
+    fi
+    if [ "$rc" -eq 255 ]; then
+        HOST_SETUP_REASON="the root login was refused or the box was unreachable (ssh exit 255) — is the game key installed for root (task 0445) and loaded in your ssh agent (ssh-add)?"
+    elif [ "$rc" -eq 3 ]; then
+        HOST_SETUP_RESULT="SKIPPED"
+        HOST_SETUP_REASON="setup-game-host.sh skipped a section (its output is above)"
+    else
+        HOST_SETUP_REASON="setup-game-host.sh reported a FAILED section (exit $rc — its output is above)"
+    fi
+    return 1
+}
+
 uppercase_env=$(echo "$ENV" | tr '[:lower:]' '[:upper:]')
 
 lookup_env_value() {
@@ -320,6 +410,28 @@ print_header "COPYING UPDATE SCRIPT TO SERVER"
 chmod +x "$UPDATE_SCRIPT"
 SCP_CMD=(scp)
 SSH_CMD=(ssh)
+# Owned by this script: set only in the password branch below. Cleared first so a value
+# inherited from the shell or a .env* file never reaches the EXIT trap's rm -f
+# (mirror of build-deploy-profile.sh and build-deploy-telemetry.sh).
+SSH_PASSWORD_FILE=""
+# Owned by this script too: set only inside run_game_host_setup (task 0443). Cleared for the
+# same reason.
+HOST_SETUP_STAGE_DIR=""
+HOST_SETUP_RESULT=""
+HOST_SETUP_REASON=""
+# ONE cleanup for every local temp file this script makes (task 0443) — the sshpass password
+# file and the host-setup staging directory. Installed once, before either can exist, so it
+# runs on every exit. ⚠️ Task 0444 adds its staged file HERE rather than a second EXIT trap: a
+# second `trap … EXIT` would silently replace this one. INT/TERM go through `exit`, so a
+# Ctrl-C runs it too.
+deploy_cleanup() {
+    [ -n "$SSH_PASSWORD_FILE" ] && rm -f "$SSH_PASSWORD_FILE"
+    [ -n "$HOST_SETUP_STAGE_DIR" ] && rm -rf "$HOST_SETUP_STAGE_DIR"
+    return 0
+}
+trap deploy_cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 if [ -n "$SSH_PASSWORD" ] && [ -z "$SSH_KEY_PATH" ]; then
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based deploy is disabled by default."
@@ -332,11 +444,22 @@ if [ -n "$SSH_PASSWORD" ] && [ -z "$SSH_KEY_PATH" ]; then
         exit 1
     fi
     echo "Warning: Using deprecated password-based SSH fallback for ${ENV} deployment."
-    SCP_CMD=(sshpass -p "$SSH_PASSWORD" scp)
-    SSH_CMD=(sshpass -p "$SSH_PASSWORD" ssh)
+    # Task 0441 (mirror of build-deploy-profile.sh K1): write the password to a 0600 file and
+    # pass only its PATH to sshpass via -f — the secret never appears in any argv, where any
+    # local process (`ps`) could read it. deploy_cleanup (its EXIT trap is installed above,
+    # before the secret is written) removes the file on every exit, Ctrl-C included.
+    SSH_PASSWORD_FILE=$(mktemp)
+    chmod 600 "$SSH_PASSWORD_FILE"
+    printf '%s\n' "$SSH_PASSWORD" > "$SSH_PASSWORD_FILE"
+    SCP_CMD=(sshpass -f "$SSH_PASSWORD_FILE" scp)
+    SSH_CMD=(sshpass -f "$SSH_PASSWORD_FILE" ssh)
 elif [ -n "$SSH_KEY_PATH" ]; then
-    SCP_CMD=(scp -i "$SSH_KEY_PATH")
-    SSH_CMD=(ssh -i "$SSH_KEY_PATH")
+    # IdentitiesOnly (task 0441, mirror of build-deploy-profile.sh 0221): offer ONLY this key.
+    # With several keys in the agent ssh tries each in turn, and every rejected key is a failed
+    # auth to sshd — enough of them hits MaxAuthTries (6 on game prod) and the box's fail2ban
+    # jail, and bans the operator.
+    SCP_CMD=(scp -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    SSH_CMD=(ssh -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
 fi
 
 "${SCP_CMD[@]}" "$UPDATE_SCRIPT" "${REMOTE_USER}@${SERVER_HOST}:${REMOTE_UPDATE_SCRIPT}"
@@ -404,8 +527,26 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+print_header "GAME HOST SETUP (root step — task 0443)"
+run_game_host_setup || HOST_SETUP_RESULT="${HOST_SETUP_RESULT:-FAILED}"
+
+if [ "$HOST_SETUP_RESULT" != "OK" ]; then
+    # Owner ruling Q-A1 (2026-10-12): the game update above already went out, so this must
+    # never read like a deploy that did not happen — and it must not read like a success
+    # either. Exit 3, distinct from the 1 of a deploy that stopped before the game went live.
+    print_header "⚠️  GAME IS DEPLOYED — HOST SETUP NOT DONE"
+    echo "✅ The new game version IS live on ${ENV} (${SERVER_HOST}). Do not roll back for this."
+    echo "❌ GAME HOST SETUP ${HOST_SETUP_RESULT}: ${HOST_SETUP_REASON}"
+    echo "   SSH security alerts on this box may be missing or out of date until a deploy"
+    echo "   completes this step. Fix the cause above; the next deploy runs it again."
+    echo "   (docs/vps-deployment-guide.md §8 explains each cause.)"
+    echo "======================================================="
+    exit 3
+fi
+
 print_header "DEPLOYMENT COMPLETED SUCCESSFULLY"
 echo "✅ New version deployed to ${ENV} (${SERVER_HOST})!"
+echo "✅ GAME HOST SETUP OK (root step: SSH security alerts installed/up to date)"
 if [ "$ENABLE_BASIC_AUTH" = true ]; then
     echo "🔒 Basic authentication enabled with user: ${BASIC_AUTH_USER}"
 fi

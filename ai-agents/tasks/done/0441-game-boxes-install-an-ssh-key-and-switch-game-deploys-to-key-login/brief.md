@@ -16,7 +16,7 @@ Sprint 8
 > 📌 **OWNER RULING, 2026-10-12, given live via `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead` to a
 > spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"File it to the
 > current sprint, and it should be our top priority to work on."* The producer split the request into two briefs (the
-> standing smallest-shippable-unit rule): this one (key login works) and [`0442`](../0442-game-boxes-turn-off-password-login-over-ssh-after-key-login-is-proven/brief.md)
+> standing smallest-shippable-unit rule): this one (key login works) and [`0442`](../../backlog/0442-game-boxes-turn-off-password-login-over-ssh-after-key-login-is-proven/brief.md)
 > (password login turned off). The split is the ordering: **0442 must never start before this one is proven.**
 
 > 📌 **OWNER RULING, 2026-10-12 (later the same day), given live via `AskUserQuestion` in the `fkit lead` session**,
@@ -36,7 +36,7 @@ the first open work to pick up on the board**, directly above `0440`, because th
 hour and our own password logins already failed a production deploy.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder — ⚠️ **the box-side steps are EXECUTED BY THE OWNER (human)**: creating the key pair, putting the public half

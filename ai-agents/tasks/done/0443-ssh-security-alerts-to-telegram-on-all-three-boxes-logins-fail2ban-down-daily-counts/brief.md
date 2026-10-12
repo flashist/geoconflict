@@ -24,7 +24,7 @@ Sprint 8
 owner ruling 2026-10-12** — third in line on [Sprint 8](../../../sprints/plan-sprint-8.md), directly below `0442`.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder — ⚠️ **every change on a live box is EXECUTED OR APPROVED BY THE OWNER (human)**, in the weekend deploy slot
@@ -99,8 +99,9 @@ telemetry (Sep 2026). The Jul/Aug 2026 one was confirmed as the owner's VPN (exa
    in an emergency. Names no host, address, token or chat id.
 
 **Out of scope:** an alert per failed guess (explicitly not wanted — noise); key login and password-off (`0441`,
-`0442`); changing fail2ban's ban settings; adding fail2ban to `setup.sh` (see Notes); ufw (inactive on game and
-telemetry — not raised by the owner, flagged in Notes).
+`0442`); changing fail2ban's ban settings; adding fail2ban to ~~`setup.sh` (see Notes)~~ the game box's scripted setup —
+**now [`0446`](../../backlog/0446-game-boxes-rebuild-from-scripts-alone-move-the-hand-set-up-parts-into-the-every-deploy-root-step/brief.md)**
+(filed 2026-10-12; see Notes); ufw (inactive on game and telemetry — not raised by the owner, flagged in Notes).
 
 ## Verification steps
 
@@ -124,6 +125,11 @@ telemetry — not raised by the owner, flagged in Notes).
 - ⚠️ **Flagged, not filed** (the owner did not raise them; the owner decides whether to file): (1) **`setup.sh` has no
   fail2ban section** — a rebuilt game box comes back unguarded; (2) **ufw is inactive** on the game and telemetry boxes
   (the profile box runs it, `0221`).
+  🔁 **Updated 2026-10-12:** item (1) **is now filed** as
+  [`0446`](../../backlog/0446-game-boxes-rebuild-from-scripts-alone-move-the-hand-set-up-parts-into-the-every-deploy-root-step/brief.md)
+  (owner selection *"Game box setup from scripts only"*, relayed; ⛔ not producer precedent) — it moves fail2ban (and
+  `0442`'s sshd settings) into the `setup-game-host.sh` root step this task creates, not into `setup.sh`. Item (2), ufw,
+  stays **not filed** (the owner did not tick it; `0446` open question 2 covers it).
 - **Open questions for the owner** (recommended default first; plain-language context for whoever relays them):
   1. **What the login message shows** (the owner's call by ruling). *Recommended: box name, time (UTC), user, "key" or
      "password", and the source network shown only as country + provider name, never the full address.* Telegram

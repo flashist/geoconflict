@@ -17,6 +17,7 @@
     "start:profile-server": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/Server.ts",
     "migrate": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/migrate.ts",
     "digest:name-changes": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/sendNameChangeDigest.ts",
+    "digest:ssh-security": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/sendSshSecurityDigest.ts",
     "name-change:decide": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/decideNameChange.ts",
     "tester-role": "node --loader ts-node/esm --experimental-specifier-resolution=node src/profile-server/testerRole.ts",
     "dev": "cross-env GAME_ENV=dev concurrently \"npm run start:client\" \"npm run start:server-dev\"",

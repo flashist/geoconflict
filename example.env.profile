@@ -203,6 +203,14 @@ PROFILE_BACKUP_RETENTION_WEEKLY_DAYS=56
 #                                #   rotating it here is not erasure of the old value.
 #                                #   Persisted on the box: blank = reuse; to clear it,
 #                                #   rm /opt/profile/.alert_webhook_token there.
+# PROFILE_SSH_ALERT_TOKEN=       # the token every box's SSH alert agent sends (task 0443) — the
+#                                #   SAME value in .env.secret (game) and .env.telemetry.secret.
+#                                #   `openssl rand -hex 32`, once. 🚨 NEVER minted by any box: a
+#                                #   value one box knew alone would reject every other box's
+#                                #   alerts. BLANK = the SSH alert route answers 503 to every
+#                                #   box (nothing is delivered; the deploy reports a FINDING).
+#                                #   Persisted on the box: blank = reuse; to clear it,
+#                                #   rm /opt/profile/.ssh_alert_token there.
 # PROFILE_CHECKS_PING_URL=       # dead-man's-switch ping URL for the daily on-box checks
 #                                #   (task 0219: backup freshness + certbot renewal). Create a
 #                                #   check on a healthchecks.io-style service (period 1 day,

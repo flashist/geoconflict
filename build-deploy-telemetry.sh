@@ -19,6 +19,9 @@
 set -e
 
 SETUP_SCRIPT="./setup-telemetry.sh"
+# The SSH security alert agent (task 0443). SCP'd alongside the setup script; setup-telemetry.sh
+# installs it with its own `install` subcommand.
+SSH_ALERTS_SCRIPT="./ssh-alerts.sh"
 
 print_header() {
     echo "======================================================"
@@ -71,6 +74,10 @@ if [ ! -f "$SETUP_SCRIPT" ]; then
     echo "Error: $SETUP_SCRIPT not found"
     exit 1
 fi
+if [ ! -f "$SSH_ALERTS_SCRIPT" ]; then
+    echo "Error: $SSH_ALERTS_SCRIPT not found"
+    exit 1
+fi
 
 for required_var in UPTRACE_PROJECT_TOKEN UPTRACE_SECRET_KEY UPTRACE_ADMIN_PASSWORD; do
     if [ -z "${!required_var}" ]; then
@@ -84,6 +91,18 @@ case "$UPTRACE_PROJECT_TOKEN:$UPTRACE_SECRET_KEY:$UPTRACE_ADMIN_PASSWORD" in
     *dryrun_token*|*dryrun_secret*|*dryrun_password*)
         echo "Error: dry-run placeholder value found in Uptrace deploy secrets."
         echo "Replace placeholder values in .env.telemetry.secret before deploying telemetry."
+        exit 1
+        ;;
+esac
+
+# Task 0443 (review R10): PROFILE_SSH_ALERT_TOKEN goes into the single-quoted env file below,
+# which the box sources as root. A single quote in it would break that step mid-deploy and
+# leave the remote env file (every telemetry secret) in /root — so it is refused here, before
+# anything is sent. The value is never printed.
+case "${PROFILE_SSH_ALERT_TOKEN:-}" in
+    *"'"*)
+        echo "Error: PROFILE_SSH_ALERT_TOKEN contains a single quote (')."
+        echo "Use the profile box's value, e.g. one made by 'openssl rand -hex 32'. Nothing was sent to the box."
         exit 1
         ;;
 esac
@@ -114,7 +133,7 @@ if [ "$GIT_COMMIT" = "unknown" ]; then
     exit 1
 fi
 
-TELEMETRY_SHIPPED_PATHS=(setup-telemetry.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh)
+TELEMETRY_SHIPPED_PATHS=(setup-telemetry.sh ssh-alerts.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh)
 if DIRTY_SHIPPED=$(deploy_shipped_tree_dirty "${TELEMETRY_SHIPPED_PATHS[@]}"); then
     echo "Error: files this deploy ships have uncommitted changes — refusing to deploy."
     echo "       The box would not match commit ${GIT_COMMIT}. Nothing was sent to the box."
@@ -297,8 +316,12 @@ SSH_CMD=(ssh -o StrictHostKeyChecking=no)
 SSH_PASSWORD_FILE=""
 
 if [ -n "$SSH_KEY_PATH" ]; then
-    SCP_CMD+=(-i "$SSH_KEY_PATH")
-    SSH_CMD+=(-i "$SSH_KEY_PATH")
+    # IdentitiesOnly (task 0441, mirror of build-deploy-profile.sh 0221): offer ONLY this key.
+    # With several keys in the agent ssh tries each in turn, and every rejected key is a failed
+    # auth to sshd — enough of them hits MaxAuthTries and the box's fail2ban jail, and bans
+    # the operator.
+    SCP_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
 elif [ -n "$SSH_PASSWORD" ]; then
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based telemetry deploy is disabled by default."
@@ -324,6 +347,8 @@ elif [ -n "$SSH_PASSWORD" ]; then
 fi
 
 REMOTE_SCRIPT="/root/setup-telemetry.sh"
+# setup-telemetry.sh installs the agent from here (its SSH_ALERTS_SRC default).
+REMOTE_SSH_ALERTS_SCRIPT="/root/ssh-alerts.sh"
 
 print_header "DEPLOYING UPTRACE TO ${TELEMETRY_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
@@ -443,6 +468,9 @@ print_header "UPLOADING SETUP SCRIPT"
 chmod +x "$SETUP_SCRIPT"
 "${SCP_CMD[@]}" "$SETUP_SCRIPT" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_SCRIPT}"
 echo "Uploaded to ${REMOTE_SCRIPT}"
+# And the SSH security alert agent (0443) — same transport.
+"${SCP_CMD[@]}" "$SSH_ALERTS_SCRIPT" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_SSH_ALERTS_SCRIPT}"
+echo "Uploaded to ${REMOTE_SSH_ALERTS_SCRIPT}"
 
 # ── Run setup remotely ────────────────────────────────────────────────────────
 
@@ -464,6 +492,11 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 # ⚠️ scripts/check-config-parity.mjs covers game/profile/client only, so it does not see
 # these two. The hardening harness (tests/scripts/profile-deploy-hardening.test.sh) is
 # the only gate that this hop exists — the same residual task 0277 recorded.
+#
+# Task 0443 adds PROFILE_SSH_ALERT_TOKEN — the SSH alert agent's token, the SAME value the
+# profile box holds (persist-or-reuse on the box, never generated there). Like every value in
+# this single-quoted heredoc it must contain no single quote — refused up front (the
+# "review R10" check under Validate); `openssl rand -hex 32` never has one.
 #
 # Task 0356 adds TELEMETRY_DEPLOY_VERSION + TELEMETRY_DEPLOY_COMMIT — this deploy's name and
 # commit, computed above (plain tokens, safe in single quotes). setup-telemetry.sh writes them
@@ -490,6 +523,7 @@ export TELEMETRY_SERVER_HOST='${TELEMETRY_SERVER_HOST}'
 export TELEMETRY_DOMAIN='${TELEMETRY_DOMAIN}'
 export TELEMETRY_ALERT_PROBE_URL='${TELEMETRY_ALERT_PROBE_URL:-}'
 export PROFILE_ALERT_WEBHOOK_TOKEN='${PROFILE_ALERT_WEBHOOK_TOKEN:-}'
+export PROFILE_SSH_ALERT_TOKEN='${PROFILE_SSH_ALERT_TOKEN:-}'
 export TELEMETRY_DEPLOY_VERSION='${DEPLOY_VERSION}'
 export TELEMETRY_DEPLOY_COMMIT='${GIT_COMMIT}'
 EOF

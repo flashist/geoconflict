@@ -147,6 +147,10 @@ PROFILE_BACKUP_SRC="${PROFILE_BACKUP_SRC:-/root/profile-backup.sh}"
 PROFILE_CHECKS_SRC="${PROFILE_CHECKS_SRC:-/root/profile-checks.sh}"
 PROFILE_CHECKS_PING_URL="${PROFILE_CHECKS_PING_URL:-}"
 
+# SSH security alert agent (task 0443). SCP'd by build-deploy-profile.sh; installed by its own
+# `install` subcommand near the end of this script (the SSH SECURITY ALERTS section).
+PROFILE_SSH_ALERTS_SRC="${PROFILE_SSH_ALERTS_SRC:-/root/ssh-alerts.sh}"
+
 BACKUP_OFFBOX_ENABLED=0
 if [ -n "$PROFILE_BACKUP_S3_ENDPOINT" ] && [ -n "$PROFILE_BACKUP_S3_BUCKET" ] \
    && [ -n "$PROFILE_BACKUP_S3_ACCESS_KEY" ] && [ -n "$PROFILE_BACKUP_S3_SECRET_KEY" ] \
@@ -671,6 +675,11 @@ mkdir -p "$PROFILE_DIR/digest" && chmod 700 "$PROFILE_DIR/digest"
 # every redeploy (profile.env, by contrast, is rewritten below on every run). The
 # hardening harness asserts this. ⛔ Never backups/, for the reason stated above.
 mkdir -p "$PROFILE_DIR/tester-roles" && chmod 700 "$PROFILE_DIR/tester-roles"
+# ssh-alerts/ (task 0443): bind-mounted into profile-api below. The SSH alert route stores each
+# box's latest daily report there (daily-<box>.json), and the daily SSH security digest reads
+# them and writes its marker (last-ssh-digest.json). ⛔ Its own directory — never alerts/,
+# digest/, tester-roles/ or backups/.
+mkdir -p "$PROFILE_DIR/ssh-alerts" && chmod 700 "$PROFILE_DIR/ssh-alerts"
 
 # ── Internal service token + DATABASE_URL ─────────────────────────────────────
 # The service-to-service token (shared with the game server in T6) MUST stay stable
@@ -787,6 +796,10 @@ persist_or_reuse_secret PROFILE_LOGIN_CREATE_ENABLED "$PROFILE_DIR/.login_create
 persist_or_reuse_secret TELEGRAM_TOPIC_ALERTS        "$PROFILE_DIR/.telegram_topic_alerts"
 persist_or_reuse_secret TELEGRAM_TOPIC_NAME_CHANGES  "$PROFILE_DIR/.telegram_topic_name_changes"
 persist_or_reuse_secret PROFILE_ALERT_WEBHOOK_TOKEN  "$PROFILE_DIR/.alert_webhook_token"
+# SSH security alerts (task 0443): the token every box's ssh-alerts.sh agent sends. Same
+# persist-or-reuse treatment. 🚨 NEVER `generate`: the game and telemetry boxes must hold the
+# SAME value, so a box-minted one would reject every other box's events — silently.
+persist_or_reuse_secret PROFILE_SSH_ALERT_TOKEN      "$PROFILE_DIR/.ssh_alert_token"
 
 # The profile API container reaches Postgres by the compose SERVICE NAME over the
 # shared compose network: `postgres:5432`. NOT 127.0.0.1 — inside the API container
@@ -820,6 +833,7 @@ PROFILE_LOGIN_CREATE_ENABLED=${PROFILE_LOGIN_CREATE_ENABLED:-}
 TELEGRAM_TOPIC_ALERTS=${TELEGRAM_TOPIC_ALERTS:-}
 TELEGRAM_TOPIC_NAME_CHANGES=${TELEGRAM_TOPIC_NAME_CHANGES:-}
 PROFILE_ALERT_WEBHOOK_TOKEN=${PROFILE_ALERT_WEBHOOK_TOKEN:-}
+PROFILE_SSH_ALERT_TOKEN=${PROFILE_SSH_ALERT_TOKEN:-}
 EOF
 )
 chmod 600 "$PROFILE_DIR/profile.env"
@@ -884,6 +898,13 @@ report_config_values() {
         echo "  OK       PROFILE_ALERT_WEBHOOK_TOKEN"; n_ok=$((n_ok+1))
     else
         echo "  FINDING  PROFILE_ALERT_WEBHOOK_TOKEN — empty: the alert webhook relays NOTHING, so monitoring alerts are dropped silently. It must match the value pasted into the sender's webhook payload template (src/profile-server/Server.ts)"; n_find=$((n_find+1))
+    fi
+    # PROFILE_SSH_ALERT_TOKEN (task 0443) — empty means the SSH alert route answers 503 to every
+    # box, so NO login / fail2ban / daily SSH alert is delivered. Presence only, never the value.
+    if [ -n "${PROFILE_SSH_ALERT_TOKEN:-}" ]; then
+        echo "  OK       PROFILE_SSH_ALERT_TOKEN"; n_ok=$((n_ok+1))
+    else
+        echo "  FINDING  PROFILE_SSH_ALERT_TOKEN — empty: the SSH alert route answers 503, so NO ssh login / fail2ban / daily SSH alert from any box is delivered (src/profile-server/Server.ts). It must equal the value in the game and telemetry deploys' env"; n_find=$((n_find+1))
     fi
     # TELEGRAM_TOPIC_* (task 0277) — blank is SUPPORTED and means the General topic, which is
     # the pre-0277 behaviour. Reported as optional so a blank one is never read as a defect.
@@ -1092,12 +1113,17 @@ services:
     # mount on purpose: a FILE mount whose host file does not exist yet makes Docker
     # create a directory in its place. Its own directory, never alerts/, digest/ or
     # backups/.
+    # Task 0443: SSH security alerts. The container path MUST equal SSH_ALERTS_STATE_DIR in
+    # src/profile-server/SshAlerts.ts (the hardening harness asserts it): the route stores each
+    # box's latest daily report there and the daily SSH digest writes its marker there. Its own
+    # directory, never alerts/, digest/, tester-roles/ or backups/.
     # ⛔ No dollar sign, no backtick and no command substitution may EVER appear in this
     # heredoc (task 0282) — the delimiter is quoted, and the harness enforces all three.
     volumes:
       - ./alerts:/var/lib/profile/alerts
       - ./digest:/var/lib/profile/digest
       - ./tester-roles:/var/lib/profile/tester-roles
+      - ./ssh-alerts:/var/lib/profile/ssh-alerts
     # Same retention as postgres above (0219, G1). Compose owns it — see the note there.
     logging:
       driver: json-file
@@ -1158,6 +1184,7 @@ echo "         alerts/ is bind-mounted into profile-api — the alert-path probe
 echo "         is written in the container and read on the host by checks.sh."
 echo "         digest/ likewise — the name-change digest's freshness marker (task 0283)."
 echo "         tester-roles/ likewise — the tester allowlist (owner-edited) and run log (task 0425)."
+echo "         ssh-alerts/ likewise — each box's daily SSH report and the SSH digest marker (task 0443)."
 
 # Every `docker compose` command below resolves the project from this directory.
 cd "$PROFILE_DIR"
@@ -1774,6 +1801,13 @@ TZ=UTC
 # No literal percent sign in this line, so no Vixie escaping is needed. </dev/null so a compose
 # exec can never consume cron's stdin (the footgun profile-checks.sh's check 10 guards against).
 0 4 * * * root docker compose -f $PROFILE_DIR/docker-compose.yml exec -T profile-api npm run digest:name-changes </dev/null >> /var/log/profile-name-change-digest.log 2>&1
+
+# Daily SSH security digest (0443) at 08:10 UTC — ONE message into the ALERTS topic with each
+# box's failed logins, unknown-user tries and fail2ban bans over the last 24 h. Every box's
+# agent sends its report at the first 5-minute tick at/after 08:00 UTC, so 08:10 reads fresh
+# reports; a box with no report in 26 h reads "NO REPORT", never 0. No literal percent sign,
+# so no Vixie escaping; </dev/null so a compose exec can never consume cron's stdin.
+10 8 * * * root docker compose -f $PROFILE_DIR/docker-compose.yml exec -T profile-api npm run digest:ssh-security </dev/null >> /var/log/profile-ssh-security-digest.log 2>&1
 EOF
 
 if [ "$BACKUP_MODE" = "offbox" ]; then
@@ -1850,6 +1884,30 @@ else
     echo "   sends nothing at all and looks identical from here."
 fi
 
+# ── SSH security alerts (task 0443) ───────────────────────────────────────────
+# The agent that reports every successful ssh login, fail2ban down/back and the daily counts
+# from THIS box. It posts to this box's own route over loopback (127.0.0.1:${PROFILE_PORT}), so
+# it needs no nginx allow-list entry. Idempotent: an unchanged agent is not restarted, so a
+# redeploy opens no gap. The token goes in on STDIN (the printf builtin) — never in an argv.
+# NON-FATAL, loudly: a broken alert agent must not undo a good profile deploy, and the daily
+# digest shows this box as NO REPORT when it is not reporting. (Placed after the fail2ban and
+# sshd sections on purpose — outside the ranges the hardening harness extracts.)
+print_header "SSH SECURITY ALERTS (0443)"
+if [ -z "${PROFILE_SSH_ALERT_TOKEN:-}" ]; then
+    echo "⚠️  WARNING: PROFILE_SSH_ALERT_TOKEN is empty — the SSH alert agent is NOT installed or updated"
+    echo "   on this box, and the route answers 503 to every box. Set it in .env.profile.secret and redeploy."
+elif [ ! -f "$PROFILE_SSH_ALERTS_SRC" ]; then
+    echo "⚠️  WARNING: $PROFILE_SSH_ALERTS_SRC not found — the deploy path did not ship ssh-alerts.sh."
+    echo "   SSH alerts on this box are missing or out of date. Re-run via build-deploy-profile.sh."
+elif printf '%s\n' "$PROFILE_SSH_ALERT_TOKEN" \
+        | bash "$PROFILE_SSH_ALERTS_SRC" install --box profile --url "http://127.0.0.1:${PROFILE_PORT}"; then
+    echo "✅ SSH alert agent installed/up to date for this box."
+else
+    echo "⚠️  WARNING: the SSH alert agent install FAILED (output above). The deploy is NOT aborted:"
+    echo "   the profile API is fine. SSH alerts on this box may be missing or out of date until"
+    echo "   the next deploy succeeds; the daily SSH digest will show 'profile: NO REPORT'."
+fi
+
 # ── Print connection info ─────────────────────────────────────────────────────
 
 SERVER_IP="${PROFILE_SERVER_HOST:-$(hostname -I | awk '{print $1}')}"
@@ -1899,6 +1957,7 @@ else
     echo "Backups: interim weekly LOCAL pg_dump only — set PROFILE_BACKUP_* + redeploy for off-box."
 fi
 echo "Checks: daily 08:00 UTC ($PROFILE_DIR/checks.sh, log /var/log/profile-checks.log); alerting: $CHECKS_ALERTING."
+echo "SSH alerts (0443): login / fail2ban alerts from every box via this box; SSH digest daily 08:10 UTC (Alerts topic)."
 echo "Logs: container logs capped by compose (json-file, 100m x 10 per container); images pruned to current + previous."
 echo ""
 echo "Game server env vars — add to .env.prod for T6:"

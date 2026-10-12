@@ -190,6 +190,7 @@ to them, so `npm test` is now their gate. It follows the existing
 | `tests/scripts/profile-deploy-hardening.test.sh` | **yes**, unconditional | Self-stubs `docker git ssh scp sshpass getent` — needs nothing from the host. Invoked as `bash <path>`: the file is mode 644, **not executable**. |
 | `tests/profile-backup-redeploy.sh` | **yes**, unconditional | bash + coreutils only. |
 | `tests/profile-checks.sh` | **yes**, unconditional | bash + coreutils only (task `0219`). Drives the real `profile-checks.sh` with stubbed `rclone`/`curl`/`openssl`. |
+| `tests/ssh-alerts.sh` | **yes**, unconditional | bash + coreutils + node (task `0443`). Drives the real `ssh-alerts.sh` and `setup-game-host.sh` into a fake root with stubbed `journalctl`/`systemctl`/`curl`/`getent`/`fail2ban-client`. |
 | `scripts/test-check-docker-secret-boundary.sh` | **yes**, Docker-probed | With Docker down the wrapper reports the test **`○ skipped`** and prints a warning — never a green pass. If the daemon dies *between* the probe and the run, the harness self-skips and the wrapper turns that into a **loud failure** naming the cause (jest has no runtime skip) — again never a green pass. |
 | `tests/profile-backup-dryrun.sh` | **no** — run `npm run test:scripts:docker` | It **hard-fails (exit 1)** without Docker *plus* `age`, `age-keygen`, `rclone`, `curl` and `jq`, so it cannot be a reliable `npm test` gate on a developer machine. Faking one would be worse than admitting there isn't one. Its real gate is task **`0218`** (durability/restore drill). |
 
@@ -213,7 +214,11 @@ wrapper is a jest suite, not a `posttest` hook.
    includes `setup-profile.sh`'s compose `logging:` values (must equal `update.sh`'s), its keep-list
    image prune, and the `checks.sh` cron line. Since `0286` it also includes an ordering assertion
    per script — `export DEBIAN_FRONTEND=noninteractive` must sit above that script's first `apt`
-   call — which is the only reason `setup.sh` appears in the list at all.
+   call — which is the only reason `setup.sh` appears in the list at all. Since `0441` it also
+   drives and greps the SSH auth of `deploy.sh` and `scripts/telemetry-tunnel.sh`, so editing either
+   of those can turn `npm test` red the same way. Since `0443` it also drives `deploy.sh`'s
+   every-deploy root step and greps `ssh-alerts.sh` / `setup-game-host.sh` and their wiring into
+   the profile and telemetry scripts.
 2. **`scripts/test-check-docker-secret-boundary.sh` writes a synthesized (fake) secret fixture into
    the repo root** and removes it in its `cleanup()` trap. An interrupted run (Ctrl-C) can leave that
    file behind. It is synthetic, never a real credential — but delete it if you see it.
@@ -225,9 +230,9 @@ change a harness's final summary line, update `tests/scripts/ShellHarnesses.test
 
 ⚠️ **Known residual: the harness list is hardcoded.** A new `.sh` harness that is not added to
 `tests/scripts/ShellHarnesses.test.ts` is still gated by nothing — the very failure `0201` was filed
-to stop, recurring for the next harness. Accepted knowingly by the owner (2026-09-05); today's five
-harnesses are all accounted for (`0219` added `tests/profile-checks.sh` and registered it). **Add
-your new harness to that file.**
+to stop, recurring for the next harness. Accepted knowingly by the owner (2026-09-05); today's six
+harnesses are all accounted for (`0219` added `tests/profile-checks.sh` and registered it; `0443`
+added `tests/ssh-alerts.sh` and registered it). **Add your new harness to that file.**
 
 The wrapper sets an explicit **180 s** jest timeout per harness and a **150 s** `spawnSync` deadline.
 Both are load-bearing: jest's 5000 ms default would make a normal slow harness fail with
