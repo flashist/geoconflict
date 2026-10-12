@@ -17,7 +17,7 @@ import { PauseGameEvent } from "../../Transport";
 import { translateText } from "../../Utils";
 import SoundManager from "../../sound/SoundManager";
 import { Layer } from "./Layer";
-import { FlashistFacade } from "../../flashist/FlashistFacade";
+import { askToLeaveMatch } from "../../MatchExit";
 
 export class ShowSettingsModalEvent {
   constructor(
@@ -155,9 +155,10 @@ export class SettingsModal extends LitElement implements Layer {
   private onExitButtonClick() {
     // redirect to the home page
 
-    // Flashist Adaptation
+    // Flashist Adaptation (task 0437): ask first, then leave exactly like the
+    // sidebar's exit (interstitial, clear the reconnect session, start screen).
     // window.location.href = "/";
-    FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
+    askToLeaveMatch();
   }
 
   private onVolumeChange(event: Event) {

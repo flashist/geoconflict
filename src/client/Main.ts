@@ -20,6 +20,7 @@ import "./CitizenshipCard";
 import "./CitizenshipExplainerModal";
 import "./CitizenshipHelpSection";
 import "./CitizenshipRestartModal";
+import "./ExitConfirmModal";
 import { CitizenshipRestartModal } from "./CitizenshipRestartModal";
 import {
   CITIZENSHIP_GRANTED_MID_SESSION_EVENT,

@@ -81,7 +81,9 @@ services:
       POSTGRES_PASSWORD: $PGPASS
       POSTGRES_DB: profile
   minio:
-    image: minio/minio
+    # minio/minio is gone from Docker Hub and quay.io (checked 2026-10-11, task 0436). pgsty/minio is a
+    # community-maintained MinIO fork with the same entrypoint; pinned by tag + digest.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z@sha256:b6bfe7239bfc83fb90d31612d9704d86039dd714f7904b3f1ad68f211e602372
     command: server /data --address ':9000'
     environment:
       MINIO_ROOT_USER: $MINIO_KEY

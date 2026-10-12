@@ -10,7 +10,14 @@
 > reference).
 
 ## Sprint
-Backlog
+Sprint 8 *(was ~~Backlog~~ — moved 2026-10-11, see below)*
+
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-11 — OWNER RULING given live via
+> `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
+> channel (ADR-021/037); ⛔ not producer precedent. Verbatim selection: **"0436 backup test fix"** (same question as
+> `0437`'s move — work to do while waiting on Yandex infrastructure). Appended to Sprint 8 at rank 36 (ADR-035 append
+> position, not a merit rank). The Backlog-board row is kept as `➡️ Moved`. The filing note below (*"not Sprint 8"*)
+> is history.
 
 > 📌 **OWNER RULING, 2026-10-11, given live via `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead`
 > to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Verbatim: **"Close
@@ -19,10 +26,10 @@ Backlog
 > board, **not** Sprint 8.
 
 ## Priority
-Unscheduled
+36 on Sprint 8 *(append rank, not a merit rank; was ~~Unscheduled~~)*
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -79,6 +86,7 @@ closes the last unproven item of `0425` and `0430`.
 
 - **Depends on:** nothing.
 - **Blocks:** nothing. It completes the last unproven item of `0425` and `0430`, both already closed.
+  *(2026-10-11: also blocks [`0438`](../../backlog/0438-restore-drill-seeds-no-tester-role-snapshot-row-so-the-snapshot-data-is-never-compared/brief.md) — the drill-seed follow-up found by this task's coder; it needs the working image from this task.)*
 - Needs a Mac with Docker running (Docker Desktop cannot be started headlessly — ask the owner to start it) and `age`,
   `age-keygen`, `rclone`, `curl`, `jq` installed.
 - ⚠️ Worth a look while in there, not a required change: the harness's cleanup check reads *"returned all 9 data tables

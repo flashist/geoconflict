@@ -22,6 +22,8 @@ describe("LangSelector.applyTranslation re-render list", () => {
     "citizenship-help-section",
     // Task 0303: the "restart to apply" popup.
     "citizenship-restart-modal",
+    // Task 0437: the in-match exit question.
+    "exit-confirm-modal",
   ])("re-renders <%s>", (tag) => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     const element = document.createElement(tag);

@@ -1006,5 +1006,9 @@
     "tooltip_7": "You're ready for real matches! Find tips and controls in the instructions anytime.",
     "got_it": "Got it",
     "skip": "Skip tutorial"
+  },
+  "exit_confirm_modal": {
+    "leave": "Leave",
+    "stay": "Stay"
   }
 }

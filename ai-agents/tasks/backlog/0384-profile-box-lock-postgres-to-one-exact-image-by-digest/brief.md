@@ -86,6 +86,9 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
    **No new `${...}` substitution.**
 4. **Point the restore drill at the same lock:** the runbook's throwaway restore target (`:257`) and both images in
    `tests/profile-backup-dryrun.sh` (`:70,78`). One value, written identically in all four places.
+   📌 *OWNER RULING 2026-10-12 (live `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer precedent): `0436`'s
+   review observation — the backup dry-run tests against the moving `postgres:16-alpine` label — is covered by this
+   step; no separate task (*"No new task, 0384 covers it (Recommended)"*).*
 5. **Reword the prune comment** (`:1474-1475`) so it no longer describes a superseded `postgres:16-alpine` as
    normal. The plan checks whether the keep-list prune treats a digest-pulled image (which may list as `<none>` in
    `docker images`) correctly — today it keeps container images by ID, which should still hold.

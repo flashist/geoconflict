@@ -4796,3 +4796,10 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - Caller's premise vs the repo: the caller said the sync's 11 vault files were uncommitted. At this run's start they were already committed (`20beda2`, "Wiki sync", 19:23 +0300) and the tree was clean. Linted as found; nothing reverted.
 - ⚠️ **Coverage, said plainly:** all 333 pages checked by script (metadata, sections, links, back-links, orphans, file paths, deploy-claim phrases, status claims for today's closed tasks); read in full: the 13 pages today's sync created and every page a finding pointed at. Stale wording outside the searched phrases may remain.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. No tests run. Nothing committed or pushed.
+
+## 2026-10-12 — lint (single fix)
+
+- Deleted `ai-agents/wiki-vault/2026-05-10.md` — the empty (0 bytes, re-checked before deleting), git-tracked stray file flagged by the 2026-10-10 lint. **Owner ruling, 2026-10-12, verbatim: "Delete file, skip pages (Recommended)"** — option text: "The librarian deletes the empty file. No new pages for 0231–0233: they're old and low value."
+- Links to it: none in `index.md` or any page. The only mentions were this log (append-only, kept) and the untracked Obsidian editor state `.obsidian/workspace.json` (`lastOpenFiles` list — not a link; left alone, Obsidian prunes it).
+- Per the same ruling, **no task pages created for `0231`–`0233`**; [[wiki/systems/client-game-teardown]] already records their outcome (2026-10-10 lint).
+- ⛔ Wrote only inside `ai-agents/wiki-vault/`. Deletion is in the working tree only — not staged, not committed.

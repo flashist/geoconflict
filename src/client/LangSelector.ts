@@ -247,6 +247,7 @@ export class LangSelector extends LitElement {
       "citizenship-explainer-modal",
       "citizenship-help-section",
       "citizenship-restart-modal",
+      "exit-confirm-modal",
     ];
 
     document.title = this.translateText("main.title") ?? document.title;

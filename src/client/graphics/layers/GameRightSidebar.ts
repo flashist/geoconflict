@@ -12,11 +12,10 @@ import { GameType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
 import { GameView } from "../../../core/game/GameView";
 import { PauseGameEvent } from "../../Transport";
-import { clearReconnectSession } from "../../ReconnectSession";
+import { askToLeaveMatch } from "../../MatchExit";
 import { Layer } from "./Layer";
 import { ShowReplayPanelEvent } from "./ReplayPanel";
 import { ShowSettingsModalEvent } from "./SettingsModal";
-import { FlashistFacade } from "../../flashist/FlashistFacade";
 
 @customElement("game-right-sidebar")
 export class GameRightSidebar extends LitElement implements Layer {
@@ -112,27 +111,20 @@ export class GameRightSidebar extends LitElement implements Layer {
     this.eventBus.emit(new PauseGameEvent(this.isPaused));
   }
 
-  // Flashist Adaptation
-  // private onExitButtonClick() {
-  private async onExitButtonClick() {
-    const isAlive = this.game.myPlayer()?.isAlive();
-    if (isAlive) {
-      // Flashist Adaptation: disabling the logic of confirming exit from the game
-      // const isConfirmed = confirm(
-      //   translateText("help_modal.exit_confirmation"),
-      // );
-      // if (!isConfirmed) return;
-    }
-    // redirect to the home page
-
-    // Flashist Adaptaiton: interstitial
-    await FlashistFacade.instance.showInterstitial();
-
-    clearReconnectSession();
-
-    // Flashist Adaptation
+  private onExitButtonClick() {
+    // Flashist Adaptation (task 0437): Yandex Games forbids the native
+    // confirm(), so the game's own popup asks — always, not only while alive —
+    // and on Leave runs the interstitial, clears the reconnect session and goes
+    // back to the start screen (MatchExit.ts).
+    // const isAlive = this.game.myPlayer()?.isAlive();
+    // if (isAlive) {
+    //   const isConfirmed = confirm(
+    //     translateText("help_modal.exit_confirmation"),
+    //   );
+    //   if (!isConfirmed) return;
+    // }
     // window.location.href = "/";
-    FlashistFacade.instance.changeHref(FlashistFacade.instance.rootPathname);
+    askToLeaveMatch();
   }
 
   private onSettingsButtonClick() {
