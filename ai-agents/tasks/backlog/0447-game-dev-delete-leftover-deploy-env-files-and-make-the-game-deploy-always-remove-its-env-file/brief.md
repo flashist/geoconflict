@@ -8,7 +8,14 @@
 > `0447` in `ai-agents/tasks/`, `ai-agents/sprints/` or `.claude/`, and no `tasks/*/0447*` path in any branch's history.
 
 ## Sprint
-Backlog
+Sprint 8 *(was ~~Backlog~~ — moved 2026-10-12, see below)*
+
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-12 — OWNER RULING given in the `fkit lead`
+> session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer
+> precedent. Verbatim: *"Move it to the Sprint 8"*. Appended to Sprint 8 at rank 43 (ADR-035 append position, **not** a
+> merit rank). Status unchanged (`🔲 Backlog`); scope unchanged. The Backlog-board row is kept as `➡️ Moved`. The filing
+> note's *"Why the Backlog board, not Sprint 8"* paragraph below is history. Open question 1 (fold into `0444` or keep
+> separate) is **not** decided by this move — `0444` stays on the Backlog board.
 
 > 📌 **OWNER RULING, 2026-10-12, given live via `AskUserQuestion` in the `fkit lead` session** (driver of
 > `fkit-sprint-ship-loop`), relayed to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer
@@ -21,7 +28,7 @@ Backlog
 > a producer act on an owner word.
 
 ## Priority
-Unscheduled
+43 on Sprint 8 *(append rank, not a merit rank; was ~~Unscheduled~~)*
 
 ## Status
 🔲 Backlog
