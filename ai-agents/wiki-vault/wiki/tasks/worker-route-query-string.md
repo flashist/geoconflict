@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 62 (ADR-035 append rank; on merit the top open row, per the brief) / task `0416`
 
+> 📌 *2026-10-12 sync: `0420` closed 2026-10-11 (agent-closed — not owner-verified); item 1 passed live — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08),
 > although the owner ruled it **"Sprint 7, ship today"**. Ships only with a **game image rebuild** (`build-deploy.sh`),
@@ -55,3 +57,4 @@ production for anyone** (still tester-only, so real players were not hit). It bl
 - [[systems/weekend-deploy-window]] — the 2026-10-08 deploy that surfaced it, and the same-day exception
 - [[decisions/sprint-7]] — the board (rank 62)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, the live checklist (item 1 passed)

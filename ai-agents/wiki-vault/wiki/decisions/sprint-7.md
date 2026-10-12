@@ -809,3 +809,4 @@ re-affirmed by owner ruling; no rank or status changed). **Added and closed 2026
 - [[tasks/explainer-popup-shorter-text]] — task `0421` (rank 64), added 2026-10-08 and closed 2026-10-09; deployed in `0.0.161`
 - [[tasks/yandex-invite-sdk-link-live]] — task `0383` (rank 61), closed 2026-10-09: `0382`'s live check passed
 - [[tasks/post-0340-login-reread]] — task `0402` (rank 52), closed 2026-10-09: login numbers ≈2.6 %, no weekend read
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, the one live checklist for this sprint's popup, start-screen and private-lobby builds (closed 2026-10-11)

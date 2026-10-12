@@ -4,6 +4,8 @@
 **Status**: done
 **Sprint/Tag**: Sprint 4 / Player Profile Store T8
 
+> 📌 *2026-10-12 sync: the dry-run harness that exercises this script end to end (`tests/profile-backup-dryrun.sh`) broke when Docker Hub stopped serving `minio/minio`; `0436` moved it to a pinned `pgsty/minio` image and it passed on 2026-10-11 (55 passed, 11 tables) — [[tasks/backup-dryrun-minio-image]].*
+
 ## Goal
 
 Replace the same-disk interim profile DB dump with a daily encrypted off-box backup and a documented restore path before paid citizenship can create irreplaceable entitlement records.
@@ -265,3 +267,4 @@ T8 is complete. The profile store now has an encrypted off-box daily backup path
 - [[decisions/sprint-backlog]] — where task `0239`, filed out of that near-deletion, sits on the Backlog board
 - [[tasks/profile-weekly-backup-copy-verified]] — task `0241`: the first-ever weekly copy of this routine, observed from the scheduled run
 - [[tasks/profile-backup-restore-reproof-006]] — task `0275`: this routine's restore path re-proved `IDENTICAL` on the `006` schema
+- [[tasks/backup-dryrun-minio-image]] — task `0436`, the dry-run harness's MinIO image fix

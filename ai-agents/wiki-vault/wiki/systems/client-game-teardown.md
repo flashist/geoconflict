@@ -3,6 +3,8 @@
 **Layer**: client
 **Key files**: `src/client/Main.ts`, `src/client/ClientGameRunner.ts`, `src/client/PerformanceMonitor.ts`, `src/core/worker/Worker.worker.ts`, `src/core/worker/WorkerClient.ts`, `src/core/GameRunner.ts`
 
+> 📌 *2026-10-12 sync: `0228`'s fix (`bcc9bf0`) is **deployed** — game `0.0.163` only, ~18:43 UTC 2026-10-10 (`0.0.162` was built but never deployed). Its live check `0433` closed 2026-10-11 with partial coverage (no regression on the main paths, not proof under the targeted conditions) — [[tasks/join-lobby-race-fix-live]]. The "not deployed" wording for `0228` below is history.*
+
 ## Summary
 
 A client match owns three long-lived things: the **`ClientGameRunner`** (plus its Web Worker, a 1-second reconnect interval and five `EventBus` listeners), the **`PerformanceMonitor`** (a `setInterval`, a `requestAnimationFrame` loop and a `visibilitychange` listener), and **`Main.gameStop`**. **Ending a game does not reliably stop any of them**, and which ones survive depends on *how* the game ended.
@@ -198,3 +200,4 @@ Every leaked `PerformanceMonitor` keeps emitting `Performance:*` events, which i
 - [[tasks/rejoin-after-failed-match-start]] — task `0347`: the reconnect session is saved before site B can run
 - [[tasks/lobby-close-leftovers-investigation]] — task `0335`: `0228` (case 1) shown reachable through `0327`'s close routes; `0252` (case 2) measured at +24 listeners per join
 - [[tasks/client-null-id-errors]] — task `0032`: the shared terrain-map cache that made a second in-page game start with stale tile owners (fixed in `a953271`); the routes that reach it are `0252`'s
+- [[tasks/join-lobby-race-fix-live]] — task `0433`, `0228`'s live check (partial)

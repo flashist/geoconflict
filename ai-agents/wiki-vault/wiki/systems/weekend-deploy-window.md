@@ -5,6 +5,8 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 📌 *2026-10-12 sync — **the 2026-10-10 deploys ran**, so the "waiting for a deploy" list below is history. **Profile box:** `0425` tester roles, mid-week by owner ruling, ~17:45 UTC (migration `008`; ~40 s restart, 4 self-healing `player resolve failed after retries` on the game server) — [[tasks/tester-roles-live]]. **Game:** `0228`, `0415`, `0423` went live in **`0.0.163` only** (image `20261010-212047`, ~18:43 UTC). Two `./build-deploy.sh prod` runs both stopped at the copy step on an SSH password-login refusal ("Permission denied"): the first had built and pushed **`0.0.162`, which was never deployed**; the second built `0.0.163`, and the owner shipped that already-built image with `./deploy.sh prod 20261010-212047` (per `fkit-lead`, who was there; the `0441` brief records the copy-step failure, cause unproven, and `0441`/`0442` move the game box to key login); their live checks `0429` (passed, [[tasks/no-native-tooltips-live]]) and `0433` (partial, [[tasks/join-lobby-race-fix-live]]) are closed. **Now waiting for a deploy:** `0437`, the exit confirmation popup (commit `5449571`, no tag) — [[tasks/exit-confirm-popup]]; its live check `0439` is listed in `0440` (waits on Yandex Games recovering).*
+
 > 🆕 **2026-10-10 sync — committed, waiting for a deploy** (commit `bcc9bf0`; `git tag --contains bcc9bf0` → none,
 > checked 2026-10-10):
 > - **Game client:** `0228` the lobby join-race fix ([[tasks/join-lobby-race-fix]]), `0415` no native tooltips
@@ -897,3 +899,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/tester-roles-command]] — task `0425`: a profile deploy with migration `008`, ruled urgent mid-week (`0430`)
 - [[tasks/worker-reuses-page-map-live]] — task `0351`, the dev-box check (2026-10-10)
 - [[tasks/public-lobby-one-minute-live]] — task `0370`, whose Steps 1–3 ran in the 2026-10-03 window
+- [[tasks/tester-roles-live]] — task `0430`, the mid-week profile deploy of 2026-10-10
+- [[tasks/no-native-tooltips-live]] — task `0429`, live check after the 2026-10-10 game deploy
+- [[tasks/join-lobby-race-fix-live]] — task `0433`, live check after the 2026-10-10 game deploy
+- [[tasks/exit-confirm-popup]] — task `0437`, committed, waiting for a game deploy

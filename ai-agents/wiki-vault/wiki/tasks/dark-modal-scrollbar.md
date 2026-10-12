@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 21 (ADR-035 append rank) / task `0423`
 
+> 📌 *2026-10-12 sync: **deployed in game `0.0.163` only** (image `20261010-212047`, live ~18:43 UTC 2026-10-10). `0.0.162` was built and pushed but **never deployed** — that run stopped at the copy step on an SSH password-login refusal (per `fkit-lead`, who ran it; the `0441` brief records the same failure). The dark thin scrollbar **passed** live in `0429` item 6 on `0.0.163` (one overall pass, windows not listed) — [[tasks/no-native-tooltips-live]]. The "NOT deployed" line above is history.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-09. Code committed in `bcc9bf0` (2026-10-10);
 > `git tag --contains bcc9bf0` → **no tag**, so **committed, NOT deployed** (checked 2026-10-10). Live check folded into
 > `0429` (owner ruling *"Add a line to 0429 (Recommended)"*).
@@ -42,3 +44,4 @@ shadow-DOM `o-modal`. Visual polish only — no platform rule.
 - [[tasks/no-native-tooltips]] — task `0415`, same `Modal.ts`
 - [[decisions/sprint-8]] — the board (rank 21)
 - [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy
+- [[tasks/no-native-tooltips-live]] — task `0429`, whose item 6 checked this live (passed)

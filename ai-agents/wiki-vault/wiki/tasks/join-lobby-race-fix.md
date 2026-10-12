@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 28 (ADR-035 append rank; moved in from the Backlog board 2026-10-09) / task `0228`
 
+> 📌 *2026-10-12 sync: **deployed in game `0.0.163` only** (image `20261010-212047`, live ~18:43 UTC 2026-10-10). `0.0.162` was built and pushed but **never deployed** — that run stopped at the copy step on an SSH password-login refusal (per `fkit-lead`, who ran it; the `0441` brief records the same failure). Its live check `0433` closed 2026-10-11 (agent-closed — not owner-verified) on the owner's word — ⚠️ checks not itemized, the phone join-then-close not run, slow network and the 5-minute wait not recorded: **no regression on the main paths, not proof under the conditions the fix targets** — [[tasks/join-lobby-race-fix-live]]. `0428` is now unblocked. The "NOT deployed" line above is history.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-10 on the owner ruling *"Close it (Recommended)"*
 > (live `AskUserQuestion`, relayed by `fkit-lead`). **Reproduced 9/9 with real clicks on a slowed network, and fixed in
 > code.** Code committed in `bcc9bf0` ("Sprint push", 2026-10-10); `git tag --contains bcc9bf0` → **no tag**, so
@@ -80,3 +82,4 @@ the private-lobby switch, so it reaches every player.
 - [[decisions/sprint-backlog]] — side finding `0432`
 - [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy
 - [[tasks/private-lobby-production-test]] — task `0376`, the gate item checked live the same day (no `0228` glitch seen)
+- [[tasks/join-lobby-race-fix-live]] — task `0433`, the live check (partial)

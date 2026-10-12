@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 58 (ADR-035 append rank) / task `0413` (absorbed cancelled `0414` as Part B)
 
+> 📌 *2026-10-12 sync: `0420` closed 2026-10-11 (agent-closed — not owner-verified) with item 7 (A) passed on a computer (not run on a phone — optional) and item 7 (B) **not checked live**, by owner ruling — the Yandex SDK copy path stays **unproven** — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Weekend-slot deploy. Live look → `0420` ([[decisions/sprint-8]]); its Part B item is ruled **"not checked live"**.
@@ -63,3 +65,4 @@ the ID: Ctrl+V / ⌘V or long-press`** (key `private_lobby.paste_hint`, both lan
 - [[tasks/private-lobby-citizen-perk]] — the private-lobby feature
 - [[decisions/sprint-7]] — the board (rank 58)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 7

@@ -3,6 +3,8 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 *2026-10-12 sync: **migration `008` is on the box** — profile deploy 2026-10-10 ~17:45 UTC, mid-week by owner ruling (rollback target `0.0.156-profile.4`; the new version tag was not recorded — a git tag `0.0.161-profile.1` exists, likely this deploy, not confirmed). During the ~40 s restart the game server logged 4 `player resolve failed after retries` (self-healing; none after). First tester-role run passed — [[tasks/tester-roles-live]]. The full backup dry-run ran green over **11 tables** on 2026-10-11 (`0436`, local harness, not the live-box drill) — [[tasks/backup-dryrun-minio-image]]. The "BUILT, NOT on the box" note below is history.*
+
 > 🆕 **2026-10-10 sync — migration `008` and an operator command are BUILT, NOT on the box.** `0425`
 > ([[tasks/tester-roles-command]], runbook [[systems/profile-tester-roles]]) adds `migrations/008_tester_role_snapshots.sql`
 > (one snapshot row per tester) and an SSH-only `tester-role` command (`show` / `apply` / `restore` of five fixed roles
@@ -611,3 +613,5 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[decisions/sprint-8]] — `0219` (rank 24, G3/G4 un-paused 2026-10-09) and the epic `0213` (rank 25)
 - [[systems/profile-tester-roles]] — the SSH-only tester-role command and its runbook (migration `008`)
 - [[tasks/tester-roles-command]] — task `0425`, which built it
+- [[tasks/tester-roles-live]] — task `0430`, profile deploy of migration `008` and the first tester-role run
+- [[tasks/backup-dryrun-minio-image]] — task `0436`, the backup dry-run green on the 11-table schema

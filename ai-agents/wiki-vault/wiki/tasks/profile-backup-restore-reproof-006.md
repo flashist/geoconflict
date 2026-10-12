@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0275`
 
+> 📌 *2026-10-12 sync: the local **dry-run harness** (`tests/profile-backup-dryrun.sh`) now runs again and passed on the 11-table schema on 2026-10-11 — `fingerprint IDENTICAL (11 tables, …)`, `RESULT: 55 passed, 0 failed` (`0436`, [[tasks/backup-dryrun-minio-image]]). That is the local harness, **not** the owner's drill on the live box, which has still not been re-run on 11 tables. ⚠️ No `tester_role_snapshots` row is seeded, so that table's structure is proven, not a row's data (`0438`, Backlog).*
+
 > 📌 *2026-10-10 sync: the drill's table inventory grew from 10 to **11** — `tester_role_snapshots` (migration `008`,
 > task `0425`, [[systems/profile-tester-roles]]). Without it, `verify.sql`'s uncovered-tables check would have turned the
 > drill red; `0425`'s review added it (`ai-agents/knowledge-base/profile-backup-restore-runbook.md` updated to match). The
@@ -99,3 +101,4 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, which required this re-proof before `PROFILE_INTERNAL_TOKEN` was set
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): every deliberate Postgres upgrade reuses this restore drill against the new image before the live switch
 - [[systems/profile-tester-roles]] — migration `008`'s `tester_role_snapshots`, the drill's 11th table
+- [[tasks/backup-dryrun-minio-image]] — task `0436`, the dry-run harness green on 11 tables

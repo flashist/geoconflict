@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 20 (ADR-035 append rank; pulled in from the Backlog board 2026-10-09) / task `0415`
 
+> 📌 *2026-10-12 sync: **deployed in game `0.0.163` only** (image `20261010-212047`, live ~18:43 UTC 2026-10-10). `0.0.162` was built and pushed but **never deployed** — that run stopped at the copy step on an SSH password-login refusal (per `fkit-lead`, who ran it; the `0441` brief records the same failure). Live check `0429` **passed** on `0.0.163` inside the Yandex Games iframe — one overall pass, items not listed one by one — [[tasks/no-native-tooltips-live]]. The "NOT deployed" line above is history.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-09. Code committed in `bcc9bf0` (2026-10-10);
 > `git tag --contains bcc9bf0` → **no tag**, so **committed, NOT deployed** (checked 2026-10-10). Live check: `0429`
 > (owner-run, a real hover inside the Yandex Games iframe), which also carries `0423`'s scrollbar check.
@@ -49,3 +51,6 @@ exactly as it is.
 - [[decisions/sprint-8]] — the board (rank 20); live check `0429` at 31
 - [[decisions/sprint-backlog]] — where it was filed on 2026-10-08
 - [[systems/weekend-deploy-window]] — committed `bcc9bf0`, waiting for a game deploy
+- [[tasks/no-native-tooltips-live]] — task `0429`, the live hover check (passed)
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, where the leftover tooltips were found
+- [[tasks/exit-confirm-popup]] — task `0437`, a new popup built to the no-`title` rule

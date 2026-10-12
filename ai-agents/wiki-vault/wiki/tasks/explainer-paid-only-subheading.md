@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 55 (ADR-035 append rank; moved in from the Backlog board 2026-10-08) / task `0408`
 
+> 📌 *2026-10-12 sync: `0420` closed 2026-10-11 (agent-closed — not owner-verified); item 2 passed live with `0421`'s text — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Cleared for a same-day deploy by owner ruling (*"might"*). Live look → `0420` ([[decisions/sprint-8]]).
@@ -47,3 +49,4 @@ after matches"*.
 - [[tasks/explainer-popup-wider]] — task `0417`, same popup, built after this
 - [[decisions/sprint-7]] — the board (rank 55)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, the live checklist (item 2 passed)

@@ -1,9 +1,43 @@
 # Sprint 8 — Paid Citizenship Perks and More Content
 
 **Date**: 2026-09-29
-**Status**: proposed *(page-type field; the board is **`🔲 Backlog — 2026-09-29` — created, NOT started**)*
+**Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-12`** — started by owner ruling *"Mark it started (Recommended)"*; was ~~`🔲 Backlog — 2026-09-29` — created, NOT started~~)*
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
+>
+> 🆕 **2026-10-12 (newest, `5449571`): SPRINT 8 STARTED. 40 rows — 21 `✅ Done` · 9 `🔲 Backlog` · 1 `🔄 In progress` ·
+> 8 `➡️ Moved` · 1 `⛔ Cancelled`; 10 OPEN** (was 34 / 10), counted by me by each row's leading status glyph.
+> - **Line-3 banner flipped to `🔄 In progress — 2026-10-12`** — owner ruling *"Mark it started (Recommended)"* (live
+>   `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer
+>   precedent). Only the label changed; the board tools now see Sprint 8 as the one active sprint
+>   ([[decisions/adr-108-active-sprint-pointer]]). Before that, `0437` and `0436` were briefly `🔄 In progress` on a board
+>   still marked not started — flagged on the board, now moot.
+> - **Closed in this window, all `✅ Done (agent-closed — not owner-verified)`, each on an owner ruling relayed by
+>   `fkit-lead`:** **18 `0420`** — the one Sprint 7 live checklist; every required item passed, the earned-account items
+>   on 2026-10-11 after `0430`; item 7 (B) **not checked live** by ruling ([[tasks/sprint-7-fixes-live-checklist]]) ·
+>   **31 `0429`** — no native tooltips + dark scrollbar, one overall pass on `0.0.163` ([[tasks/no-native-tooltips-live]])
+>   · **32 `0430`** — profile deploy of `0425` and the first `apply` / `restore` pass; the backup dry-run could not run and
+>   went to `0436` ([[tasks/tester-roles-live]]) · **34 `0433`** — ⚠️ **partial**: no regression on the main paths, not
+>   proof under the targeted conditions ([[tasks/join-lobby-race-fix-live]]) · **35 `0437`** — exit confirmation popup,
+>   built, committed `5449571`, **no tag — not deployed**; live check `0439` on the Backlog board
+>   ([[tasks/exit-confirm-popup]]) · **36 `0436`** — backup dry-run harness fixed and green, 11 tables `IDENTICAL`
+>   ([[tasks/backup-dryrun-minio-image]]). `0437` and `0436` were moved in from the Backlog board on 2026-10-11 (owner:
+>   work to do while waiting on Yandex infrastructure).
+> - **Deploys, 2026-10-10:** the profile box (mid-week, `0425`) and game `0.0.163` (carrying `0228`,
+>   `0415`, `0423`, `0431`'s commit `bcc9bf0`; `0.0.162` was built but never deployed — its run failed at the copy step) — the "NOT deployed" line in the 2026-10-10 entry below is history
+>   ([[systems/weekend-deploy-window]]).
+> - **Appended 2026-10-12 (ADR-035 append ranks, not merit ranks):** **37 `0440`** — owner-run checklist for when
+>   Yandex Games works again (outage noticed 2026-10-11): `0428`'s flag flip, `0426`'s flag gate, `0439`; on merit
+>   directly above `0428` · **38 `0441`** and **39 `0442`** — 🚨 **top priority by owner ruling** (*"File it to the current
+>   sprint, and it should be our top priority to work on."*): install an SSH key and switch the game **and telemetry**
+>   boxes' deploys to key login, then turn password login off only after key login is proven (telemetry added by
+>   *"Yes, add telemetry (Recommended)"*) · **40 `0443`** — SSH security alerts to Telegram on all three boxes (successful
+>   logins, fail2ban down, daily counts; never one alert per failed guess) — *"All three (Recommended)"*; real place right
+>   after `0441`/`0442`. All four briefs are open, so they have no vault page; summary from the board.
+> - 🚦 **`0428`** is **unblocked** (all five dependencies closed) — status unchanged; the flip waits on the owner and on
+>   Yandex Games recovering (`0440`).
+> - **Still open on this board:** `0343`, `0418`, `0426`, `0213`, `0428`, `0440`, `0441`, `0442`, `0443` (Backlog),
+>   `0219` (In progress).
 >
 > 🆕 **2026-10-10 (latest, `4fb073a`): 34 rows — 15 `✅ Done` · 9 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 10 OPEN** (was 30 / 18), counted by me by each row's leading status glyph. Line-3 banner **still
@@ -372,7 +406,7 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[decisions/cancelled-tasks]] — `0422`, cancelled into `0420`
 - [[systems/yandex-games-platform-rules]] — Rule 1, which `0415` (20) makes true app-wide
 - [[systems/weekend-deploy-window]] — the unwatched certificate fuse `0219` (24) closes
-- [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; with Sprint 7 closed 2026-10-09 and this banner still `🔲 Backlog`, no sprint is in progress
+- [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; with Sprint 7 closed 2026-10-09 and this banner still `🔲 Backlog`, no sprint is in progress 📌 *2026-10-12 sync: history — this board was started 2026-10-12 and is now the active sprint.*
 - [[systems/player-profile-store]] — the profile box whose operability `0219` (24) and epic `0213` (25) finish
 - [[tasks/jest-full-run-lock]] — task `0427` (26): one full jest run at a time; done 2026-10-09
 - [[tasks/private-lobby-citizen-perk]] — the six-item release gate whose open items `0376` (27), `0228` (28), `0381` (29) moved here; the flip is `0428` (30)
@@ -382,11 +416,17 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/private-lobby-idle-end-live]] — task `0390` (7): passed live 2026-10-10
 - [[tasks/join-token-identity-vouch-live]] — task `0405` (15): closed 2026-10-10
 - [[tasks/long-session-refresh-popup-live]] — task `0406` (16): closed as is 2026-10-10
-- [[tasks/no-native-tooltips]] — task `0415` (20): built, not deployed; live check `0429` (31)
-- [[tasks/dark-modal-scrollbar]] — task `0423` (21): built, not deployed
+- [[tasks/no-native-tooltips]] — task `0415` (20): built; 📌 *2026-10-12: deployed in `0.0.163`*; live check `0429` (31)
+- [[tasks/dark-modal-scrollbar]] — task `0423` (21): built; 📌 *2026-10-12: deployed in `0.0.163`*
 - [[tasks/tester-roles-command]] — task `0425` (22): built; deploy and first run `0430` (32)
 - [[systems/profile-tester-roles]] — `0425`'s runbook
 - [[tasks/private-lobby-production-test]] — task `0376` (27): gate item 2 passed
 - [[tasks/join-lobby-race-fix]] — task `0228` (28): reproduced and fixed; live check `0433` (34)
 - [[tasks/yandex-invite-copies-code-live]] — task `0381` (29): closed, steps 3–5 not run
 - [[tasks/routes-it-test-verified-field]] — task `0431` (33): test-only fix
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420` (18): the Sprint 7 live checklist, closed 2026-10-11
+- [[tasks/no-native-tooltips-live]] — task `0429` (31): passed live
+- [[tasks/tester-roles-live]] — task `0430` (32): profile deploy + first tester-role run
+- [[tasks/join-lobby-race-fix-live]] — task `0433` (34): partial live check, `0428` unblocked
+- [[tasks/exit-confirm-popup]] — task `0437` (35): exit confirmation popup, not deployed
+- [[tasks/backup-dryrun-minio-image]] — task `0436` (36): backup dry-run green on 11 tables

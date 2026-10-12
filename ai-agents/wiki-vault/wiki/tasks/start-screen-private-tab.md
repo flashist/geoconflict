@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 57 (ADR-035 append rank) / task `0412`
 
+> 📌 *2026-10-12 sync: `0420` closed 2026-10-11 (agent-closed — not owner-verified); item 6 passed. ⚠️ The tester's three tabs at phone width were checked in a desktop browser's phone view, not on a real phone; the ~360-wide preset and a late-appearing third tab were not recorded — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Weekend-slot deploy (the same-day exception does not cover it). Live look → `0420` ([[decisions/sprint-8]]).
@@ -68,3 +70,4 @@ rule resolve switches to a stored Private tab unless the player already tapped a
 - [[decisions/sprint-7]] — the board (rank 57)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
 - [[tasks/no-native-tooltips]] — task `0415`, the app-wide tooltip removal; left this task's two rows as they were
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 6 passed

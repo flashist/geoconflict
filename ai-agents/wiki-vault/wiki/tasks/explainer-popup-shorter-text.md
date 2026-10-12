@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 64 (ADR-035 append rank; on merit directly below `0417`) / task `0421`
 
+> 📌 *2026-10-12 sync: item 8 is complete and `0420` closed 2026-10-11 (agent-closed — not owner-verified): (b) the earned account on a real phone (iPhone 16e, game `0.0.163`) **passed** on 2026-10-11, Buy not tapped (browser / app not recorded); landscape needs a scroll for Buy and Close — **accepted by the owner**. The "Not checked: the earned-account popup live" line below is history — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-09. Committed as `a0b2485` (owner: *"Popups look good,
 > commit"*); **deployed to production in game `0.0.161`** (tag `0.0.161`, 2026-10-09, owner: *"deploy is done"*). The
 > coordinating session confirmed read-only that the live bundle carries `0.0.161` — that proves the build is out, not the
@@ -82,3 +84,4 @@ only, no spacing or font change**; `0420` updated after the build.
 - [[decisions/cancelled-tasks]] — `0422`, this task's first verify task, folded into `0420`
 - [[decisions/sprint-7]] — the board (rank 64)
 - [[decisions/sprint-8]] — `0420` item 8, the live check
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 8 (all three accounts passed)

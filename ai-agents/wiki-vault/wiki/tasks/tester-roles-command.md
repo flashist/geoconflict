@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 22 (ADR-035 append rank; owner kept it: *"Leave it at 22"*) / task `0425`
 
+> 📌 *2026-10-12 sync: **on the box since 2026-10-10** — the owner deployed the profile box mid-week (~17:45 UTC); migration `008` applied, the `tester-roles/` mount in place. First live run `0430` (2026-10-11): allowlist created, `apply earned-citizen` and the `restore` round trip both **passed** (after-`restore` identical to before) — [[tasks/tester-roles-live]]. The second unproven item, the full backup dry-run, ran green in `0436` on 2026-10-11 (55 passed, 11 tables `IDENTICAL`) — [[tasks/backup-dryrun-minio-image]]; ⚠️ a snapshot row's **data** is still not compared (no row is seeded — `0438`, Backlog). The "Nothing has run on the profile box" line above is history.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-09 on *"Close + file both (Recommended)"* — the owner was
 > told the two unproven items below first. Code committed in `bcc9bf0` (2026-10-10). ⚠️ **Nothing has run on the profile
 > box**: deploy, migration `008`, the mount, the allowlist and the first `apply` are all verify task **`0430`**
@@ -57,3 +59,5 @@ restore exactly.
 - [[tasks/routes-it-test-verified-field]] — task `0431`, found by this task's integration run
 - [[tasks/private-lobby-tester-default]] — task `0354`'s **client-side** tester marker — a different "tester", not read here
 - [[decisions/sprint-8]] — the board (rank 22); `0430` at 32
+- [[tasks/tester-roles-live]] — task `0430`, the first live run (passed)
+- [[tasks/backup-dryrun-minio-image]] — task `0436`, the full backup dry-run with migration `008`

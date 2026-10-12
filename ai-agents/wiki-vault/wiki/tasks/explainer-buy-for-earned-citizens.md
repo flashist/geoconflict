@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 56 (ADR-035 append rank; moved in from the Backlog board 2026-10-08) / task `0409`
 
+> 📌 *2026-10-12 sync: the blocked earned check ran on 2026-10-11, game `0.0.163`, after `0430` put the `earned-citizen` test role on the tester record ([[tasks/tester-roles-live]]): item 3 (a) **passed** (Buy shown above Закрыть, **not tapped**), item 8 (b) **passed** on a real phone (iPhone 16e); the role was removed with `restore` afterwards. The ⚠️ "blocked" note above is history. `0420` closed 2026-10-11 — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Cleared for a same-day deploy by owner ruling (*"might"*). Live look → `0420` ([[decisions/sprint-8]]).
@@ -66,3 +68,5 @@ real purchase anywhere** (stubbed checks only) · Q10 the stale-verified-read ga
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
 - [[tasks/citizenship-explainer-popup-live]] — task `0401`, whose live check surfaced this
 - [[tasks/authenticated-profile-read]] — task `0250` S3b, the verified owner view the Buy guard depends on
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, items 3 and 8 (earned check passed 2026-10-11)
+- [[tasks/tester-roles-live]] — task `0430`, which provided the earned test account

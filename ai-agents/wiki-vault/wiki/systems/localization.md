@@ -42,3 +42,4 @@ The start-screen redesign also renamed "Single Player" to `Custom Game` / `Св�
 - [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name
 - [[tasks/start-screen-approved-name-lock]] — task `0321` (2026-09-28): the start-screen name box prefills and locks to a citizen's approved name
 - [[tasks/explainer-popup-shorter-text]] — task `0421`, the shorter explainer-popup text (closed 2026-10-09, deployed in `0.0.161`)
+- [[tasks/exit-confirm-popup]] — task `0437`, new `exit_confirm_modal` keys in both `en.json` and `ru.json`

@@ -62,3 +62,4 @@ shapes only.
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, closed 2026-10-10
 - [[tasks/private-lobby-production-test]] — task `0376`, a second live join by the invite link
 - [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` invite defect behind the Yandex invite link
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, run in the same sitting (item 1)

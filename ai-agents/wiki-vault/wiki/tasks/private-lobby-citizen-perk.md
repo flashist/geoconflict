@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 📌 *2026-10-12 sync: **gate item 3's live check is closed** — `0433` (2026-10-11, agent-closed — not owner-verified), with ⚠️ partial coverage: no regression on the main paths, not proof under the targeted conditions ([[tasks/join-lobby-race-fix-live]]). `0228` is deployed in game `0.0.163`. **`0428` is unblocked** — all its dependencies are closed — but its status is unchanged: the console flip is the owner's, and since 2026-10-12 it is listed in `0440`, the checklist for when Yandex Games works again (outage noticed 2026-10-11). ⛔ `private_lobbies_all` is still unset as far as the sources say.*
+
 > 🆕 **2026-10-10 (`4fb073a`) sync — five of the six gate items are now closed (1 and 5 earlier; 2, 4, 6 today); only
 > item 3 is left, and `0428` waits only on `0433`.** Today's closes are all `(agent-closed — not owner-verified)`, each on
 > an owner ruling relayed by `fkit-lead`:
@@ -216,3 +218,4 @@ of the perks would depend on it."*
 - [[tasks/private-lobby-idle-end-live]] — task `0390`, gate item 4's live pass
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, gate item 6's last check, closed 2026-10-10
 - [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3, fixed (not deployed); live check `0433`
+- [[tasks/join-lobby-race-fix-live]] — task `0433`, gate item 3's live check (closed 2026-10-11, partial)

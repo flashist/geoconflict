@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 63 (ADR-035 append rank) / task `0417`
 
+> 📌 *2026-10-12 sync: `0420` closed 2026-10-11 (agent-closed — not owner-verified); item 5 passed live — [[tasks/sprint-7-fixes-live-checklist]]. `0423`'s shared scrollbar, noted above, shipped in game `0.0.163` (2026-10-10; `0.0.162` was never deployed) and passed its own live look in `0429` ([[tasks/no-native-tooltips-live]]).*
+
 > 🆕 **2026-10-10 sync — this popup's copied scrollbar rules were replaced by a shared piece.** `0423`
 > ([[tasks/dark-modal-scrollbar]]) moved the dark scrollbar into `DarkScrollbarStyles.ts`, used by every shadow-DOM window,
 > and removed this task's four copied rules — same values, look unchanged (checked). Committed `bcc9bf0`, not deployed.
@@ -52,3 +54,5 @@ the scrollbar.
 - [[decisions/sprint-7]] — the board (rank 63)
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
 - [[tasks/dark-modal-scrollbar]] — task `0423`, which replaced this popup's copied scrollbar rules with a shared piece
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 5 passed
+- [[tasks/no-native-tooltips-live]] — task `0429`, the live look at the shared dark scrollbar

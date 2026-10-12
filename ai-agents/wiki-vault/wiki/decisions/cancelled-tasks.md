@@ -358,3 +358,4 @@ no earned-citizen test account exists since the 2026-10-08 id incident (`0424`);
 - [[tasks/join-modal-paste-hint]] — task `0413`, which built `0414`'s scope as Part B (closed 2026-10-08)
 - [[tasks/explainer-popup-shorter-text]] — task `0421`, whose live check `0422` was cancelled into `0420` item 8 (2026-10-09)
 - [[decisions/sprint-8]] — the board where `0422` (rank 19) was filed and cancelled 2026-10-09
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, which absorbed `0422` as item 8

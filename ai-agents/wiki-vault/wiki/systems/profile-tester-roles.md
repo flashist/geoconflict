@@ -3,6 +3,8 @@
 **Layer**: server
 **Key files**: `src/profile-server/TesterRoles.ts`, `src/profile-server/TesterRoleRepository.ts`, `src/profile-server/TesterRoleCommand.ts`, `src/profile-server/testerRole.ts`, `migrations/008_tester_role_snapshots.sql`, `setup-profile.sh`
 
+> 📌 *2026-10-12 sync: **the command is on the box** since the profile deploy of 2026-10-10. First live run 2026-10-11 (`0430`): allowlist created (one id), `show` → `apply earned-citizen` → `show` matched the role table, the device showed the earned view after a full reload, and `restore` brought the record back exactly; the run log got one line per run; the allowlist is kept for future tests — [[tasks/tester-roles-live]]. The "NOT on the box" line above is history.*
+
 > Source: `ai-agents/knowledge-base/profile-tester-roles-runbook.md` (added 2026-10-09 by task `0425`,
 > [[tasks/tester-roles-command]]). ⚠️ **As of 2026-10-10 the command is NOT on the box** — it needs a profile deploy
 > that includes `0425`; that deploy and the first run are verify task `0430` (owner-run, open).
@@ -90,3 +92,4 @@ recommended: a read-only `player_identities` lookup by Yandex id on the box.
 - [[tasks/private-lobby-tester-default]] — the unrelated client-side tester marker
 - [[decisions/adr-116-verified-login]] — why an unverified login hides paid state
 - [[decisions/sprint-8]] — `0425` (22) and its owner-run deploy + first run `0430` (32)
+- [[tasks/tester-roles-live]] — task `0430`, the first live run

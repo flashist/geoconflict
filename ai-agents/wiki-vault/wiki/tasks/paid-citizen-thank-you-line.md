@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 54 (ADR-035 append rank; moved in from the Backlog board 2026-10-08) / task `0407`
 
+> 📌 *2026-10-12 sync: the earned-only part of `0420` item 4 ran on 2026-10-11 (game `0.0.163`, earned test role from `0430`): the thank-you line is **not shown** — **pass**. `0420` closed 2026-10-11 — [[tasks/sprint-7-fixes-live-checklist]].*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-08 by `fkit-sprint-ship-loop`. Committed in `a555111`
 > (2026-10-08, "Sprint push"); `git tag --contains a555111` → none ⇒ **committed, not deployed** (checked 2026-10-08).
 > Cleared for a same-day deploy by owner ruling (*"might"*, not a commitment). **No visual or live check done** — the
@@ -55,3 +57,4 @@ it; start screen only; no analytics event.
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
 - [[tasks/explainer-paid-only-subheading]] — task `0408`, the popup's *paid only* wording, built the same day
 - [[tasks/citizenship-explainer-popup-live]] — task `0401`, the live check during which `0407`–`0409` were moved in
+- [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 4 (both parts passed)

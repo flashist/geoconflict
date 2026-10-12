@@ -3,6 +3,24 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-12 (newest, `5449571`): 152 rows, 105 open — `0436` and `0437` filed and moved to Sprint 8; `0438`,
+> `0439` filed.** Re-counted by me at `HEAD` = `5449571`, by each row's leading status glyph: 102 `🔲 Backlog` ·
+> 39 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 148 / 103). All four filed 2026-10-11 by a spawned
+> `fkit-producer` on owner rulings relayed by `fkit-lead` (⛔ not producer precedent):
+> - **`0436`** — the backup dry-run harness's MinIO image fix (*"Close 0430, file a fix task (Recommended)"*), and
+>   **`0437`** — the in-match exit confirmation popup (an owner request typed in the session). Both **moved to
+>   [[decisions/sprint-8]]** the same day (*"0437 Exit confirm popup (Recommended)"*, *"0436 backup test fix"* — work to do
+>   while waiting on Yandex infrastructure) and closed there: [[tasks/backup-dryrun-minio-image]],
+>   [[tasks/exit-confirm-popup]]. Their rows here are kept as `➡️ Moved`.
+> - **`0438`** — the restore drill seeds no `tester_role_snapshots` row, so a snapshot row's **data** is never compared;
+>   found by `0436`'s coder. Routine fix, **low priority**. Owner: *"File it, backlog (Recommended)"*.
+> - **`0439`** — the live check of `0437` inside Yandex Games (phone + desktop, after the deploy that carries `0437`). ⚠️
+>   **Belongs at the top of the next sprint** (build/verify-split rule) — here only because no next sprint board exists.
+>   Also listed in Sprint 8's `0440` (waits on Yandex Games recovering).
+> - 📌 `0384` (pin the profile box's Postgres image by digest) now also covers `0436`'s review note that the dry-run
+>   tests against the moving `postgres:16-alpine` label — owner ruling 2026-10-12, *"No new task, 0384 covers it
+>   (Recommended)"*.
+>
 > 🆕 **2026-10-10 (latest, `4fb073a`): 148 rows, 103 open — three low-priority follow-ups filed (`0432`, `0434`,
 > `0435`).** Re-counted by me at `HEAD` = `4fb073a`, by each row's leading status glyph: 100 `🔲 Backlog` · 37 `➡️ Moved` ·
 > 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 145 / 100). All three appended (append order, not merit), each filed
@@ -943,3 +961,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/private-lobby-idle-end-live]] — task `0390`; its side finding `0434` filed here
 - [[tasks/public-lobby-one-minute-live]] — task `0370`; its recheck `0435` filed here
 - [[tasks/no-native-tooltips]] — task `0415`, filed here 2026-10-08, moved to Sprint 8, done 2026-10-09
+- [[tasks/backup-dryrun-minio-image]] — task `0436`, filed here 2026-10-11, moved to Sprint 8, done 2026-10-11; its follow-up `0438` filed here
+- [[tasks/exit-confirm-popup]] — task `0437`, filed here 2026-10-11, moved to Sprint 8, done 2026-10-11; its live check `0439` filed here
