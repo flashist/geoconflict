@@ -11,6 +11,25 @@ fi
 
 ENV_FILE="$1"
 
+# Remove the env file on EVERY exit, not only after a successful docker run (task 0447). It
+# holds every deploy secret; before this, any earlier exit (docker run failing, a Ctrl-C, a
+# dropped ssh session) left it in the deploy user's home, and 21 piled up on game dev.
+# Armed BEFORE the file is checked or loaded, so no later step can skip it. Docker reads
+# --env-file only when it CREATES the container, so removing it afterwards is safe on every
+# path (the success branch below already did). Removes ONLY the path this script was given.
+# Silent on purpose: after a dropped session stdout is gone. INT/TERM/HUP/PIPE go through
+# `exit`, so the cleanup runs for them too (HUP/PIPE are what a dropped ssh session
+# delivers). Not covered: SIGKILL (the OOM killer included) and power loss.
+cleanup_env_file() {
+    [ -n "$ENV_FILE" ] && rm -f -- "$ENV_FILE"
+    return 0
+}
+trap cleanup_env_file EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+trap 'exit 141' PIPE
+
 # Check if environment file exists
 if [ ! -f "$ENV_FILE" ]; then
     echo "Error: Environment file '$ENV_FILE' not found"
@@ -38,7 +57,17 @@ docker image prune -a -f
 echo "Cleanup complete."
 
 echo "Pulling ${DOCKER_IMAGE} from Docker Hub..."
-docker pull "${DOCKER_IMAGE}"
+# A failed pull must not take the running game down (task 0447): stop here, before the old
+# container is touched, unless the image is still on this box — after the prune above, only
+# if a container still uses it (so re-deploying the running tag while the registry is
+# unreachable still works, as before).
+if ! docker pull "${DOCKER_IMAGE}"; then
+    if ! docker image inspect "${DOCKER_IMAGE}" >/dev/null 2>&1; then
+        echo "❌ Could not pull ${DOCKER_IMAGE} and it is not on this box — the running container is left as it is."
+        exit 1
+    fi
+    echo "⚠️ Pull failed, but ${DOCKER_IMAGE} is already on this box — deploying it."
+fi
 
 echo "Checking for existing container..."
 # Check for running container

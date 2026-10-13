@@ -41,6 +41,8 @@ The script generates a timestamped tag, pushes the image, uploads `update.sh`, a
 - API credentials (`API_BASE_URL`, `JWT_ISSUER`, `JWT_AUDIENCE`)
 - Storage & telemetry settings (`STORAGE_*`, `OTEL_*`)
 
+That file is written into the deploy user's home on the box and made `0600`. `update.sh` removes it on **every** exit, success or failure — including an interrupt or a dropped ssh session (task 0447). It can still be left behind only if the deploy is hard-killed or the box loses power mid-deploy, or in the small window on the `deploy.sh` side before `update.sh` starts (to be closed by task 0444). If the new image cannot be pulled and is not already on the box, `update.sh` stops before touching the running container, so a failed pull leaves the running game as it is.
+
 To deploy an existing image without rebuilding, run:
 
 ```bash

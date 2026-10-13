@@ -218,7 +218,8 @@ wrapper is a jest suite, not a `posttest` hook.
    drives and greps the SSH auth of `deploy.sh` and `scripts/telemetry-tunnel.sh`, so editing either
    of those can turn `npm test` red the same way. Since `0443` it also drives `deploy.sh`'s
    every-deploy root step and greps `ssh-alerts.sh` / `setup-game-host.sh` and their wiring into
-   the profile and telemetry scripts.
+   the profile and telemetry scripts. Since `0447` it also runs `update.sh` end to end against a
+   stubbed `docker`.
 2. **`scripts/test-check-docker-secret-boundary.sh` writes a synthesized (fake) secret fixture into
    the repo root** and removes it in its `cleanup()` trap. An interrupted run (Ctrl-C) can leave that
    file behind. It is synthetic, never a real credential — but delete it if you see it.

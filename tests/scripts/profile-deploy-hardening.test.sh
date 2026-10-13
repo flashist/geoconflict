@@ -16,7 +16,9 @@
 # Since task 0441 it also drives deploy.sh's SSH auth block and scripts/telemetry-tunnel.sh
 # (IdentitiesOnly on the key path, sshpass -f with a 0600 file on the password path), and since
 # task 0443 deploy.sh's every-deploy ROOT step (run_game_host_setup) plus the SSH alert agent's
-# wiring into the profile and telemetry pipelines.
+# wiring into the profile and telemetry pipelines. Since task 0447 it runs update.sh end to end
+# against the stubbed docker: its env file is removed on every exit (success, a failing docker
+# call, a signal), and a failed pull of a missing image leaves the running container alone.
 # It is NOT complete coverage: the rest of deploy.sh, build.sh and build-deploy.sh
 # have no assertions here at all. New structural checks belong here rather than in a
 # second harness nothing runs.
@@ -57,6 +59,17 @@ make_stubs() {
 read -r W < "$STUB_HOME/work"
 echo "docker \$*" >> "\$W/docker.argv"
 echo "docker \$*" >> "\$W/calls.log"
+# Task 0447 (update.sh runs): \$W/docker_fail_on lists calls that fail (exit 1), matched on
+# "\$1" or "\$1 \$2" (e.g. "run", "pull", "image inspect"); \$W/docker_signal_on holds
+# "<call> <SIGNAL>" lines — that call sends SIGNAL to its parent (update.sh's bash) and exits 0.
+# No other test creates either file.
+if [ -f "\$W/docker_fail_on" ] && { grep -qxF -- "\$1" "\$W/docker_fail_on" || grep -qxF -- "\$1 \${2:-}" "\$W/docker_fail_on"; }; then
+  exit 1
+fi
+if [ -f "\$W/docker_signal_on" ]; then
+  sig=\$(awk -v a="\$1" '\$1==a{print \$2; exit}' "\$W/docker_signal_on")
+  [ -n "\$sig" ] && { kill -"\$sig" "\$PPID"; exit 0; }
+fi
 case "\$1 \$2" in
   "buildx build")
     iid=""; for a in "\$@"; do [ "\$prev" = "--iidfile" ] && iid="\$a"; prev="\$a"; done
@@ -3454,6 +3467,122 @@ for f in "$REPO_ROOT/src/profile-server/SshSecurityDigest.ts" "$REPO_ROOT/src/pr
   sed -e 's#//.*##' "$f" | grep -qE "[\"']\./(Server|Routes|Telemetry)(\.[jt]s)?[\"']" \
     && fail "$(basename "$f"): imports Server/Routes/Telemetry — the digest CLI would pull it in" || pass "$(basename "$f"): no Server/Routes/Telemetry import"
 done
+
+# ══ Task 0447: update.sh removes its env file on EVERY exit ═══════════════════
+# The REAL update.sh is run end to end against the shared docker stub (no new executable — the
+# 0371 lesson). docker_fail_on / docker_signal_on (see make_stubs) make one call fail or signal
+# update.sh's bash. `docker ps` prints nothing in the stub, so the stop/sleep 5 branch never runs.
+# perl resets INT/TERM/HUP/PIPE to their defaults before exec'ing bash: a signal IGNORED when the
+# shell starts (npm test as a background job, nohup) cannot be trapped, which would make T75
+# depend on how the harness was launched.
+UPDATE_SECRET_FAKE='0447-fake-deploy-secret-not-real'
+prepare_update() {  # fresh run dir, the env file (0600) and two decoys that must survive
+    UR="$WORK/urun"; UH="$WORK/uhome"; rm -rf "$UR" "$UH"; mkdir -p "$UR" "$UH"
+    cp "$REPO_ROOT/update.sh" "$UR/update.sh"
+    UENV="$UH/dev-12345.env"
+    printf '%s\n' GAME_ENV=dev ENVIRONMENT=dev DEPLOYMENT_ID=dev DOCKER_IMAGE=acme/game:0.0.1 \
+        "FAKE_DEPLOY_SECRET=$UPDATE_SECRET_FAKE" > "$UENV"
+    chmod 600 "$UENV"
+    printf 'keep me\n' > "$UH/dev-54321.env"; printf 'keep me\n' > "$UH/geoconflict-dev.env"
+    rm -f "$WORK/docker.argv" "$WORK/calls.log"
+}
+run_update_args() {  # the exact argv for update.sh; sets RC
+    ( cd "$UR"
+      env -i PATH="$BIN:$PATH" \
+        perl -e '$SIG{$_}="DEFAULT" for qw(INT TERM HUP PIPE); exec @ARGV or die "exec: $!\n"' \
+        bash update.sh "$@" > "$WORK/out.log" 2>&1 )
+    RC=$?
+}
+run_update() { prepare_update; run_update_args "$UENV"; }
+decoys_survive() {  # $1 = case label
+    [ -f "$UH/dev-54321.env" ] && [ -f "$UH/geoconflict-dev.env" ] \
+      && pass "$1: both decoy files next to it survived" || fail "$1: a decoy file next to the env file was DELETED"
+}
+env_file_gone() {  # $1 = case label
+    [ ! -e "$UENV" ] && pass "$1: the env file is gone" || fail "$1: the env file was LEFT BEHIND ($UENV)"
+}
+no_secret_in_argv() {  # $1 = case label
+    grep -qF "$UPDATE_SECRET_FAKE" "$WORK/docker.argv" "$WORK/calls.log" 2>/dev/null \
+      && fail "$1: the fake secret reached a docker argv" || pass "$1: the fake secret is in no docker argv"
+}
+docker_called() { grep -qE "^docker $1( |\$)" "$WORK/docker.argv" 2>/dev/null; }
+
+command -v perl >/dev/null 2>&1 && pass "perl is available (T72–T75 reset signal dispositions with it)" \
+  || fail "perl is missing — T72–T75 cannot run deterministically (they fail below; never skipped green)"
+
+echo "== T72: update.sh success — exit 0, env file removed, decoys untouched (0447) =="
+NEW; run_update
+[ "$RC" -eq 0 ] && pass "update.sh exited 0" || fail "update.sh exited $RC (expected 0); see $WORK/out.log"
+env_file_gone "success"; decoys_survive "success"; no_secret_in_argv "success"
+grep -q '^Environment file removed\.$' "$WORK/out.log" && pass "the success branch still prints 'Environment file removed.'" \
+  || fail "the success output changed: no 'Environment file removed.'"
+grep -q 'SERVER UPDATE COMPLETED SUCCESSFULLY' "$WORK/out.log" && pass "success banner printed" || fail "no success banner"
+grep -qF -- "--env-file $UENV " "$WORK/docker.argv" 2>/dev/null && pass "docker run got --env-file <that path>" \
+  || fail "docker run was not called with --env-file $UENV"
+
+echo "== T73: docker run fails — exit 1, env file removed (the 21-files cause, 0447) =="
+NEW; echo run > "$WORK/docker_fail_on"; run_update
+[ "$RC" -eq 1 ] && pass "exit 1" || fail "exit $RC (expected 1); see $WORK/out.log"
+grep -q 'Failed to start container' "$WORK/out.log" && pass "'Failed to start container' printed" || fail "no 'Failed to start container'"
+env_file_gone "docker run failed"; decoys_survive "docker run failed"; no_secret_in_argv "docker run failed"
+
+echo "== T74: docker pull fails — the running game is left alone unless the image is on the box (0447 Part C) =="
+NEW; printf '%s\n' pull "image inspect" > "$WORK/docker_fail_on"; run_update
+[ "$RC" -eq 1 ] && pass "pull failed + image not on the box → exit 1" || fail "exit $RC (expected 1); see $WORK/out.log"
+grep -q 'is not on this box — the running container is left as it is' "$WORK/out.log" && pass "says the running container is left as it is" \
+  || fail "no 'left as it is' message"
+docker_called "image inspect" && pass "it checked whether the image is on the box" || fail "no 'docker image inspect' call"
+for c in ps stop rm run; do
+  docker_called "$c" && fail "docker $c ran after a failed pull of a missing image" || pass "no docker $c (the old container was never touched)"
+done
+env_file_gone "pull failed, image missing"; decoys_survive "pull failed, image missing"; no_secret_in_argv "pull failed, image missing"
+NEW; echo pull > "$WORK/docker_fail_on"; run_update
+[ "$RC" -eq 0 ] && pass "pull failed but the image IS on the box → deploys it, exit 0" || fail "exit $RC (expected 0); see $WORK/out.log"
+grep -q 'Pull failed, but .* is already on this box — deploying it' "$WORK/out.log" && pass "warns it is deploying the local image" || fail "no 'already on this box' warning"
+docker_called run && pass "docker run still ran" || fail "docker run did not run"
+env_file_gone "pull failed, image present"; decoys_survive "pull failed, image present"
+NEW; printf '%s\n' pull run > "$WORK/docker_fail_on"; run_update
+[ "$RC" -eq 1 ] && pass "pull AND run fail → exit 1" || fail "exit $RC (expected 1)"
+env_file_gone "pull and run failed"; decoys_survive "pull and run failed"
+
+echo "== T75: a signal mid-deploy — the trap exits with 128+N and the env file is removed (0447) =="
+for spec in "pull INT 130" "pull TERM 143" "pull HUP 129" "pull PIPE 141" "run TERM 143"; do
+  read -r at sig want <<< "$spec"
+  NEW; echo "$at $sig" > "$WORK/docker_signal_on"; run_update
+  [ "$RC" -eq "$want" ] && pass "SIG$sig during docker $at → exit $want" || fail "SIG$sig during docker $at → exit $RC (expected $want); see $WORK/out.log"
+  env_file_gone "SIG$sig during $at"; decoys_survive "SIG$sig during $at"; no_secret_in_argv "SIG$sig during $at"
+  if [ "$at" = pull ]; then
+    docker_called run && fail "SIG$sig during pull: the deploy carried on to docker run" || pass "SIG$sig during pull: stopped there (no docker run)"
+  else
+    grep -q 'SERVER UPDATE COMPLETED SUCCESSFULLY' "$WORK/out.log" && fail "SIG$sig during run: printed the success banner" \
+      || pass "SIG$sig during run: stopped there (no success banner)"
+  fi
+done
+
+echo "== T76: update.sh edge cases + structure (0447) =="
+NEW; prepare_update; run_update_args "$UH/dev-99999.env"
+[ "$RC" -eq 1 ] && grep -q 'not found' "$WORK/out.log" && pass "a missing env file → exit 1, 'not found'" || fail "missing file: exit $RC"
+decoys_survive "missing file"; [ -f "$UENV" ] && pass "missing file: an unrelated env file next to it survived" || fail "missing file: deleted another env file"
+for argv_case in none two; do
+  NEW; prepare_update
+  if [ "$argv_case" = none ]; then run_update_args; else run_update_args "$UENV" extra; fi
+  [ "$RC" -eq 1 ] && grep -q 'Environment file path is required' "$WORK/out.log" && pass "argv '$argv_case' → exit 1, usage printed" || fail "argv '$argv_case': exit $RC"
+  [ -f "$UENV" ] && pass "argv '$argv_case': the env file is kept (no path was accepted — a known residual)" \
+    || fail "argv '$argv_case': the env file was deleted although update.sh accepted no path"
+  decoys_survive "argv '$argv_case'"
+  [ ! -s "$WORK/docker.argv" ] && pass "argv '$argv_case': no docker call" || fail "argv '$argv_case': docker ran"
+done
+n_exit_traps=$(grep -cE '^[[:space:]]*trap .*EXIT' "$U" || true)
+[ "${n_exit_traps:-0}" = "1" ] && grep -qx 'trap cleanup_env_file EXIT' "$U" \
+  && pass "update.sh: 'trap cleanup_env_file EXIT' is the ONLY EXIT trap" || fail "update.sh: $n_exit_traps EXIT trap line(s), or not cleanup_env_file"
+awk '/^trap cleanup_env_file EXIT$/{if(!t)t=NR} /^if \[ ! -f "\$ENV_FILE" \]; then$/{if(!f)f=NR} /^source "\$ENV_FILE"$/{if(!s)s=NR} END{exit !(t>0 && f>t && s>t)}' "$U" \
+  && pass "update.sh: the cleanup trap is armed above the file check and the source" || fail "update.sh: the EXIT trap is not above both '[ ! -f \"\$ENV_FILE\" ]' and 'source \"\$ENV_FILE\"'"
+for t in "130 INT" "143 TERM" "129 HUP" "141 PIPE"; do
+  read -r code sig <<< "$t"
+  grep -qx "trap 'exit $code' $sig" "$U" && pass "update.sh: trap 'exit $code' $sig" || fail "update.sh: no \"trap 'exit $code' $sig\" — that signal could skip the cleanup"
+done
+awk '/^if ! docker pull "\$\{DOCKER_IMAGE\}"; then$/{p=NR} /^RUNNING_CONTAINER=/{r=NR} END{exit !(p>0 && r>p)}' "$U" \
+  && pass "update.sh: the pull is checked before the running container is looked up (Part C)" || fail "update.sh: the guarded pull is missing or below the container stop"
 
 echo "== Every run_deploy: no git call the stub does not know (0355 review R4) =="
 [ "$RUN_DEPLOY_COUNT" -gt 0 ] && [ "$UNSTUBBED_RUNS" -eq 0 ] \

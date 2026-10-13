@@ -76,9 +76,21 @@ It is still the one deploy path that puts them in `ps`, and the fix is a known p
 4. **`update.sh` still gets a real env file** — it passes the file to `docker run --env-file`, so the file must exist on
    the box while the container starts. Keep its current contract (path as first argument, deleted on success) unless the
    plan shows a cleaner one.
-5. **Optional — the plan decides, and flags it to the owner:** remove the box-side env file on a **failed** deploy too
+5. ~~**Optional — the plan decides, and flags it to the owner:**~~ **REQUIRED (since 2026-10-12, see the note below):**
+   remove the box-side env file on a **failed** deploy too
    (today only success removes it). Profile's `finalize_deploy` already does a remote `rm` on any exit; the same shape
-   fits here. If the plan leaves it out, say so in the worklog as a known residual.
+   fits here. ~~If the plan leaves it out, say so in the worklog as a known residual.~~
+
+   > 📌 **Made required — OWNER RULING, 2026-10-12, given live via `AskUserQuestion` at
+   > [`0447`](../../done/0447-game-dev-delete-leftover-deploy-env-files-and-make-the-game-deploy-always-remove-its-env-file/brief.md)'s
+   > plan gate in the `fkit lead` session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+   > (ADR-021/037); ⛔ not producer precedent. Q1 verbatim: **"Leave it to 0444 (Recommended)"**. Recorded 2026-10-13 at
+   > `0447`'s close. `0447` made `update.sh` remove the env file on **every** exit once it runs (repo work; deployed with
+   > the next game deploy from a tree that contains it) and left `deploy.sh` untouched. What `update.sh` cannot cover is
+   > this item's job: the file is written on the box but `update.sh` never arms its cleanup — `chmod 600` fails, the ssh
+   > session drops between the write and `update.sh` starting, or `update.sh` cannot start at all — plus the bigger gap
+   > this task opens (file copied in one login, used in the next). See `0447`'s `worklog.md` § *Why `deploy.sh` was left
+   > alone* and § *Known residuals* (residual 2).
 
 Keep the existing guards working exactly as they do now: config parity guard, `run_config_value_guard` (still fed on
 stdin, still before anything runs on the box), the key-first / password-fallback branch, basic-auth handling.

@@ -31,7 +31,7 @@ Sprint 8 *(was ~~Backlog~~ — moved 2026-10-12, see below)*
 43 on Sprint 8 *(append rank, not a merit rank; was ~~Unscheduled~~)*
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder — ⚠️ **every change on a live box is EXECUTED OR APPROVED BY THE OWNER (human)** (owner ruling above: *"You
@@ -70,7 +70,7 @@ it (see `0444`), so a deploy that failed between the two steps could have left o
 checks.
 
 **Conflicts and overlaps — flagged, not resolved here:**
-- ⚠️ **[`0444`](../0444-game-deploy-move-secrets-off-the-ssh-command-line/brief.md) overlaps.** Its *What to build*
+- ⚠️ **[`0444`](../../backlog/0444-game-deploy-move-secrets-off-the-ssh-command-line/brief.md) overlaps.** Its *What to build*
   item 5 (optional, plan decides) is *"remove the box-side env file on a failed deploy too"*, and it rewrites the very
   `deploy.sh` block that writes this file (staging + scp instead of a heredoc). After `0444`, the file is copied in one
   connection and used in the next, so there is **more** room for a failure to strand it. See open question 1 — one task
@@ -79,7 +79,7 @@ checks.
   (Sprint 8, in progress) adds a single `deploy_cleanup()` `EXIT` trap to `deploy.sh` (its plan, *A7 (1)*). If this task
   touches `deploy.sh` at all, it **reuses that function** — never a second trap (bash traps replace each other) — and
   lands **after** `0443`.
-- [`0047`](../0047-deploy-transport-secret-hygiene/brief.md) covers the same leftover-file class for the **profile and
+- [`0047`](../../backlog/0047-deploy-transport-secret-hygiene/brief.md) covers the same leftover-file class for the **profile and
   telemetry** pipelines. Not this task.
 
 ## What to build
