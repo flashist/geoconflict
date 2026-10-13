@@ -3,7 +3,29 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-12 (newest, `5449571`): 152 rows, 105 open — `0436` and `0437` filed and moved to Sprint 8; `0438`,
+> 🆕 **2026-10-13 sync (newest, `dd9a8fd`): 156 rows, 108 open — four SSH/deploy follow-ups filed 2026-10-12; `0447`
+> moved to Sprint 8.** Re-counted by me at `HEAD` = `dd9a8fd`, by each row's leading status glyph: 105 `🔲 Backlog` ·
+> 40 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 152 / 105). All filed by a spawned `fkit-producer`
+> on owner rulings given live in the `fkit lead` session, relayed by `fkit-sprint-ship-loop` / `fkit-lead` (⛔ not
+> producer precedent). Open briefs — summary from the board only, no vault page:
+> - **`0444`** — game deploy: move the secrets off the ssh command line (stage a private 0600 file, like profile and
+>   telemetry; today `deploy.sh` puts every game secret in the ssh command string, visible to `ps`). Found while planning
+>   `0441`; *"File backlog follow-up (Recommended)"*. Game sibling of `0047` (profile + telemetry). Depends on `0441`.
+>   Its item 5 (remove the box-side env file on a failed deploy) is now **required** — ruling on `0447`'s Q1.
+> - **`0446`** — game boxes (prod + dev): rebuild from scripts alone — move the hand-set-up parts (fail2ban, `0442`'s
+>   sshd settings, anything a survey finds) into the every-deploy root step `setup-game-host.sh` built by `0443`.
+>   *"Game box setup from scripts only"*. Depends on `0443`. Four open questions.
+> - **`0447`** — game dev's leftover deploy env files + always-cleanup. *"File a task (Recommended)"*, then **moved to
+>   [[decisions/sprint-8]]** at rank 43 (*"Move it to the Sprint 8"*) and closed there, repo work only:
+>   [[tasks/game-deploy-env-file-cleanup]]. Row kept as `➡️ Moved`.
+> - **`0448`** — profile box: give the Postgres container only its own `POSTGRES_*` settings, not the whole
+>   `profile.env` (both compose services share one `env_file`, so the database holds the app's tokens). Found by
+>   `0443`'s inventory; *"File a task (Recommended)"*. Depends on nothing.
+> - 📌 `0435` (re-check the 1-minute lobby numbers) now records the `private_lobbies_all` flip time (2026-10-13, about
+>   14:09–14:12 UTC) — from then on `Game:Mode:Multiplayer` counts private-lobby entries too
+>   ([[tasks/private-lobbies-everyone-flag-flip]]).
+>
+> 🆕 **2026-10-12 (`5449571`): 152 rows, 105 open — `0436` and `0437` filed and moved to Sprint 8; `0438`,
 > `0439` filed.** Re-counted by me at `HEAD` = `5449571`, by each row's leading status glyph: 102 `🔲 Backlog` ·
 > 39 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 148 / 103). All four filed 2026-10-11 by a spawned
 > `fkit-producer` on owner rulings relayed by `fkit-lead` (⛔ not producer precedent):
@@ -963,3 +985,7 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/no-native-tooltips]] — task `0415`, filed here 2026-10-08, moved to Sprint 8, done 2026-10-09
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, filed here 2026-10-11, moved to Sprint 8, done 2026-10-11; its follow-up `0438` filed here
 - [[tasks/exit-confirm-popup]] — task `0437`, filed here 2026-10-11, moved to Sprint 8, done 2026-10-11; its live check `0439` filed here
+- [[tasks/game-deploy-env-file-cleanup]] — task `0447`, filed here 2026-10-12, moved to Sprint 8, done 2026-10-13 (repo only); `0444` item 5 made required by its ruling
+- [[tasks/deploy-ssh-key-login]] — task `0441`; its follow-ups `0444` and `0446` filed here 2026-10-12
+- [[tasks/ssh-security-alerts]] — task `0443`; its inventory produced `0447` and `0448`, and `0446` builds on its root step
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`; its flip time recorded in `0435`

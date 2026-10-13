@@ -56,3 +56,4 @@ The final trusted recovery workflow is:
 - [[tasks/registry-image-policy-followup]] — follow-up task that wrote the durable registry policy
 - [[decisions/profile-deploy-hardening-review-loop]] — bounded restart for profile deploy hardening built on this incident's secret-boundary requirements
 - [[systems/architecture-overview]] — the build-time secret gates that came out of this incident
+- [[tasks/deploy-ssh-key-login]] — task `0441` (2026-10-12): the game and telemetry boxes were still password-only for deploys six months on; key login built, box steps in `0445`

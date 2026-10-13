@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 42 (append rank — owner placed it "End of Sprint 7"; merit agrees) / task `0389`
 
+> 📌 *2026-10-13 sync: check (b), typing the code in lowercase, ran inside `0428`'s step 4b and passes **per owner statement "all good" — not itemised by the owner** ([[tasks/private-lobbies-everyone-flag-flip]]). Weaker than an itemised pass; recorded as such.*
+
 > 🆕 **2026-10-10 sync — live check (a) passed, (b) moved.** In `0376`'s run on `0.0.161`
 > ([[tasks/private-lobby-production-test]]) the code showed as two groups `XXXX XXXX` with none of the confusable
 > characters — **(a) pass**. **(b), typing the code in lowercase, was NOT run** (owner ruling *"skip tester"*); it moved to
@@ -67,3 +69,4 @@ host-window **retry on `409` dropped** (the server's `409 game_id_taken` refusal
 - [[tasks/yandex-invite-sdk-link]] — task `0382`, whose payload validator accepts this format
 - [[tasks/join-modal-paste-hint]] — task `0413`: the Join window's paste fix; this task's clean-up of typed or pasted codes unchanged
 - [[tasks/private-lobby-production-test]] — task `0376`, where check (a) passed
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

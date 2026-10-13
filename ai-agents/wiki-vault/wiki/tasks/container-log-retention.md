@@ -93,3 +93,4 @@ The trade still holds on its own merits — the response is a precomputed static
 - [[systems/alert-delivery]] — the same box's daily checks, and the *"the signal exists and nothing reads it"* pattern this page's follow-ups share
 - [[tasks/uptrace-retention-not-applied]] — task `0259`, the other "retention is not what the repo says" finding, on the telemetry box
 - [[tasks/deploy-time-config-parity-guard]] — task `0064`, the item before this one on the config track
+- [[tasks/game-deploy-env-file-cleanup]] — task `0447` (2026-10-12): `update.sh` now removes its env file on every exit; the `docker run` log-option block and its lint are untouched

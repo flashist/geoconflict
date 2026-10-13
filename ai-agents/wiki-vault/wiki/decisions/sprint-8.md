@@ -5,7 +5,35 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-12 (newest, `5449571`): SPRINT 8 STARTED. 40 rows — 21 `✅ Done` · 9 `🔲 Backlog` · 1 `🔄 In progress` ·
+> 🆕 **2026-10-13 sync (newest, `dd9a8fd`): 44 rows — 26 `✅ Done` · 8 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 9 OPEN** (was 40 / 10), counted by me by each row's leading status glyph. Banner unchanged
+> (`🔄 In progress — 2026-10-12`).
+> - **Closed in this window, all `✅ Done (agent-closed — not owner-verified)`, each on an owner ruling relayed by
+>   `fkit-lead` to a spawned `fkit-producer` (⛔ not producer precedent):**
+>   - 🚦 **30 `0428`** — **private lobbies ON FOR EVERYONE since about 17:09–17:12 MSK, 2026-10-13** (game `0.0.163`);
+>     checks 4a–4c pass per owner statement "all good", not itemised; 4d not run
+>     ([[tasks/private-lobbies-everyone-flag-flip]]).
+>   - **37 `0440`** — Yandex judged back 2026-10-13 (outage window 2026-10-11 → 2026-10-13); item 4 re-planned:
+>     *"Close; 0439 stands alone (Recommended)"* ([[tasks/yandex-outage-recovery-checklist]]).
+>   - **38 `0441`** — SSH key login for game + telemetry deploys, **repo work only** (`779ddc2`)
+>     ([[tasks/deploy-ssh-key-login]]). **40 `0443`** — SSH security alerts, **repo work only** (`779ddc2`)
+>     ([[tasks/ssh-security-alerts]]). **43 `0447`** — `update.sh` always removes its env file, **repo work only**
+>     (`910bc14`); moved in from the Backlog board 2026-10-12 ([[tasks/game-deploy-env-file-cleanup]]). All three:
+>     ⚠️ **nothing run on any box, `git tag --contains` → none — not deployed.**
+> - **Three verify tasks appended (ADR-035 append ranks):** **41 `0445`** (install the keys, prove key-only login, deploy
+>   game dev, game prod and telemetry over the key — 🚨 *first open work on the board* by owner ruling), **42 `0449`**
+>   (deploy the SSH alerts, add game dev to `PROFILE_INTERNAL_ALLOW_IPS`, two days of digests), **44 `0450`** (list and
+>   delete the leftover env files on game dev; a dev deploy leaves none). ⚠️ **All three bend the standing 2026-09-29
+>   "verify task at the top of the NEXT sprint" rule, for these cases only** — the owner plans to deploy this week
+>   (mid-week is fine). `0442` (passwords off) is re-pointed to depend on **`0445`**. Open briefs — no vault page.
+> - 🚨 **Deploy consequence:** once `779ddc2` is deployed, every game deploy runs a root step that **exits 3** ("GAME IS
+>   DEPLOYED — HOST SETUP NOT DONE") until `0445` installs the root key — see [[tasks/ssh-security-alerts]].
+> - **Still open on this board:** `0343`, `0418`, `0426`, `0213`, `0442`, `0445`, `0449`, `0450` (Backlog), `0219`
+>   (In progress).
+> - Checked: the 2026-10-12 "uncommitted closes" the caller mentioned (`0428`, `0440`) are in commit `dd9a8fd`; the tree
+>   was clean at this sync's start.
+>
+> 🆕 **2026-10-12 (`5449571`): SPRINT 8 STARTED. 40 rows — 21 `✅ Done` · 9 `🔲 Backlog` · 1 `🔄 In progress` ·
 > 8 `➡️ Moved` · 1 `⛔ Cancelled`; 10 OPEN** (was 34 / 10), counted by me by each row's leading status glyph.
 > - **Line-3 banner flipped to `🔄 In progress — 2026-10-12`** — owner ruling *"Mark it started (Recommended)"* (live
 >   `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer
@@ -430,3 +458,8 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/join-lobby-race-fix-live]] — task `0433` (34): partial live check, `0428` unblocked
 - [[tasks/exit-confirm-popup]] — task `0437` (35): exit confirmation popup, not deployed
 - [[tasks/backup-dryrun-minio-image]] — task `0436` (36): backup dry-run green on 11 tables
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428` (30): private lobbies on for everyone, 2026-10-13
+- [[tasks/yandex-outage-recovery-checklist]] — task `0440` (37): the Yandex outage tracker, closed 2026-10-13
+- [[tasks/deploy-ssh-key-login]] — task `0441` (38): SSH key login, repo only; verify `0445` (41), then `0442` (39)
+- [[tasks/ssh-security-alerts]] — task `0443` (40): SSH security alerts, repo only; verify `0449` (42)
+- [[tasks/game-deploy-env-file-cleanup]] — task `0447` (43): env file always removed, repo only; verify `0450` (44)

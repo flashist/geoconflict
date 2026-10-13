@@ -122,3 +122,4 @@ The full list is 1–11 in the task's `review.md` — **do not re-derive it**. T
 - [[tasks/uptrace-channel-state-check]] — task `0285` (2026-09-28): check 13 reads the monitoring stack's own channel state
 - [[tasks/alert-delivery-after-idle]] — task `0289` (2026-10-01): a send after 4 h 36 min idle arrived; whether this task's one retry was used is not determined
 - [[tasks/uptrace-channel-state-production-check]] — task `0341` (2026-10-01): check 13 seen to trip in production; channel re-enabled by SQL
+- [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): SSH security alerts reuse this bot and the Alerts topic

@@ -4,6 +4,8 @@
 **Status**: done
 **Sprint/Tag**: Security incident
 
+> ⚠️ *2026-10-13 sync — **the key-based target posture was not reached on the game and telemetry boxes.** On 2026-10-12 they still allowed password login, including for root, with no `authorized_keys`, ufw inactive, and fail2ban installed by hand (game). Key login: `0441` → `0445`; passwords off: `0442`; scripted rebuild: `0446`; login alerts: `0443` — [[tasks/deploy-ssh-key-login]], [[tasks/ssh-security-alerts]]. The profile box is key-only (`0221`).*
+
 ## Goal
 
 Treat the production VPS as potentially accessed, reconstruct the host-access timeline, and harden the machine so it no longer depends on password-based trust assumptions.
@@ -21,3 +23,5 @@ This task established the trust gate for redeploy: either the host is reviewed a
 ## Related
 
 - [[decisions/vps-credential-leak-response]] — incident response decision that required conservative host handling
+- [[tasks/deploy-ssh-key-login]] — task `0441` (2026-10-12): key login for game + telemetry deploys
+- [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): login and fail2ban alerts on all boxes; its inventory

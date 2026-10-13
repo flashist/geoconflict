@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 34 (ADR-035 append rank; on merit directly above `0428`) / task `0433`
 
+> 📌 *2026-10-13 sync: `0428` ran — private lobbies are on for everyone since about 17:09–17:12 MSK, 2026-10-13 ([[tasks/private-lobbies-everyone-flag-flip]]). The "status unchanged" line under Outcome is history.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-11 on the owner ruling, verbatim: *"I checked the main and
 > easy points, but I didn't do something that I am thinking an overkill for us (phone join-close, etc.). Let's consider
 > this check to be done and everything is ok"*. ⚠️ **Partial coverage:** this shows **no regression on the main
@@ -48,3 +50,4 @@ None — a live check on game `0.0.163` (deployed 2026-10-10 ~18:43 UTC; include
 - [[systems/client-game-teardown]] — the client teardown page that records `0228`
 - [[decisions/sprint-8]] — the board (rank 34)
 - [[systems/weekend-deploy-window]] — the 2026-10-10 game deploy that carried `0228`
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

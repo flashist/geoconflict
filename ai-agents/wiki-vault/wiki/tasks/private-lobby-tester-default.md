@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 7, rank 37 (append rank; moved in from the Backlog board 2026-10-04) / task `0354`
 
+> 🚦 *2026-10-13 sync: **the everyone-flag this task added is now SET** — `private_lobbies_all` = `enabled`, no condition, since about 17:09–17:12 MSK, 2026-10-13 (`0428`, [[tasks/private-lobbies-everyone-flag-flip]]). A non-tester page printed `private_lobbies_all = enabled` after the flip. The "starts empty" state in this page's title is history.*
+
 > 📌 *2026-10-12 sync: gate item 3 (`0228`) — its live check `0433` closed 2026-10-11, partial (no regression on the main paths only) — [[tasks/join-lobby-race-fix-live]]. `0428` is unblocked, status unchanged.*
 
 > 🆕 **2026-10-10 sync — release-gate state.** Item 2 **passed** (`0376`, [[tasks/private-lobby-production-test]]);
@@ -83,3 +85,4 @@ non-citizens, and the server refuses to start a private match whose creator is n
 - [[systems/profile-tester-roles]] — the **server-side** tester allowlist of `0425`; a different "tester" from this task's client marker
 - [[tasks/tester-roles-command]] — task `0425`, which deliberately does not read this task's marker
 - [[tasks/join-lobby-race-fix-live]] — task `0433`, gate item 3's live check
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

@@ -143,3 +143,5 @@ Approval takes days and is an **external blocker** on any paid feature — plan 
 - [[tasks/no-native-tooltips]] — task `0415`, which builds Rule 1 app-wide (committed, not deployed)
 - [[tasks/no-native-tooltips-live]] — task `0429`, Rule 1 checked live (passed)
 - [[tasks/exit-confirm-popup]] — task `0437`, an exit confirmation in the game's own popup instead of `confirm()`
+- [[tasks/yandex-outage-recovery-checklist]] — task `0440`: the Yandex Games outage of 2026-10-11 → 2026-10-13 (console flag changes did not take effect)
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`: `private_lobbies_all` set for everyone in the console, 2026-10-13

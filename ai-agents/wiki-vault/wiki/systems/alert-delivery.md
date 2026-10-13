@@ -14,6 +14,15 @@
 > ⛔ **No hostnames, IP addresses, chat ids, topic ids, tokens or endpoints appear on this page,
 > deliberately** — the runbook opens with that rule and the vault honours it. Metric names, monitor
 > names, file paths, HTTP status codes and variable names are fine.
+>
+> 📌 **2026-10-13 sync — a second route on the same relay box, built, NOT deployed (task `0443`,
+> [[tasks/ssh-security-alerts]]).** SSH security alerts (successful logins, fail2ban down, daily counts) post to
+> `POST /internal/v1/ssh-alerts/events` with their **own** token `PROFILE_SSH_ALERT_TOKEN` and **ordinary** status
+> codes — a 401 there disables nothing, because the sender is our own box agent, which retries. Same Alerts topic.
+> **Nothing on this page applies to that route, and the daily SSH digest proves nothing about the monitoring path**
+> (the `0284` probe still does). Its runbook is `docs/vps-deployment-guide.md` §8; the operator runbook
+> (`alert-delivery-runbook.md`) now carries that pointer at its top. ⚠️ Delivering game dev's alerts needs game dev
+> **added** to `PROFILE_INTERNAL_ALLOW_IPS` (verify task `0449`) — the append-never-replace rule below applies.
 
 ## Summary
 
@@ -443,3 +452,4 @@ only; idle-period delivery is still `0289`'s *(closed 2026-10-01, bounded to 4 h
 - [[decisions/sprint-7]] — the board carrying `0341`, `0289`, `0368` and `0369`
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's SQL fallback for re-enabling a disabled channel, and the idle-result update
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369` (2026-10-02): the UI re-enable control named (`Unpause channel` ▶), and the *Test channel* liveness warning
+- [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): the SSH alert route on the same relay box and Alerts topic; built, not deployed

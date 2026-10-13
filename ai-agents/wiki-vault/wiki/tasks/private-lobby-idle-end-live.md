@@ -48,3 +48,4 @@ Reads") and was **not** worked around.
 - [[tasks/lobby-close-leftovers-investigation]] — task `0335`, which found the 3-hour leftover lobbies
 - [[decisions/sprint-8]] — the board (rank 7)
 - [[decisions/sprint-backlog]] — `0434`
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, which waited on this check; flipped 2026-10-13

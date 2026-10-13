@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 6, rank 2 / task `0302`
 
+> 🚦 **2026-10-13 sync — PRIVATE LOBBIES ARE ON FOR EVERYONE since about 17:09–17:12 MSK, 2026-10-13** (game `0.0.163`): the owner set `private_lobbies_all` = `enabled`, no condition, in the Yandex Games console (`0428`, closed agent-closed — not owner-verified). Checks 4a–4c pass per owner statement "all good", **not itemised**; 4d (server-log counts) not run. The accepted `0332` Q4 risk (a forged citizen id can host) now applies to every player, not only testers. → [[tasks/private-lobbies-everyone-flag-flip]]
+
 > 📌 *2026-10-12 sync: **gate item 3's live check is closed** — `0433` (2026-10-11, agent-closed — not owner-verified), with ⚠️ partial coverage: no regression on the main paths, not proof under the targeted conditions ([[tasks/join-lobby-race-fix-live]]). `0228` is deployed in game `0.0.163`. **`0428` is unblocked** — all its dependencies are closed — but its status is unchanged: the console flip is the owner's, and since 2026-10-12 it is listed in `0440`, the checklist for when Yandex Games works again (outage noticed 2026-10-11). ⛔ `private_lobbies_all` is still unset as far as the sources say.*
 
 > 🆕 **2026-10-10 (`4fb073a`) sync — five of the six gate items are now closed (1 and 5 earlier; 2, 4, 6 today); only
@@ -219,3 +221,4 @@ of the perks would depend on it."*
 - [[tasks/yandex-invite-copies-code-live]] — task `0381`, gate item 6's last check, closed 2026-10-10
 - [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3, fixed (not deployed); live check `0433`
 - [[tasks/join-lobby-race-fix-live]] — task `0433`, gate item 3's live check (closed 2026-10-11, partial)
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

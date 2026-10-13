@@ -64,3 +64,4 @@ that **skipped** the interstitial ad and the reconnect-session clear — the two
 - [[systems/localization]] — the en/ru sync rule for the new keys
 - [[decisions/sprint-8]] — the board (rank 35)
 - [[decisions/sprint-backlog]] — where it was filed, and `0439`
+- [[tasks/yandex-outage-recovery-checklist]] — task `0440`: listed `0439` as item 4; re-planned 2026-10-13 so `0439` stands alone

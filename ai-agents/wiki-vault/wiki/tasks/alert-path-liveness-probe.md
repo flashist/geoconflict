@@ -172,3 +172,4 @@ replacement for a probe that crosses the allowlist.
 - [[tasks/uptrace-channel-state-production-check]] — task `0341` (2026-10-01): the production drill modelled on this task's own, run against check 13
 - [[tasks/alert-delivery-after-idle]] — task `0289`: this probe's hourly run keeps the monitoring → relay hop warm, so that hop's idle path stays unproven
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the SQL re-enable fallback reuses this probe's env file and state-read route
+- [[tasks/ssh-security-alerts]] — task `0443`: the telemetry box's second post to the relay; its daily SSH digest proves nothing about this probe's path

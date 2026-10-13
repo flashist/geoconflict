@@ -245,3 +245,4 @@ that alerting works is not a finding either — it is the error A3 exists to pre
 - [[decisions/adr-113-internal-player-id]] — **unchanged** by this decision; its monitoring slice is what the alert rules serve
 - [[tasks/profile-identity-s5-monitoring-and-creation-switch]] — task `0274`, that monitoring slice: the metrics, the one built rule (A5), and the drill that proved this relay end to end
 - [[tasks/uptrace-channel-state-check]] — task `0285` (2026-09-28): check 13 reads the monitoring stack's own channel state
+- [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): SSH alerts routed through this relay (owner ruling R2), with failed sends counted into the daily digest per Decision 6; built, not deployed

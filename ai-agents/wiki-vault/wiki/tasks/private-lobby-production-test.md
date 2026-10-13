@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 27 (ADR-035 append rank; moved in from the Backlog board 2026-10-09) / task `0376`
 
+> 📌 *2026-10-13 sync: the lowercase code-typing check moved from here to `0428` passed there per owner statement "all good", not itemised; private lobbies went on for everyone the same day ([[tasks/private-lobbies-everyone-flag-flip]]).*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-10 on the owner ruling **"Gate item 2 passed, close both
 > (Recommended)"** (live `AskUserQuestion`; `0381` closed in the same ruling). **Release-gate item 2 PASSED** by owner
 > statement. The owner ran every check; the close was written by a spawned agent.
@@ -54,3 +56,4 @@ flag conditions not visible.
 - [[decisions/sprint-8]] — the board (rank 27)
 - [[decisions/windoworigin-url-join-defect]] — the `windowOrigin` invite defect whose private-lobby production check this is
 - [[decisions/yandex-invite-portal-boundary]] — why the friend had to join inside Yandex Games, never through our own site
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

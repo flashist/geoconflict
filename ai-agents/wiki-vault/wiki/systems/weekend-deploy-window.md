@@ -5,6 +5,21 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-13 sync — committed, waiting for a deploy** (`git tag --contains` → none for `5449571`, `779ddc2`,
+> `910bc14`, checked 2026-10-13):
+> - **Game:** `0437` exit confirmation popup ([[tasks/exit-confirm-popup]]; live check `0439`); `0441`'s `deploy.sh`
+>   key-login fixes ([[tasks/deploy-ssh-key-login]]); `0443`'s every-deploy root step `setup-game-host.sh`
+>   ([[tasks/ssh-security-alerts]]); `0447`'s new `update.sh` ([[tasks/game-deploy-env-file-cleanup]]).
+> - **Profile + telemetry:** `0443`'s SSH alert route, digest cron and box agent (deploy order in `0449`: profile →
+>   telemetry → game dev → game prod).
+> - 🚨 **Before the next game deploy, know this:** with `779ddc2` in it, `deploy.sh` exits **3** with *"GAME IS DEPLOYED
+>   — HOST SETUP NOT DONE"* until `0445` installs the root key — the game is live, the run reads as failed, and
+>   `build-deploy.sh` has already tagged and pushed. Order the verify tasks so `0445` comes first.
+> - **Timing:** owner, on `0441`'s Q6: *"We probably will do deployed in the middle of the week, if ready to do so."*
+>   The three verify tasks `0445`, `0449`, `0450` sit in Sprint 8, bending the "verify at the top of the next sprint"
+>   rule for this case only. Console flips are not deploys: `0428` flipped private lobbies on 2026-10-13
+>   ([[tasks/private-lobbies-everyone-flag-flip]]).
+>
 > 📌 *2026-10-12 sync — **the 2026-10-10 deploys ran**, so the "waiting for a deploy" list below is history. **Profile box:** `0425` tester roles, mid-week by owner ruling, ~17:45 UTC (migration `008`; ~40 s restart, 4 self-healing `player resolve failed after retries` on the game server) — [[tasks/tester-roles-live]]. **Game:** `0228`, `0415`, `0423` went live in **`0.0.163` only** (image `20261010-212047`, ~18:43 UTC). Two `./build-deploy.sh prod` runs both stopped at the copy step on an SSH password-login refusal ("Permission denied"): the first had built and pushed **`0.0.162`, which was never deployed**; the second built `0.0.163`, and the owner shipped that already-built image with `./deploy.sh prod 20261010-212047` (per `fkit-lead`, who was there; the `0441` brief records the copy-step failure, cause unproven, and `0441`/`0442` move the game box to key login); their live checks `0429` (passed, [[tasks/no-native-tooltips-live]]) and `0433` (partial, [[tasks/join-lobby-race-fix-live]]) are closed. **Now waiting for a deploy:** `0437`, the exit confirmation popup (commit `5449571`, no tag) — [[tasks/exit-confirm-popup]]; its live check `0439` is listed in `0440` (waits on Yandex Games recovering).*
 
 > 🆕 **2026-10-10 sync — committed, waiting for a deploy** (commit `bcc9bf0`; `git tag --contains bcc9bf0` → none,
@@ -903,3 +918,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/no-native-tooltips-live]] — task `0429`, live check after the 2026-10-10 game deploy
 - [[tasks/join-lobby-race-fix-live]] — task `0433`, live check after the 2026-10-10 game deploy
 - [[tasks/exit-confirm-popup]] — task `0437`, committed, waiting for a game deploy
+- [[tasks/deploy-ssh-key-login]] — task `0441`: key login for game + telemetry deploys, committed `779ddc2`, not yet used for a deploy
+- [[tasks/ssh-security-alerts]] — task `0443`: committed `779ddc2`; once deployed, game deploys exit 3 until `0445`
+- [[tasks/game-deploy-env-file-cleanup]] — task `0447`: new `update.sh`, committed `910bc14`, waiting for a game deploy
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`: a console flip (2026-10-13), not a deploy

@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 29 (ADR-035 append rank; moved in from the Backlog board 2026-10-09) / task `0381`
 
+> 📌 *2026-10-13 sync: step 3 (a non-citizen joins by typing the code, lowercase) ran inside `0428`'s check 4b — pass per owner statement "all good", not itemised; invite-link join not stated ([[tasks/private-lobbies-everyone-flag-flip]]). Step 4 (old `#join=` link) stays **not run**.*
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-10 on the owner ruling **"Gate item 2 passed, close both
 > (Recommended)"**, together with `0376`. ⚠️ **Steps 3, 4 and 5 NOT run**, by owner rulings.
 
@@ -48,3 +50,4 @@ The host saw the private-lobby row through `0354`'s tester rule; the everyone-fl
 - [[tasks/private-lobby-citizen-perk]] — the feature whose release gate item 6 this closes
 - [[decisions/windoworigin-url-join-defect]] — the `#join=` invite whose off-Yandex step was not run live
 - [[tasks/yandex-invite-link-decision]] — task `0199`, the decision whose two live checks this and `0383` are
+- [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13

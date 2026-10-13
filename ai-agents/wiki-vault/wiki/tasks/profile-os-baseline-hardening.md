@@ -70,3 +70,5 @@ to a deploy or stop.
 - [[systems/player-profile-store]] — the profile box; its *operability tail* section scoped this task
 - [[systems/weekend-deploy-window]] — the 2026-09-26 window that ran B1–B6 (write `0221-B5`, not `B5` — `0219` reuses the letters)
 - [[decisions/sprint-7]] — the board (rank 7); closed 2026-10-01
+- [[tasks/deploy-ssh-key-login]] — task `0441` (2026-10-12): this key-only profile box is the model for the game and telemetry boxes (`0442` copies its sshd hardening)
+- [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): login / fail2ban-down / daily-count alerts on this box and the other three
