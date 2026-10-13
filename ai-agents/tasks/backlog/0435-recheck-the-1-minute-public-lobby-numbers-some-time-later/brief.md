@@ -89,7 +89,7 @@ real data, not proven) and that GameAnalytics' own day boundary / time zone was 
 
 **Step 4 — note what else changed in the window.** List game deploys inside the window (version-bump commits and, where
 known, go-live times) and anything that could move these numbers on its own. ⚠️ **In particular:** if private lobbies
-were turned on for everyone ([`0428`](../0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md))
+were turned on for everyone ([`0428`](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md))
 before or during the window, `Game:Mode:Multiplayer` now counts private-lobby entries too, so a rise there is **not**
 comparable to `0370`'s figures without saying so. The server query counts **public** lobbies only and is not affected.
 Seasonal / player-base changes (more or fewer players overall) also move these numbers — say so; do not adjust for them.
@@ -122,8 +122,13 @@ Record the ruling verbatim, with the date.
 - **Related:** [`0370`](../../done/0370-verify-0367-in-production-1-minute-public-lobbies-vs-the-2-minute-baseline/brief.md)
   (the measurement this re-checks; its worklog holds the query, the access method and every comparison number);
   [`0367`](../../done/0367-cut-the-public-lobby-wait-from-2-minutes-to-1-minute/brief.md) (the change);
-  [`0428`](../0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md) (can confound the
+  [`0428`](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md) (can confound the
   GameAnalytics number — Step 4).
+- 📌 *2026-10-13: **`private_lobbies_all` went on for everyone about 17:09–17:12 MSK (about 14:09–14:12 UTC),
+  2026-10-13**, game `0.0.163` — flip time from the owner, recorded in
+  [`0428`'s worklog](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/worklog.md);
+  `0428` closed `✅ Done (agent-closed — not owner-verified)` the same day. From then on `Game:Mode:Multiplayer` counts
+  private-lobby entries too (Step 4). Added at `0440` item 6's request by a spawned `fkit-producer`.*
 - **No fixed date** — owner ruling. ⚠️ Practical note, not a ruling: since Uptrace keeps about 14 days, any 7-day window
   picked on the day of the read is still in retention; there is no data-loss reason to hurry.
 - **Retention:** observed ~14 days, not the configured 7 — see

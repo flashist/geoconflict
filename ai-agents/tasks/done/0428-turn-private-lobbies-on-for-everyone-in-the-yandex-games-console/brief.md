@@ -25,7 +25,7 @@ ruling (`0376` at 27, `0228` at 28, `0381` at 29). The owner named the sprint, n
 before the three gate tasks above it finish. 30 already sits there.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** The flag lives in the Yandex Games console, which only the owner

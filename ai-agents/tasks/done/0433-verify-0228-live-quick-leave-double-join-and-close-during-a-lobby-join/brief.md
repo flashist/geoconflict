@@ -53,7 +53,7 @@ fix the same 9 runs were clean. `0228` closed on that local proof, agent-closed 
 the live check.**
 
 **Why it gates private lobbies for everyone.** `0228` is item 3 of the private-lobby release gate (`0354`). By owner
-ruling (2026-10-10, above) [`0428`](../../backlog/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md)
+ruling (2026-10-10, above) [`0428`](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md)
 — turning private lobbies on for everyone — waits for this check.
 
 **What `0228` did NOT prove — this task covers each where it can be seen:**

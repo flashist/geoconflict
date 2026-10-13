@@ -26,7 +26,7 @@ and `0428` in turn feeds `0426`'s text gate. Rank barely matters in practice: th
 it is Yandex recovering, not its number.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 > ⚠️ **Waiting on Yandex Games, not on us.** Outage noticed 2026-10-11, still ongoing 2026-10-12: console flag changes
 > do not take effect, other Yandex services are unreliable. Nothing in this list can start until item 1 passes. (Any
@@ -105,7 +105,7 @@ Record in the worklog: the date Yandex was judged back, and the flag values prin
 
 ### 2. `0428` — turn private lobbies on for everyone (owner)
 
-[`0428`](../0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md): set `private_lobbies_all`
+[`0428`](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/brief.md): set `private_lobbies_all`
 = `enabled` for everyone in the console, with its before/after console values, its live checks **4a–4d**, and its
 rollback. ⚠️ Check **4b** also carries the **lowercase code join** (`0389`'s check (b) and `0381` step 3), which is still
 unproven live. Follow `0428`'s own steps and record there; this list only notes that it ran. The check snippet from
@@ -113,7 +113,7 @@ item 1 is a convenient way to confirm the reload picked up the flag before check
 
 ### 3. `0426` — the news window's flag gate (owner, at `0426`'s approval gate)
 
-[`0426`](../0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md): its approval gate
+[`0426`](../../backlog/0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md): its approval gate
 needs the **real** flag values at deploy time — `citizenship_ui` and `private_lobbies_all` — not the 2026-10-10
 screenshot. Its `draft.md` has two conditional lines: the **Private tab** line (kept only if `0428` has turned the flag
 on before the deploy) and the **exit-confirm** line (kept only if `0437` ships in the same deploy). Give `0426` the
@@ -121,7 +121,7 @@ values after item 2 has run (or not run) and record them there.
 
 ### 4. `0439` — the exit popup's live check (owner)
 
-[`0439`](../0439-verify-0437-live-exit-confirm-popup-inside-yandex-games/brief.md) needs **two** things: Yandex
+[`0439`](../../backlog/0439-verify-0437-live-exit-confirm-popup-inside-yandex-games/brief.md) needs **two** things: Yandex
 working (item 1, including a real ad), **and** the deploy that carries `0437` (built, not deployed when it closed). It
 is not merged into this list — it stays its own task, on the Backlog board, for the top of the next sprint. This item
 is only a reminder that the outage also holds it up.

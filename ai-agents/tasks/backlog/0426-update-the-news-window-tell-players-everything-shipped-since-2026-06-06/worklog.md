@@ -96,6 +96,19 @@
   (schema check, the two named tests + full `npm test`, local look en/ru), all in the same final Sprint 8 deploy.
   `resources/announcements.json` is still untouched.
 
+## 2026-10-13 — flag values from `0428` / `0440` (step 6 of `0428`)
+
+- **Recorded by** a spawned `fkit-coder` (no owner channel), from the owner's results relayed by `fkit-lead`. Not read
+  in the console by the recording agent.
+- **`private_lobbies_all` = `enabled` for everyone (no condition) since about 17:09–17:12 MSK, 2026-10-13** — the
+  owner flipped it in the Yandex Games console (`0428`); owner confirmed the after-values live (*"Yes, exactly as
+  expected"*) and that the live checks were *"all good"*.
+- **`citizenship_ui` = `enabled` for everyone (no condition)** — unchanged, confirmed the same day.
+- So the draft's **Private tab** line may stay **if the flag is still on at this task's deploy** — the owner confirms
+  that at the approval gate. Replaces the 2026-10-10 screenshot values above (`private_lobbies_all` off). The
+  **exit-confirm** line is unaffected by this (it turns on `0437` shipping in the same deploy).
+- See [`0428`'s worklog](../../done/0428-turn-private-lobbies-on-for-everyone-in-the-yandex-games-console/worklog.md).
+
 ## Decision log
 
 - none (no fixes; drafting only).
