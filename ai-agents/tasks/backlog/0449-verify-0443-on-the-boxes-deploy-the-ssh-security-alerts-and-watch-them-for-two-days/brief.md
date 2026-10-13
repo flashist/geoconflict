@@ -63,7 +63,7 @@ box inventory, build, decision logs and checks; `review.md` (closed-out) holds t
 🚨 **Read before the first game deploy — owner ruling Q-A1 (2026-10-12): any game deploy whose root step is not OK exits
 with code 3.** The game IS live by then; the banner says **"GAME IS DEPLOYED — HOST SETUP NOT DONE"** with the reason.
 "Not OK" includes SKIPPED. So, once `0443` is committed:
-- **Until [`0445`](../0445-verify-0441-on-the-boxes-install-the-ssh-keys-prove-key-only-login-and-deploy-over-the-key/brief.md)
+- **Until [`0445`](../../done/0445-verify-0441-on-the-boxes-install-the-ssh-keys-prove-key-only-login-and-deploy-over-the-key/brief.md)
   installs the game key for `root` on a game box, every deploy to that box exits 3.** There is no skip switch (owner ruling
   Q-A2, *"No switch"*). The password path never logs in as root, so it always reads SKIPPED → exit 3.
 - A blank `PROFILE_SSH_ALERT_TOKEN` or a blank `PROFILE_API_URL` also exits 3. **Game dev's `PROFILE_API_URL` value is

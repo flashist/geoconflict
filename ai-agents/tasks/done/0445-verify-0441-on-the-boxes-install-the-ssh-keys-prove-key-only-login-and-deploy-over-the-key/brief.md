@@ -32,7 +32,7 @@ are the owner's top priority. ADR-035 forbids inserting a new row above closed r
 (`0443`).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** Creating the keys, installing the public halves, the key-only login
