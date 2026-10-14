@@ -42,6 +42,27 @@ anything.** The same quiet is what prompted this deferral.
 
 ---
 
+### 📌 2026-10-14 — TO BE CANCELLED AS ABSORBED BY `0456` WHEN `0456` CLOSES — conditional. Not cancelled yet.
+
+- **The problem repeated:** the GameAnalytics 500-events-per-user-per-day banner was seen again on 2026-10-14 (a banner,
+  not yet a measured figure). [`0456`](../0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
+  (Sprint 8) investigates the same limit and takes this task's four hypotheses and two data caveats as its starting
+  list.
+- **OWNER RULING, 2026-10-14**, given live via `AskUserQuestion` in the `fkit lead` session (driver of
+  `fkit-sprint-ship-loop`), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
+  ⛔ **not producer precedent.** Question: *"0230 (Backlog, September) investigated the 3–4 Sep spike of this same limit
+  and never found the cause. 0456 looks at the same limit and starts from 0230's list of suspects. What happens to
+  0230?"* Verbatim selection: **"Absorb, cancel at 0456 close (Recommended)"** — option text: *"One investigation. When
+  0456 closes, a producer cancels 0230 as absorbed, but only if 0456's report answered all four of 0230's suspects;
+  otherwise it comes back to you."*
+- ⚠️ **Conditional.** The cancel applies only if `0456`'s findings report marks **each** of the four hypotheses below
+  confirmed or refuted. If any is left open, this task is **not** absorbed and the question goes back to the owner.
+  The close instruction lives in `0456`'s `## Notes` (*At close* bullet).
+- ⛔ **Do not start this task separately while `0456` is open** — one investigation, not two. Status unchanged
+  (`🔲 Backlog`); nothing below is changed or settled by this note.
+
+---
+
 ### 📅 OBSERVATION — 2026-09-11: the banner was seen again. ⛔ NOT a measured recurrence.
 
 **What was observed:** on **2026-09-11**, the GameAnalytics **"Limit Exceeded: Total number of events
@@ -332,6 +353,9 @@ found. See `0224`'s closing note §4.
 
 ## Notes
 
+- 📌 **2026-10-14 — to be cancelled as absorbed by [`0456`](../0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
+  when `0456` closes**, by OWNER RULING *"Absorb, cancel at 0456 close (Recommended)"* — conditional on `0456`'s report
+  marking all four hypotheses confirmed or refuted. Full ruling and condition: the 📌 note under `## Sprint`.
 - **Depends on:** nothing. Startable immediately — it reads data and code, and needs no other task to
   land first.
 - **Blocks:** nothing formally. ⚠️ But any future decision about the per-user event budget rests on

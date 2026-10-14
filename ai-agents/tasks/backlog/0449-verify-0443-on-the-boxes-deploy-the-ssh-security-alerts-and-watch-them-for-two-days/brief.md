@@ -151,10 +151,33 @@ the R6 stricter journal filter (accepted residual).
 9. Step 10 grep clean.
 
 ## Notes
-- **Depends on:** 0443, 0445
+- **Depends on:** 0443, 0445, 0452 (its pre-checks P1–P4 only, and only for this task's game and telemetry deploys — the profile-box steps may run first; not its close)
+- **Why `0452` (added 2026-10-13; narrowed 2026-10-13 — profile-box steps carved out, see the next bullet):** once
+  `0442`'s code is committed, any key deploy of a game box or the telemetry box turns SSH password login off — this
+  task's game and telemetry deploys included. So those deploys wait for [`0452`](../0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)'s
+  **pre-checks P1–P4** (web-console root login proven on all three boxes; keys + passphrases and root passwords in the
+  password manager; the read-only sshd/fail2ban check). It does **not** wait for `0452` to close — `0452`'s game prod
+  half waits for the weekend slot, and this task must not be stuck behind it. Once P1–P4 have passed and `0452`'s
+  terminal A (its step 1) is kept open for that box, a deploy made for this task **may count as `0452`'s deploy for
+  that box** (`0452` *Context*). OWNER RULING 2026-10-13, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+  `fkit-producer` (no owner channel); ⛔ not producer precedent. Verbatim: *"Yes, make them wait (Recommended)"* —
+  option text: *"Add 0452 to 0449's and 0450's 'Depends on'. Tiny edit, easy to undo. Their deploys can still count
+  as 0452's deploy for that box once the checks pass."*
+- **Profile-box carve-out (2026-10-13):** this task's **profile-box steps** — the profile deploy in step 3 (first in the
+  deploy order) and the profile box's own checks in steps 4, 5 and 7 — **may run before `0452`'s pre-checks P1–P4**.
+  `0442`'s password-off change never touches the profile box (`setup-profile.sh` is untouched; the profile box's own
+  hardening is `0221`'s). **The telemetry, game dev and game prod deploys — and every check on those boxes — still
+  wait for P1–P4.** OWNER RULING 2026-10-13, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`
+  to a spawned `fkit-producer` (no owner channel); ⛔ not producer precedent. Question: *"0449's first step only deploys
+  the profile server, which 0442's password-off change never touches. Should that one step be allowed to go ahead
+  before 0452's safety checks, or should all of 0449 wait?"* Verbatim selection: *"Let the profile step go first
+  (Recommended)"* — option text: *"Only 0449's profile-box step may run before 0452's checks; its game and telemetry
+  deploys still wait. Small brief edit."*
 - **Blocks:** nothing.
 - `0445` is needed only for the game boxes (root key). Steps 1–4 for profile and telemetry, and their login/digest checks,
-  can run before `0445` is done.
+  can run before `0445` is done. ⚠️ **Since 2026-10-13 the telemetry deploy (and every game deploy) also waits for `0452`'s
+  pre-checks P1–P4** — see the *Why `0452`* bullet above. The profile box is not touched by `0442`, so its steps do
+  **not** wait for P1–P4 (profile-box carve-out bullet above, owner ruling 2026-10-13).
 - Covers `0443`'s verification steps 2–6 and 8, which `0443` closed without (`✅ Done (agent-closed — not
   owner-verified)`); its steps 1 (inventory) and 7 (`npm test` green, harness registered) were met at close.
 - If a deploy, the test event, or the login alert fails on a box, **stop that box**: read the HTTP code meanings in

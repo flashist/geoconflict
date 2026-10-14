@@ -30,9 +30,11 @@ const NODE_DIR = path.dirname(process.execPath);
 // helper build-deploy-profile.sh sources right after its guard (task 0355).
 const COPIED = [
   "deploy.sh",
-  // Task 0443: the root step deploy.sh ships after the game update.
+  // Task 0443: the root step deploy.sh ships after the game update (and, since task 0442,
+  // the sshd hardening library it sources).
   "setup-game-host.sh",
   "ssh-alerts.sh",
+  "sshd-hardening.sh",
   "build-deploy.sh",
   "build-deploy-profile.sh",
   "update.sh",
@@ -137,9 +139,10 @@ function runScript(
 
 // Enough for deploy.sh to reach the ssh on a dev deploy. Fake by construction:
 // a documentation-range address (RFC 5737) and a key file that is not a key.
-// Task 0443: the root step needs the SSH alert token + PROFILE_API_URL, or it is SKIPPED and
-// deploy.sh exits 3 after the game is live (owner ruling Q-A1). Both are fake here; the stub
-// ssh "succeeds", so the step reads OK.
+// Task 0443: the root step's alerts section needs the SSH alert token + PROFILE_API_URL, or the
+// box reports it SKIPPED and deploy.sh exits 3 after the game is live (owner ruling Q-A1; since
+// task 0442 the root login itself runs either way). Both are fake here; the stub ssh
+// "succeeds", so the step reads OK.
 function deployEnv(tree: Tree, env: "dev" | "prod"): Record<string, string> {
   return {
     [`SERVER_HOST_${env.toUpperCase()}`]: "203.0.113.10",

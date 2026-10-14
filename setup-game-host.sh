@@ -2,8 +2,8 @@
 #
 # setup-game-host.sh — the game box's EVERY-DEPLOY root step (task 0443, owner ruling "Way A").
 #
-# deploy.sh ships this file (with ssh-alerts.sh and a 0600 host.env) in ONE root login BY KEY,
-# after the new game container is already up, and runs:
+# deploy.sh ships this file (with ssh-alerts.sh, sshd-hardening.sh and a 0600 host.env) in ONE
+# root login BY KEY, after the new game container is already up, and runs:
 #     bash setup-game-host.sh <path to host.env>
 # It is how a game box gets its host-level setup from the repo's scripts alone: nothing is set
 # up by hand, and a rebuilt or restored box is fixed by its next deploy. (setup.sh is one-time
@@ -12,18 +12,24 @@
 # ── THE CONTRACT — every section added here MUST keep it ─────────────────────
 #   - Runs as root on EVERY game deploy, so every section is idempotent and safe to repeat.
 #   - LIGHT: no apt upgrade, no certbot, no nginx or container changes. Target: under 30 s.
-#   - Never restarts a service unless that service's config actually changed.
+#   - Never restarts a service unless that service's config actually changed. (A reload is not
+#     a restart: the sshd section reloads sshd on every run, so its OK is true of the RUNNING
+#     daemon — task 0442 R2; sessions stay up, as on the profile box.)
 #   - Each section is one print_header block that reports exactly one of OK, SKIPPED (with the
 #     reason) or FAILED. Exit code: 0 = every section OK; 1 = a section FAILED; 3 = nothing
 #     failed but a section was SKIPPED. deploy.sh treats anything but 0 as "host setup NOT done"
 #     and fails the deploy after its banner (owner ruling Q-A1: a skip fails too).
 #   - Inputs come ONLY from the staged host.env passed by path — sourced, then deleted at once.
 #     Never from argv: it holds a token.
-#   - 🚨 MUST NEVER LOCK OUT SSH. A future sshd section validates with `sshd -t` before any
-#     reload and rolls back on failure, exactly like setup-profile.sh's guarded section (0221).
+#   - 🚨 MUST NEVER LOCK OUT SSH. The sshd section (task 0442, sshd-hardening.sh) validates
+#     with `sshd -t` before any reload, gates on the effective config and rolls back on any
+#     failure, exactly like setup-profile.sh's guarded section (0221).
 #
-# Test seam (tests/ssh-alerts.sh): GAME_HOST_SETUP_ROOT prefixes every path this script writes;
-# SSH_ALERTS_ROOT does the same for the agent install it runs. Bash 3.2 compatible.
+# Shipped next to it by deploy.sh: ssh-alerts.sh (the agent) and sshd-hardening.sh (sourced).
+#
+# Test seam (tests/ssh-alerts.sh): GAME_HOST_SETUP_ROOT prefixes every path this script writes
+# (the sshd section's too); SSH_ALERTS_ROOT does the same for the agent install it runs.
+# Bash 3.2 compatible.
 
 set -u
 
@@ -119,8 +125,28 @@ else
     report ssh-alerts FAILED "ssh-alerts.sh install failed (its output is above)"
 fi
 
+# ── 3. sshd hardening (task 0442) ─────────────────────────────────────────────
+# Password login off, root key-only — sshd-hardening.sh's harden_sshd, the same guards and
+# restore-not-delete rollback as setup-profile.sh's section (0221). Independent of section 2:
+# a SKIPPED alerts section (blank token) does not stop it.
+# Guard 0 (never harden on a deploy that came in by PASSWORD) holds by construction here:
+# deploy.sh runs this whole step only over the game key, BatchMode=yes with password and
+# keyboard-interactive auth off, after the game update succeeded with that same key — so the
+# key logins of the deploy user and of root are both proven before this section runs.
+print_header "SSHD HARDENING (0442)"
+if [ ! -f "$HERE/sshd-hardening.sh" ]; then
+    report sshd FAILED "sshd-hardening.sh was not shipped next to this script — password login unchanged"
+else
+    # shellcheck source=sshd-hardening.sh
+    . "$HERE/sshd-hardening.sh"
+    if harden_sshd "$ROOT"; then
+        report sshd OK "password login off, root key-only"
+    else
+        report sshd FAILED "$SSHD_HARDENING_REASON"
+    fi
+fi
+
 # ── Sections still to come (follow-up task 0446 — NO code for them in 0443) ───
 # (follow-up: fail2ban sshd jail — copy 0221)
-# (0442: sshd hardening — copy 0221's guarded section)
 
 finish

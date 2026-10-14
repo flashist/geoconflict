@@ -22,6 +22,9 @@ SETUP_SCRIPT="./setup-telemetry.sh"
 # The SSH security alert agent (task 0443). SCP'd alongside the setup script; setup-telemetry.sh
 # installs it with its own `install` subcommand.
 SSH_ALERTS_SCRIPT="./ssh-alerts.sh"
+# The sshd hardening library (task 0442). SCP'd alongside; setup-telemetry.sh sources it to turn
+# SSH password login off on the box.
+SSHD_HARDENING_SCRIPT="./sshd-hardening.sh"
 
 print_header() {
     echo "======================================================"
@@ -76,6 +79,10 @@ if [ ! -f "$SETUP_SCRIPT" ]; then
 fi
 if [ ! -f "$SSH_ALERTS_SCRIPT" ]; then
     echo "Error: $SSH_ALERTS_SCRIPT not found"
+    exit 1
+fi
+if [ ! -f "$SSHD_HARDENING_SCRIPT" ]; then
+    echo "Error: $SSHD_HARDENING_SCRIPT not found"
     exit 1
 fi
 
@@ -133,7 +140,7 @@ if [ "$GIT_COMMIT" = "unknown" ]; then
     exit 1
 fi
 
-TELEMETRY_SHIPPED_PATHS=(setup-telemetry.sh ssh-alerts.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh)
+TELEMETRY_SHIPPED_PATHS=(setup-telemetry.sh ssh-alerts.sh sshd-hardening.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh)
 if DIRTY_SHIPPED=$(deploy_shipped_tree_dirty "${TELEMETRY_SHIPPED_PATHS[@]}"); then
     echo "Error: files this deploy ships have uncommitted changes — refusing to deploy."
     echo "       The box would not match commit ${GIT_COMMIT}. Nothing was sent to the box."
@@ -320,9 +327,25 @@ if [ -n "$SSH_KEY_PATH" ]; then
     # With several keys in the agent ssh tries each in turn, and every rejected key is a failed
     # auth to sshd — enough of them hits MaxAuthTries and the box's fail2ban jail, and bans
     # the operator.
-    SCP_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
-    SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    # PasswordAuthentication=no + KbdInteractiveAuthentication=no (task 0442 R1): the key path
+    # never falls back to a typed password prompt. Without them a rejected key (wrong path,
+    # rotated key) let ssh prompt for the root password, and a deploy the operator typed it
+    # into still went out labelled `key` below — passing setup-telemetry.sh's guard 0 and
+    # turning password login off for an operator whose key does not work. Now a rejected key
+    # fails the preflight at once. No BatchMode: a passphrase prompt for THIS key is key auth.
+    SCP_CMD+=(-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    SSH_CMD+=(-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    # Staged for setup-telemetry.sh's sshd section (task 0442, mirror of 0221 R1): it refuses
+    # to turn password login off on a deploy that came in over the password fallback. `key` is
+    # true by construction: the options above leave this session no way in but the key.
+    DEPLOY_SSH_AUTH=key
 elif [ -n "$SSH_PASSWORD" ]; then
+    # ⚠️ Dead against the telemetry box since task 0442: setup-telemetry.sh turns SSH password
+    # login off there (gated on the effective config), so this branch can only be refused by
+    # the box, at the first scp. Kept, like the profile deploy's — but no longer a way back in.
+    echo "Note: the telemetry box refuses SSH password login since task 0442 — a password deploy is expected to fail at the first copy."
+    echo "      To get back in without a working key, use the hosting provider's web console (docs/vps-deployment-guide.md §7)."
+    DEPLOY_SSH_AUTH=password
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based telemetry deploy is disabled by default."
         echo "Configure TELEMETRY_SSH_KEY for the standard path."
@@ -349,6 +372,8 @@ fi
 REMOTE_SCRIPT="/root/setup-telemetry.sh"
 # setup-telemetry.sh installs the agent from here (its SSH_ALERTS_SRC default).
 REMOTE_SSH_ALERTS_SCRIPT="/root/ssh-alerts.sh"
+# …and sources the sshd hardening library from here (its SSHD_HARDENING_SRC default).
+REMOTE_SSHD_HARDENING_SCRIPT="/root/sshd-hardening.sh"
 
 print_header "DEPLOYING UPTRACE TO ${TELEMETRY_SERVER_HOST}"
 echo "Remote user:   ${REMOTE_USER}"
@@ -471,6 +496,9 @@ echo "Uploaded to ${REMOTE_SCRIPT}"
 # And the SSH security alert agent (0443) — same transport.
 "${SCP_CMD[@]}" "$SSH_ALERTS_SCRIPT" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_SSH_ALERTS_SCRIPT}"
 echo "Uploaded to ${REMOTE_SSH_ALERTS_SCRIPT}"
+# And the sshd hardening library (0442) — same transport.
+"${SCP_CMD[@]}" "$SSHD_HARDENING_SCRIPT" "${REMOTE_USER}@${TELEMETRY_SERVER_HOST}:${REMOTE_SSHD_HARDENING_SCRIPT}"
+echo "Uploaded to ${REMOTE_SSHD_HARDENING_SCRIPT}"
 
 # ── Run setup remotely ────────────────────────────────────────────────────────
 
@@ -498,6 +526,9 @@ print_header "RUNNING SETUP ON REMOTE SERVER"
 # this single-quoted heredoc it must contain no single quote — refused up front (the
 # "review R10" check under Validate); `openssl rand -hex 32` never has one.
 #
+# Task 0442 adds TELEMETRY_DEPLOY_SSH_AUTH — `key` or `password`, set by the auth branch above
+# (a plain token, safe in single quotes). setup-telemetry.sh's sshd section refuses on `password`.
+#
 # Task 0356 adds TELEMETRY_DEPLOY_VERSION + TELEMETRY_DEPLOY_COMMIT — this deploy's name and
 # commit, computed above (plain tokens, safe in single quotes). setup-telemetry.sh writes them
 # to /opt/uptrace/deployed-version once every step succeeded.
@@ -524,6 +555,7 @@ export TELEMETRY_DOMAIN='${TELEMETRY_DOMAIN}'
 export TELEMETRY_ALERT_PROBE_URL='${TELEMETRY_ALERT_PROBE_URL:-}'
 export PROFILE_ALERT_WEBHOOK_TOKEN='${PROFILE_ALERT_WEBHOOK_TOKEN:-}'
 export PROFILE_SSH_ALERT_TOKEN='${PROFILE_SSH_ALERT_TOKEN:-}'
+export TELEMETRY_DEPLOY_SSH_AUTH='${DEPLOY_SSH_AUTH}'
 export TELEMETRY_DEPLOY_VERSION='${DEPLOY_VERSION}'
 export TELEMETRY_DEPLOY_COMMIT='${GIT_COMMIT}'
 EOF

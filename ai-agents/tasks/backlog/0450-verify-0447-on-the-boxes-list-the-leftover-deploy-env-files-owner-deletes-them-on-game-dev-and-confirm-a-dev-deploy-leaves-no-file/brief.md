@@ -123,7 +123,17 @@ rules on it.
 7. Nothing written for this task names a host, address, secret value or file contents.
 
 ## Notes
-- **Depends on:** 0445, 0447
+- **Depends on:** 0445, 0447, 0452 (its pre-checks P1–P4 only — not its close)
+- **Why `0452` (added 2026-10-13):** once `0442`'s code is committed, any key deploy of a game box or the telemetry
+  box turns SSH password login off — this task's deploys included. So this task waits for [`0452`](../0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)'s
+  **pre-checks P1–P4** (web-console root login proven on all three boxes; keys + passphrases and root passwords in the
+  password manager; the read-only sshd/fail2ban check). It does **not** wait for `0452` to close — `0452`'s game prod
+  half waits for the weekend slot, and this task must not be stuck behind it. Once P1–P4 have passed and `0452`'s
+  terminal A (its step 1) is kept open for that box, a deploy made for this task **may count as `0452`'s deploy for
+  that box** (`0452` *Context*). OWNER RULING 2026-10-13, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+  `fkit-producer` (no owner channel); ⛔ not producer precedent. Verbatim: *"Yes, make them wait (Recommended)"* —
+  option text: *"Add 0452 to 0449's and 0450's 'Depends on'. Tiny edit, easy to undo. Their deploys can still count
+  as 0452's deploy for that box once the checks pass."*
 - **Blocks:** nothing
 - `0445` is needed for steps 1–3 (root login). Step 4 also needs the `0447` code committed and deployed; it does not need
   F2 to have run first, but doing F2 first makes the "0 files" result unambiguous.

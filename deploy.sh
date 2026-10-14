@@ -128,13 +128,18 @@ run_config_value_guard() {
 }
 
 # ── Game host setup: the every-deploy ROOT step (task 0443, owner ruling "Way A") ────
-# Ships setup-game-host.sh + ssh-alerts.sh + a 0600 host.env to the box in ONE root login and
-# runs setup-game-host.sh there. It is called only AFTER the update block below succeeded —
+# Ships setup-game-host.sh + ssh-alerts.sh + sshd-hardening.sh (task 0442) + a 0600 host.env to
+# the box in ONE root login and runs setup-game-host.sh there. It is called only AFTER the update block below succeeded —
 # the new game is already live, so a broken root step can never block a release.
 #
 # Owner ruling Q-A1 (2026-10-12): ANY result but OK — FAILED, or SKIPPED for any reason
 # (password path, blank token or URL) — fails the deploy, after a loud "game IS deployed, host
-# setup NOT done" banner. So this returns non-zero for every skip as well, and sets
+# setup NOT done" banner.
+#
+# A blank PROFILE_SSH_ALERT_TOKEN or PROFILE_API_URL does NOT stop the root login (task 0442,
+# owner ruling Q1 = "Change deploy.sh", 2026-10-13): the step still runs, so its sshd section
+# applies, and setup-game-host.sh itself reports the alerts section SKIPPED (exit 3) — the
+# deploy still ends with exit 3 until the token is set. Only a missing KEY skips the login. So this returns non-zero for every skip as well, and sets
 # HOST_SETUP_RESULT / HOST_SETUP_REASON for that banner. There is deliberately no switch to
 # skip it (owner ruling Q-A2).
 #
@@ -151,7 +156,7 @@ run_config_value_guard() {
 # Like run_config_value_guard above, this is called from an `||` list, where set -e is OFF —
 # so every exit path is an explicit `return`.
 run_game_host_setup() {
-    local setup_script alerts_script remote_cmd rc
+    local setup_script alerts_script hardening_script remote_cmd rc
     HOST_SETUP_RESULT="FAILED"
     HOST_SETUP_REASON=""
     if [ -z "$SSH_KEY_PATH" ]; then
@@ -159,20 +164,11 @@ run_game_host_setup() {
         HOST_SETUP_REASON="no SSH key for ${ENV} — the root step never logs in by password (set ${SSH_KEY_VAR} or SSH_KEY)"
         return 1
     fi
-    if [ -z "${PROFILE_SSH_ALERT_TOKEN:-}" ]; then
-        HOST_SETUP_RESULT="SKIPPED"
-        HOST_SETUP_REASON="PROFILE_SSH_ALERT_TOKEN is empty — set it in .env.secret (the same value as on the profile box)"
-        return 1
-    fi
-    if [ -z "${PROFILE_API_URL:-}" ]; then
-        HOST_SETUP_RESULT="SKIPPED"
-        HOST_SETUP_REASON="PROFILE_API_URL is empty — the SSH alert agent would have nowhere to send"
-        return 1
-    fi
     setup_script="$(dirname "$0")/setup-game-host.sh"
     alerts_script="$(dirname "$0")/ssh-alerts.sh"
-    if [ ! -f "$setup_script" ] || [ ! -f "$alerts_script" ]; then
-        HOST_SETUP_REASON="setup-game-host.sh or ssh-alerts.sh is missing next to deploy.sh"
+    hardening_script="$(dirname "$0")/sshd-hardening.sh"
+    if [ ! -f "$setup_script" ] || [ ! -f "$alerts_script" ] || [ ! -f "$hardening_script" ]; then
+        HOST_SETUP_REASON="setup-game-host.sh, ssh-alerts.sh or sshd-hardening.sh is missing next to deploy.sh"
         return 1
     fi
     HOST_SETUP_STAGE_DIR=$(mktemp -d) || {
@@ -183,10 +179,10 @@ run_game_host_setup() {
     chmod 700 "$HOST_SETUP_STAGE_DIR"
     if ! ( umask 077
            printf '%s=%q\n' \
-               PROFILE_SSH_ALERT_TOKEN "$PROFILE_SSH_ALERT_TOKEN" \
-               PROFILE_API_URL "$PROFILE_API_URL" \
+               PROFILE_SSH_ALERT_TOKEN "${PROFILE_SSH_ALERT_TOKEN:-}" \
+               PROFILE_API_URL "${PROFILE_API_URL:-}" \
                GAME_ENV "$ENV" > "$HOST_SETUP_STAGE_DIR/host.env" ) \
-        || ! cp "$setup_script" "$alerts_script" "$HOST_SETUP_STAGE_DIR/"; then
+        || ! cp "$setup_script" "$alerts_script" "$hardening_script" "$HOST_SETUP_STAGE_DIR/"; then
         HOST_SETUP_REASON="could not stage the host setup files locally"
         return 1
     fi
@@ -196,7 +192,7 @@ run_game_host_setup() {
     # ONE login, not scp + ssh: half the failed attempts when the root key is missing, and one
     # login alert per deploy instead of two. ustar avoids macOS's extended headers; only ssh's
     # status is judged — tar can take a harmless SIGPIPE once the box has read the archive.
-    COPYFILE_DISABLE=1 tar --format=ustar -C "$HOST_SETUP_STAGE_DIR" -cf - host.env setup-game-host.sh ssh-alerts.sh \
+    COPYFILE_DISABLE=1 tar --format=ustar -C "$HOST_SETUP_STAGE_DIR" -cf - host.env setup-game-host.sh ssh-alerts.sh sshd-hardening.sh \
         | "${ROOT_SSH_CMD[@]}" "root@${SERVER_HOST}" "$remote_cmd"
     rc=${PIPESTATUS[1]}
     rm -rf "$HOST_SETUP_STAGE_DIR"
@@ -433,6 +429,11 @@ trap deploy_cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 if [ -n "$SSH_PASSWORD" ] && [ -z "$SSH_KEY_PATH" ]; then
+    # Task 0442: the game boxes refuse password login over SSH, so this branch can only be
+    # refused by the box (at the first scp, before anything changes). Kept, like the profile
+    # deploy's, but no longer a way back in — that is the provider's web console.
+    echo "Note: the game boxes refuse SSH password login since task 0442 — a password deploy is expected to fail at the first copy."
+    echo "      To get back in without a working key, use the hosting provider's web console (docs/vps-deployment-guide.md §7)."
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based deploy is disabled by default."
         echo "Configure SSH_KEY or ${SSH_KEY_VAR} for the standard path."
@@ -537,8 +538,9 @@ if [ "$HOST_SETUP_RESULT" != "OK" ]; then
     print_header "⚠️  GAME IS DEPLOYED — HOST SETUP NOT DONE"
     echo "✅ The new game version IS live on ${ENV} (${SERVER_HOST}). Do not roll back for this."
     echo "❌ GAME HOST SETUP ${HOST_SETUP_RESULT}: ${HOST_SETUP_REASON}"
-    echo "   SSH security alerts on this box may be missing or out of date until a deploy"
-    echo "   completes this step. Fix the cause above; the next deploy runs it again."
+    echo "   SSH security alerts and the sshd hardening (password login off) on this box may be"
+    echo "   missing or out of date until a deploy completes this step. Fix the cause above; the"
+    echo "   next deploy runs it again."
     echo "   (docs/vps-deployment-guide.md §8 explains each cause.)"
     echo "======================================================="
     exit 3
@@ -546,7 +548,7 @@ fi
 
 print_header "DEPLOYMENT COMPLETED SUCCESSFULLY"
 echo "✅ New version deployed to ${ENV} (${SERVER_HOST})!"
-echo "✅ GAME HOST SETUP OK (root step: SSH security alerts installed/up to date)"
+echo "✅ GAME HOST SETUP OK (root step: SSH security alerts + sshd hardening up to date)"
 if [ "$ENABLE_BASIC_AUTH" = true ]; then
     echo "🔒 Basic authentication enabled with user: ${BASIC_AUTH_USER}"
 fi

@@ -21,6 +21,10 @@ jest.mock("../../src/client/Utils", () => ({
   translateText: (k: string) => k,
 }));
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
+  // Task 0451: the private-lobby analytics calls need these; nothing here
+  // asserts on them.
+  flashistConstants: { analyticEvents: {} },
+  flashist_logEventAnalytics: jest.fn(),
   FlashistFacade: {
     instance: {
       // The real value at a non-root document, e.g. /yandex-games_iframe.html

@@ -7,6 +7,9 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       GAME_END: "Game:End",
       MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
       MATCH_DURATION: "Match:Duration",
+      PRIVATE_LOBBY_MATCH_STARTED_HOST: "PrivateLobby:MatchStarted:Host",
+      PRIVATE_LOBBY_MATCH_STARTED_GUEST: "PrivateLobby:MatchStarted:Guest",
+      PRIVATE_LOBBY_MATCH_ENDED: "PrivateLobby:MatchEnded",
     },
   },
   flashist_logEventAnalytics: jest.fn(),
@@ -34,32 +37,139 @@ import {
   shouldLogMatchSpawnedConfirmedAnalytics,
   shouldLogMatchStartAnalytics,
 } from "../../src/client/MatchStartAnalytics";
+import {
+  rememberPrivateLobbyHostClientID,
+  resetPrivateLobbyAnalyticsForTests,
+} from "../../src/client/PrivateLobbyAnalytics";
+
+const MY_CLIENT_ID = "abcd1234";
+const HOST_CLIENT_ID = "host5678";
 
 describe("match start analytics", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPrivateLobbyAnalyticsForTests();
+    clearActiveMatchStartTime();
   });
 
-  it.each([GameType.Public, GameType.Private])(
-    "emits Game:Start then multiplayer mode for initial %s starts",
-    (gameType) => {
-      const didLog = logMatchStartAnalytics(createGameStartInfo(gameType, 3), {
+  it("emits Game:Start then multiplayer mode for initial Public starts", () => {
+    const didLog = logMatchStartAnalytics(
+      createGameStartInfo(GameType.Public, 3),
+      {
         hasJoined: false,
         isReconnect: false,
         isReplay: false,
-      });
+      },
+      MY_CLIENT_ID,
+    );
 
-      expect(didLog).toBe(true);
-      expect(flashist_logEventAnalytics).toHaveBeenCalledTimes(2);
-      expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
-        1,
-        flashistConstants.analyticEvents.GAME_START,
-        3,
+    expect(didLog).toBe(true);
+    expect(flashist_logEventAnalytics).toHaveBeenCalledTimes(2);
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      1,
+      flashistConstants.analyticEvents.GAME_START,
+      3,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
+    );
+  });
+
+  // Task 0451: Game:Start and Game:Mode:Multiplayer are unchanged; the private
+  // start event comes third.
+  it("emits Game:Start, multiplayer mode, then the private start for initial Private starts", () => {
+    const didLog = logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 3),
+      {
+        hasJoined: false,
+        isReconnect: false,
+        isReplay: false,
+      },
+      MY_CLIENT_ID,
+    );
+
+    expect(didLog).toBe(true);
+    expect(flashist_logEventAnalytics).toHaveBeenCalledTimes(3);
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      1,
+      flashistConstants.analyticEvents.GAME_START,
+      3,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      3,
+      "PrivateLobby:MatchStarted:Guest",
+    );
+  });
+
+  it("counts the private start as the host's when this client created the lobby", () => {
+    rememberPrivateLobbyHostClientID(HOST_CLIENT_ID);
+
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      { hasJoined: false, isReconnect: false, isReplay: false },
+      HOST_CLIENT_ID,
+    );
+
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      3,
+      "PrivateLobby:MatchStarted:Host",
+    );
+    expect(flashist_logEventAnalytics).not.toHaveBeenCalledWith(
+      "PrivateLobby:MatchStarted:Guest",
+    );
+  });
+
+  it("counts a guest as a guest even after this page hosted a lobby", () => {
+    rememberPrivateLobbyHostClientID(HOST_CLIENT_ID);
+
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      { hasJoined: false, isReconnect: false, isReplay: false },
+      MY_CLIENT_ID,
+    );
+
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      3,
+      "PrivateLobby:MatchStarted:Guest",
+    );
+  });
+
+  it.each([GameType.Public, GameType.Singleplayer])(
+    "emits no private-lobby event for %s starts",
+    (gameType) => {
+      rememberPrivateLobbyHostClientID(MY_CLIENT_ID);
+
+      logMatchStartAnalytics(
+        createGameStartInfo(gameType, 2),
+        { hasJoined: false, isReconnect: false, isReplay: false },
+        MY_CLIENT_ID,
       );
-      expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
-        2,
-        flashistConstants.analyticEvents.GAME_MODE_MULTIPLAYER,
+
+      expect(privateLobbyCalls()).toHaveLength(0);
+    },
+  );
+
+  it.each([
+    { hasJoined: true, isReconnect: false, isReplay: false },
+    { hasJoined: false, isReconnect: true, isReplay: false },
+    { hasJoined: false, isReconnect: false, isReplay: true },
+  ])(
+    "emits no private start for a reconnect, replay or repeat start (%o)",
+    (state) => {
+      rememberPrivateLobbyHostClientID(MY_CLIENT_ID);
+
+      logMatchStartAnalytics(
+        createGameStartInfo(GameType.Private, 2),
+        state,
+        MY_CLIENT_ID,
       );
+
+      expect(flashist_logEventAnalytics).not.toHaveBeenCalled();
     },
   );
 
@@ -71,6 +181,7 @@ describe("match start analytics", () => {
         isReconnect: false,
         isReplay: false,
       },
+      MY_CLIENT_ID,
     );
 
     expect(didLog).toBe(true);
@@ -103,6 +214,7 @@ describe("match start analytics", () => {
     const didLog = logMatchStartAnalytics(
       createGameStartInfo(GameType.Public, 2),
       state,
+      MY_CLIENT_ID,
     );
 
     expect(didLog).toBe(false);
@@ -245,6 +357,107 @@ describe("match duration analytics", () => {
     );
   });
 });
+
+describe("private match end analytics (task 0451)", () => {
+  const freshStart = { hasJoined: false, isReconnect: false, isReplay: false };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetPrivateLobbyAnalyticsForTests();
+    clearActiveMatchStartTime();
+  });
+
+  it("emits PrivateLobby:MatchEnded once, with the match seconds, after Match:Duration", () => {
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      freshStart,
+      MY_CLIENT_ID,
+    );
+    setActiveMatchStartTime(1_000);
+    jest.clearAllMocks();
+
+    logMatchEndAnalytics(120, 31_400);
+    logMatchEndAnalytics(120, 35_000);
+
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      2,
+      flashistConstants.analyticEvents.MATCH_DURATION,
+      30,
+    );
+    expect(flashist_logEventAnalytics).toHaveBeenNthCalledWith(
+      3,
+      "PrivateLobby:MatchEnded",
+      30,
+    );
+    expect(privateLobbyCalls()).toEqual([["PrivateLobby:MatchEnded", 30]]);
+  });
+
+  it("covers the leave path (no Game:End value)", () => {
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      freshStart,
+      MY_CLIENT_ID,
+    );
+    setActiveMatchStartTime(1_000);
+    jest.clearAllMocks();
+
+    logMatchEndAnalytics(undefined, 31_400);
+
+    expect(privateLobbyCalls()).toEqual([["PrivateLobby:MatchEnded", 30]]);
+  });
+
+  it("emits nothing private at the end of a public match", () => {
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Public, 2),
+      freshStart,
+      MY_CLIENT_ID,
+    );
+    setActiveMatchStartTime(1_000);
+
+    logMatchEndAnalytics(120, 31_400);
+
+    expect(privateLobbyCalls()).toHaveLength(0);
+  });
+
+  it("emits nothing private at the end of a match whose start was not logged (reconnect)", () => {
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      { hasJoined: false, isReconnect: true, isReplay: false },
+      MY_CLIENT_ID,
+    );
+
+    logMatchEndAnalytics(120, 31_400);
+
+    expect(privateLobbyCalls()).toHaveLength(0);
+  });
+
+  it("a public match after a finished private one is not counted as private", () => {
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Private, 2),
+      freshStart,
+      MY_CLIENT_ID,
+    );
+    setActiveMatchStartTime(1_000);
+    logMatchEndAnalytics(120, 31_400);
+    logMatchStartAnalytics(
+      createGameStartInfo(GameType.Public, 2),
+      freshStart,
+      MY_CLIENT_ID,
+    );
+    setActiveMatchStartTime(40_000);
+    jest.clearAllMocks();
+
+    logMatchEndAnalytics(120, 70_000);
+
+    expect(privateLobbyCalls()).toHaveLength(0);
+  });
+});
+
+function privateLobbyCalls(): unknown[][] {
+  return (flashist_logEventAnalytics as jest.Mock).mock.calls.filter(
+    ([event]) => String(event).startsWith("PrivateLobby:"),
+  );
+}
 
 function createGameStartInfo(
   gameType: GameType,

@@ -19,6 +19,9 @@
 # wiring into the profile and telemetry pipelines. Since task 0447 it runs update.sh end to end
 # against the stubbed docker: its env file is removed on every exit (success, a failing docker
 # call, a signal), and a failed pull of a missing image leaves the running container alone.
+# Since task 0442 it also covers the shared sshd hardening library (sshd-hardening.sh) and its
+# wiring into deploy.sh's root step and the telemetry pipeline (its behaviour on a fake root is
+# driven by tests/ssh-alerts.sh H1–H13).
 # It is NOT complete coverage: the rest of deploy.sh, build.sh and build-deploy.sh
 # have no assertions here at all. New structural checks belong here rather than in a
 # second harness nothing runs.
@@ -2796,6 +2799,7 @@ run_telemetry_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK
     cp "$REPO_ROOT/build-deploy-telemetry.sh" "$RUN/build-deploy-telemetry.sh"
     cp "$REPO_ROOT/setup-telemetry.sh" "$RUN/setup-telemetry.sh"
     cp "$REPO_ROOT/ssh-alerts.sh" "$RUN/ssh-alerts.sh"      # task 0443: shipped alongside
+    cp "$REPO_ROOT/sshd-hardening.sh" "$RUN/sshd-hardening.sh"   # task 0442: shipped alongside
     # HELPER_STUB=absent (a caller shell variable, as in run_deploy) leaves the helper out.
     if [ "${HELPER_STUB:-}" != "absent" ] && [ -f "$REPO_ROOT/scripts/deploy-version-tag.sh" ]; then
         cp "$REPO_ROOT/scripts/deploy-version-tag.sh" "$RUN/scripts/deploy-version-tag.sh"
@@ -2844,6 +2848,13 @@ grep -qx "export TELEMETRY_DEPLOY_VERSION='0.0.155-telemetry.1'" "$WORK/staged.e
   && pass "…as a plain single-quoted export line" || fail "no \"export TELEMETRY_DEPLOY_VERSION='0.0.155-telemetry.1'\" line"
 [ "$(staged_value TELEMETRY_DEPLOY_COMMIT)" = "$T_SHA" ] \
   && pass "staged env: TELEMETRY_DEPLOY_COMMIT=<full 40-hex sha>" || fail "staged TELEMETRY_DEPLOY_COMMIT is '$(staged_value TELEMETRY_DEPLOY_COMMIT)'"
+# Task 0442: the auth mode for setup-telemetry.sh's sshd guard 0, and the hardening library.
+n=$(grep -c '^export TELEMETRY_DEPLOY_SSH_AUTH=' "$WORK/staged.env" 2>/dev/null || true)
+[ "${n:-0}" = "1" ] && [ "$(staged_value TELEMETRY_DEPLOY_SSH_AUTH)" = "key" ] \
+  && pass "staged env: TELEMETRY_DEPLOY_SSH_AUTH=key, exactly once, on the key path (0442)" \
+  || fail "staged env: expected one TELEMETRY_DEPLOY_SSH_AUTH=key line, got n=${n:-0} value='$(staged_value TELEMETRY_DEPLOY_SSH_AUTH)'"
+grep -q 'sshd-hardening.sh .*:/root/sshd-hardening.sh' "$WORK/scp.argv" 2>/dev/null \
+  && pass "sshd-hardening.sh was SCP'd to /root/sshd-hardening.sh (0442)" || fail "sshd-hardening.sh never reached scp (0442)"
 TAGLINE=$(grep '^git tag -a ' "$WORK/git.argv" 2>/dev/null | head -1)
 printf '%s' "$TAGLINE" | grep -qE "^git tag -a 0\.0\.155-telemetry\.1 -m .* $T_SHA \$" \
   && pass "annotated tag 0.0.155-telemetry.1 on the captured full commit" || fail "no 'git tag -a 0.0.155-telemetry.1 -m … $T_SHA' (got: ${TAGLINE:-none})"
@@ -2917,8 +2928,8 @@ grep -q 'setup-telemetry.sh' "$WORK/out.log" && grep -q 'scripts/deploy-version-
 grep -q 'Commit, then redeploy' "$WORK/out.log" && pass "…saying 'Commit, then redeploy'" || fail "no 'Commit, then redeploy' hint"
 [ ! -f "$WORK/ssh.argv" ] && pass "…before even the read-only preflight SSH" || fail "an SSH ran before the refusal"
 tel_no_box "T44"
-grep -qE '^git status --porcelain --untracked-files=normal -- setup-telemetry\.sh ssh-alerts\.sh build-deploy-telemetry\.sh scripts/deploy-version-tag\.sh $' "$WORK/git.argv" 2>/dev/null \
-  && pass "the dirty check is scoped to exactly the four shipped telemetry files (ssh-alerts.sh since 0443)" || fail "git status was not scoped to the telemetry shipped paths"
+grep -qE '^git status --porcelain --untracked-files=normal -- setup-telemetry\.sh ssh-alerts\.sh sshd-hardening\.sh build-deploy-telemetry\.sh scripts/deploy-version-tag\.sh $' "$WORK/git.argv" 2>/dev/null \
+  && pass "the dirty check is scoped to exactly the five shipped telemetry files (ssh-alerts.sh since 0443, sshd-hardening.sh since 0442)" || fail "git status was not scoped to the telemetry shipped paths"
 
 echo "== T45: uncommitted changes OUTSIDE the shipped files (docs, src/, package.json) still deploy and tag (0356) =="
 TNEW; printf ' M ai-agents/tasks/backlog/notes.md\n M src/core/game/GameImpl.ts\n M package.json\n?? scratch.txt\n' > "$WORK/dirty"
@@ -3007,6 +3018,11 @@ echo "== T53: password fallback — 0600 file during use, gone after success AND
 TNEW
 run_telemetry_deploy TELEMETRY_SSH_KEY= TELEMETRY_SSH_PASSWORD="$SECRET_PW" ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1
 [ "$RC" -eq 0 ] && pass "password-path deploy exited 0" || fail "password-path deploy exited $RC; see $WORK/out.log"
+[ "$(staged_value TELEMETRY_DEPLOY_SSH_AUTH)" = "password" ] \
+  && pass "staged env: TELEMETRY_DEPLOY_SSH_AUTH=password on the sshpass path (0442 — the box's sshd section refuses on it)" \
+  || fail "staged env: TELEMETRY_DEPLOY_SSH_AUTH is '$(staged_value TELEMETRY_DEPLOY_SSH_AUTH)' on the password path, expected 'password'"
+grep -q 'refuses SSH password login since task 0442' "$WORK/out.log" && pass "the password path says the box refuses password login (0442)" \
+  || fail "no 'refuses SSH password login since task 0442' note on the telemetry password path"
 if [ -s "$WORK/sshpass.filemode" ] && awk '$2!="600"{bad=1} END{exit bad+0}' "$WORK/sshpass.filemode"; then
   pass "sshpass password file was mode 0600 on every use"; else fail "sshpass password file not 0600 (or sshpass never used)"; fi
 pwfile=$(awk 'NR==1{print $1}' "$WORK/sshpass.filemode" 2>/dev/null)
@@ -3067,6 +3083,17 @@ every_call_has "$WORK/scp.argv" scp "-o IdentitiesOnly=yes -i $WORK/fixture_ssh_
 n_ido=$(key_branch "$REPO_ROOT/build-deploy-telemetry.sh" | grep -c 'IdentitiesOnly=yes' || true)
 [ "${n_ido:-0}" = "2" ] && pass "build-deploy-telemetry.sh: -o IdentitiesOnly=yes on both SCP_CMD and SSH_CMD in the key branch" \
   || fail "build-deploy-telemetry.sh: IdentitiesOnly=yes appears ${n_ido:-0} time(s) in the key branch, expected 2"
+# Task 0442 R1: the key path never offers a typed password prompt, so a deploy staged as
+# TELEMETRY_DEPLOY_SSH_AUTH=key really came in on the key (setup-telemetry.sh's guard 0 trusts it).
+every_call_has "$WORK/ssh.argv" ssh "-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no" \
+  && pass "every ssh call (the preflight included) carries -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no (0442 R1)" \
+  || fail "an ssh call lacks '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' — a rejected key could fall back to a typed password (see $WORK/ssh.argv)"
+every_call_has "$WORK/scp.argv" scp "-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no" \
+  && pass "every scp call carries -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no (0442 R1)" \
+  || fail "an scp call lacks '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' (see $WORK/scp.argv)"
+n_pwno=$(key_branch "$REPO_ROOT/build-deploy-telemetry.sh" | grep -c -- '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' || true)
+[ "${n_pwno:-0}" = "2" ] && pass "build-deploy-telemetry.sh: password + keyboard-interactive off on both SCP_CMD and SSH_CMD in the key branch (0442 R1)" \
+  || fail "build-deploy-telemetry.sh: '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' appears ${n_pwno:-0} time(s) in the key branch, expected 2"
 
 echo "== Every telemetry run: never a forced/bulk tag push, no unstubbed git call (0356) =="
 grep -qE '^git push ' "$TEL_GIT_ALL" && pass "telemetry runs did push tags (the lint below is not vacuous)" || fail "no telemetry run pushed a tag (the lint below would be vacuous)"
@@ -3129,7 +3156,7 @@ TSHIP=$(grep -E '^TELEMETRY_SHIPPED_PATHS=\(.*\)$' "$BT" | head -1)
   || fail "build-deploy-telemetry.sh: no single-line TELEMETRY_SHIPPED_PATHS=( … ) (the checks below would be vacuous)"
 TSHIP=" $(printf '%s' "$TSHIP" | sed -E 's/^TELEMETRY_SHIPPED_PATHS=\((.*)\)$/\1/') "
 missing=""
-for f in setup-telemetry.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh; do
+for f in setup-telemetry.sh build-deploy-telemetry.sh scripts/deploy-version-tag.sh sshd-hardening.sh; do
   case "$TSHIP" in *" $f "*) : ;; *) missing="$missing $f" ;; esac
 done
 [ -z "$missing" ] && pass "TELEMETRY_SHIPPED_PATHS covers the uploaded script, this script and the helper" || fail "TELEMETRY_SHIPPED_PATHS lacks:$missing"
@@ -3162,8 +3189,9 @@ SSH_ALERT_TOKEN_FAKE='0443-F@ke ssh "alert" token$notreal'   # spaces/specials �
 run_game_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK logs
     RUN="$WORK/grun"; rm -rf "$RUN"; mkdir -p "$RUN/scripts"
     cp "$REPO_ROOT/deploy.sh" "$RUN/deploy.sh"
-    # Task 0443: the root step's two shipped files (the real ones — the tar stream is checked).
-    cp "$REPO_ROOT/setup-game-host.sh" "$REPO_ROOT/ssh-alerts.sh" "$RUN/"
+    # Task 0443: the root step's shipped files (the real ones — the tar stream is checked);
+    # sshd-hardening.sh since task 0442.
+    cp "$REPO_ROOT/setup-game-host.sh" "$REPO_ROOT/ssh-alerts.sh" "$REPO_ROOT/sshd-hardening.sh" "$RUN/"
     : > "$WORK/ssh.capture_stdin"
     : > "$RUN/update.sh"
     printf 'process.exit(0);\n' > "$RUN/scripts/check-config-parity.mjs"
@@ -3174,9 +3202,10 @@ run_game_deploy() {  # extra env as VAR=VAL ... ; sets RC + populates $WORK logs
     : > "$WORK/game_ssh_key"; chmod 600 "$WORK/game_ssh_key"
     rm -f "$WORK/ssh.argv" "$WORK/scp.argv" "$WORK/sshpass.argv" "$WORK/sshpass.filemode" \
           "$WORK/sshpass.pwline" "$WORK/scp.called" "$WORK/calls.log" "$WORK/ssh.root.stdin"
-    # The root step (0443) needs PROFILE_SSH_ALERT_TOKEN + PROFILE_API_URL, or it is SKIPPED and
-    # the deploy exits 3 (owner ruling Q-A1). Both are set by default; a test blanks one by
-    # passing it again ("$@" comes later, and the later assignment wins).
+    # The root step's alerts section (0443) needs PROFILE_SSH_ALERT_TOKEN + PROFILE_API_URL, or
+    # the box reports it SKIPPED and the deploy exits 3 (owner ruling Q-A1). Both are set by
+    # default; a test blanks one by passing it again ("$@" comes later, and the later
+    # assignment wins).
     ( cd "$RUN"
       env -i \
         PATH="$BIN:$PATH" HOME="$WORK/home" TMPDIR="${TMPDIR:-/tmp}" \
@@ -3327,8 +3356,8 @@ if [ -s "$WORK/ssh.root.stdin" ] && tar -xf "$WORK/ssh.root.stdin" -C "$TX" 2>/d
 else
   fail "the root call's stdin is not a readable tar archive"
 fi
-[ "$(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | sort | tr '\n' ' ')" = "host.env setup-game-host.sh ssh-alerts.sh " ] \
-  && pass "it holds exactly host.env, setup-game-host.sh and ssh-alerts.sh" || fail "archive listing: $(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | tr '\n' ' ')"
+[ "$(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | LC_ALL=C sort | tr '\n' ' ')" = "host.env setup-game-host.sh ssh-alerts.sh sshd-hardening.sh " ] \
+  && pass "it holds exactly host.env, setup-game-host.sh, ssh-alerts.sh and sshd-hardening.sh (0442)" || fail "archive listing: $(tar -tf "$WORK/ssh.root.stdin" 2>/dev/null | tr '\n' ' ')"
 tar -tvf "$WORK/ssh.root.stdin" 2>/dev/null | grep ' host.env$' | grep -q '^-rw-------' \
   && pass "host.env is 0600 inside the archive" || fail "host.env is not 0600 in the archive: $(tar -tvf "$WORK/ssh.root.stdin" 2>/dev/null | grep host.env)"
 got=$( . "$TX/host.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SSH_ALERT_TOKEN-}" )
@@ -3336,12 +3365,13 @@ got=$( . "$TX/host.env" >/dev/null 2>&1; printf '%s' "${PROFILE_SSH_ALERT_TOKEN-
 got=$( . "$TX/host.env" >/dev/null 2>&1; printf '%s|%s' "${PROFILE_API_URL-}" "${GAME_ENV-}" )
 [ "$got" = "https://api.example.invalid|dev" ] && pass "host.env carries PROFILE_API_URL and GAME_ENV=dev" || fail "host.env: '$got'"
 cmp -s "$TX/setup-game-host.sh" "$REPO_ROOT/setup-game-host.sh" && cmp -s "$TX/ssh-alerts.sh" "$REPO_ROOT/ssh-alerts.sh" \
+  && cmp -s "$TX/sshd-hardening.sh" "$REPO_ROOT/sshd-hardening.sh" \
   && pass "the shipped scripts are byte-identical to the repo's" || fail "a shipped script differs from the repo's"
 awk '/^ssh .*update-openfront\.sh/{u=NR} /^ssh .* root@/{r=NR} END{exit !(u>0 && r>u)}' "$WORK/calls.log" \
   && pass "the root call runs AFTER the update call (the game is live first)" || fail "the root call is not after the update call"
 [ -z "$(ls -A "$GSTAGE" 2>/dev/null)" ] && pass "the local staging dir is gone after the deploy" || fail "left in TMPDIR: $(ls -A "$GSTAGE")"
-grep -q 'GAME HOST SETUP OK' "$WORK/out.log" && grep -q 'DEPLOYMENT COMPLETED SUCCESSFULLY' "$WORK/out.log" \
-  && pass "the final banner reports GAME HOST SETUP OK" || fail "no OK banner"
+grep -q 'GAME HOST SETUP OK (root step: SSH security alerts + sshd hardening up to date)' "$WORK/out.log" && grep -q 'DEPLOYMENT COMPLETED SUCCESSFULLY' "$WORK/out.log" \
+  && pass "the final banner reports GAME HOST SETUP OK, naming alerts + sshd hardening (0442)" || fail "no OK banner"
 
 echo "== T68: game deploy, password path — the root step is SKIPPED (never by password), deploy exits 3 (0443, Q-A1) =="
 NEW
@@ -3354,12 +3384,21 @@ grep -q 'GAME IS DEPLOYED — HOST SETUP NOT DONE' "$WORK/out.log" && grep -q 'G
   && pass "loud banner: game IS deployed, host setup SKIPPED, with the reason" || fail "banner missing: $(grep -A3 'HOST SETUP' "$WORK/out.log" | head -5)"
 grep -q 'DEPLOYMENT COMPLETED SUCCESSFULLY' "$WORK/out.log" && fail "printed the success banner" || pass "no success banner"
 
-echo "== T69: blank PROFILE_SSH_ALERT_TOKEN / blank PROFILE_API_URL — SKIPPED, no root call, exit 3 (0443, Q-A1) =="
+echo "== T69: blank PROFILE_SSH_ALERT_TOKEN / PROFILE_API_URL — the root step STILL runs, box SKIPS alerts, exit 3 (0442 Q1) =="
+# Owner ruling 0442 Q1 ("Change deploy.sh", 2026-10-13) reversed 0443's "no root call on a blank
+# token": the root step runs on every KEY deploy so its sshd section applies, and setup-game-host.sh
+# itself reports the alerts section SKIPPED (exit 3). That box side is driven by tests/ssh-alerts.sh
+# H10; here the ssh stub answers with that exit 3 (ssh.root_rc), standing in for the box.
 for blank in PROFILE_SSH_ALERT_TOKEN PROFILE_API_URL; do
-  NEW
+  NEW; echo 3 > "$WORK/ssh.root_rc"
   run_game_deploy SSH_KEY_DEV="$WORK/game_ssh_key" "$blank="
-  [ "$RC" -eq 3 ] && [ "$(root_calls)" = "0" ] && grep -q "GAME HOST SETUP SKIPPED: $blank is empty" "$WORK/out.log" \
-    && pass "blank $blank → SKIPPED (named), no root call, exit 3" || fail "blank $blank: rc=$RC root_calls=$(root_calls)"
+  [ "$RC" -eq 3 ] && [ "$(root_calls)" = "1" ] && grep -q 'GAME HOST SETUP SKIPPED: setup-game-host.sh skipped a section' "$WORK/out.log" \
+    && pass "blank $blank → ONE root call by key, SKIPPED banner, exit 3" || fail "blank $blank: rc=$RC root_calls=$(root_calls)"
+  TX="$WORK/tarx"; rm -rf "$TX"; mkdir -p "$TX"; tar -xf "$WORK/ssh.root.stdin" -C "$TX" 2>/dev/null
+  got=$( . "$TX/host.env" >/dev/null 2>&1; eval "printf '%s' \"\${$blank-unset}\"" )
+  [ -f "$TX/host.env" ] && [ -z "$got" ] && pass "blank $blank: host.env carries it blank (the box names the skip)" \
+    || fail "blank $blank: host.env value is '${got}' (expected blank)"
+  [ -f "$TX/sshd-hardening.sh" ] && pass "blank $blank: the sshd library still ships" || fail "blank $blank: sshd-hardening.sh not in the archive"
 done
 
 echo "== T70: the root login fails (255) or a section fails — FAILED banner, exit 3, staging removed (0443, Q-A1) =="
@@ -3466,6 +3505,110 @@ done
 for f in "$REPO_ROOT/src/profile-server/SshSecurityDigest.ts" "$REPO_ROOT/src/profile-server/SshAlerts.ts"; do
   sed -e 's#//.*##' "$f" | grep -qE "[\"']\./(Server|Routes|Telemetry)(\.[jt]s)?[\"']" \
     && fail "$(basename "$f"): imports Server/Routes/Telemetry — the digest CLI would pull it in" || pass "$(basename "$f"): no Server/Routes/Telemetry import"
+done
+
+# ══ Task 0442: the shared sshd hardening library and its two callers ══════════
+# Behaviour on a fake root (fresh box, idempotent re-run, every guard, every rollback) is driven
+# by tests/ssh-alerts.sh H1–H13. Here: the library's structure (mirroring the 0221 checks on
+# setup-profile.sh above), its drift against setup-profile.sh's inline drop-in, and the wiring.
+echo "== Structural: sshd-hardening.sh + setup-game-host.sh / setup-telemetry.sh wiring (0442) =="
+HS="$REPO_ROOT/sshd-hardening.sh"
+[ -f "$HS" ] && [ -x "$HS" ] && pass "sshd-hardening.sh exists and is executable (like its siblings)" || fail "sshd-hardening.sh missing or not executable"
+grep -vE '^[[:space:]]*#' "$HS" | grep -qE '^set ' && fail "sshd-hardening.sh: a top-level 'set' — a sourced library must not change its caller's shell options" \
+  || pass "sshd-hardening.sh: no top-level 'set' (it is sourced)"
+grep -qF 'local dropin="$root/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf"' "$HS" \
+  && pass "library: drop-in path is sshd_config.d/00-… (first value wins over cloud-init's 50-)" || fail "library: drop-in is not sshd_config.d/00-geoconflict-hardening.conf"
+grep -qF 'local backup="$root/etc/ssh/geoconflict-hardening.conf.previous"' "$HS" && ! grep -qE 'local backup="\$root/etc/ssh/sshd_config\.d/' "$HS" \
+  && pass "library: the backup lives outside sshd_config.d/ (never Included as config)" || fail "library: backup path missing or inside sshd_config.d/"
+grep -qF 'candidate=$(mktemp "$root/etc/ssh/.geoconflict-hardening.XXXXXX")' "$HS" \
+  && pass "library: the candidate is built outside sshd_config.d/" || fail "library: the candidate temp file is not outside sshd_config.d/"
+HS_DROPIN=$(bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HS" 2>/dev/null)
+[ -n "$HS_DROPIN" ] && pass "library: sshd_hardening_dropin_content prints the drop-in" || fail "library: no drop-in content (the checks below would be vacuous)"
+for kv in 'PasswordAuthentication no' 'KbdInteractiveAuthentication no' 'PermitEmptyPasswords no' 'PubkeyAuthentication yes' 'PermitRootLogin prohibit-password' 'MaxAuthTries 6' 'X11Forwarding no' 'LoginGraceTime 30'; do
+  printf '%s\n' "$HS_DROPIN" | grep -qx "$kv" && pass "library drop-in: $kv" || fail "library drop-in: '$kv' missing or changed"
+done
+printf '%s\n' "$HS_DROPIN" | grep -qx 'PermitRootLogin no' && fail "library drop-in: PermitRootLogin no — root is the deploy user on every box" \
+  || pass "library drop-in: PermitRootLogin is not 'no' (root stays the deploy user)"
+printf '%s\n' "$HS_DROPIN" | grep -qiE '^(Ciphers|KexAlgorithms|MACs) ' && fail "library drop-in: a custom cipher/KEX/MAC list — a lock-out vector" \
+  || pass "library drop-in: ciphers/KEX/MACs left at distro defaults"
+printf '%s\n' "$HS_DROPIN" | awk '/^Match all$/{m=NR} m && /^[[:space:]]+PasswordAuthentication no$/{p=1} m && /^[[:space:]]+PermitRootLogin prohibit-password$/{r=1} /^PasswordAuthentication no$/{g=NR} END{exit !(m && p && r && g && g<m)}' \
+  && pass "library drop-in: 'Match all' pins the auth keywords after the globals" || fail "library drop-in: no 'Match all' pin after the globals"
+# Drift: the settings must equal setup-profile.sh's proven drop-in (comments aside — only the
+# header and one wording note differ).
+[ -n "${DROPIN:-}" ] && [ "$(printf '%s\n' "$HS_DROPIN" | grep -v '^#')" = "$(printf '%s\n' "$DROPIN" | grep -v '^#')" ] \
+  && pass "library drop-in settings are identical to setup-profile.sh's (0221, proven live)" \
+  || fail "DRIFT: the library's drop-in settings differ from setup-profile.sh's — change both together"
+HS_FN=$(awk '/^harden_sshd\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$HS")
+[ -n "$HS_FN" ] && pass "library: located harden_sshd" || fail "library: no harden_sshd (the checks below would be vacuous)"
+printf '%s\n' "$HS_FN" | awk '
+  /authorized_keys|\$keys/ && /grep/ && !g {g=NR}
+  /Include/ && /grep/ && !i {i=NR}
+  /cmp -s "\$candidate" "\$dropin"/ && !u {u=NR}
+  /cp -p "\$dropin" "\$backup"/ && !k {k=NR}
+  /mv -f "\$candidate" "\$dropin"/ && !w {w=NR}
+  /^    if ! sshd -t; then$/ && !t {t=NR}
+  /^    if ! sshd_hardening_reload; then$/ && !r {r=NR}
+  /^    if ! sshd_hardening_gate; then$/ && !e {e=NR}
+  END{exit !(g && i && u && k && w && t && r && e && g<i && i<u && u<k && k<w && w<t && t<r && r<e)}' \
+  && pass "library: order is key guard < Include guard < unchanged check < backup < write < sshd -t < reload < gate" \
+  || fail "library: a guard / backup / write / sshd -t / reload / gate step is missing or mis-ordered"
+grep -vE '^[[:space:]]*#' "$HS" | grep -q 'systemctl restart' && fail "library: 'systemctl restart' — reload only" || pass "library: reload only, never restart"
+grep -q 'systemctl reload ssh 2>/dev/null' "$HS" && fail "library: the reload's stderr is hidden" || pass "library: the reload's stderr is not hidden"
+RB_FN=$(awk '/^sshd_hardening_rollback\(\) \{/{b=1} b{print} b && /^\}$/{exit}' "$HS")
+printf '%s\n' "$RB_FN" | grep -qE '^    if \[ -f "\$2" \]; then$' && printf '%s\n' "$RB_FN" | grep -qE '^        mv -f "\$2" "\$1"$' \
+  && printf '%s\n' "$RB_FN" | grep -qE '^        rm -f "\$1"$' \
+  && pass "library: rollback restores the backup when one exists, removes the new drop-in otherwise" || fail "library: rollback does not restore-else-remove"
+grep -qE 'rm -f "\$dropin"' "$HS" && fail "library: a bare 'rm -f \$dropin' — a failure path deletes instead of restoring" \
+  || pass "library: no failure path deletes the drop-in outside the rollback"
+printf '%s\n' "$HS_FN" | awk '/^    if ! sshd -t; then$/{t=NR} t && NR==t+1 && /^        sshd_hardening_rollback /{ok=1} END{exit !ok}' \
+  && pass "library: a rejected drop-in (sshd -t) is rolled back on the spot, before any reload" || fail "library: sshd -t failure is not rolled back at once"
+for gate in 'if ! sshd_hardening_reload; then' 'if ! sshd_hardening_gate; then'; do
+  printf '%s\n' "$HS_FN" | awk -v g="    $gate" '$0==g{b=1; n=0; next} b{n++} b && n==1 && /^        sshd_hardening_rollback /{rb=1} b && n==2 && /^        sshd_hardening_reload \|\| true$/{rl=1} b && /^        return 1$/{ex=1} b && /^    fi$/{exit} END{exit !(rb && rl && ex)}' \
+    && pass "library: '$gate' failure → rollback, reload, return 1" || fail "library: '$gate' failure does not rollback → reload → return 1"
+done
+printf '%s\n' "$HS_FN" | awk '/^    if ! sshd_hardening_gate; then$/{g=NR} /^    rm -f "\$backup"$/ && g && NR>g {ok=1} END{exit !ok}' \
+  && pass "library: the backup is discarded only after the gate passes" || fail "library: no 'rm -f \$backup' after the gate"
+grep -qF 'sshd -T -C user=root,host=localhost,addr=127.0.0.1' "$HS" && pass "library: the gate reads the root-effective config too" || fail "library: the gate does not read 'sshd -T -C user=root,…'"
+# setup-game-host.sh: sources the library from its own folder and calls it with the test seam,
+# after the alerts section and before finish.
+grep -qF '. "$HERE/sshd-hardening.sh"' "$SGH" && grep -qE '^    if harden_sshd "\$ROOT"; then$' "$SGH" \
+  && pass "setup-game-host.sh: sources the shipped library and calls harden_sshd \"\$ROOT\"" || fail "setup-game-host.sh: library not sourced from \$HERE or harden_sshd not called with \$ROOT"
+awk '/^print_header "SSH SECURITY ALERTS"$/{a=NR} /^print_header "SSHD HARDENING \(0442\)"$/{h=NR} /^finish$/{f=NR} END{exit !(a && h && f && a<h && h<f)}' "$SGH" \
+  && pass "setup-game-host.sh: the sshd section sits after the alerts section, before finish" || fail "setup-game-host.sh: sshd section missing or mis-placed"
+# setup-telemetry.sh: guard 0 < source < call (inside `if !`, exit 1); after the cron block,
+# before the version marker.
+awk '
+  /^chmod 644 "\$CRON_FILE"$/ {c=NR}
+  /^if \[ "\$\{TELEMETRY_DEPLOY_SSH_AUTH:-\}" = "password" \]; then$/ {g=NR}
+  /^\. "\$SSHD_HARDENING_SRC"$/ {s=NR}
+  /^if ! harden_sshd; then$/ {h=NR; inh=1; next}
+  inh && /^    exit 1$/ {ex=1}
+  inh && /^fi$/ {inh=0}
+  /^write_deploy_version_marker$/ {m=NR}
+  END{exit !(c && g && s && h && ex && m && c<g && g<s && s<h && h<m)}' "$TS" \
+  && pass "setup-telemetry.sh: cron block < auth-mode guard < source < 'if ! harden_sshd' (exit 1) < version marker" \
+  || fail "setup-telemetry.sh: the sshd section is missing, mis-ordered, or does not exit 1 on failure"
+grep -qE '^SSHD_HARDENING_SRC="\$\{SSHD_HARDENING_SRC:-/root/sshd-hardening\.sh\}"$' "$TS" && grep -qE '^REMOTE_SSHD_HARDENING_SCRIPT="/root/sshd-hardening\.sh"$' "$BT" \
+  && pass "telemetry: the library is uploaded to, and sourced from, /root/sshd-hardening.sh" || fail "telemetry: upload path and SSHD_HARDENING_SRC default disagree"
+grep -qE '^"\$\{SCP_CMD\[@\]\}" "\$SSHD_HARDENING_SCRIPT" ' "$BT" && pass "build-deploy-telemetry.sh: SCPs the library on its existing transport" || fail "build-deploy-telemetry.sh: never SCPs sshd-hardening.sh"
+grep -qE "^export TELEMETRY_DEPLOY_SSH_AUTH='\\\$\{DEPLOY_SSH_AUTH\}'$" "$BT" && pass "build-deploy-telemetry.sh: stages TELEMETRY_DEPLOY_SSH_AUTH" || fail "build-deploy-telemetry.sh: never stages TELEMETRY_DEPLOY_SSH_AUTH"
+# Guard 0, RUN (mirrors T12): the section up to the library check, with each staged value.
+TGUARD0=$(awk '/^print_header "SSHD HARDENING \(0442\)"$/{b=1; next} /^if \[ ! -f "\$SSHD_HARDENING_SRC" \]; then$/{exit} b{print}' "$TS")
+printf '%s\n' "$TGUARD0" | grep -q 'TELEMETRY_DEPLOY_SSH_AUTH' && pass "setup-telemetry.sh: guard 0 sits first in the sshd section" || fail "setup-telemetry.sh: no auth-mode guard before the library check"
+{ echo 'set -e'; printf '%s\n' "$TGUARD0"; } > "$WORK/tguard0.sh"
+if TELEMETRY_DEPLOY_SSH_AUTH=password bash "$WORK/tguard0.sh" > "$WORK/tguard0.password.log" 2>&1; then
+  fail "setup-telemetry.sh guard 0: a password-mode deploy did NOT refuse (lock-out path open)"
+else
+  grep -q 'Refusing to turn password login off' "$WORK/tguard0.password.log" && pass "setup-telemetry.sh guard 0: password mode → refuses with a clear message" \
+    || fail "setup-telemetry.sh guard 0: refused, but without the expected message; see $WORK/tguard0.password.log"
+fi
+TELEMETRY_DEPLOY_SSH_AUTH=key bash "$WORK/tguard0.sh" > /dev/null 2>&1 && pass "setup-telemetry.sh guard 0: key mode passes through" || fail "setup-telemetry.sh guard 0: key mode was refused"
+bash "$WORK/tguard0.sh" > /dev/null 2>&1 && pass "setup-telemetry.sh guard 0: unset (a hand run) passes through, as on the profile box" || fail "setup-telemetry.sh guard 0: an unset auth mode was refused"
+# The fallback notes (the boxes no longer take passwords) on all three password paths.
+for f in "$D" "$BT" "$TT"; do
+  grep -qE 'refuses? SSH password login since task 0442' "$f" && grep -q "hosting provider's web console" "$f" \
+    && pass "$(basename "$f"): the password path says the box refuses passwords and points at the web console" \
+    || fail "$(basename "$f"): no 0442 note on its password path"
 done
 
 # ══ Task 0447: update.sh removes its env file on EVERY exit ═══════════════════

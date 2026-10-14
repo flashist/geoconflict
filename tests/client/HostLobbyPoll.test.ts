@@ -26,6 +26,10 @@ jest.mock("../../src/client/CitizenBadge", () => ({
   renderCitizenBadge: () => "",
 }));
 jest.mock("../../src/client/flashist/FlashistFacade", () => ({
+  // Task 0451: the private-lobby analytics calls need these; nothing here
+  // asserts on them.
+  flashistConstants: { analyticEvents: {} },
+  flashist_logEventAnalytics: jest.fn(),
   FlashistFacade: {
     instance: {
       windowOrigin: "https://example.test/index.html",

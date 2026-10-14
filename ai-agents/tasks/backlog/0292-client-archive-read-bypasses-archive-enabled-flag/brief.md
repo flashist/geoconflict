@@ -25,6 +25,33 @@ with a finding a spawned `fkit-architect` turned up while resolving an unrelated
 **severity framing** are the producer's call and are overturnable in one edit. ⛔ **Not producer
 precedent.**
 
+> 🚨 **2026-10-14 — CORRECTION, AND THIS TASK IS TO BE ABSORBED BY `0454`. Read before anything below.**
+>
+> - **The "benign" premise below is WRONG for production.** This brief says the archive read is harmless because *"the
+>   response is a 404, and `:262` handles 404 as `not_found`"*. **Production never answers 404 there.** With archiving
+>   off nothing serves `/game/<id>`, so the request lands on the Master's SPA catch-all (`app.get("*")`,
+>   `src/server/Master.ts`), which answers **200 `text/html`**; `checkArchivedGame()` only treats `404` as not-found, so
+>   `.json()` throws on the HTML and the player sees the generic `private_lobby.error` line instead of
+>   `private_lobby.not_found`. Locally the request is refused (nothing listening) — same symptom. Found by `0451`'s
+>   reviewer (finding R1, one read-only production GET, 2026-10-13; classification only, no host value recorded); code
+>   side re-verified by a producer 2026-10-14. Detail: [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) `## Context`.
+>   ⇒ The *"no user impact, not a user-facing bug"* framing and the severity-based board rationale in `## Notes` do not
+>   hold. They are kept below as history, not deleted.
+> - **[`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (Sprint 8)
+>   fixes the player-visible symptom, and its recommended fix is exactly this task's work** — skip the archive lookup
+>   while `archiveEnabled()` is false, reusing that one flag.
+> - **OWNER RULING, 2026-10-14**, given live via `AskUserQuestion` in the `fkit lead` session (driver of
+>   `fkit-sprint-ship-loop`), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
+>   ⛔ **not producer precedent.** Question: *"Backlog task 0292 (from September) plans to switch off the same useless
+>   archive lookup that 0454 will switch off. If 0454 does it, 0292 has nothing left to do. What should happen to
+>   0292?"* Verbatim selection: **"Cancel when 0454 closes (Recommended)"** — option text: *"When 0454 closes, a
+>   producer cancels 0292 as 'absorbed by 0454', with that reason recorded."*
+> - ⚠️ **Conditional.** The cancel applies only if `0454` actually puts this read behind `archiveEnabled()`. If its
+>   approved plan or shipped change does not, this task is **not** absorbed and the question goes back to the owner.
+>   The close instruction lives in `0454`'s `## Notes` (*At close* bullet).
+> - ⛔ **Do not start this task separately while `0454` is open** — two coders on the same `JoinPrivateLobbyModal.ts`
+>   lines. Status unchanged (`🔲 Backlog`); it is not cancelled yet.
+
 **The finding, in one line: `0159`/ADR-104 switched off the *server* archive write, and left a *client*
 archive read running that the same flag does not cover.**
 
@@ -51,6 +78,8 @@ and never reaches the read. It fires on every private-lobby-ID entry **that is n
 lobby** — a typo'd ID, a stale link, a finished game. Lower volume than stated; the defect is
 unchanged.
 
+*(⚠️ **2026-10-14: the paragraph below is WRONG for production** — prod answers 200 HTML, not 404, and players see the
+generic error. See the 🚨 correction at the top of `## Context`. Kept as history.)*
 **Impact today: benign, and this brief does not pretend otherwise.** The endpoint is not served, the
 response is a 404, and `:262` handles 404 as `"not_found"` → the user sees the ordinary
 `private_lobby.not_found` message. **No user-visible breakage, no error group, no data leaves on the
@@ -168,6 +197,9 @@ before it is built.
 
 - **Depends on:** nothing
 - **Blocks:** nothing
+- 📌 **2026-10-14 — to be cancelled as absorbed by [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md)
+  when `0454` closes**, by OWNER RULING *"Cancel when 0454 closes (Recommended)"* — conditional on `0454` actually
+  gating this read on `archiveEnabled()`. Full ruling and condition: the 🚨 correction at the top of `## Context`.
 - **Related / touches (NOT blockers, in either direction):**
   - [`0030-archive-s3-backed-citizen-gated`](../0030-archive-s3-backed-citizen-gated/brief.md) — will
     eventually repoint this same call at the S3 bucket to satisfy its verification item 2. **Order is
@@ -182,6 +214,8 @@ before it is built.
     what it was scoped to do. This is the leg its scope did not reach.
 - **Effort:** small — one guard in one client file, if the flag is reachable there (see the ⚠️ in
   `## What to build`).
+- *(⚠️ 2026-10-14: the "no user impact" basis of the rationale below is refuted for production — see the 🚨
+  correction at the top of `## Context`. The board question is moot: the work rides `0454` on Sprint 8.)*
 - **Board rationale, producer's call and not owner-ruled — ✅ NOW CONFIRMED BY MEASUREMENT:** filed on
   the unranked **Backlog** board because there is **no observed failure and no user impact**, and the
   owner's stated focus is core citizenship / profile work.

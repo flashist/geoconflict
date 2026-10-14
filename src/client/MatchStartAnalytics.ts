@@ -4,6 +4,11 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import {
+  logPrivateLobbyMatchEnded,
+  logPrivateLobbyMatchStarted,
+  privateLobbyRole,
+} from "./PrivateLobbyAnalytics";
 import { recordSessionMatchStart } from "./SessionMatchAnalytics";
 
 export interface MatchStartAnalyticsState {
@@ -20,6 +25,9 @@ export interface MatchSpawnedConfirmedAnalyticsState {
 }
 
 let activeMatchStartTimeMs: number | null = null;
+// Task 0451: the last logged start was a private match, so its end also fires
+// PrivateLobby:MatchEnded. Cleared with the start time.
+let activeMatchIsPrivate = false;
 
 export function shouldLogMatchStartAnalytics({
   hasJoined,
@@ -38,6 +46,7 @@ export function gameModeAnalyticsEvent(gameType: GameType): string {
 export function logMatchStartAnalytics(
   gameStartInfo: GameStartInfo,
   state: MatchStartAnalyticsState,
+  clientID: string,
 ): boolean {
   if (!shouldLogMatchStartAnalytics(state)) {
     return false;
@@ -50,6 +59,12 @@ export function logMatchStartAnalytics(
   flashist_logEventAnalytics(
     gameModeAnalyticsEvent(gameStartInfo.config.gameType),
   );
+  // Task 0451: a separate private-start event beside Game:Mode:Multiplayer,
+  // which keeps counting public and private starts together as before.
+  activeMatchIsPrivate = gameStartInfo.config.gameType === GameType.Private;
+  if (activeMatchIsPrivate) {
+    logPrivateLobbyMatchStarted(privateLobbyRole(clientID));
+  }
   recordSessionMatchStart();
   return true;
 }
@@ -60,6 +75,7 @@ export function setActiveMatchStartTime(matchStartTimeMs: number): void {
 
 export function clearActiveMatchStartTime(): void {
   activeMatchStartTimeMs = null;
+  activeMatchIsPrivate = false;
 }
 
 export function activeMatchDurationSeconds(nowMs = Date.now()): number | null {
@@ -88,6 +104,9 @@ export function logMatchEndAnalytics(value?: number, nowMs = Date.now()): void {
     flashistConstants.analyticEvents.MATCH_DURATION,
     durationSeconds,
   );
+  if (activeMatchIsPrivate) {
+    logPrivateLobbyMatchEnded(durationSeconds);
+  }
   clearActiveMatchStartTime();
 }
 

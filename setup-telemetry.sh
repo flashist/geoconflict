@@ -28,6 +28,9 @@
 #   Both are persist-or-reuse: blank on a redeploy REUSES what is already on the box.
 #   PROFILE_SSH_ALERT_TOKEN — the SSH alert agent's token (task 0443), the SAME value the
 #                               profile box holds. Persist-or-reuse, NEVER generated here.
+#   TELEMETRY_DEPLOY_SSH_AUTH — `key` or `password`: how THIS deploy logged in (task 0442). The
+#                               sshd section refuses to turn password login off on `password`.
+#                               Unset (a hand run) is let through, as on the profile box.
 #   TELEMETRY_DEPLOY_VERSION — this deploy's name, <X.Y.Z>-telemetry.<N> (task 0356)
 #   TELEMETRY_DEPLOY_COMMIT  — the 40-hex commit it was deployed from (task 0356)
 #   Both only feed the version marker; unset or malformed (e.g. a hand run) → "unknown".
@@ -42,6 +45,8 @@
 #   7. Adds daily disk usage monitoring
 #   8. Writes the alert-path liveness probe + its hourly cron (task 0284)
 #   8b. Installs/updates the SSH security alert agent from ssh-alerts.sh (task 0443)
+#   8c. Turns SSH password login off, root key-only — sshd-hardening.sh, guarded with
+#       rollback (task 0442). A failure stops the deploy (exit 1) after the containers are up
 #   9. Writes the version marker $UPTRACE_DIR/deployed-version, last, once every step
 #      above succeeded (task 0356)
 #  10. Prints connection info and DSN for the game server
@@ -63,6 +68,8 @@ UPTRACE_DIR="/opt/uptrace"
 BACKUP_DIR="$UPTRACE_DIR/backups"
 # The SSH security alert agent (task 0443), SCP'd by build-deploy-telemetry.sh.
 SSH_ALERTS_SRC="${SSH_ALERTS_SRC:-/root/ssh-alerts.sh}"
+# The sshd hardening library (task 0442), SCP'd by build-deploy-telemetry.sh; sourced below.
+SSHD_HARDENING_SRC="${SSHD_HARDENING_SRC:-/root/sshd-hardening.sh}"
 
 print_header() {
     echo "======================================================"
@@ -1300,6 +1307,38 @@ EOF
 
 chmod 644 "$CRON_FILE"
 echo "✅ Cron jobs written to $CRON_FILE"
+
+# ── sshd hardening (task 0442) ────────────────────────────────────────────────
+# Password login off, root key-only (`prohibit-password`: root is this box's deploy user) —
+# sshd-hardening.sh's harden_sshd, the same guards and restore-not-delete rollback as
+# setup-profile.sh's section (0221). Placed here, after every container is up and just before
+# the version marker, so a failure never takes telemetry down: it stops the deploy (exit 1),
+# the marker is not written, and build-deploy-telemetry.sh pushes no tag — a loud failure.
+# Guard 0 is checked HERE, before the library is called: never harden on a deploy that itself
+# came in by PASSWORD (that operator may not hold the key in /root/.ssh/authorized_keys).
+# harden_sshd runs inside `if !`, where set -e is OFF — it checks every step itself.
+print_header "SSHD HARDENING (0442)"
+if [ "${TELEMETRY_DEPLOY_SSH_AUTH:-}" = "password" ]; then
+    echo "Error: this deploy authenticated with the PASSWORD fallback (ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK)."
+    echo "       Refusing to turn password login off: the operator may not hold the key in"
+    echo "       /root/.ssh/authorized_keys and would be locked out when this session ends. Install the"
+    echo "       telemetry key (docs/vps-deployment-guide.md §7) and redeploy over the key path."
+    echo "       Aborting (fail closed) — the version marker is not written."
+    exit 1
+fi
+if [ ! -f "$SSHD_HARDENING_SRC" ]; then
+    echo "Error: $SSHD_HARDENING_SRC not found — the deploy path did not ship sshd-hardening.sh."
+    echo "       Password login is unchanged. Re-run via build-deploy-telemetry.sh. Aborting."
+    exit 1
+fi
+# shellcheck source=sshd-hardening.sh
+. "$SSHD_HARDENING_SRC"
+if ! harden_sshd; then
+    echo "Error: the sshd hardening was NOT applied (above). The telemetry containers are up;"
+    echo "       password login is as before. Aborting (fail closed) — the version marker is not"
+    echo "       written and no tag is pushed."
+    exit 1
+fi
 
 # ── Version marker (task 0356) ────────────────────────────────────────────────
 # Last mutation of the run, after every step above succeeded under set -e.

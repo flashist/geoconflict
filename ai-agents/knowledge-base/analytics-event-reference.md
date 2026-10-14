@@ -99,7 +99,7 @@ Fired for first real match starts only. Reconnect handshakes and archived replay
 | Enum Key                | Event String            | When Fired                                                                   |
 | ----------------------- | ----------------------- | ---------------------------------------------------------------------------- |
 | `GAME_START`            | `Game:Start`            | First real, non-replay, non-reconnect match start                            |
-| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer lobbies     |
+| `GAME_MODE_MULTIPLAYER` | `Game:Mode:Multiplayer` | Immediately after `Game:Start` for public or private multiplayer lobbies. Unchanged by task 0451: private starts **also** fire `PrivateLobby:MatchStarted:*` right after it (see *Private Lobby Events*) |
 | `GAME_MODE_SOLO`        | `Game:Mode:Solo`        | Immediately after `Game:Start` for solo mode, missions, and tutorial matches |
 | `GAME_END`              | `Game:End`              | Match ends for any reason                                                    |
 | `GAME_WIN`              | `Game:Win`              | Player wins the match                                                        |
@@ -465,6 +465,71 @@ A citizen perk shown **locked** to a non-citizen (task `0302`). One event per ta
 > `src/client/LockedFeature.ts`, which `FlashistFacade.logLockedFeatureTapEvent()` backs. Later perks add their own id. The
 > "explainer opened" event that follows a locked tap is `Citizenship:Explainer:Opened:LockedFeature:{FeatureId}` — see
 > *Citizenship Explainer Events* (task `0301`).
+
+### Private Lobby Events
+
+The private-lobby usage funnel (task `0451`). All 16 fire only through `src/client/PrivateLobbyAnalytics.ts`,
+which maps each fixed bucket to its enum key through a lookup table — no name is ever built from a string.
+**No lobby code, invite link, game ID, client ID or name goes into any name or value**; the only values are an
+HTTP status (`Start:Failed`) and match seconds (`MatchEnded`). Nothing fires on a timer or per tick — the host
+window's 1 s player poll sends no event.
+
+| Enum Key | Event String | When Fired | Does NOT Fire | Value |
+| --- | --- | --- | --- | --- |
+| `PRIVATE_LOBBY_CREATED` | `PrivateLobby:Created` | Host window (`HostLobbyModal.open()`): the create request answered OK **and** the same opening of the window is still open — the moment `join-lobby` is sent for the host | Window closed or reopened before the answer; create failed | — |
+| `PRIVATE_LOBBY_CREATE_FAILED` | `PrivateLobby:CreateFailed` | The create request rejected: HTTP not OK, network error, or the config read failed. Fires even if the window was already closed (it measures a server/network failure) | On success | — |
+| `PRIVATE_LOBBY_INVITE_COPIED_LINK` | `PrivateLobby:InviteCopied:Link` | The host's **first successful** invite copy in this opening, and what was copied was a link: the Yandex portal link with the code as `payload` (task 0382), or the standalone `#join=` link | A failed copy; 2nd and later copies in the same opening; a copy begun before this opening's lobby exists; a copy that settles after the window closed | — |
+| `PRIVATE_LOBBY_INVITE_COPIED_CODE` | `PrivateLobby:InviteCopied:Code` | As above, but the bare code was copied (Yandex before the portal link is known) | As above | — |
+| `PRIVATE_LOBBY_INVITE_COPY_FAILED` | `PrivateLobby:InviteCopyFailed` | The host's **first failed** invite copy in this opening (task 0380's copy-failed state: both the SDK copy and the browser copy failed). Its own once-per-opening latch, separate from `InviteCopied`, so a failure followed by a successful retry counts both | 2nd and later failures in the same opening; before this opening's lobby exists; settling after the window closed | — |
+| `PRIVATE_LOBBY_START_TAPPED` | `PrivateLobby:Start:Tapped` | The host's Start tap is let through (before the ad) | A second tap while a start is in flight; the button is disabled below 2 players | — |
+| `PRIVATE_LOBBY_START_FAILED` | `PrivateLobby:Start:Failed` | A Start attempt ended in the inline "start failed" line: the settings save was not OK, `start_game` was not OK (e.g. 403 `citizens_only`, task 0416), or a request threw | The window closed or reopened during the attempt | HTTP status; **0** when a request threw |
+| `PRIVATE_LOBBY_MATCH_STARTED_HOST` | `PrivateLobby:MatchStarted:Host` | A fresh private match start, fired right **after** `Game:Start` and `Game:Mode:Multiplayer` (both unchanged), for the client the host window created the lobby with. Count = number of private matches started | Reconnect, replay, a repeat `start` message (the same gate as `Game:Start`); public and solo matches | — |
+| `PRIVATE_LOBBY_MATCH_STARTED_GUEST` | `PrivateLobby:MatchStarted:Guest` | As above, for every other player in the match. Count = guest players | As above | — |
+| `PRIVATE_LOBBY_MATCH_ENDED` | `PrivateLobby:MatchEnded` | The end of a match whose fresh start was private — in the same once-per-match branch as `Match:Duration`, right after it. Covers a finish (win modal) and a leave (`Game:Abandon` path) | Public or solo matches; a reconnected or replayed match (no logged start); a tab simply closed mid-match (same as `Game:End`) | Match seconds (same as `Match:Duration`) |
+| `PRIVATE_LOBBY_LEFT_HOST` | `PrivateLobby:Left:Host` | The host closes the lobby window themselves (✕, click outside, Escape) while in the lobby | A successful Start's close; the match-start close; a close before the lobby exists; a tab close | — |
+| `PRIVATE_LOBBY_LEFT_GUEST` | `PrivateLobby:Left:Guest` | A guest closes the Join window themselves while in the lobby | The match-start / programmatic closes and the standalone hash reset; a close before joining; a tab close | — |
+| `PRIVATE_LOBBY_JOINED_LINK` | `PrivateLobby:Joined:Link` | Join window (`JoinPrivateLobbyModal`): the lookup found the lobby, the window is still open, this opening had not joined yet — fires as `join-lobby` is sent. The window was opened **with a code**: a Yandex invite payload, or a standalone `#join=` link | The host (never goes through this window); the archived-game/replay branch; a second overlapping lookup in the same opening; a reconnect or a refresh back into a lobby (that rejoins through the reconnect banner); a Yandex invite seen again after a reload (`claimInviteCode` suppresses it) | — |
+| `PRIVATE_LOBBY_JOINED_CODE` | `PrivateLobby:Joined:Code` | As above, but the player typed or pasted the code and pressed Join | As above | — |
+| `PRIVATE_LOBBY_JOIN_FAILED_NOT_FOUND` | `PrivateLobby:JoinFailed:NotFound` | A guest's lookup says the lobby does not exist, window still open: our game worker's `/exists` answered OK with `exists: false` and the archive step after it did not open a replay (whether the archive then answered 404, an HTTP error, or the site's HTML page — the last is what production answers today, archiving being off, ADR-104), **or** the archive itself answered 404. Once per Join press — no latch. Counting only: the player's message is not changed by this (task 0451 review R1) | A text that is not a code at all (no lookup is made); the window closed mid-lookup; a replay that opened (archive found the game); a version mismatch | — |
+| `PRIVATE_LOBBY_JOIN_FAILED_ERROR` | `PrivateLobby:JoinFailed:Error` | A guest's lookup errored, window still open: the worker's `/exists` failed — a network failure, a config-read error, an HTTP error (even with a JSON body), or a body that is not JSON — and the archive did not answer 404. Once per Join press — no latch | A wrong code the worker answered `exists: false` for (that is `NotFound`, see above); **a version mismatch** (an archived game from another build — not a failed lobby join); the window closed mid-lookup; a replay that opened (archive found the game) | — |
+
+> **Private-lobby funnel** (in order, and the event that marks each step):
+> 1. Private tab — `UI:Tap:PrivateTab`
+> 2. Create — `PrivateLobby:Created` (attempts = `Created` + `CreateFailed`). Non-citizens drop out at
+>    `LockedFeature:Tap:PrivateLobby` instead.
+> 3. Invite copied — `PrivateLobby:InviteCopied:{Link|Code}` (`InviteCopyFailed` = the copy did not work)
+> 4. Friend joined — `PrivateLobby:Joined:{Link|Code}` (`JoinFailed:{NotFound|Error}` = a join press that failed)
+> 5. Host Start — `PrivateLobby:Start:Tapped` (minus `Start:Failed`)
+> 6. Private match started — `PrivateLobby:MatchStarted:Host` (= private matches) / `:Guest` (= guest players)
+> 7. Match ended — `PrivateLobby:MatchEnded`
+>
+> `PrivateLobby:Left:{Host|Guest}` marks people who gave up while waiting in the lobby.
+
+> **Gating.** The Create and Join buttons live in the private row, shown only when citizenship surfaces are on AND
+> (tester OR `private_lobbies_all` is `enabled`, task `0354`). Create needs a confirmed citizen, except on a local dev
+> build. ⚠️ **`Joined:Link` can come from players whose row is hidden**: an invite always opens the Join window
+> (owner ruling (a)), so `Joined:Link` is not limited to the flag cohort.
+
+> **Accepted residuals (task 0451):**
+> - **Standalone only:** the `#join=` hash is never stripped, so refreshing a standalone page still showing `#join=CODE`
+>   reopens and rejoins (new clientID) — a second `Joined:Link`. It is a real rejoin. The Yandex build ignores `#join=`.
+> - **`Joined:*` = join sent, not confirmed connected.** There is no client-side "lobby joined" confirmation before the
+>   match starts.
+> - **`JoinFailed:NotFound` is decided by our worker's `exists: false`, not by the archive.** A wrong code is first
+>   checked against live lobbies, then against the game archive (`getApiBase()`/game/<code>). On production that archive
+>   address answers **200 with the site's HTML page** (the Master's page fallback; archiving is off, ADR-104), so the
+>   archive step throws. Checked on production in review R1 (2026-10-13). The count still reads `NotFound`, because
+>   the worker already said the lobby does not exist. ⚠️ **The player still sees the generic error line, not "not
+>   found"**, for a wrong code on production — pre-existing, left unchanged here (owner ruling 2026-10-13: a separate
+>   task). Rare cost: if the worker said `exists: false` and the archive then fails for a real network reason, that
+>   press counts `NotFound`, not `Error`.
+> - **A hash-change leave, a kick and a tab close** send no `Left`.
+> - **`InviteCopied` = "the host copied at least once"**, not the number of copies; if the host copies the code first
+>   and the link later, it counts as `Code`.
+> - **Host role** is a remembered last-created clientID in `PrivateLobbyAnalytics.ts`; guest clientIDs are fresh per
+>   join, so the comparison is exact. A host reconnect is skipped by the reconnect gate.
+> - **Event budget:** 16 new distinct names (about +14 % on a design-event cardinality of ~103–118; the limit status
+>   of that watched metric is unknown). At most about 7 events per host lobby cycle and about 3 per guest.
 
 ### Profile Session Events
 

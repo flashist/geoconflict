@@ -32,6 +32,16 @@ import "./components/baseComponents/Modal";
 import "./components/Difficulties";
 import "./components/Maps";
 import { JoinLobbyEvent } from "./Main";
+import {
+  logPrivateLobbyCreateFailed,
+  logPrivateLobbyCreated,
+  logPrivateLobbyInviteCopied,
+  logPrivateLobbyInviteCopyFailed,
+  logPrivateLobbyLeft,
+  logPrivateLobbyStartFailed,
+  logPrivateLobbyStartTapped,
+  rememberPrivateLobbyHostClientID,
+} from "./PrivateLobbyAnalytics";
 import { inviteCopyText } from "./PrivateLobbyInvite";
 import { beginJoiningLobby } from "./StartScreenPresence";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
@@ -85,6 +95,10 @@ export class HostLobbyModal extends LitElement {
   // Task 0374: joining marks this window still holds, so a close ends them
   // instead of leaving them to a request that may hang.
   private joiningMarkEnds = new Set<() => void>();
+  // Task 0451: this opening already counted an invite copy / a failed copy.
+  // Separate latches, so a failed copy never hides a later successful one.
+  private inviteCopyLogged = false;
+  private inviteCopyFailedLogged = false;
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Add a new timer for debouncing bot changes
@@ -669,6 +683,8 @@ export class HostLobbyModal extends LitElement {
     // earlier opening's players would otherwise stay listed (and Start enabled)
     // until it exists — for good, if the create fails.
     this.clients = [];
+    this.inviteCopyLogged = false;
+    this.inviteCopyFailedLogged = false;
     this.openGeneration++;
     const generation = this.openGeneration;
     this.requestUpdate();
@@ -693,6 +709,10 @@ export class HostLobbyModal extends LitElement {
       this.lobbyId = lobby.gameID;
       // join lobby
       this.hasJoinedLobby = true;
+      // Task 0451: remembered so this client's match start counts as the
+      // host's, not a guest's.
+      rememberPrivateLobbyHostClientID(this.lobbyCreatorClientID);
+      logPrivateLobbyCreated();
       this.dispatchEvent(
         new CustomEvent("join-lobby", {
           detail: {
@@ -708,7 +728,9 @@ export class HostLobbyModal extends LitElement {
     // else waits on this chain, so stop the rejection going unhandled.
     // Task 0336: however create settles, this window's join mark ends (a no-op
     // if a close already ended it, task 0374).
-    joined.catch(() => {}).finally(endJoining);
+    // Task 0451: a failed create is counted even when the window has closed —
+    // it measures a server or network failure.
+    joined.catch(() => logPrivateLobbyCreateFailed()).finally(endJoining);
     // Task 0382: fetch this game's portal link now, so it is ready before the
     // host taps copy (the copy must not wait for it). Yandex only; a no-op
     // once known. Re-render when it lands so the hint switches.
@@ -741,6 +763,7 @@ export class HostLobbyModal extends LitElement {
     if (!wasJoined) {
       return;
     }
+    logPrivateLobbyLeft("Host");
     this.dispatchEvent(
       new CustomEvent("leave-lobby", {
         detail: { lobby: lobbyId },
@@ -759,6 +782,8 @@ export class HostLobbyModal extends LitElement {
     this.endJoiningMarks();
     this.copySuccess = false;
     this.copyFailed = false;
+    this.inviteCopyLogged = false;
+    this.inviteCopyFailedLogged = false;
     if (this.playersInterval) {
       clearInterval(this.playersInterval);
       this.playersInterval = null;
@@ -966,6 +991,7 @@ export class HostLobbyModal extends LitElement {
     if (this.isStarting) {
       return null;
     }
+    logPrivateLobbyStartTapped();
     this.isStarting = true;
     this.startFailed = false;
     // Explicit, as elsewhere: the decorator transform does not reliably schedule
@@ -1006,7 +1032,7 @@ export class HostLobbyModal extends LitElement {
         return null;
       }
       if (!configResponse.ok) {
-        this.showStartFailed();
+        this.showStartFailed(configResponse.status);
         return configResponse;
       }
       console.log(
@@ -1039,7 +1065,7 @@ export class HostLobbyModal extends LitElement {
       if (generation !== this.openGeneration) {
         return null;
       }
-      this.showStartFailed();
+      this.showStartFailed(0);
       return null;
     }
     if (generation !== this.openGeneration) {
@@ -1052,7 +1078,7 @@ export class HostLobbyModal extends LitElement {
       console.error(
         `Failed to start private game: ${response.status} ${response.statusText}`,
       );
-      this.showStartFailed();
+      this.showStartFailed(response.status);
       return response;
     }
     // Closed only after a SUCCESSFUL start (task 0302) — before, it closed first
@@ -1061,7 +1087,9 @@ export class HostLobbyModal extends LitElement {
     return response;
   }
 
-  private showStartFailed(): void {
+  // `status`: the failed response's HTTP status, 0 when a request threw.
+  private showStartFailed(status: number): void {
+    logPrivateLobbyStartFailed(status);
     this.startFailed = true;
     this.requestUpdate();
   }
@@ -1076,14 +1104,17 @@ export class HostLobbyModal extends LitElement {
   private async copyToClipboard() {
     const facade = FlashistFacade.instance;
     const generation = this.openGeneration;
-    const copied = await facade.copyText(
-      inviteCopyText(
-        this.lobbyId,
-        facade.yaGamesAvailable,
-        facade.windowOrigin,
-        facade.portalGameUrl ?? null,
-      ),
+    // Task 0451: whether this opening's lobby existed when the copy began —
+    // before that, `lobbyId` is empty or an earlier opening's code.
+    const lobbyExisted = this.hasJoinedLobby;
+    const lobbyId = this.lobbyId;
+    const inviteText = inviteCopyText(
+      lobbyId,
+      facade.yaGamesAvailable,
+      facade.windowOrigin,
+      facade.portalGameUrl ?? null,
     );
+    const copied = await facade.copyText(inviteText);
     // Review R1: the window closed (or reopened) while the copy settled — its
     // tick or failure line belongs to that earlier opening, not this one.
     if (generation !== this.openGeneration) {
@@ -1093,11 +1124,20 @@ export class HostLobbyModal extends LitElement {
       this.copySuccess = false;
       this.copyFailed = true;
       this.requestUpdate();
+      if (lobbyExisted && !this.inviteCopyFailedLogged) {
+        this.inviteCopyFailedLogged = true;
+        logPrivateLobbyInviteCopyFailed();
+      }
       return;
     }
     this.copyFailed = false;
     this.copySuccess = true;
     this.requestUpdate();
+    // Task 0451: the first successful copy of this opening decides the bucket.
+    if (lobbyExisted && !this.inviteCopyLogged) {
+      this.inviteCopyLogged = true;
+      logPrivateLobbyInviteCopied(inviteText === lobbyId ? "Code" : "Link");
+    }
     setTimeout(() => {
       if (generation !== this.openGeneration) {
         return;

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 #
-# tests/ssh-alerts.sh — off-box test for ssh-alerts.sh and setup-game-host.sh (task 0443).
+# tests/ssh-alerts.sh — off-box test for ssh-alerts.sh and setup-game-host.sh (task 0443), and
+# setup-game-host.sh's sshd section / sshd-hardening.sh (task 0442).
 #
 # Drives the REAL scripts into a fake root (SSH_ALERTS_ROOT / GAME_HOST_SETUP_ROOT) with a stub
-# PATH: journalctl, systemctl, curl, timeout, getent and fail2ban-client record their argv and
-# answer from per-case fixture files. Needs only bash + coreutils + node (runs on macOS and
+# PATH: journalctl, systemctl, curl, timeout, getent, fail2ban-client and sshd record their argv
+# and answer from per-case fixture files. Needs only bash + coreutils + node (runs on macOS and
 # Linux), so it is in `npm test` via tests/scripts/ShellHarnesses.test.ts.
 #
 # The stubs are written ONCE and never rewritten (the task 0371 lesson: macOS checks every
@@ -12,7 +13,7 @@
 # pointer file "$WORK/case-pointer", which CASE refreshes.
 #
 # Not testable here (the verify task's job): GNU tar on the box, the real journalctl -f, systemd,
-# cron, and a real Telegram delivery.
+# cron, a real Telegram delivery, and a real sshd (its -t / -T answers are simulated below).
 #
 #   bash tests/ssh-alerts.sh
 #
@@ -21,6 +22,7 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 AGENT="$REPO_ROOT/ssh-alerts.sh"
 HOST_SETUP="$REPO_ROOT/setup-game-host.sh"
+HARDEN="$REPO_ROOT/sshd-hardening.sh"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ssh-alerts.XXXXXX")"
 trap '[ -n "${KEEP_WORK:-}" ] || rm -rf "$WORK"' EXIT
 
@@ -30,6 +32,7 @@ no() { echo "  ❌ $1"; fail=$((fail + 1)); }
 
 [ -f "$AGENT" ] || { echo "ERROR: $AGENT not found"; exit 1; }
 [ -f "$HOST_SETUP" ] || { echo "ERROR: $HOST_SETUP not found"; exit 1; }
+[ -f "$HARDEN" ] || { echo "ERROR: $HARDEN not found"; exit 1; }
 
 # Visibly synthetic. The leak guard at the end greps every argv log and output for them.
 FAKE_TOKEN='0443fakeToken.NotReal_0000-aaaa+bbbb='
@@ -75,7 +78,40 @@ if [ "\$1" = "is-active" ]; then
     *) [ -f "\$C/unit.active" ] && exit 0; exit 3 ;;
   esac
 fi
+# reload.fail (task 0442): every reload fails, with an error on stderr like a real one.
+if [ "\$1" = "reload" ] && [ -f "\$C/reload.fail" ]; then
+  echo "Job for \$2.service failed (stub)." >&2
+  exit 1
+fi
 exit 0
+EOF
+
+# sshd (task 0442). `sshd -t` exits with the code in sshd.t_rc (default 0). `sshd -T` prints the
+# EFFECTIVE values: hardened when the fake root's 00- drop-in exists and says
+# "PasswordAuthentication no", the cloud-image defaults (yes) otherwise. Fixtures simulate the
+# traps: sshd.other_wins → another file wins globally; sshd.root_match_wins → a `Match User root`
+# block wins for root only (-C); sshd.old_name → OpenSSH ≤ 9.2 prints without-password.
+cat > "$BIN/sshd" <<EOF
+#!/bin/bash
+read -r C < "$POINTER"
+echo "sshd \$*" >> "\$C/sshd.argv"
+echo "sshd \$*" >> "$WORK/all.argv"
+if [ "\$1" = "-t" ]; then exit "\$(cat "\$C/sshd.t_rc" 2>/dev/null || echo 0)"; fi
+if [ "\$1" = "-T" ]; then
+  d="\$C/root/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf"
+  hard=no
+  grep -qx 'PasswordAuthentication no' "\$d" 2>/dev/null && hard=yes
+  [ -f "\$C/sshd.other_wins" ] && hard=no
+  [ "\${2:-}" = "-C" ] && [ -f "\$C/sshd.root_match_wins" ] && hard=no
+  prl=prohibit-password; [ -f "\$C/sshd.old_name" ] && prl=without-password
+  if [ "\$hard" = yes ]; then
+    printf '%s\n' "port 22" "passwordauthentication no" "kbdinteractiveauthentication no" "permitemptypasswords no" "permitrootlogin \$prl" "maxauthtries 6"
+  else
+    printf '%s\n' "port 22" "passwordauthentication yes" "kbdinteractiveauthentication no" "permitemptypasswords no" "permitrootlogin yes" "maxauthtries 6"
+  fi
+  exit 0
+fi
+exit 1
 EOF
 
 # curl: the config arrives on stdin (--config -). It is kept per call so a test can prove the
@@ -138,6 +174,11 @@ CASE() {  # a fresh case folder + fake root; the stubs follow the pointer
     N=$((N + 1)); C="$WORK/case$N"; mkdir -p "$C/root/var/log"
     printf '%s\n' "$C" > "$POINTER"
     NOW=""
+    # Task 0442: a box the sshd section can harden — sshd_config Includes sshd_config.d/, and
+    # root has one key. A case that needs otherwise removes them.
+    mkdir -p "$C/root/etc/ssh/sshd_config.d" "$C/root/root/.ssh"
+    printf '%s\n' 'Include /etc/ssh/sshd_config.d/*.conf' 'PermitRootLogin yes' > "$C/root/etc/ssh/sshd_config"
+    printf '%s\n' 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI0442fakeKeyNotReal geoconflict-game-deploy' > "$C/root/root/.ssh/authorized_keys"
 }
 agent() {  # run the real agent into this case's fake root
     env PATH="$BIN:$PATH" SSH_ALERTS_ROOT="$C/root" SSH_ALERTS_NOW="${NOW:-}" ${AGENT_EXTRA_ENV:-} \
@@ -438,7 +479,7 @@ host_setup() {
     env PATH="$BIN:$PATH" GAME_HOST_SETUP_ROOT="$C/root" SSH_ALERTS_ROOT="$C/root" \
         bash "$C/ship/setup-game-host.sh" "$C/host.env" > "$C/hs.out" 2>&1
 }
-ship() { mkdir -p "$C/ship"; cp "$HOST_SETUP" "$AGENT" "$C/ship/"; }
+ship() { mkdir -p "$C/ship"; cp "$HOST_SETUP" "$AGENT" "$HARDEN" "$C/ship/"; }
 
 echo "=== G1: setup-game-host.sh — reads + deletes host.env, writes the role marker, installs the agent ==="
 CASE; ship; host_env "$FAKE_TOKEN" "$FAKE_URL" dev
@@ -447,7 +488,8 @@ host_setup; rc=$?
 [ ! -e "$C/host.env" ] && ok "host.env deleted right after it was read" || no "host.env left behind"
 [ "$(cat "$C/root/etc/geoconflict-deploy-role")" = game ] && ok "role marker 'game'" || no "no role marker"
 grep -qx 'SSH_ALERTS_BOX=game-dev' "$(ENVF)" && ok "agent installed with --box game-dev" || no "agent box wrong"
-grep -q '  OK  preconditions' "$C/hs.out" && grep -q '  OK  ssh-alerts' "$C/hs.out" && ok "each section reports OK" || no "section lines missing"
+grep -q '  OK  preconditions' "$C/hs.out" && grep -q '  OK  ssh-alerts' "$C/hs.out" && grep -q '  OK  sshd' "$C/hs.out" \
+  && ok "each section reports OK (preconditions, ssh-alerts, sshd)" || no "section lines missing"
 
 echo "=== G2: a second run is a no-op (idempotent): exit 0, no restart ==="
 : > "$C/unit.active"; host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
@@ -474,12 +516,179 @@ CASE; ship; host_env "$FAKE_TOKEN" "$FAKE_URL" qa; host_setup; rc=$?
 [ "$rc" -eq 1 ] && grep -q 'GAME_ENV is not dev, staging or prod' "$C/hs.out" && ok "unknown GAME_ENV → FAILED" || no "bad GAME_ENV accepted (rc=$rc)"
 
 # ═════════════════════════════════════════════════════════════════════════════
+# Task 0442: setup-game-host.sh's sshd section (sshd-hardening.sh's harden_sshd).
+DROPIN() { echo "$C/root/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf"; }
+BACKUP() { echo "$C/root/etc/ssh/geoconflict-hardening.conf.previous"; }
+reloads() { [ -f "$C/systemctl.argv" ] || { echo 0; return 0; }; grep -c '^systemctl reload ' "$C/systemctl.argv" || true; }
+sshd_calls() { [ -f "$C/sshd.argv" ] || { echo 0; return 0; }; grep -c "^sshd $1" "$C/sshd.argv" || true; }
+no_stray_files() {  # nothing left in /etc/ssh but sshd_config, sshd_config.d/ and (optionally) the drop-in
+    ls -A "$C/root/etc/ssh" | grep -vxE 'sshd_config|sshd_config\.d' | grep -q . && return 1
+    ls -A "$C/root/etc/ssh/sshd_config.d" | grep -vx '00-geoconflict-hardening.conf' | grep -q . && return 1
+    return 0
+}
+
+echo "=== H1: fresh box → drop-in written, sshd -t, ONE reload, gate OK, 'OK sshd', exit 0 ==="
+CASE; ship; host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 0 ] && grep -q '  OK  sshd — password login off, root key-only' "$C/hs.out" && ok "exit 0, 'OK sshd'" || no "rc=$rc: $(cat "$C/hs.out")"
+for kv in 'PasswordAuthentication no' 'KbdInteractiveAuthentication no' 'PermitEmptyPasswords no' 'PubkeyAuthentication yes' 'PermitRootLogin prohibit-password' 'MaxAuthTries 6' 'X11Forwarding no' 'LoginGraceTime 30' 'Match all'; do
+  grep -qx "$kv" "$(DROPIN)" 2>/dev/null || { no "drop-in lacks '$kv'"; continue; }
+done
+grep -qx 'Match all' "$(DROPIN)" && awk '/^Match all$/{m=1} m && /^    PasswordAuthentication no$/{p=1} m && /^    PermitRootLogin prohibit-password$/{r=1} END{exit !(p && r)}' "$(DROPIN)" \
+  && ok "drop-in: the globals + a 'Match all' pin of the auth keywords" || no "drop-in content wrong: $(cat "$(DROPIN)" 2>/dev/null)"
+cmp -s "$(DROPIN)" <(bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN") && ok "drop-in is byte-identical to sshd_hardening_dropin_content" || no "drop-in differs from the library's content"
+[ "$(mode_of "$(DROPIN)")" = 644 ] && ok "drop-in is 0644" || no "drop-in mode $(mode_of "$(DROPIN)")"
+[ "$(sshd_calls -t)" = 1 ] && [ "$(reloads)" = 1 ] && grep -q '^systemctl reload ssh$' "$C/systemctl.argv" \
+  && ok "one 'sshd -t', ONE 'systemctl reload ssh'" || no "sshd -t=$(sshd_calls -t) reloads=$(reloads)"
+grep -q '^systemctl restart ssh' "$C/systemctl.argv" && no "sshd was RESTARTED" || ok "sshd never restarted"
+grep -q '^sshd -T -C user=root,host=localhost,addr=127.0.0.1$' "$C/sshd.argv" && grep -qx 'sshd -T' "$C/sshd.argv" \
+  && ok "the gate read the global AND the root-effective config" || no "gate calls: $(tr '\n' ';' < "$C/sshd.argv")"
+[ "$(grep -c '✅ sshd: .* (global + root-effective)' "$C/hs.out")" = 4 ] && ok "four gate lines (global + root-effective)" || no "gate lines missing"
+[ ! -e "$(BACKUP)" ] && no_stray_files && ok "no backup and no temporary file left behind" || no "left in /etc/ssh: $(ls -A "$C/root/etc/ssh" "$C/root/etc/ssh/sshd_config.d" | tr '\n' ' ')"
+
+echo "=== H2: second run → no write, but sshd -t + reload + gate again (0442 R2), still OK ==="
+before=$(stat -f '%m' "$(DROPIN)" 2>/dev/null || stat -c '%Y' "$(DROPIN)"); cp "$(DROPIN)" "$C/dropin.before"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 0 ] && grep -q '  OK  sshd' "$C/hs.out" && grep -q 'unchanged — not rewritten; reloading sshd' "$C/hs.out" \
+  && ok "exit 0, OK sshd, 'unchanged — not rewritten; reloading'" || no "second run rc=$rc: $(cat "$C/hs.out")"
+[ "$(reloads)" = 2 ] && [ "$(sshd_calls -t)" = 2 ] && ok "one more sshd -t and ONE more reload (2 of each in total)" || no "reloads=$(reloads) sshd -t=$(sshd_calls -t)"
+grep -q '^systemctl restart ssh' "$C/systemctl.argv" && no "sshd was RESTARTED on the unchanged path" || ok "sshd reloaded, never restarted"
+cmp -s "$(DROPIN)" "$C/dropin.before" && ok "drop-in byte-identical" || no "the unchanged drop-in was rewritten"
+no_stray_files && ok "no temporary file left behind" || no "left in /etc/ssh: $(ls -A "$C/root/etc/ssh" | tr '\n' ' ')"
+
+echo "=== H3: no key in root's authorized_keys → FAILED, nothing written, no reload ==="
+CASE; ship; printf '# only a comment\n' > "$C/root/root/.ssh/authorized_keys"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q '  FAILED  sshd — /root/.ssh/authorized_keys is missing or holds no key' "$C/hs.out" \
+  && ok "comment-only authorized_keys → FAILED sshd, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+[ ! -e "$(DROPIN)" ] && [ "$(reloads)" = 0 ] && [ ! -s "$C/sshd.argv" ] && ok "no drop-in, no reload, no sshd call" || no "something changed on a keyless box"
+grep -q '  OK  ssh-alerts' "$C/hs.out" && ok "the alerts section still ran (sections are independent)" || no "alerts section did not run"
+CASE; ship; rm -f "$C/root/root/.ssh/authorized_keys"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && [ ! -e "$(DROPIN)" ] && [ "$(reloads)" = 0 ] && ok "missing authorized_keys → FAILED, nothing written" || no "missing authorized_keys: rc=$rc"
+
+echo "=== H4: sshd_config has no Include of sshd_config.d/ → FAILED, nothing written ==="
+CASE; ship; printf '%s\n' 'PermitRootLogin yes' > "$C/root/etc/ssh/sshd_config"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — /etc/ssh/sshd_config does not Include' "$C/hs.out" && [ ! -e "$(DROPIN)" ] && [ "$(reloads)" = 0 ] \
+  && ok "no Include → FAILED, no drop-in, no reload" || no "rc=$rc: $(cat "$C/hs.out")"
+
+echo "=== H5: sshd -t rejects the drop-in → removed, NO reload, FAILED ==="
+CASE; ship; echo 255 > "$C/sshd.t_rc"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — sshd rejected the drop-in (sshd -t); rolled back' "$C/hs.out" \
+  && ok "sshd -t failure → FAILED, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+[ ! -e "$(DROPIN)" ] && [ "$(reloads)" = 0 ] && no_stray_files && ok "drop-in removed, never reloaded, nothing left" || no "after sshd -t failure: reloads=$(reloads) dropin=$([ -e "$(DROPIN)" ] && echo present)"
+
+echo "=== H6: the reload fails → rolled back, re-reloaded, FAILED, its error shown ==="
+CASE; ship; : > "$C/reload.fail"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — sshd reload failed' "$C/hs.out" && ok "reload failure → FAILED, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+[ ! -e "$(DROPIN)" ] && no_stray_files && ok "drop-in removed (none existed before)" || no "drop-in left after a failed reload"
+[ "$(grep -c '^systemctl reload ssh$' "$C/systemctl.argv")" = 2 ] && [ "$(grep -c '^systemctl reload sshd$' "$C/systemctl.argv")" = 2 ] \
+  && ok "reload tried (ssh, then sshd), and tried again after the rollback" || no "reload calls: $(grep reload "$C/systemctl.argv" | tr '\n' ';')"
+grep -q 'Job for sshd.service failed (stub)' "$C/hs.out" && ok "the reload's stderr is shown" || no "the reload error was hidden"
+[ "$(sshd_calls '-T')" = 0 ] && ok "the gate never ran on a config that was never loaded" || no "gate ran after a failed reload"
+
+echo "=== H7: fresh box, the gate fails (another file wins) → removed, reloaded, FAILED ==="
+CASE; ship; : > "$C/sshd.other_wins"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — the hardening is NOT in effect' "$C/hs.out" && grep -q "❌ sshd: passwordauthentication is 'yes yes'" "$C/hs.out" \
+  && ok "gate failure → FAILED, names the keyword" || no "rc=$rc: $(cat "$C/hs.out")"
+[ ! -e "$(DROPIN)" ] && [ "$(reloads)" = 2 ] && no_stray_files && ok "drop-in removed, sshd reloaded back (2 reloads in all)" || no "reloads=$(reloads) dropin=$([ -e "$(DROPIN)" ] && echo present)"
+CASE; ship; : > "$C/sshd.root_match_wins"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q "❌ sshd: passwordauthentication is 'no yes'" "$C/hs.out" && [ ! -e "$(DROPIN)" ] \
+  && ok "a Match block winning for ROOT only is caught by the root-effective gate, rolled back" || no "root-only override not caught: rc=$rc $(cat "$C/hs.out")"
+
+echo "=== H8: an EARLIER drop-in (other content) + a failing gate → the earlier file is restored byte-for-byte ==="
+CASE; ship
+printf '%s\n' '# an older hand-made drop-in' 'PasswordAuthentication no' 'PermitRootLogin prohibit-password' > "$(DROPIN)"
+cp -p "$(DROPIN)" "$C/dropin.earlier"; : > "$C/sshd.other_wins"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'restored the previous drop-in' "$C/hs.out" && ok "gate failure → FAILED, 'restored the previous drop-in'" || no "rc=$rc: $(cat "$C/hs.out")"
+cmp -s "$(DROPIN)" "$C/dropin.earlier" && ok "the earlier drop-in is back, byte-for-byte (restore, not delete)" || no "the earlier drop-in was not restored"
+[ ! -e "$(BACKUP)" ] && no_stray_files && [ "$(reloads)" = 2 ] && ok "backup moved back (none left), reloaded back" || no "backup left or reloads=$(reloads)"
+CASE; ship
+printf '%s\n' '# an older drop-in' 'PasswordAuthentication no' > "$(DROPIN)"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 0 ] && cmp -s "$(DROPIN)" <(bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN") && [ ! -e "$(BACKUP)" ] && [ "$(reloads)" = 1 ] \
+  && ok "an earlier drop-in with OTHER content + passing gate → replaced, backup discarded, one reload" || no "replace path: rc=$rc reloads=$(reloads)"
+
+echo "=== H9: OpenSSH's old name 'without-password' is accepted as prohibit-password ==="
+CASE; ship; : > "$C/sshd.old_name"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 0 ] && grep -q '✅ sshd: permitrootlogin prohibit-password' "$C/hs.out" && [ -e "$(DROPIN)" ] \
+  && ok "without-password → OK, drop-in kept" || no "rc=$rc: $(cat "$C/hs.out")"
+
+echo "=== H10: blank token (alerts SKIPPED) → sshd still applied, exit 3 ==="
+CASE; ship; host_env "" "$FAKE_URL" prod; host_setup; rc=$?
+[ "$rc" -eq 3 ] && grep -q '  SKIPPED  ssh-alerts' "$C/hs.out" && grep -q '  OK  sshd' "$C/hs.out" && [ -e "$(DROPIN)" ] \
+  && grep -q '^GAME HOST SETUP: SKIPPED (sections: ssh-alerts)$' "$C/hs.out" \
+  && ok "SKIPPED ssh-alerts + OK sshd, exit 3, drop-in in place" || no "rc=$rc: $(cat "$C/hs.out")"
+CASE; ship; host_env "$FAKE_TOKEN" "" prod; host_setup; rc=$?
+[ "$rc" -eq 3 ] && grep -q '  OK  sshd' "$C/hs.out" && [ -e "$(DROPIN)" ] && ok "blank URL → sshd still applied, exit 3" || no "blank URL: rc=$rc"
+
+echo "=== H11: wrong-role / failed preconditions → the sshd section never runs ==="
+CASE; ship; mkdir -p "$C/root/etc"; echo telemetry > "$C/root/etc/geoconflict-deploy-role"
+host_env "$FAKE_TOKEN" "$FAKE_URL" prod; host_setup; rc=$?
+[ "$rc" -eq 1 ] && [ ! -e "$(DROPIN)" ] && [ ! -s "$C/sshd.argv" ] && [ "$(reloads)" = 0 ] && ! grep -q 'SSHD HARDENING' "$C/hs.out" \
+  && ok "wrong box → sshd untouched (no drop-in, no sshd call, no reload)" || no "sshd section ran on the wrong box: rc=$rc"
+
+echo "=== H12: drop-in UNCHANGED but the gate fails → FAILED, file KEPT, no rollback reload ==="
+CASE; ship; bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN" > "$(DROPIN)"; cp "$(DROPIN)" "$C/dropin.before"
+: > "$C/sshd.other_wins"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — the drop-in is in place but NOT in effect' "$C/hs.out" \
+  && ok "unchanged + gate fails → FAILED, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+cmp -s "$(DROPIN)" "$C/dropin.before" && [ "$(reloads)" = 1 ] && [ "$(sshd_calls -t)" = 1 ] && no_stray_files \
+  && ok "file kept byte-for-byte (removing it would re-open passwords); the one pre-gate reload, no rollback reload" || no "unchanged path: reloads=$(reloads) sshd -t=$(sshd_calls -t)"
+
+echo "=== H14: an earlier run died after writing the drop-in, before its reload → this run reloads before judging (0442 R2) ==="
+# The state an interrupted run leaves: the drop-in in place, byte-identical, and the running
+# sshd never told (the stub's gate reads the file on disk, like the real `sshd -T`). The OK must
+# come only after a reload, or it would be true of the file and false of the daemon.
+CASE; ship; bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN" > "$(DROPIN)"; cp "$(DROPIN)" "$C/dropin.before"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 0 ] && grep -q '  OK  sshd' "$C/hs.out" && ok "exit 0, OK sshd" || no "rc=$rc: $(cat "$C/hs.out")"
+[ "$(sshd_calls -t)" = 1 ] && [ "$(reloads)" = 1 ] && grep -q '^systemctl reload ssh$' "$C/systemctl.argv" \
+  && ok "one 'sshd -t' and ONE 'systemctl reload ssh' on the unchanged path" || no "sshd -t=$(sshd_calls -t) reloads=$(reloads)"
+# all.argv spans every case; this case's calls are its last ones. Repeats collapsed (the gate is 8 × sshd -T).
+order=$(grep -E '^(sshd -t|systemctl reload ssh|sshd -T)( |$)' "$WORK/all.argv" | awk '{print $1" "$2}' | uniq | tail -n 3 | tr '\n' ';')
+[ "$order" = "sshd -t;systemctl reload;sshd -T;" ] && ok "order: sshd -t → reload → gate" || no "order was '$order'"
+cmp -s "$(DROPIN)" "$C/dropin.before" && no_stray_files && ok "drop-in byte-identical, nothing left behind" || no "the unchanged drop-in was touched"
+
+echo "=== H15: drop-in UNCHANGED, sshd -t fails → FAILED, NOT reloaded, file kept ==="
+CASE; ship; bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN" > "$(DROPIN)"; cp "$(DROPIN)" "$C/dropin.before"
+echo 255 > "$C/sshd.t_rc"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — sshd rejects its current config (sshd -t) although the drop-in is unchanged' "$C/hs.out" \
+  && ok "unchanged + sshd -t fails → FAILED, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+cmp -s "$(DROPIN)" "$C/dropin.before" && [ "$(reloads)" = 0 ] && [ "$(sshd_calls '-T')" = 0 ] && no_stray_files \
+  && ok "file kept, never reloaded onto a rejected config, gate not run" || no "reloads=$(reloads) gate=$(sshd_calls '-T')"
+
+echo "=== H16: drop-in UNCHANGED, the reload fails → FAILED, file kept, its error shown ==="
+CASE; ship; bash -c '. "$1"; sshd_hardening_dropin_content' _ "$HARDEN" > "$(DROPIN)"; cp "$(DROPIN)" "$C/dropin.before"
+: > "$C/reload.fail"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — sshd reload failed (see above) — the running daemon may not have the drop-in' "$C/hs.out" \
+  && ok "unchanged + reload fails → FAILED, exit 1" || no "rc=$rc: $(cat "$C/hs.out")"
+grep -q 'Job for sshd.service failed (stub)' "$C/hs.out" && ok "the reload's stderr is shown" || no "the reload error was hidden"
+cmp -s "$(DROPIN)" "$C/dropin.before" && [ "$(sshd_calls '-T')" = 0 ] && no_stray_files \
+  && ok "file kept (removing it would re-open passwords), gate not run" || no "unchanged path after a failed reload: gate=$(sshd_calls '-T')"
+
+echo "=== H13: sshd-hardening.sh not shipped → FAILED sshd, the other sections still ran ==="
+CASE; ship; rm -f "$C/ship/sshd-hardening.sh"
+host_env "$FAKE_TOKEN" "$FAKE_URL" dev; host_setup; rc=$?
+[ "$rc" -eq 1 ] && grep -q 'FAILED  sshd — sshd-hardening.sh was not shipped' "$C/hs.out" && grep -q '  OK  ssh-alerts' "$C/hs.out" && [ ! -e "$(DROPIN)" ] \
+  && ok "missing library → FAILED sshd, exit 1, nothing written" || no "rc=$rc: $(cat "$C/hs.out")"
+
+# ═════════════════════════════════════════════════════════════════════════════
 echo "=== L: leak guard across EVERY run above ==="
 grep -qF "$FAKE_TOKEN" "$WORK/all.argv" && no "LEAK: the token appears in an argv" || ok "the token appears in no stub's argv"
 cat "$WORK"/case*/install.out "$WORK"/case*/hs.out "$WORK"/case*/out "$WORK"/case*/watch.out 2>/dev/null | grep -qF "$FAKE_TOKEN" \
   && no "LEAK: the token appears in script output" || ok "the token appears in no script output"
 [ -s "$WORK/all.argv" ] && ok "the guard was not vacuous ($(wc -l < "$WORK/all.argv" | tr -d ' ') argv lines inspected)" || no "no argv captured"
-grep -v '^[[:space:]]*#' "$AGENT" "$HOST_SETUP" | grep -q 'set -x' && no "a 'set -x' would print the token" || ok "no 'set -x' in either script"
+grep -v '^[[:space:]]*#' "$AGENT" "$HOST_SETUP" "$HARDEN" | grep -q 'set -x' && no "a 'set -x' would print the token" || ok "no 'set -x' in the agent, setup-game-host.sh or sshd-hardening.sh"
 
 echo
 echo "==== RESULT: $pass passed, $fail failed ===="

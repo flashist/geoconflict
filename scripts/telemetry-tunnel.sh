@@ -69,6 +69,10 @@ if [ -n "$SSH_KEY_PATH" ]; then
     # and the box's fail2ban jail, and can ban the operator.
     SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
 elif [ -n "$SSH_PASSWORD" ]; then
+    # Task 0442: the telemetry box refuses SSH password login, so this branch can only be
+    # refused by the box. Kept, like the deploys' — but no longer a way back in.
+    echo "Note: the telemetry box refuses SSH password login since task 0442 — a password tunnel is expected to be refused."
+    echo "      To get back in without a working key, use the hosting provider's web console (docs/vps-deployment-guide.md §7)."
     if ! is_truthy "$ALLOW_PASSWORD_FALLBACK"; then
         echo "Error: Password-based telemetry tunnel is disabled by default."
         echo "Configure TELEMETRY_SSH_KEY for the standard path."

@@ -826,6 +826,7 @@ export class ClientGameRunner {
             isReconnect: this.lobby.isReconnect === true,
             isReplay: this.lobby.gameRecord !== undefined,
           },
+          this.lobby.clientID,
         );
         if (didLogMatchStartAnalytics) {
           this.matchStartTimeMs = Date.now();

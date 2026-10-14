@@ -12,7 +12,7 @@ This project now targets per-environment VPS instances (dev, staging, prod) that
 3. Keep high-value secrets in gitignored overlay files such as `.env.secret`, `.env.prod.secret`, and `.env.telemetry.secret`.
 4. Deployment scripts load `.env`, `.env.secret`, `.env.<env>`, and `.env.<env>.secret` in that order, so environment-specific values override shared defaults.
 
-Password-based SSH is no longer the normal deploy path. If you temporarily need it for emergency recovery, keep the password only in a gitignored secret file and opt in explicitly with `ALLOW_SSH_PASSWORD_FALLBACK=1`.
+Password-based SSH is no longer the normal deploy path. **Since task 0442 the game boxes and the telemetry box refuse SSH password login altogether**, so the password fallback (`ALLOW_SSH_PASSWORD_FALLBACK=1`) can no longer get a deploy onto them — the box refuses it at the first copy. Without a working key, the way in is the hosting provider's web console (section 7).
 
 ## 2. Provision a VPS
 
@@ -23,7 +23,7 @@ scp setup.sh root@<server-ip>:/tmp/setup-openfront.sh
 ssh root@<server-ip> "chmod +x /tmp/setup-openfront.sh && /tmp/setup-openfront.sh"
 ```
 
-Ensure the deploy user can log in via SSH with the key referenced by `SSH_KEY` or `SSH_KEY_<ENV>` (how to create and install that key: section 7). **The first deploy completes the host setup:** after the game container is up, every game deploy logs in once more as `root`, by the same key, and runs `setup-game-host.sh` (task 0443 — today it installs the SSH security alert agent, section 8). That needs the game key installed for `root` too (section 7); until it is, every game deploy ends with a "game IS deployed — host setup NOT done" banner and exit code 3. After the script finishes, `swapon --show` should list `/swapfile` and `systemctl status nginx` should report a listener on port 80 that proxies to the container.
+Ensure the deploy user can log in via SSH with the key referenced by `SSH_KEY` or `SSH_KEY_<ENV>` (how to create and install that key: section 7). **The first deploy completes the host setup:** after the game container is up, every game deploy logs in once more as `root`, by the same key, and runs `setup-game-host.sh` (task 0443 — today it installs the SSH security alert agent, section 8, and turns SSH password login off, section 7). That needs the game key installed for `root` too (section 7); until it is, every game deploy ends with a "game IS deployed — host setup NOT done" banner and exit code 3. After the script finishes, `swapon --show` should list `/swapfile` and `systemctl status nginx` should report a listener on port 80 that proxies to the container.
 
 ## 3. Build & Deploy
 
@@ -112,14 +112,17 @@ Keep each `.pub` file next to its private key. ssh uses it to match the key alre
 
 ### Install the public half (once per box and login user)
 
-Password login is still on, so `ssh-copy-id` can use it this one time:
+⚠️ **Password login is off on these boxes since task 0442**, so `ssh-copy-id` can no longer log in by password to install a key. Add a new public key **from a session that already works by key**, or from the hosting provider's web console:
 
 ```bash
-ssh-copy-id -i ~/.ssh/geoconflict-game.pub -o IdentitiesOnly=yes <deploy-user>@<game-box>
-ssh-copy-id -i ~/.ssh/geoconflict-telemetry.pub -o IdentitiesOnly=yes root@<telemetry-box>
+# from the operator's Mac, over a key that already works (here: the existing game key)
+ssh -i ~/.ssh/geoconflict-game -o IdentitiesOnly=yes <deploy-user>@<game-box> \
+    'umask 077; mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys' < ~/.ssh/<new-key>.pub
 ```
 
-The game deploy user is `SSH_USER_<ENV>` / `SSH_USER` (default `openfront`); the telemetry deploy logs in as `TELEMETRY_SSH_USER` (default `root`). **The game boxes also need the game key for `root`** (`ssh-copy-id -i ~/.ssh/geoconflict-game.pub -o IdentitiesOnly=yes root@<game-box>`; task 0445 does this): every game deploy's host setup step logs in as `root` by key, never by password. `-o IdentitiesOnly=yes` keeps it to one failed key try instead of one per agent key.
+In the web console, log in as `root` and append the `.pub` file's single line to `/root/.ssh/authorized_keys` (the file stays mode `600`, the folder `700`). *(Before task 0442 this step used `ssh-copy-id` over the password; that is how the current keys were installed, task 0445.)*
+
+The game deploy user is `SSH_USER_<ENV>` / `SSH_USER` (the script's default is `openfront`, but **on our game boxes the deploy user is `root`**, task 0445); the telemetry deploy logs in as `TELEMETRY_SSH_USER` (default `root`). **The game boxes also need the game key for `root`** (task 0445 installed it; on our boxes root is the deploy user, so it is the same key line): every game deploy's host setup step logs in as `root` by key, never by password. `-o IdentitiesOnly=yes` keeps it to one failed key try instead of one per agent key.
 
 ### Check the key alone works (from a fresh terminal)
 
@@ -137,22 +140,55 @@ In your gitignored env files:
 - game: `SSH_KEY_DEV=~/.ssh/geoconflict-game` and `SSH_KEY_PROD=~/.ssh/geoconflict-game` (they beat a shared `SSH_KEY` in `.env`);
 - telemetry: `TELEMETRY_SSH_KEY=~/.ssh/geoconflict-telemetry` in `.env.telemetry`.
 
-Leave the password values in place until password login is turned off on the boxes — they are the way back if the key fails. With a key set, the key always wins.
+With a key set, the key always wins. Since task 0442 the password values in the env files no longer get you in over SSH (the boxes refuse password login); they stay in the files by owner decision, but the `ALLOW_…_PASSWORD_FALLBACK` switches are removed, so no deploy even tries the password path. The root password itself is still the **web console** login — keep it in the password manager.
 
 ### How to tell a deploy used the key
 
 - No `Using deprecated password-based SSH fallback` line in the output, **and**
 - **no password prompt**. ⚠️ If ssh asks for a password, the box rejected the key and ssh fell back to asking. Press Ctrl-C and **do not type the password** — the deploy would succeed and hide that the key is broken. Re-run the check above to see why.
 
-### Fall back to the password (emergency only, until password login is turned off)
+### Password login is off (task 0442)
 
-Game: comment out **both** `SSH_KEY_<ENV>` and any shared `SSH_KEY` (either one makes the key path win), make sure `SSH_PASS_<ENV>` is set, and set `ALLOW_SSH_PASSWORD_FALLBACK_<ENV>=1`. Telemetry: comment out `TELEMETRY_SSH_KEY` and set `ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK=1` with `TELEMETRY_SSH_PASSWORD`. The scripts hand the password to `sshpass` as a 0600 temporary file (never on the command line) and delete it when they exit. Undo all of this as soon as the key works again.
+**What changed.** On game prod, game dev and the telemetry box, sshd accepts **keys only**: password and keyboard-interactive login are off, empty passwords are off, and `root` may log in by key only (`PermitRootLogin prohibit-password` — root stays the deploy user). `MaxAuthTries` stays 6. The settings live in one file, `/etc/ssh/sshd_config.d/00-geoconflict-hardening.conf`, written by `sshd-hardening.sh`:
 
-⚠️ On the password path a game deploy still ships the game, but its host setup step is **skipped** — it never logs in as `root` by password — so the deploy ends with `GAME HOST SETUP SKIPPED: no SSH key …` and exit code 3 (owner ruling, task 0443). That is expected in an emergency; the next key deploy completes the step.
+- game boxes — by every game deploy's root step (`setup-game-host.sh`, the `sshd` section);
+- telemetry — by every telemetry deploy (`setup-telemetry.sh`, the `SSHD HARDENING (0442)` section).
+
+Each run refuses to change anything when root has no key in `/root/.ssh/authorized_keys` (and the telemetry one also when that deploy came in by password), checks the new config with `sshd -t`, reloads sshd (never restarts it, so open sessions stay up), then checks the settings **actually in effect** (`sshd -T`, also for a root login). If any step fails it puts back exactly the previous file and reloads. An unchanged file is not rewritten, but sshd is still checked and reloaded, so the result is true of the running sshd and not just of the file on disk; if that fails the file is left in place (removing it would turn password login back on).
+
+⚠️ **The next deploy re-applies the hardening.** Any emergency re-enable done by hand on a box (below) lasts only until that box's next deploy. Fix the cause first.
+
+**The password fallback in the scripts is dead against these boxes.** The code path is still there (like the profile box's since task 0221), and each script now says so when it is used: the box refuses it at the first copy, before anything changes.
+
+**Way back if a key stops working:**
+
+- **A — from a session that is still open** (keep one open whenever you change keys or sshd settings). As root:
+
+  ```bash
+  rm -f /etc/ssh/sshd_config.d/00-geoconflict-hardening.conf && systemctl reload ssh
+  sshd -T | grep -E '^(passwordauthentication|permitrootlogin) '
+  ```
+
+  Password login is back as the cloud image had it. Do not deploy that box again until the cause is fixed — the deploy turns it off again.
+- **B — every session lost: the hosting provider's web console.** It logs in as `root` with the **root password**. The console is not SSH, so this change does not affect it. Run the same two commands there, or fix `/root/.ssh/authorized_keys`. Check that you can still open and log into the console **before** you need it.
+
+**Avoid locking yourself out by accident.** Ad-hoc logins with several keys in the agent spend one failed try per key, and enough of them gets your address banned by fail2ban (below). Pin each box to its key in `~/.ssh/config` (an alias of your choice, the address from your env file):
+
+```
+Host <alias-for-a-box>
+    HostName <box-address>
+    User root
+    IdentityFile ~/.ssh/geoconflict-game
+    IdentitiesOnly yes
+```
+
+⚠️ **A lost private key or passphrase now means console-only access** to that box. Keep both keys and their passphrases backed up in the password manager.
+
+⚠️ On a password-path game deploy (if one ever reaches a box) the host setup step is **skipped** — it never logs in as `root` by password — so the deploy ends with `GAME HOST SETUP SKIPPED: no SSH key …` and exit code 3 (owner ruling, task 0443).
 
 ### Replace or rotate a key
 
-Box by box: install the new key (`ssh-copy-id` as above), run the check with the new key, point the env file at it and deploy once. Only then remove the old key's line from `~/.ssh/authorized_keys` on the box — keep a second session open while you edit that file.
+Box by box: install the new key (from a working key session or the web console, as above), run the check with the new key, point the env file at it and deploy once. Only then remove the old key's line from `~/.ssh/authorized_keys` on the box — keep a second session open while you edit that file.
 
 ### If you get banned (fail2ban)
 
@@ -174,7 +210,7 @@ This section names no host, address, token or chat id.
 | `🚨 fail2ban DOWN · <box>` (`not running` / `jail missing` / `not installed`) | Two checks in a row (5 minutes apart) found fail2ban not guarding SSH. One bad check alone (a restart during a deploy) never alerts. | `systemctl status fail2ban` and `fail2ban-client status sshd` on the box. A rebuilt game box with no fail2ban reads `not installed` (task 0446 will install it from the scripts). |
 | `🚨 fail2ban STILL DOWN · <box>` | Reminder, every 12 h while it stays down. | As above. |
 | `✅ fail2ban back · <box>` | It is running again. | Nothing. |
-| `🛡 SSH security · daily` (08:10 UTC) | One line per box: failed logins, unknown-user tries and fail2ban bans over the 24 h before that box's 08:00 UTC report, plus fail2ban's state. | Read it. **`NO REPORT` means the numbers are unknown, never zero** — that box's agent is not reporting (not deployed yet, root step not done, box down, or its spool cannot reach the profile box). `UNREADABLE` means that count could not be read. `ban log covers less than 24 h` means fail2ban's log was rotated or is new. `agent vN is outdated` means the box has not been deployed since the agent changed. `⚠️ OLD numbers from <time>` means that box's report for today has not arrived (yet) — the numbers shown are the previous report's. An unknown-user try that also sent a password counts in both of the first two numbers. |
+| `🛡 SSH security · daily` (08:10 UTC) | One line per box: failed logins, unknown-user tries and fail2ban bans over the 24 h before that box's 08:00 UTC report, plus fail2ban's state. | Read it. **Once a box has password login off (task 0442), its "failed logins" number drops sharply** — password guesses no longer reach a password check, so sshd logs no `Failed password` line for them. The unknown-user count carries on. That drop is expected, not a fault. **`NO REPORT` means the numbers are unknown, never zero** — that box's agent is not reporting (not deployed yet, root step not done, box down, or its spool cannot reach the profile box). `UNREADABLE` means that count could not be read. `ban log covers less than 24 h` means fail2ban's log was rotated or is new. `agent vN is outdated` means the box has not been deployed since the agent changed. `⚠️ OLD numbers from <time>` means that box's report for today has not arrived (yet) — the numbers shown are the previous report's. An unknown-user try that also sent a password counts in both of the first two numbers. |
 | `⚠️ N SSH alert message(s) could not be sent to Telegram since the last digest` (a line in the daily message) | The profile box accepted those alerts but Telegram (or its proxy) refused or was unreachable even after one retry. **They are lost** — the box that sent them already counts them as delivered. | Look at the profile box's container log (`ssh alerts: … NOT delivered`) for the result code; check the Telegram proxy. |
 | `⚠️ SSH alerts · <box>: N alert(s) could not be delivered within 24 h` | The box kept alerts it could not deliver and gave up after 24 h. | Look at that box's `/var/log/geoconflict-ssh-alerts.log` for the HTTP code (meanings under *Test it on purpose*). |
 | `🧪 SSH alerts test · <box>` | You ran the test. | Nothing. |
@@ -187,7 +223,7 @@ This section names no host, address, token or chat id.
 
 - **Profile box:** `setup-profile.sh` (every `npm run deploy:profile`) — agent, the route `POST /internal/v1/ssh-alerts/events`, and the 08:10 UTC digest cron line.
 - **Telemetry box:** `setup-telemetry.sh` (every `npm run deploy:telemetry`). Its relay address is derived from `TELEMETRY_ALERT_PROBE_URL` (the path `/internal/v1/alerts/webhook` removed); a value of any other shape skips the install with a warning.
-- **Game boxes:** every game deploy's root step, `setup-game-host.sh`, after the game container is up. Needs the game key installed for `root` (section 7). The final banner says `GAME HOST SETUP OK`, or — exit code 3, the game is live either way — `SKIPPED` (no key / password path, blank `PROFILE_SSH_ALERT_TOKEN`, blank `PROFILE_API_URL`) or `FAILED` (root login refused or box unreachable → section 7's `ssh-add` / root key; or a setup section failed → its output is just above the banner). A rebuilt or restored game box gets the agent back on its next deploy; until then the digest shows it as `NO REPORT` or `outdated`.
+- **Game boxes:** every game deploy's root step, `setup-game-host.sh`, after the game container is up. Needs the game key installed for `root` (section 7). The final banner says `GAME HOST SETUP OK`, or — exit code 3, the game is live either way — `SKIPPED` (no key / password path; or a blank `PROFILE_SSH_ALERT_TOKEN` / `PROFILE_API_URL`, where the root step still runs and its `sshd` section still applies, but the alerts section is skipped) or `FAILED` (root login refused or box unreachable → section 7's `ssh-add` / root key; or a setup section failed — `ssh-alerts`, or `sshd`, the password-login hardening of section 7 → its output is just above the banner). A rebuilt or restored game box gets the agent back on its next deploy; until then the digest shows it as `NO REPORT` or `outdated`.
 
 **The token.** One value, `PROFILE_SSH_ALERT_TOKEN` (create it once with `openssl rand -hex 32`), in all three gitignored secret files: `.env.secret` (game), `.env.profile.secret`, `.env.telemetry.secret`. Each box stores it 0600 and reuses it on a deploy that does not supply it. **No box ever generates it** — a value only one box knew would make the profile box reject that box's alerts. To rotate: change it in all three files and deploy the profile box first, then the others (their alerts wait in the spool, up to 24 h, until they are redeployed).
 

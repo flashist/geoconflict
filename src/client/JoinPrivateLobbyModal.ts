@@ -12,6 +12,12 @@ import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { renderCitizenBadge } from "./CitizenBadge";
 import { JoinLobbyEvent } from "./Main";
+import {
+  PrivateLobbyInviteKind,
+  logPrivateLobbyJoinFailed,
+  logPrivateLobbyJoined,
+  logPrivateLobbyLeft,
+} from "./PrivateLobbyAnalytics";
 import { beginJoiningLobby } from "./StartScreenPresence";
 import "./components/baseComponents/Button";
 import "./components/baseComponents/Modal";
@@ -175,7 +181,7 @@ export class JoinPrivateLobbyModal extends LitElement {
             ? html` <o-button
                 label=${translateText("private_lobby.join_lobby")}
                 block
-                @click=${this.joinLobby}
+                @click=${() => this.joinLobby("Code")}
               ></o-button>`
             : ""}
         </div>
@@ -195,7 +201,9 @@ export class JoinPrivateLobbyModal extends LitElement {
     this.modalEl?.open();
     if (id) {
       this.setLobbyId(id);
-      this.joinLobby();
+      // Task 0451: opened with a code = an invite link (Yandex payload or
+      // standalone #join=).
+      this.joinLobby("Link");
     }
   }
 
@@ -216,6 +224,7 @@ export class JoinPrivateLobbyModal extends LitElement {
     if (!wasJoined) {
       return;
     }
+    logPrivateLobbyLeft("Guest");
     this.dispatchEvent(
       new CustomEvent("leave-lobby", {
         detail: { lobby: lobbyId },
@@ -311,7 +320,8 @@ export class JoinPrivateLobbyModal extends LitElement {
     }
   }
 
-  private async joinLobby(): Promise<void> {
+  // Task 0451: `via` is how this join began, for PrivateLobby:Joined:{Link|Code}.
+  private async joinLobby(via: PrivateLobbyInviteKind): Promise<void> {
     // Task 0389: whatever was typed or pasted becomes the code — spaces and
     // dashes dropped, any case — before the worker path is worked out from it
     // (ADR-109: the path is a case-sensitive hash of the id).
@@ -335,32 +345,44 @@ export class JoinPrivateLobbyModal extends LitElement {
     // Task 0374: the mark ends when the lookup settles or when the window
     // closes, whichever comes first.
     const endJoining = this.beginJoiningMark();
+    // Task 0451 (review R1): JoinFailed:NotFound means our worker itself said
+    // this lobby does not exist. The archive lookup after it cannot tell us:
+    // with archiving off (ADR-104) it reaches the site's page fallback, which
+    // answers 200 HTML, so it ends in "error" or a throw. Counting only — the
+    // player's message below is unchanged.
+    let workerSaidNotFound = false;
 
     try {
       // First, check if the game exists in active lobbies
-      const gameExists = await this.checkActiveLobby(lobbyId, generation);
-      if (gameExists || this.isClosedSince(generation)) return;
+      const active = await this.checkActiveLobby(lobbyId, generation, via);
+      if (active === "joined" || this.isClosedSince(generation)) return;
+      workerSaidNotFound = active === "not_found";
 
       // If not active, check archived games
       const archived = await this.checkArchivedGame(lobbyId, generation);
       if (this.isClosedSince(generation)) return;
+      // Task 0451: the replay ("success") and an archived game of another
+      // version are not failed lobby joins, so they send no JoinFailed.
       switch (archived) {
         case "success":
           return;
         case "not_found":
           this.message = `${translateText("private_lobby.not_found")}`;
+          logPrivateLobbyJoinFailed("NotFound");
           return;
         case "version_mismatch":
           this.message = `${translateText("private_lobby.version_mismatch")}`;
           return;
         case "error":
           this.message = `${translateText("private_lobby.error")}`;
+          logPrivateLobbyJoinFailed(workerSaidNotFound ? "NotFound" : "Error");
           return;
       }
     } catch (error) {
       console.error("Error checking lobby existence:", error);
       if (this.isClosedSince(generation)) return;
       this.message = `${translateText("private_lobby.error")}`;
+      logPrivateLobbyJoinFailed(workerSaidNotFound ? "NotFound" : "Error");
     } finally {
       endJoining();
     }
@@ -369,7 +391,8 @@ export class JoinPrivateLobbyModal extends LitElement {
   private async checkActiveLobby(
     lobbyId: string,
     generation: number,
-  ): Promise<boolean> {
+    via: PrivateLobbyInviteKind,
+  ): Promise<"joined" | "not_found" | "unknown"> {
     const config = await getServerConfigFromClient();
     const url = `/${config.workerPath(lobbyId)}/api/game/${lobbyId}/exists`;
 
@@ -381,12 +404,17 @@ export class JoinPrivateLobbyModal extends LitElement {
     const gameInfo = await response.json();
     // Task 0327: the window was closed while this check was in flight.
     if (this.isClosedSince(generation)) {
-      return false;
+      return "unknown";
     }
 
     if (gameInfo.exists) {
       this.message = translateText("private_lobby.joined_waiting");
+      // Task 0451: two overlapping lookups in one opening count one join.
+      const firstJoin = !this.hasJoined;
       this.hasJoined = true;
+      if (firstJoin) {
+        logPrivateLobbyJoined(via);
+      }
 
       this.dispatchEvent(
         new CustomEvent("join-lobby", {
@@ -400,10 +428,12 @@ export class JoinPrivateLobbyModal extends LitElement {
       );
 
       this.playersInterval = setInterval(() => this.pollPlayers(), 1000);
-      return true;
+      return "joined";
     }
 
-    return false;
+    // Task 0451 (review R2): only an OK reply that says `exists: false` is
+    // "the lobby does not exist"; an HTTP error with a JSON body is not.
+    return response.ok && gameInfo.exists === false ? "not_found" : "unknown";
   }
 
   private async checkArchivedGame(

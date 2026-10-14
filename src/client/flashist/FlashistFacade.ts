@@ -373,6 +373,41 @@ export const flashistConstants = {
     // Requested with no outcome at all.
     PROFILE_LOGIN_RESTART_SUPPRESSED_NO_STORAGE:
       "Profile:Login:Restart:Suppressed:NoStorage",
+
+    // Private-lobby usage funnel (task 0451), all fired through
+    // PrivateLobbyAnalytics.ts. One per player action, never on a timer; no
+    // lobby code, link or id ever goes into a name or a value.
+    // Host window: the create request answered OK while the window was still
+    // open / the create request failed.
+    PRIVATE_LOBBY_CREATED: "PrivateLobby:Created",
+    PRIVATE_LOBBY_CREATE_FAILED: "PrivateLobby:CreateFailed",
+    // The host's first successful invite copy in this opening of the window:
+    // Link = a link was copied, Code = the bare code. Failed = the first copy
+    // that failed (task 0380's copy-failed state), latched on its own.
+    PRIVATE_LOBBY_INVITE_COPIED_LINK: "PrivateLobby:InviteCopied:Link",
+    PRIVATE_LOBBY_INVITE_COPIED_CODE: "PrivateLobby:InviteCopied:Code",
+    PRIVATE_LOBBY_INVITE_COPY_FAILED: "PrivateLobby:InviteCopyFailed",
+    // Start let through (a second tap while starting is ignored) / Start
+    // failed, value = HTTP status, 0 when the request threw.
+    PRIVATE_LOBBY_START_TAPPED: "PrivateLobby:Start:Tapped",
+    PRIVATE_LOBBY_START_FAILED: "PrivateLobby:Start:Failed",
+    // A fresh private match start (never a reconnect or a replay), fired right
+    // after Game:Start and Game:Mode:Multiplayer, which keep their meaning.
+    PRIVATE_LOBBY_MATCH_STARTED_HOST: "PrivateLobby:MatchStarted:Host",
+    PRIVATE_LOBBY_MATCH_STARTED_GUEST: "PrivateLobby:MatchStarted:Guest",
+    // That match ended (a finish or a leave), value = match seconds, beside
+    // Match:Duration.
+    PRIVATE_LOBBY_MATCH_ENDED: "PrivateLobby:MatchEnded",
+    // The player closed the lobby window themselves while in the lobby.
+    PRIVATE_LOBBY_LEFT_HOST: "PrivateLobby:Left:Host",
+    PRIVATE_LOBBY_LEFT_GUEST: "PrivateLobby:Left:Guest",
+    // A guest's join was sent: Link = the window opened with a code (invite
+    // payload or #join=), Code = typed or pasted, then Join pressed.
+    PRIVATE_LOBBY_JOINED_LINK: "PrivateLobby:Joined:Link",
+    PRIVATE_LOBBY_JOINED_CODE: "PrivateLobby:Joined:Code",
+    // A guest's lookup found no such lobby / errored (network or HTTP).
+    PRIVATE_LOBBY_JOIN_FAILED_NOT_FOUND: "PrivateLobby:JoinFailed:NotFound",
+    PRIVATE_LOBBY_JOIN_FAILED_ERROR: "PrivateLobby:JoinFailed:Error",
   },
 
   uiElementIds: {
