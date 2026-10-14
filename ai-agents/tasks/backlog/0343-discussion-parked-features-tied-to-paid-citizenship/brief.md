@@ -210,7 +210,7 @@ links.
 
 **Known dependencies / related work.** Closely tied to S3 match archival, already citizen-gated:
 [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — match archiving postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item D moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item D is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item D), and
-[`0292`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md). The prose makes it wait on "Task 11's
+[`0292`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md). The prose makes it wait on "Task 11's
 premium tier" — Task 11 is the coin economy, **item G of this brief** (moved here from `0342` by owner ruling C).
 
 **To discuss:**

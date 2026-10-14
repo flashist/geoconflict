@@ -30,7 +30,7 @@ Sprint 8 build task that `0426`'s Timing rule waits on. ADR-035 forbids insertin
 appends after the highest (47, `0453`).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -64,7 +64,7 @@ generic error in local dev too.
 
 ### ⚠️ Overlap with backlog task `0292` — flagged, not acted on
 
-[`0292-client-archive-read-bypasses-archive-enabled-flag`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
+[`0292-client-archive-read-bypasses-archive-enabled-flag`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
 (Backlog board, `🔲 Backlog`, unranked) already scopes **gating this exact archive read on `archiveEnabled()`**.
 Two things follow:
 
@@ -153,9 +153,9 @@ nothing else about the join flow changes.**
   deploy). This one is **player-visible**, so the news entry may mention it ("a wrong lobby code now says the lobby was
   not found").
 - **Related, not blockers:**
-  - [`0292`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) — overlap described in `## Context`;
+  - [`0292`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) — overlap described in `## Context`;
     the recommended fix does its whole job.
-  - [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) — switches archiving back on someday; whatever this task
+  - [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) — switches archiving back on someday; whatever this task
     decides for a non-JSON archive answer is what `0030` inherits. Whoever does `0030` should read this brief.
   - ADR-104 (archiving disabled until S3 + citizen gating) — this task completes its client-read leg if the gate is
     chosen.

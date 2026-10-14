@@ -195,6 +195,20 @@ reflects that.
 - 📎 **Split out of [`0224`](../../done/0224-gameanalytics-per-user-event-limit-exceeded/brief.md)'s Q3**,
   which was ruled *deferred, not fixed* on 2026-09-06. ⛔ **`0224` was not modified by this filing
   beyond a cross-reference** — its own record of the deferral stands.
+- 📌 **2026-10-14 — a new reason this matters, from
+  [`0456`](../../done/0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)'s
+  [findings report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md)
+  (§8, §12 row E).** **The repository is public** (`gh repo view` → `PUBLIC`, re-checked 2026-10-14). So the fail-open
+  default is not only a risk from *our* stray builds: **anyone** who checks out an old commit and makes a production build
+  outside `build.sh` gets a build that reports into our GameAnalytics under that commit's build string, and
+  GameAnalytics cannot tell it from our own build of that version. `0456` could not determine whether any of the
+  October spike traffic came this way (report §11, hypothesis 2). Every commit already pushed keeps the old default
+  whatever this task does; a fix here only covers commits made after it.
+  **OWNER RULING, 2026-10-14**, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+  `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim selection: **"Leave it where it
+  is (Recommended)"** — option text: *"You prefer not to change analytics now; it stays a separate Backlog task, with
+  this new reason noted on it."* ⇒ **Status, board and placement unchanged** (`🔲 Backlog`, Backlog board); this note is
+  the only edit.
 - **Do not invoke the mover skills.** Producer-only since ADR-033 — route the close to the producer.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.
 - 🔒 **No secrets in any artifact** — names and `file:line` only, never values.

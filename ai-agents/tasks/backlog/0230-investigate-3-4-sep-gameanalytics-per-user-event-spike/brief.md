@@ -42,10 +42,29 @@ anything.** The same quiet is what prompted this deferral.
 
 ---
 
-### 📌 2026-10-14 — TO BE CANCELLED AS ABSORBED BY `0456` WHEN `0456` CLOSES — conditional. Not cancelled yet.
+### 📌 2026-10-14 (at `0456`'s close) — NOT CANCELLED, by OWNER RULING. Stays open on the Backlog board.
+
+- **OWNER RULING, 2026-10-14**, live `AskUserQuestion` in the `fkit lead` session (driver of `fkit-sprint-ship-loop`),
+  relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer
+  precedent.** Verbatim selection: **"Not answered: keep 0230 open (Recommended)"** — option text: *"0230 stays on
+  Backlog, noting the re-send explanation as its open lead; the new monitoring task covers future spikes."*
+- **Why:** [`0456`](../../done/0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md) closed 2026-10-14 (agent-closed) with its
+  [findings report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md). Its §11 marks hypothesis 1 **refuted**, 2 **refuted only as worded** (the channel itself is
+  open — `0226`), 4 **confirmed only as "outside 1–3 as worded"**, and **hypothesis 3 OPEN** on its broad reading
+  (*any* client-side repeat of the session-block events). So not all four are answered, and the conditional cancel
+  below did not fire.
+- **Open lead — NOT proven:** the GameAnalytics SDK **re-sending events already in a browser's queue**, a queue shared
+  by all our builds, which would also explain the old build strings (report §7, §10, §11). On the big spike days
+  (12 Oct, 26 Sep, 4 Sep, 9 Sep) sessions stayed normal, so the extra events were **not new page loads**. Not proven:
+  it needs GameAnalytics to keep duplicates and date them by arrival, and the rate is unexplained; which browser(s)
+  or source drives it was **not identified**. ⛔ Not to be written down as the cause.
+- **Future spikes** are logged by [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md) (Backlog board, monitoring only). Status here unchanged: `🔲 Backlog`.
+- The *"do not start separately while `0456` is open"* line in the struck section below has lapsed — `0456` is closed.
+
+### ~~📌 2026-10-14 — TO BE CANCELLED AS ABSORBED BY `0456` WHEN `0456` CLOSES — conditional. Not cancelled yet.~~ *(Superseded 2026-10-14 by the section above — the condition was not met; kept as history.)*
 
 - **The problem repeated:** the GameAnalytics 500-events-per-user-per-day banner was seen again on 2026-10-14 (a banner,
-  not yet a measured figure). [`0456`](../0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
+  not yet a measured figure). [`0456`](../../done/0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
   (Sprint 8) investigates the same limit and takes this task's four hypotheses and two data caveats as its starting
   list.
 - **OWNER RULING, 2026-10-14**, given live via `AskUserQuestion` in the `fkit lead` session (driver of
@@ -353,9 +372,13 @@ found. See `0224`'s closing note §4.
 
 ## Notes
 
-- 📌 **2026-10-14 — to be cancelled as absorbed by [`0456`](../0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
+- 📌 **2026-10-14 — NOT cancelled, by OWNER RULING** *"Not answered: keep 0230 open (Recommended)"* (relayed by
+  `fkit-lead`; ⛔ not producer precedent). Hypothesis 3 stays **open**; leading lead (**not proven**): the GameAnalytics
+  SDK re-sending queued events — [`0456`'s report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md) §7, §10, §11. Future spikes: [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md). Full note: the
+  first 📌 section under `## Sprint`.
+- ~~📌 **2026-10-14 — to be cancelled as absorbed by [`0456`](../../done/0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
   when `0456` closes**, by OWNER RULING *"Absorb, cancel at 0456 close (Recommended)"* — conditional on `0456`'s report
-  marking all four hypotheses confirmed or refuted. Full ruling and condition: the 📌 note under `## Sprint`.
+  marking all four hypotheses confirmed or refuted. Full ruling and condition: the 📌 note under `## Sprint`.~~ *(Superseded 2026-10-14 — condition not met; see the bullet above.)*
 - **Depends on:** nothing. Startable immediately — it reads data and code, and needs no other task to
   land first.
 - **Blocks:** nothing formally. ⚠️ But any future decision about the per-user event budget rests on

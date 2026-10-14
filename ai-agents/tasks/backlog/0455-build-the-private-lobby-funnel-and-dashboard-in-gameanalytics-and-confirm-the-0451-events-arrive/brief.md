@@ -71,7 +71,7 @@ Side counts, not funnel steps: `CreateFailed`, `InviteCopyFailed`, `JoinFailed:{
 - `Joined:*` = the join was **sent**, not confirmed connected.
 - `Joined:Link` can come from players whose private row is hidden (an invite always opens the Join window), so it is
   not limited to the flag cohort.
-- A wrong code counts as `JoinFailed:NotFound`; until [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md)
+- A wrong code counts as `JoinFailed:NotFound`; until [`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md)
   ships, the player still sees a generic error for it. `0454` changes what the player sees, not this event.
 - A tab close, a kick and a hash-change leave send no `Left`.
 
@@ -140,7 +140,7 @@ names, counts, dates, times and the names of saved funnels/dashboards only.
   deploy. This task ships no code, so `0426` does not wait on it.
 - **Related:** [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
   (the model: a GameAnalytics read in the owner's Chrome),
-  [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (changes what a player
+  [`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (changes what a player
   sees for a wrong code; if it ships in a different deploy than `0451`, note which deploys fall in the read window).
 - **One task, not two:** "confirm the events arrive" and "build the funnel" are one session on the same data in the same
   tool, and the funnel is meaningless until the events are confirmed — the check is the funnel's first step, not a

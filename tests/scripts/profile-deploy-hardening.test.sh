@@ -1811,6 +1811,14 @@ KEY_BRANCH=$(awk '/^if \[ -n "\$SSH_KEY_PATH" \]; then$/{b=1; next} b && /^elif/
 n_ido=$(printf '%s\n' "$KEY_BRANCH" | grep -c 'IdentitiesOnly=yes' || true)
 [ "${n_ido:-0}" = "2" ] && pass "build-deploy-profile.sh: -o IdentitiesOnly=yes on both SCP_CMD and SSH_CMD in the key branch" \
   || fail "build-deploy-profile.sh: IdentitiesOnly=yes appears $n_ido time(s) in the key branch, expected 2 (a multi-key agent can self-ban)"
+# Task 0453 (mirror of 0442 R1): the key branch turns password + keyboard-interactive auth off on
+# both commands, so a rejected key can never become a typed password that is still staged as
+# PROFILE_DEPLOY_SSH_AUTH=key (setup-profile.sh's guard 0 trusts that value). Comment lines are
+# dropped first: this KEY_BRANCH extraction keeps them, and a comment quoting the pair must not
+# fake a pass. (key_branch()/every_call_has() are defined further down the file, so not usable here.)
+n_pwno=$(printf '%s\n' "$KEY_BRANCH" | grep -v '^[[:space:]]*#' | grep -c -- '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' || true)
+[ "${n_pwno:-0}" = "2" ] && pass "build-deploy-profile.sh: password + keyboard-interactive off on both SCP_CMD and SSH_CMD in the key branch (0453)" \
+  || fail "build-deploy-profile.sh: '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' appears ${n_pwno:-0} time(s) in the key branch (outside comments), expected 2 — a rejected key could fall back to a typed password"
 # checks.sh (0219's script, one added check per the Q1 ruling): reads the reboot-required marker.
 grep -q 'REBOOT_REQUIRED_FILE="${PROFILE_CHECKS_REBOOT_REQUIRED_FILE:-/var/run/reboot-required}"' "$C" \
   && grep -q '^check_reboot_required$' "$C" \
@@ -1836,6 +1844,16 @@ got=$( . "$WORK/staged.env" >/dev/null 2>&1; printf '%s' "${PROFILE_DEPLOY_SSH_A
   || fail "staged env: expected PROFILE_DEPLOY_SSH_AUTH=key, got '$got'"
 grep -q 'IdentitiesOnly=yes' "$WORK/ssh.argv" 2>/dev/null && pass "key-mode ssh argv carries IdentitiesOnly=yes (Q7, driven not grepped)" \
   || fail "key-mode ssh argv lacks IdentitiesOnly=yes"
+# Task 0453 (mirror of 0442 R1), driven: EVERY ssh and scp call of the key-mode deploy — the
+# preflight included — carries both options, and there is at least one such call. Same logic as
+# every_call_has(), inlined because that helper is defined further down the file.
+for tool in ssh scp; do
+  total=$(grep -c "^$tool " "$WORK/$tool.argv" 2>/dev/null || true); total=${total:-0}
+  good=$(grep "^$tool " "$WORK/$tool.argv" 2>/dev/null | grep -cF -- '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' || true); good=${good:-0}
+  [ "$total" -gt 0 ] && [ "$total" = "$good" ] \
+    && pass "key-mode: every $tool call carries -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no ($total calls, 0453)" \
+    || fail "key-mode: $good of $total $tool call(s) carry '-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no' — a rejected key could fall back to a typed password (see $WORK/$tool.argv)"
+done
 GUARD0=$(awk '/^print_header "HARDENING SSHD"$/{b=1; next} /^# Guard 1:/{exit} b{print}' "$P")
 [ -n "$GUARD0" ] && printf '%s\n' "$GUARD0" | grep -q 'PROFILE_DEPLOY_SSH_AUTH' \
   && pass "sshd: guard 0 (auth mode) sits FIRST in the section, before the authorized_keys guard" \

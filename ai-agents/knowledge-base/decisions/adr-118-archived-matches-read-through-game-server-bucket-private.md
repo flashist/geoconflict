@@ -33,7 +33,7 @@ What the code does today (working tree, read 2026-10-03):
   `src/client/JoinPrivateLobbyModal.ts:300` — `fetch(`` `${getApiBase()}/game/${lobbyId}` ``)` inside
   `checkArchivedGame()`. `getApiBase()` resolves from the runtime config's `apiBaseUrl` or `jwtIssuer`
   (`src/client/jwt.ts:88-98`). It is not behind `archiveEnabled()`; task
-  [`0292`](../../tasks/backlog/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) tracks
+  [`0292`](../../tasks/cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) tracks
   repointing it. *(Line drift: `0292`'s brief cites `:245`; the call is at `:300` today.)*
 - **The server write** posts to the same API root: `src/server/Archive.ts:32` builds
   `` `${config.jwtIssuer()}/game/<id>` `` and POSTs, behind the `archiveEnabled()` early return at
@@ -135,7 +135,7 @@ ADR's — see *Open points*.
 
 - Task brief: [`0030-archive-s3-backed-citizen-gated`](../../tasks/backlog/0030-archive-s3-backed-citizen-gated/brief.md)
   — *"🗓️ OWNER RULINGS 2026-10-03"*, ruling 3.
-- Task brief: [`0292-client-archive-read-bypasses-archive-enabled-flag`](../../tasks/backlog/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
+- Task brief: [`0292-client-archive-read-bypasses-archive-enabled-flag`](../../tasks/cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
 - [ADR-104](adr-104-match-archiving-disabled-until-s3-citizen-gated.md) — archiving disabled behind
   `archiveEnabled()` until this work ships.
 - [ADR-103](adr-103-identity-trust-seam-client-asserted-yandex-id.md),

@@ -519,11 +519,19 @@ if [ -n "$SSH_KEY_PATH" ]; then
     # IdentitiesOnly (0221): offer ONLY this key. With several keys in the agent ssh tries each
     # in turn, and every rejected key is a failed auth to sshd — enough of them trips the box's
     # fail2ban jail (5 in 10 min) and bans the operator. 0215 already met a wrong-key-first case.
-    SCP_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
-    SSH_CMD+=(-o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    # PasswordAuthentication=no + KbdInteractiveAuthentication=no (task 0453, mirror of
+    # build-deploy-telemetry.sh's 0442 R1): the key path never falls back to a typed password or
+    # keyboard-interactive prompt. Without them a rejected key (wrong path, rotated key) let ssh
+    # prompt for the root password, and a deploy the operator typed it into still went out
+    # labelled `key` below — passing setup-profile.sh's guard 0. Harmless while the box refuses
+    # passwords (0221), but not after a console re-enable. Now a rejected key fails the preflight
+    # at once. No BatchMode: a passphrase prompt for THIS key is key auth.
+    SCP_CMD+=(-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
+    SSH_CMD+=(-o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o IdentitiesOnly=yes -i "$SSH_KEY_PATH")
     # Staged for setup-profile.sh's sshd section (0221 R1): it refuses to turn password auth
     # off on a deploy that came in over the password fallback, since that operator may not
-    # hold the on-box key.
+    # hold the on-box key. `key` is true by construction: the options above leave this session
+    # no way in but the key.
     DEPLOY_SSH_AUTH=key
 elif [ -n "$SSH_PASSWORD" ]; then
     # ⚠️ Dead against a PROVISIONED profile box since task 0221: setup-profile.sh sets

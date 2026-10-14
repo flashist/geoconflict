@@ -25,7 +25,7 @@ less urgent: it is harmless while the profile box refuses passwords (`0221`), an
 inserting a new row above closed rows, so it appends after the highest (46, `0452`).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

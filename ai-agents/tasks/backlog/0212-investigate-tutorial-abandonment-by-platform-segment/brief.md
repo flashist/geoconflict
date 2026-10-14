@@ -55,7 +55,7 @@ dashboard. No agent can reach it otherwise — Phase 1 is not runnable from the 
 
 ### The finding — real production data, read from the dashboard 2026-09-04
 
-Source: GameAnalytics, game `330439` ("Geoconfclict Yandex Games"), **Design events, Count
+Source: GameAnalytics, the game's dashboard ("Geoconfclict Yandex Games"), **Design events, Count
 aggregation, past 30 days (5 Aug – 3 Sep 2026)**. Read directly by the lead session.
 
 | Event | Count |

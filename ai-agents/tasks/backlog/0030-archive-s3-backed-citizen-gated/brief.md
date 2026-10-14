@@ -200,7 +200,7 @@ session, relayed by `fkit-lead` to a spawned `fkit-producer` with **no owner cha
    for a new bucket.** ⇒ The key needs **Put / Get / List / Delete on this bucket only.**
 3. **Read path — players read archived matches THROUGH THE GAME SERVER.** The bucket stays **private**;
    **no CORS** is needed. 📐 The architect flagged this as **ADR-worthy**. ⚠️ **No ADR is written yet.**
-   *(Bears on [`0292`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) below: the
+   *(Bears on [`0292`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md) below: the
    client read goes to the game server, not to the bucket.)*
 4. **Dev — prod only for now.** Dev `STORAGE_*` **stays blank.** Allowed: the config-parity guard checks
    values on **prod only**.
@@ -354,7 +354,7 @@ for a later sync — ⛔ never edit `ai-agents/wiki-vault/` from here.
 ### 📌 ALSO FILED 2026-09-22 — a live client read this task must eventually repoint
 
 Not a blocker, and **not** a change to the two-blocker count above.
-[`0292-client-archive-read-bypasses-archive-enabled-flag`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
+[`0292-client-archive-read-bypasses-archive-enabled-flag`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md)
 covers `src/client/JoinPrivateLobbyModal.ts:245`, which fetches `${getApiBase()}/game/<lobbyId>` and
 is **not** behind `archiveEnabled()` — so `0159`/ADR-104 darkened the **server** archive leg and left
 this **client** read live. It is benign today (404, handled as `"not_found"`), but it is the read that

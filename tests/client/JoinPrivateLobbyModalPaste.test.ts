@@ -20,7 +20,7 @@ jest.mock("../../src/client/jwt", () => ({ getApiBase: () => "/api" }));
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
   getServerConfigFromClient: jest
     .fn()
-    .mockResolvedValue({ workerPath: () => "w1" }),
+    .mockResolvedValue({ workerPath: () => "w1", archiveEnabled: () => false }),
 }));
 // Schemas pulls in jose, which needs a TextEncoder jsdom lacks. Same stub as
 // tests/client/JoinPrivateLobbyModalLeave.test.ts.

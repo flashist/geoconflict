@@ -6,7 +6,7 @@
 > ℹ️ **ID allocation, checked 2026-10-11 before filing** (method:
 > [`task-id-allocation.md`](../../../knowledge-base/conventions/task-id-allocation.md)). Highest across `backlog/`,
 > `done/` and `cancelled/` before this run: `0438`. `0439`: no task folder, no `## ID` hit, no task reference in
-> `ai-agents/` or `.claude/` (the only string hits are inside the GameAnalytics game number `330439`, not a task), and no
+> `ai-agents/` or `.claude/` (the only string hits are inside the GameAnalytics game number (removed by `0459`), not a task), and no
 > `tasks/*/0439` path in any branch's history.
 
 ## Sprint

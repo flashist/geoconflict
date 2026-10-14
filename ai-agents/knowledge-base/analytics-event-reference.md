@@ -490,7 +490,7 @@ window's 1 s player poll sends no event.
 | `PRIVATE_LOBBY_LEFT_GUEST` | `PrivateLobby:Left:Guest` | A guest closes the Join window themselves while in the lobby | The match-start / programmatic closes and the standalone hash reset; a close before joining; a tab close | — |
 | `PRIVATE_LOBBY_JOINED_LINK` | `PrivateLobby:Joined:Link` | Join window (`JoinPrivateLobbyModal`): the lookup found the lobby, the window is still open, this opening had not joined yet — fires as `join-lobby` is sent. The window was opened **with a code**: a Yandex invite payload, or a standalone `#join=` link | The host (never goes through this window); the archived-game/replay branch; a second overlapping lookup in the same opening; a reconnect or a refresh back into a lobby (that rejoins through the reconnect banner); a Yandex invite seen again after a reload (`claimInviteCode` suppresses it) | — |
 | `PRIVATE_LOBBY_JOINED_CODE` | `PrivateLobby:Joined:Code` | As above, but the player typed or pasted the code and pressed Join | As above | — |
-| `PRIVATE_LOBBY_JOIN_FAILED_NOT_FOUND` | `PrivateLobby:JoinFailed:NotFound` | A guest's lookup says the lobby does not exist, window still open: our game worker's `/exists` answered OK with `exists: false` and the archive step after it did not open a replay (whether the archive then answered 404, an HTTP error, or the site's HTML page — the last is what production answers today, archiving being off, ADR-104), **or** the archive itself answered 404. Once per Join press — no latch. Counting only: the player's message is not changed by this (task 0451 review R1) | A text that is not a code at all (no lookup is made); the window closed mid-lookup; a replay that opened (archive found the game); a version mismatch | — |
+| `PRIVATE_LOBBY_JOIN_FAILED_NOT_FOUND` | `PrivateLobby:JoinFailed:NotFound` | A guest's lookup says the lobby does not exist, window still open: our game worker's `/exists` answered OK with `exists: false` and the archive step after it did not open a replay (whether the archive then answered 404, an HTTP error, or a page that is not JSON), **or** the archive itself answered 404. While archiving is off (ADR-104) there is no archive step, so production decides on the worker's answer alone (task 0454; before it, the archive was asked and answered the site's HTML page). Once per Join press — no latch. The player sees the matching "not found" line (task 0454; before it, the generic error line) | A text that is not a code at all (no lookup is made); the window closed mid-lookup; a replay that opened (archive found the game); a version mismatch | — |
 | `PRIVATE_LOBBY_JOIN_FAILED_ERROR` | `PrivateLobby:JoinFailed:Error` | A guest's lookup errored, window still open: the worker's `/exists` failed — a network failure, a config-read error, an HTTP error (even with a JSON body), or a body that is not JSON — and the archive did not answer 404. Once per Join press — no latch | A wrong code the worker answered `exists: false` for (that is `NotFound`, see above); **a version mismatch** (an archived game from another build — not a failed lobby join); the window closed mid-lookup; a replay that opened (archive found the game) | — |
 
 > **Private-lobby funnel** (in order, and the event that marks each step):
@@ -515,14 +515,13 @@ window's 1 s player poll sends no event.
 >   reopens and rejoins (new clientID) — a second `Joined:Link`. It is a real rejoin. The Yandex build ignores `#join=`.
 > - **`Joined:*` = join sent, not confirmed connected.** There is no client-side "lobby joined" confirmation before the
 >   match starts.
-> - **`JoinFailed:NotFound` is decided by our worker's `exists: false`, not by the archive.** A wrong code is first
->   checked against live lobbies, then against the game archive (`getApiBase()`/game/<code>). On production that archive
->   address answers **200 with the site's HTML page** (the Master's page fallback; archiving is off, ADR-104), so the
->   archive step throws. Checked on production in review R1 (2026-10-13). The count still reads `NotFound`, because
->   the worker already said the lobby does not exist. ⚠️ **The player still sees the generic error line, not "not
->   found"**, for a wrong code on production — pre-existing, left unchanged here (owner ruling 2026-10-13: a separate
->   task). Rare cost: if the worker said `exists: false` and the archive then fails for a real network reason, that
->   press counts `NotFound`, not `Error`.
+> - **`JoinFailed:NotFound` is decided by our worker's `exists: false`, not by the archive.** A wrong code is checked
+>   against live lobbies. **While archiving is off (ADR-104) there is no archive step at all** — task 0454 put the
+>   archive lookup (`getApiBase()`/game/<code>) behind `archiveEnabled()`. Before 0454 that lookup ran and, on
+>   production, answered **200 with the site's HTML page** (the Master's page fallback), so it threw — checked in
+>   review R1 (2026-10-13). **The player's message now matches the event** (task 0454): `NotFound` shows the "not
+>   found" line, `Error` the generic error line. Once archiving is on again (task 0030), an archive answer that fails
+>   after the worker said `exists: false` still shows "not found" and counts `NotFound`, not `Error`.
 > - **A hash-change leave, a kick and a tab close** send no `Left`.
 > - **`InviteCopied` = "the host copied at least once"**, not the number of copies; if the host copies the code first
 >   and the link later, it counts as `Code`.

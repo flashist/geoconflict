@@ -27,13 +27,13 @@ Sprint 8
 > order is the owner's ruling, not the rank number: the ship loop takes this task next.**
 
 ## Status
-🔄 In progress (2026-10-14 — driven by `fkit-sprint-ship-loop`, fkit-lead session)
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
 
 > ⚠️ **Part 1 NEEDS THE OWNER'S BROWSER.** GameAnalytics is read through the owner's Chrome with the owner logged in
-> himself (like [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
+> himself (like [`0418`](../../backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
 > An agent may do the clicking and reading only with the owner present and logged in. **Read-only in GameAnalytics** —
 > nothing is saved, changed or exported there. Parts 2–3 (code read, report, fix plan) are the coder's alone.
 
@@ -70,13 +70,13 @@ only?) is **not known** — Part 1 records what GameAnalytics' own help text say
   could not fix the 4 Sep breach** — the categories that breached were not touched; a repeat of 4 Sep would still
   breach at roughly 235 %. Its expected new normal (**~62–81 events/user/day**) is **arithmetic, never measured** —
   its acceptance criteria 3 and 4 closed unmet. ⛔ Read its closing note §2–§4 before starting.
-- [`0230`](../0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md) (Backlog board, deferred,
+- [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md) (Backlog board, deferred,
   *"we will get back to it if the problem repeats"*): the investigation of the 3–4 Sep spike, **cause unknown**. Its
   four hypotheses (owner's dev testing · `DEPLOY_ENV` fail-open · a client re-entry that re-runs the session-start
   block · something else) and its two unreconciled data caveats (category split does not sum to the daily total;
   581.97 vs 378.86 mean) are **the starting list for Part 2**. ⚠️ **Whether this task absorbs `0230` is an open owner
   question** — see Notes. Until ruled, treat `0230`'s hypotheses as inputs here, and do not touch `0230`.
-- [`0226`](../0226-deploy-env-fails-open-to-prod-analytics/brief.md) (Backlog board, unfixed): GameAnalytics setup is
+- [`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md) (Backlog board, unfixed): GameAnalytics setup is
   gated on `DEPLOY_ENV === "prod"` with **one** key pair, and `Dockerfile` / `webpack.config.js` default to `prod`.
   Any build outside `build-deploy.sh` → `build.sh` writes into production analytics, indistinguishably. A live
   channel that could inflate the per-user count; **not evidence that it did.**
@@ -86,7 +86,7 @@ only?) is **not known** — Part 1 records what GameAnalytics' own help text say
   [`0228`](../../done/0228-handlejoinlobby-stale-gamestop-race/brief.md): leaked `PerformanceMonitor`s — all fixed
   (the desync site deliberately left running by owner ruling). A **leak that accumulates** multiplies `Performance`
   per user; confirm none is left, but ⛔ none of these explained the September session-category spike.
-- [`0229`](../0229-double-onjoin-constructs-a-second-clientgamerunner/brief.md) (Backlog board): a double `onJoin` can
+- [`0229`](../../backlog/0229-double-onjoin-constructs-a-second-clientgamerunner/brief.md) (Backlog board): a double `onJoin` can
   build a **second `ClientGameRunner`** — a duplicate-emitter candidate to check, nothing more.
 - Wiki `systems/analytics` § *The 500-Events-Per-Active-User-Per-Day Limit* and § *Gotchas*: the **double-reload**
   history (before HF-9 a refresh ran two full inits and **doubled** `Session:Start`, `Device:*`, `Platform:*`,
@@ -94,7 +94,7 @@ only?) is **not known** — Part 1 records what GameAnalytics' own help text say
   of the budget is design events; `Experiment:{flag}:{value}` names are built at runtime from Yandex flags (count and
   names can change with no deploy); design-event **cardinality** was trending up (~103 → 118 distinct names) and
   whether a cardinality limit applies was never settled.
-- [`0299`](../0299-tiered-ad-impression-analytics/brief.md) (Backlog board): plans per-tier ad-impression events — any
+- [`0299`](../../backlog/0299-tiered-ad-impression-analytics/brief.md) (Backlog board): plans per-tier ad-impression events — any
   fix plan must leave room for it.
 - **New events since September that the fix must budget for:** many tasks added events since 4 Sep (login, session
   status, worker init causes and more — see `ai-agents/knowledge-base/analytics-event-reference.md`). A new event that
@@ -223,11 +223,54 @@ Write `ai-agents/knowledge-base/reports/<YYYY-MM-DD>-0456-gameanalytics-per-user
 - **One brief, not several:** Part 1 (owner's browser) and Part 2 (code) feed one finding — the mechanism needs both,
   and neither is useful shipped alone. Part 2 may run while waiting for the owner's browser time. The fix is not split
   out yet because its shape is unknown until the findings exist; the plan gate decides.
-- 📌 **At close: cancel [`0230`](../0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md) as absorbed by
+- ✅ **CLOSED 2026-10-14 — `✅ Done (agent-closed — not owner-verified)`**, by a spawned `fkit-producer` (no owner
+  channel, ADR-021/037) via `/fkit-task-done`, at the end of its `fkit-sprint-ship-loop` step, relayed by `fkit-lead`.
+  **Investigation done; no code changed.** Deliverable: the
+  [findings report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md).
+  Verdict at its stated strength: breach day **12 Oct** (1,822.3 events per active user); on the big spike days the
+  excess was **extra copies of the once-per-page-load events and NOT new page loads** — session counts stayed normal;
+  **leading explanation: the GameAnalytics SDK re-sending events already queued, in a queue shared by all our builds —
+  NOT proven**; the source of the old-build-tagged events (~86.6 % of 12 Oct's extra `Platform` events) was **not
+  identified**. Normal days ~114 events per user, well under 500. GameAnalytics' docs: over the limit = an alert; they
+  do not say anything is dropped or throttled. An ephemeral `@fkit-reviewer` pass ran (coverage: reasoning-only second
+  opinion), and all ten findings R1–R10 were applied in the report's revision. **The plan's fix gate ended in "no code
+  fix"** by owner ruling 1 below, so acceptance criteria 5 and 8 (fix built here; live verify task) do not apply — no
+  fix and no verify task exist. ⚠️ Not owner-verified: no human checked this close.
+  **OWNER RULINGS, 2026-10-14**, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not
+  producer precedent:
+  1. **Fix path.** The owner wrote (verbatim, "Other" field): *"Do I understand correctly that you're saying that the
+     problem is not going to be repeated in tegular situations? If yes, I suggest adding a task to the backlog sprint
+     about monitoring the spikes in the future, but don't mention the proposed solutions there: to be honest, I don't
+     like the options of us "intruding" into the GameAnalytics logic of deduplication and filtering events from not
+     latest builds (the last one is a no-no, because we need to collect the events from all builds to be able to spot
+     any problems during releases)"*. After `fkit-lead`'s answer (normal days fine, ~114 per user; spikes very likely
+     to recur, ~10 since late August; docs say alert only, no data loss): **"Yes, file it in Backlog (Recommended)"** —
+     *"Monitoring only; no proposed solutions; nothing dropped or filtered."* (→
+     [`0458`](../../backlog/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md)) and **"Yes, close with the
+     report (Recommended)"** — *"A producer closes 0456 (agent-closed marker); I put the 0230/0226/game-ID questions to
+     you then."* ⇒ **No code fix, no follow-up fix task.** The report's §12 fix options stay in the report as analysis
+     only.
+  2. **`0230`** — see the next bullet (kept open).
+  3. **`0226`** — **"Leave it where it is (Recommended)"** — *"You prefer not to change analytics now; it stays a
+     separate Backlog task, with this new reason noted on it."* (→ dated note on
+     [`0226`](../../backlog/0226-deploy-env-fails-open-to-prod-analytics/brief.md): public repo.)
+  4. **Game ID** — question *"The numeric GameAnalytics game ID is written in 3 task files (backlog.md, 0212 brief, 0439
+     brief) of a public repo, against the 'no IDs in files' rule. File a small task to remove it?"* → **"File in
+     Sprint 8"** (→ [`0459`](../0459-remove-the-gameanalytics-game-id-from-tracked-task-files/brief.md)).
+- 📌 **2026-10-14, at `0456`'s close — `0230` is NOT cancelled, by OWNER RULING. This supersedes the *At close*
+  instruction in the next bullet (struck, kept as history).** Live `AskUserQuestion` in the `fkit lead` session, relayed
+  by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim
+  selection: **"Not answered: keep 0230 open (Recommended)"** — option text: *"0230 stays on Backlog, noting the re-send
+  explanation as its open lead; the new monitoring task covers future spikes."* Why: the
+  [report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md) §11 leaves
+  hypothesis 3 **open** on its broad reading — the leading lead is the GameAnalytics SDK re-sending queued events, **not
+  proven** (§7, §10). `0230` stays `🔲 Backlog` on the Backlog board; future spikes are logged by
+  [`0458`](../../backlog/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md).
+- ~~📌 **At close: cancel [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md) as absorbed by
   `0456` — only if the findings report marks all four of 0230's hypotheses confirmed/refuted; else back to the
   owner.** The producer closing `0456` runs `/fkit-task-cancelled` on `0230` in the same act, with a reason naming
   `0456` and this ruling. ⚠️ *Producer's reading, not the owner's:* hypothesis 4 (*"something else entirely"*) counts as
-  answered only if the report says plainly whether a mechanism outside 1–3 was found; if in doubt, back to the owner. **OWNER RULING, 2026-10-14**, live `AskUserQuestion` in the `fkit lead`
+  answered only if the report says plainly whether a mechanism outside 1–3 was found; if in doubt, back to the owner.~~ *(Superseded 2026-10-14 by the bullet above — not run.)* **OWNER RULING, 2026-10-14**, live `AskUserQuestion` in the `fkit lead`
   session (driver of `fkit-sprint-ship-loop`), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
   channel (ADR-021/037); ⛔ not producer precedent. Question: *"0230 (Backlog, September) investigated the 3–4 Sep spike
   of this same limit and never found the cause. 0456 looks at the same limit and starts from 0230's list of suspects.

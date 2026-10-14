@@ -9,6 +9,7 @@ import {
   PrivateLobbyCodeSchema,
 } from "../core/Schemas";
 import { generateID } from "../core/Util";
+import { ServerConfig } from "../core/configuration/Config";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { renderCitizenBadge } from "./CitizenBadge";
 import { JoinLobbyEvent } from "./Main";
@@ -346,17 +347,28 @@ export class JoinPrivateLobbyModal extends LitElement {
     // closes, whichever comes first.
     const endJoining = this.beginJoiningMark();
     // Task 0451 (review R1): JoinFailed:NotFound means our worker itself said
-    // this lobby does not exist. The archive lookup after it cannot tell us:
-    // with archiving off (ADR-104) it reaches the site's page fallback, which
-    // answers 200 HTML, so it ends in "error" or a throw. Counting only — the
-    // player's message below is unchanged.
+    // this lobby does not exist.
+    // Task 0454: the player's message follows the same answer.
     let workerSaidNotFound = false;
 
     try {
+      const config = await getServerConfigFromClient();
       // First, check if the game exists in active lobbies
-      const active = await this.checkActiveLobby(lobbyId, generation, via);
+      const active = await this.checkActiveLobby(
+        lobbyId,
+        config,
+        generation,
+        via,
+      );
       if (active === "joined" || this.isClosedSince(generation)) return;
       workerSaidNotFound = active === "not_found";
+
+      // Task 0454: archiving is off (ADR-104), so nothing serves the archive —
+      // don't ask it. The worker's answer alone decides what the player sees.
+      if (!config.archiveEnabled()) {
+        this.showJoinFailed(workerSaidNotFound);
+        return;
+      }
 
       // If not active, check archived games
       const archived = await this.checkArchivedGame(lobbyId, generation);
@@ -367,33 +379,42 @@ export class JoinPrivateLobbyModal extends LitElement {
         case "success":
           return;
         case "not_found":
-          this.message = `${translateText("private_lobby.not_found")}`;
-          logPrivateLobbyJoinFailed("NotFound");
+          this.showJoinFailed(true);
           return;
         case "version_mismatch":
           this.message = `${translateText("private_lobby.version_mismatch")}`;
           return;
         case "error":
-          this.message = `${translateText("private_lobby.error")}`;
-          logPrivateLobbyJoinFailed(workerSaidNotFound ? "NotFound" : "Error");
+          this.showJoinFailed(workerSaidNotFound);
           return;
       }
     } catch (error) {
       console.error("Error checking lobby existence:", error);
       if (this.isClosedSince(generation)) return;
-      this.message = `${translateText("private_lobby.error")}`;
-      logPrivateLobbyJoinFailed(workerSaidNotFound ? "NotFound" : "Error");
+      // Task 0454: an archive answer that is not a real one (a 200 that is not
+      // JSON, a body that fails to parse) lands here. It follows the worker:
+      // "no such lobby" stays not-found. Matters once 0030 turns archiving on.
+      this.showJoinFailed(workerSaidNotFound);
     } finally {
       endJoining();
     }
   }
 
+  // Task 0454: the message and the JoinFailed event are always set together,
+  // so the screen and the count cannot disagree.
+  private showJoinFailed(notFound: boolean): void {
+    this.message = `${translateText(
+      notFound ? "private_lobby.not_found" : "private_lobby.error",
+    )}`;
+    logPrivateLobbyJoinFailed(notFound ? "NotFound" : "Error");
+  }
+
   private async checkActiveLobby(
     lobbyId: string,
+    config: ServerConfig,
     generation: number,
     via: PrivateLobbyInviteKind,
   ): Promise<"joined" | "not_found" | "unknown"> {
-    const config = await getServerConfigFromClient();
     const url = `/${config.workerPath(lobbyId)}/api/game/${lobbyId}/exists`;
 
     const response = await fetch(url, {

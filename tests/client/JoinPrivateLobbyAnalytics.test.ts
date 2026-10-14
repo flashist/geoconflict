@@ -5,6 +5,8 @@
 // Task 0451: the guest window's private-lobby funnel events —
 // Joined:{Link|Code}, JoinFailed:{NotFound|Error}, Left:Guest. Each fires at
 // its moment, once, and never carries the lobby code. Uses the REAL o-modal.
+// Task 0454: every join-failed case also checks the player's message, so the
+// screen and the event are proven to agree.
 
 jest.mock("../../src/client/Main", () => ({ JoinLobbyEvent: class {} }));
 jest.mock("../../src/client/Utils", () => ({
@@ -16,9 +18,7 @@ jest.mock("../../src/client/CitizenBadge", () => ({
 jest.mock("../../src/client/components/baseComponents/Button", () => ({}));
 jest.mock("../../src/client/jwt", () => ({ getApiBase: () => "/archive" }));
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
-  getServerConfigFromClient: jest
-    .fn()
-    .mockResolvedValue({ workerPath: () => "w1" }),
+  getServerConfigFromClient: jest.fn(),
 }));
 // Schemas pulls in jose, which needs a TextEncoder jsdom lacks; nothing here
 // decodes patterns. Same stub as JoinPrivateLobbyModalLeave.test.ts.
@@ -37,6 +37,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 import "../../src/client/components/baseComponents/Modal";
 import { flashist_logEventAnalytics } from "../../src/client/flashist/FlashistFacade";
 import { JoinPrivateLobbyModal } from "../../src/client/JoinPrivateLobbyModal";
+import { getServerConfigFromClient } from "../../src/core/configuration/ConfigLoader";
 import { exposeLitAccessors } from "./support/litAccessors";
 
 // Task 0389: the Join window only looks up private-lobby codes.
@@ -62,12 +63,22 @@ describe("JoinPrivateLobbyModal private-lobby analytics (task 0451)", () => {
   let archiveReply: Reply;
   let finishPending: (() => void)[];
   let joins: CustomEvent[];
+  // Task 0454: archiving is off in every environment today (ADR-104). Tests of
+  // the archive path switch it on, as task 0030 one day will.
+  let archiveOn: boolean;
   const onJoin = (e: Event) => joins.push(e as CustomEvent);
 
   const oModal = () => modal.querySelector("o-modal") as OModalElement;
   const events = () => logEvent.mock.calls.map((c) => c[0] as string);
   const input = () => modal.querySelector("#lobbyIdInput") as HTMLInputElement;
   const joinButton = () => modal.querySelector("o-button") as HTMLElement;
+  const message = () => modal.querySelector(".message-area")!.textContent;
+  const fetchedUrls = () =>
+    (global.fetch as jest.Mock).mock.calls.map((c) => c[0] as string);
+  const archiveRequests = () =>
+    fetchedUrls().filter(
+      (url) => url.startsWith("/archive/") || url === "/commit.txt",
+    );
 
   function reply(r: Reply, pendingValue: unknown): Promise<unknown> {
     if (r === "pending") {
@@ -121,6 +132,11 @@ describe("JoinPrivateLobbyModal private-lobby analytics (task 0451)", () => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     existsReply = { status: 200, json: { exists: true } };
     archiveReply = "html";
+    archiveOn = false;
+    (getServerConfigFromClient as jest.Mock).mockResolvedValue({
+      workerPath: () => "w1",
+      archiveEnabled: () => archiveOn,
+    });
     finishPending = [];
     global.fetch = jest.fn((url: string) => {
       if (url.endsWith("/exists")) {
@@ -225,46 +241,22 @@ describe("JoinPrivateLobbyModal private-lobby analytics (task 0451)", () => {
       await typeAndPressJoin();
 
       expect(joins).toHaveLength(0);
+      expect(message()).toContain("private_lobby.not_found");
       expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
     });
 
-    // Review R1: production's archive answers 200 HTML, so the archive step
-    // throws. The worker already said "no such lobby": that is NotFound. The
-    // player's message is unchanged (the generic error line).
-    it("a wrong code with production's archive reply counts NotFound, message unchanged", async () => {
-      archiveReply = "html";
+    // Task 0454: archiving is off (ADR-104), so a wrong code never asks the
+    // archive — the player sees the not-found line, not the generic error.
+    it("a wrong code with archiving off shows not found and asks no archive", async () => {
       modal.open();
       await render();
 
       await typeAndPressJoin();
 
-      expect(modal.querySelector(".message-area")!.textContent).toContain(
-        "private_lobby.error",
-      );
+      expect(message()).toContain("private_lobby.not_found");
+      expect(message()).not.toContain("private_lobby.error");
       expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
-    });
-
-    it("an archive that answers 404 also counts NotFound", async () => {
-      archiveReply = { status: 404 };
-      modal.open();
-      await render();
-
-      await typeAndPressJoin();
-
-      expect(modal.querySelector(".message-area")!.textContent).toContain(
-        "private_lobby.not_found",
-      );
-      expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
-    });
-
-    it("an archive HTTP error after the worker said no such lobby counts NotFound", async () => {
-      archiveReply = { status: 500 };
-      modal.open();
-      await render();
-
-      await typeAndPressJoin();
-
-      expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
+      expect(archiveRequests()).toEqual([]);
     });
 
     it("each failed press counts once (a player action each)", async () => {
@@ -282,63 +274,151 @@ describe("JoinPrivateLobbyModal private-lobby analytics (task 0451)", () => {
 
     // Review R2: an HTTP error from the worker lookup is not "does not
     // exist", even when its body is JSON without `exists: true`.
-    it("a worker lookup HTTP error with a JSON body fires JoinFailed:Error", async () => {
+    it("a worker lookup HTTP error with a JSON body shows the error line and fires JoinFailed:Error", async () => {
       existsReply = { status: 500, json: { exists: false } };
       modal.open();
       await render();
 
       await typeAndPressJoin();
 
+      expect(message()).toContain("private_lobby.error");
       expect(events()).toEqual(["PrivateLobby:JoinFailed:Error"]);
+      expect(archiveRequests()).toEqual([]);
     });
 
-    it("a worker lookup that answers HTML (a proxy error page) fires JoinFailed:Error", async () => {
+    it("a worker lookup that answers HTML (a proxy error page) shows the error line and fires JoinFailed:Error", async () => {
       existsReply = "html";
       modal.open();
       await render();
 
       await typeAndPressJoin();
 
+      expect(message()).toContain("private_lobby.error");
       expect(events()).toEqual(["PrivateLobby:JoinFailed:Error"]);
+      expect(archiveRequests()).toEqual([]);
     });
 
-    it("a network failure fires JoinFailed:Error", async () => {
+    it("a worker lookup that answers OK without `exists` shows the error line and fires JoinFailed:Error", async () => {
+      existsReply = { status: 200, json: {} };
+      modal.open();
+      await render();
+
+      await typeAndPressJoin();
+
+      expect(message()).toContain("private_lobby.error");
+      expect(events()).toEqual(["PrivateLobby:JoinFailed:Error"]);
+      expect(archiveRequests()).toEqual([]);
+    });
+
+    it("a network failure shows the error line and fires JoinFailed:Error", async () => {
       existsReply = new Error("network down");
       modal.open(LOBBY_ID);
       await flush();
       await render();
 
+      expect(message()).toContain("private_lobby.error");
       expect(events()).toEqual(["PrivateLobby:JoinFailed:Error"]);
+      expect(archiveRequests()).toEqual([]);
     });
 
-    it("a version mismatch (an archived game of another version) fires nothing", async () => {
-      archiveReply = { status: 200, json: { not: "a game record" } };
-      modal.open();
-      await render();
+    // Task 0454: the archive path, as task 0030 will switch it back on.
+    describe("with archiving on", () => {
+      beforeEach(() => {
+        archiveOn = true;
+      });
 
-      await typeAndPressJoin();
+      // Review R1: production's archive answers 200 HTML, so `json()` throws.
+      // The worker already said "no such lobby", so the player sees not-found.
+      it("a 200 HTML archive answer (production's shape) after the worker said no such lobby shows not found", async () => {
+        archiveReply = "html";
+        modal.open();
+        await render();
 
-      expect(modal.querySelector(".message-area")!.textContent).toContain(
-        "private_lobby.version_mismatch",
-      );
-      expect(events()).toEqual([]);
-    });
+        await typeAndPressJoin();
 
-    it("the archived game / replay branch fires nothing", async () => {
-      jest
-        .spyOn(
-          JoinPrivateLobbyModal.prototype as unknown as {
-            checkArchivedGame: () => Promise<string>;
-          },
-          "checkArchivedGame",
-        )
-        .mockResolvedValue("success");
-      modal.open();
-      await render();
+        expect(archiveRequests().length).toBeGreaterThan(0);
+        expect(message()).toContain("private_lobby.not_found");
+        expect(message()).not.toContain("private_lobby.error");
+        expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
+      });
 
-      await typeAndPressJoin();
+      it("an archive HTTP error after the worker said no such lobby shows not found", async () => {
+        archiveReply = { status: 500 };
+        modal.open();
+        await render();
 
-      expect(events()).toEqual([]);
+        await typeAndPressJoin();
+
+        expect(message()).toContain("private_lobby.not_found");
+        expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
+      });
+
+      it("an archive that answers 404 shows not found", async () => {
+        archiveReply = { status: 404 };
+        modal.open();
+        await render();
+
+        await typeAndPressJoin();
+
+        expect(message()).toContain("private_lobby.not_found");
+        expect(events()).toEqual(["PrivateLobby:JoinFailed:NotFound"]);
+      });
+
+      it("a worker answer that is not 'no such lobby', then an HTML archive answer, shows the error line", async () => {
+        existsReply = { status: 500, json: {} };
+        archiveReply = "html";
+        modal.open();
+        await render();
+
+        await typeAndPressJoin();
+
+        expect(archiveRequests().length).toBeGreaterThan(0);
+        expect(message()).toContain("private_lobby.error");
+        expect(events()).toEqual(["PrivateLobby:JoinFailed:Error"]);
+      });
+
+      it("a version mismatch (an archived game of another version) fires nothing", async () => {
+        archiveReply = { status: 200, json: { not: "a game record" } };
+        modal.open();
+        await render();
+
+        await typeAndPressJoin();
+
+        expect(modal.querySelector(".message-area")!.textContent).toContain(
+          "private_lobby.version_mismatch",
+        );
+        expect(events()).toEqual([]);
+      });
+
+      it("the archived game / replay branch fires nothing", async () => {
+        jest
+          .spyOn(
+            JoinPrivateLobbyModal.prototype as unknown as {
+              checkArchivedGame: () => Promise<string>;
+            },
+            "checkArchivedGame",
+          )
+          .mockResolvedValue("success");
+        modal.open();
+        await render();
+
+        await typeAndPressJoin();
+
+        expect(events()).toEqual([]);
+      });
+
+      it("a failure that settles after the window closed fires nothing", async () => {
+        archiveReply = "pending";
+        modal.open();
+        await render();
+        await typeAndPressJoin();
+
+        await clickClose();
+        finishPending.forEach((finish) => finish());
+        await flush();
+
+        expect(events()).toEqual([]);
+      });
     });
 
     it("a text that is not a code fires nothing (no lookup was made)", async () => {
@@ -347,19 +427,6 @@ describe("JoinPrivateLobbyModal private-lobby analytics (task 0451)", () => {
 
       await typeAndPressJoin("");
       await typeAndPressJoin("not a code at all");
-
-      expect(events()).toEqual([]);
-    });
-
-    it("a failure that settles after the window closed fires nothing", async () => {
-      archiveReply = "pending";
-      modal.open();
-      await render();
-      await typeAndPressJoin();
-
-      await clickClose();
-      finishPending.forEach((finish) => finish());
-      await flush();
 
       expect(events()).toEqual([]);
     });

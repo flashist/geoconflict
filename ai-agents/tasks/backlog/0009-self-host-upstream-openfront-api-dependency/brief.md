@@ -117,7 +117,7 @@ them is even called would be scoping on a guess. So phase 1 is findings; the bui
    > it does, `Archive.ts:32` is real code pointing at the shared root — it is simply **inert**,
    > since `archiveEnabled()` is a hard `false` (`src/core/configuration/DefaultConfig.ts:315`).
    > ⚠️ **A live CLIENT-side read survives that flag** — see task
-   > [`0292-client-archive-read-bypasses-archive-enabled-flag`](../0292-client-archive-read-bypasses-archive-enabled-flag/brief.md),
+   > [`0292-client-archive-read-bypasses-archive-enabled-flag`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md),
    > filed 2026-09-22. `src/client/JoinPrivateLobbyModal.ts:245` fetches `${getApiBase()}/game/<id>`,
    > is **not** behind `archiveEnabled()`, and fires today whenever a private-lobby ID is entered that
    > is **not** a currently-active lobby. **Factor it into concern 3's answer: the archive leg is NOT

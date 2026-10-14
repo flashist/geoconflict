@@ -20,7 +20,7 @@ jest.mock("../../src/client/jwt", () => ({ getApiBase: () => "/api" }));
 jest.mock("../../src/core/configuration/ConfigLoader", () => ({
   getServerConfigFromClient: jest
     .fn()
-    .mockResolvedValue({ workerPath: () => "w1" }),
+    .mockResolvedValue({ workerPath: () => "w1", archiveEnabled: () => false }),
 }));
 // Schemas pulls in jose, which needs a TextEncoder jsdom lacks; nothing here
 // decodes patterns. Same stub as tests/client/UsernameInput.test.ts.
@@ -233,6 +233,11 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
   });
 
   it("(f2) closing while the archive check is in flight shows no late message", async () => {
+    // Task 0454: the archive is only asked with archiving on (task 0030).
+    (getServerConfigFromClient as jest.Mock).mockResolvedValueOnce({
+      workerPath: () => "w1",
+      archiveEnabled: () => true,
+    });
     let finishArchive: (value: unknown) => void = () => {};
     fetchMock.mockImplementation((url: string) => {
       if (url.endsWith("/exists")) {
@@ -248,6 +253,11 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
     await flush();
     await render();
     await clickClose();
+    // Review R2: the archive was really asked, so this test runs the archive
+    // path and not the archiving-off gate (whose message close() would clear).
+    expect(
+      fetchMock.mock.calls.filter(([url]) => url === `/api/game/${LOBBY_ID}`),
+    ).toHaveLength(1);
 
     finishArchive({ ok: false, status: 404 });
     await flush();
@@ -257,6 +267,40 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
     expect(
       modal.querySelector(".message-area")!.classList.contains("show"),
     ).toBe(false);
+  });
+
+  // Task 0454: with archiving off, a close during the worker lookup still ends
+  // in silence, and no archive request is made after it. This guards the close
+  // (it returns before the archiving-off gate is reached); the gate itself is
+  // tested in JoinPrivateLobbyAnalytics.test.ts (review R2).
+  it("(f3) a close during the lobby check, archiving off, still ends with no late message and no archive request", async () => {
+    let finishCheck: (value: unknown) => void = () => {};
+    fetchMock.mockImplementationOnce(
+      () => new Promise((resolve) => (finishCheck = resolve)),
+    );
+
+    modal.open(LOBBY_ID);
+    await flush();
+    await render();
+    await clickClose();
+
+    finishCheck({
+      ok: true,
+      status: 200,
+      json: async () => ({ exists: false }),
+    });
+    await flush();
+    await render();
+
+    expect(joins).toHaveLength(0);
+    expect(
+      modal.querySelector(".message-area")!.classList.contains("show"),
+    ).toBe(false);
+    expect(
+      fetchMock.mock.calls.filter(
+        ([url]) => url === `/api/game/${LOBBY_ID}` || url === "/commit.txt",
+      ),
+    ).toHaveLength(0);
   });
 
   it("(g) after ✕, the poll stops and reopening shows the Join button again", async () => {
@@ -399,6 +443,10 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
       await flush();
       await render();
       expect(joins).toHaveLength(0);
+      // Task 0454: settled through the archiving-off gate, not a thrown error.
+      expect(modal.querySelector(".message-area")!.textContent).toContain(
+        "private_lobby.not_found",
+      );
       expect(await isSettled(waiting)).toBe(true);
     });
 
@@ -561,12 +609,14 @@ describe("JoinPrivateLobbyModal close leaves the lobby (task 0327)", () => {
     beforeEach(() => {
       (getServerConfigFromClient as jest.Mock).mockResolvedValue({
         workerPath: workerPathOf,
+        archiveEnabled: () => false,
       });
     });
 
     afterEach(() => {
       (getServerConfigFromClient as jest.Mock).mockResolvedValue({
         workerPath: () => "w1",
+        archiveEnabled: () => false,
       });
     });
 

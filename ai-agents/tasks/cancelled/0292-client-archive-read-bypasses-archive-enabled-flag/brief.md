@@ -10,7 +10,7 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+⛔ Cancelled (agent-closed — not owner-verified) (2026-10-14) — Absorbed by 0454 — the client archive read is now behind `archiveEnabled()` (no request while false); owner ruling 2026-10-14
 
 ## Owner
 fkit-coder
@@ -34,10 +34,10 @@ precedent.**
 >   `.json()` throws on the HTML and the player sees the generic `private_lobby.error` line instead of
 >   `private_lobby.not_found`. Locally the request is refused (nothing listening) — same symptom. Found by `0451`'s
 >   reviewer (finding R1, one read-only production GET, 2026-10-13; classification only, no host value recorded); code
->   side re-verified by a producer 2026-10-14. Detail: [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) `## Context`.
+>   side re-verified by a producer 2026-10-14. Detail: [`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) `## Context`.
 >   ⇒ The *"no user impact, not a user-facing bug"* framing and the severity-based board rationale in `## Notes` do not
 >   hold. They are kept below as history, not deleted.
-> - **[`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (Sprint 8)
+> - **[`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (Sprint 8)
 >   fixes the player-visible symptom, and its recommended fix is exactly this task's work** — skip the archive lookup
 >   while `archiveEnabled()` is false, reusing that one flag.
 > - **OWNER RULING, 2026-10-14**, given live via `AskUserQuestion` in the `fkit lead` session (driver of
@@ -93,7 +93,7 @@ bug.** What makes it worth a task is two things that are not about today:
    2026-09-22, the request reaches **our own infrastructure**, so nothing leaves our estate. See
    *"✅ ANSWERED 2026-09-22"* below.
 2. **`0030` must eventually repoint this exact call.**
-   [`0030-archive-s3-backed-citizen-gated`](../0030-archive-s3-backed-citizen-gated/brief.md)'s
+   [`0030-archive-s3-backed-citizen-gated`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md)'s
    verification item 2 is *"replays / history read back correctly from the bucket"* — and **this line
    is the only client read there is**. `0030` cannot satisfy that item without changing it.
 
@@ -197,16 +197,16 @@ before it is built.
 
 - **Depends on:** nothing
 - **Blocks:** nothing
-- 📌 **2026-10-14 — to be cancelled as absorbed by [`0454`](../0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md)
+- 📌 **2026-10-14 — to be cancelled as absorbed by [`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md)
   when `0454` closes**, by OWNER RULING *"Cancel when 0454 closes (Recommended)"* — conditional on `0454` actually
   gating this read on `archiveEnabled()`. Full ruling and condition: the 🚨 correction at the top of `## Context`.
 - **Related / touches (NOT blockers, in either direction):**
-  - [`0030-archive-s3-backed-citizen-gated`](../0030-archive-s3-backed-citizen-gated/brief.md) — will
+  - [`0030-archive-s3-backed-citizen-gated`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) — will
     eventually repoint this same call at the S3 bucket to satisfy its verification item 2. **Order is
     free:** doing this first leaves `0030` a single clean gate to flip; doing `0030` first makes this a
     no-op it absorbs. ⚠️ Whoever does `0030` **must read this brief** — the client read is easy to miss
     because ADR-104 reads as though the whole path is already dark.
-  - [`0009-self-host-upstream-openfront-api-dependency`](../0009-self-host-upstream-openfront-api-dependency/brief.md)
+  - [`0009-self-host-upstream-openfront-api-dependency`](../../backlog/0009-self-host-upstream-openfront-api-dependency/brief.md)
     — shares the destination question above with its finding 1, and its concern 3 (archive) carries a
     pointer to this task. **Neither gates the other.**
   - [`0159-reduce-archive-telemetry-noise`](../../done/0159-reduce-archive-telemetry-noise/brief.md)
