@@ -10,6 +10,14 @@
 >
 > ⛔ **NOTHING FROM THIS TASK IS DEPLOYED** as of 2026-09-07. It ships at the next deploy window. **Do not read any statement on this page as production behaviour.** 📌 *2026-10-08 lint: shipped since — `35afc64` is an ancestor of every production-deploy tag from `0.0.142` (2026-09-12) on, including the served releases `0.0.152` and `0.0.154`–`0.0.157`; the post-deploy attribution stays impossible, as below.*
 
+> 📌 *2026-10-14 sync:* the breach recurred — **12 Oct, 1,822.3 events per active user** — and spikes have come roughly
+> weekly since late August (task `0456`). `0456` found the 4 Sep and 12 Oct spikes were extra copies of the
+> once-per-page-load events with normal session counts — not new page loads — and leans (not proven) toward the
+> GameAnalytics SDK re-sending queued events; the owner's-dev-testing hypothesis is refuted by arithmetic. Owner ruled
+> no code fix; monitoring task `0458`; `0230` stays open. For comparison only: measured normal days 7–13 Oct were
+> ~106–121 per user, against this task's never-measured arithmetic of ~62–81 — compared here, not reconciled. See
+> [[tasks/gameanalytics-event-limit-recurring-spikes]].
+
 ## Goal
 
 GameAnalytics raised a **`Limit Exceeded`** banner: *events per active user per day* passed the **500** limit.
@@ -119,3 +127,4 @@ The owner will watch the analytics over the coming days and report back. 🚨 **
 - [[tasks/mobile-quick-wins]] — where `Performance:FPS:*` was originally used as a measurement
 - [[decisions/sprint-4]] — the sprint board carrying this task
 - [[decisions/sprint-backlog]] — where `0226` (the `DEPLOY_ENV` fail-open) and `0230` (the spike investigation) are tracked
+- [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`: the breach recurred (12 Oct); investigation and owner rulings

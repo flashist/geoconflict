@@ -13,6 +13,14 @@
 > any tagged release** (deploy scripts run from the operator's checkout, so "deployed" here means "used for a real
 > deploy", which has not happened).
 
+> 📌 *2026-10-14 sync:* **the box side is done.** `0445` ([[tasks/ssh-key-login-live]]) installed both keys for root,
+> proved key-only login on game prod, game dev and telemetry, and deployed all three over the key with no password
+> prompt — game prod as the real release `0.0.164` (2026-10-13). The dev password fallback still works (`sshpass -p`
+> count 0). The deploy user is `root` on both game boxes. `779ddc2` is in tags `0.0.164` and `0.0.163-telemetry.1`.
+> `0442` (password off) is **built** — [[tasks/ssh-password-login-off]], committed `daa1bcc` — and waits on its box
+> steps (`0452`). The same R1 lesson reached the profile deploy as `0453` ([[tasks/profile-deploy-key-only]]). The
+> "nothing done on any box" and "not shipped" lines above are history.
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim: *"File it to the current sprint, and it should be our top priority to work on."*
@@ -76,3 +84,6 @@ if ready to do so."* — a stated intent, not a standing exception to the weeken
 - [[systems/weekend-deploy-window]] — the 2026-10-10 deploy whose copy step failed on a password refusal
 - [[decisions/sprint-8]] — the board (rank 38)
 - [[decisions/sprint-backlog]] — where `0444` and `0446` sit
+- [[tasks/ssh-key-login-live]] — task `0445`, the box-side verification of this task
+- [[tasks/ssh-password-login-off]] — task `0442`, password login off — built
+- [[tasks/profile-deploy-key-only]] — task `0453`, the profile deploy's key path made key-only

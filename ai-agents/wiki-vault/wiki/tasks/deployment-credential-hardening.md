@@ -6,6 +6,10 @@
 
 > ⚠️ *2026-10-13 sync — **in practice the game and telemetry deploys still ran on passwords**. Read-only checks on 2026-10-12 found the game prod and telemetry boxes accepting password logins (root included) with **0 `authorized_keys`**, and all 65 accepted telemetry logins in 7 days were "password for root". The key-first contract existed in the scripts; no key was set up on those boxes. `0441` closed two script gaps (`IdentitiesOnly=yes`; password via a 0600 file, not `sshpass -p`) and the box steps are `0445` — [[tasks/deploy-ssh-key-login]]. The "live key-only deploy was not executed" gap below is still open.*
 
+> 📌 *2026-10-14 sync:* key login is **now in effect** on the game and telemetry boxes — `0445` installed keys for
+> root, proved key-only login and deployed all three boxes over the key on 2026-10-13 ([[tasks/ssh-key-login-live]]).
+> Password login is **still on**. Turning it off is built (`0442`) and waits on its box steps (`0452`).
+
 ## Goal
 
 Replace the repo's password-friendly deployment model with a key-first operator contract and reduce how often host credentials appear in env files and docs.
@@ -24,3 +28,4 @@ The deployment workflow now treats password auth as an emergency bridge, not nor
 
 - [[decisions/vps-credential-leak-response]] — incident decision that recorded the SSH-key-first recovery direction
 - [[tasks/deploy-ssh-key-login]] — task `0441` (2026-10-12): the follow-through on this contract for game and telemetry deploys
+- [[tasks/ssh-key-login-live]] — task `0445` (2026-10-13): deploys now run over the key

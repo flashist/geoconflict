@@ -5,6 +5,33 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-14 sync (newest, `2d2ab4a`): 51 rows — 33 `✅ Done` · 8 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 9 OPEN** (was 44 / 9), counted by me by each row's leading status glyph. Banner unchanged
+> (`🔄 In progress — 2026-10-12`).
+> - **Closed in this window, all `✅ Done (agent-closed — not owner-verified)`, each on an owner ruling relayed by
+>   `fkit-lead` to a spawned `fkit-producer` (⛔ not producer precedent):**
+>   - **41 `0445`** — keys installed, key-only login proven, game dev / game prod / telemetry deployed over the key; game
+>     prod as the real release **`0.0.164`** (2026-10-13, *"Real release now"*) ([[tasks/ssh-key-login-live]]).
+>   - **39 `0442`** — SSH password login off: built, **repo work only** (`daa1bcc`) ([[tasks/ssh-password-login-off]]).
+>   - **45 `0451`** — 16 `PrivateLobby:*` funnel events; `daa1bcc`, not deployed ([[tasks/private-lobby-funnel-events]]).
+>   - **47 `0453`** — the profile deploy's key path refuses a password prompt; `2d2ab4a`
+>     ([[tasks/profile-deploy-key-only]]).
+>   - **48 `0454`** — a wrong private-lobby code shows "not found"; `2d2ab4a`, not deployed; backlog `0292` cancelled as
+>     absorbed ([[tasks/private-lobby-wrong-code-not-found]]).
+>   - **50 `0456`** — GameAnalytics 500-per-user limit investigation; **no code fix** by owner ruling
+>     ([[tasks/gameanalytics-event-limit-recurring-spikes]]).
+>   - **51 `0459`** — GameAnalytics game ID removed from three task files ([[tasks/gameanalytics-game-id-removed]]).
+> - **New open rows (ADR-035 append ranks, not merit):** **46 `0452`** — verify `0442` on the boxes: pre-checks, then
+>   password off on game dev and telemetry now, game prod in the weekend slot (🚨 on merit the first open work);
+>   **49 `0455`** — build the private-lobby funnel in GameAnalytics and confirm `0451`'s events arrive (time-gated on the
+>   deploy; owner's Chrome). Open briefs — no vault page.
+> - **Filed on the Backlog board in the same window:** `0457`, `0458`, `0460`, `0461` ([[decisions/sprint-backlog]]);
+>   `0460` and `0461` are flagged for the top of Sprint 9 (no Sprint 9 board yet).
+> - 🚨 With `0442` committed, the next game or telemetry key deploy turns password login off — `0452`'s pre-checks come
+>   first, including for `0449` / `0450` deploys ([[systems/weekend-deploy-window]]).
+> - **Still open on this board:** `0343`, `0418`, `0426`, `0213`, `0449`, `0450`, `0452`, `0455` (Backlog), `0219`
+>   (In progress).
+>
 > 🆕 **2026-10-13 sync (newest, `dd9a8fd`): 44 rows — 26 `✅ Done` · 8 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 9 OPEN** (was 40 / 10), counted by me by each row's leading status glyph. Banner unchanged
 > (`🔄 In progress — 2026-10-12`).
@@ -463,3 +490,10 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/deploy-ssh-key-login]] — task `0441` (38): SSH key login, repo only; verify `0445` (41), then `0442` (39)
 - [[tasks/ssh-security-alerts]] — task `0443` (40): SSH security alerts, repo only; verify `0449` (42)
 - [[tasks/game-deploy-env-file-cleanup]] — task `0447` (43): env file always removed, repo only; verify `0450` (44)
+- [[tasks/ssh-key-login-live]] — task `0445` (41): keys installed, key-only login proven, `0.0.164` deployed over the key
+- [[tasks/ssh-password-login-off]] — task `0442` (39): SSH password login off — repo work only; verify `0452` (46)
+- [[tasks/private-lobby-funnel-events]] — task `0451` (45): 16 private-lobby funnel events; GameAnalytics funnel `0455` (49)
+- [[tasks/profile-deploy-key-only]] — task `0453` (47): profile deploy key path refuses a password prompt
+- [[tasks/private-lobby-wrong-code-not-found]] — task `0454` (48): wrong lobby code shows "not found"; `0292` absorbed
+- [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456` (50): the 500-per-user limit investigation, no code fix
+- [[tasks/gameanalytics-game-id-removed]] — task `0459` (51): game ID removed from three task files

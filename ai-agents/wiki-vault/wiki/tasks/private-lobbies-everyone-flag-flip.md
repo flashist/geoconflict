@@ -14,6 +14,9 @@
 > ⚠️ **Partial evidence:** checks 4a–4c pass **per owner statement "all good" — not itemised by the owner**; account
 > roles and device were not stated. Check 4d (server-log counts) **not run**.
 
+> 📌 *2026-10-14 sync:* task `0451` built the 16 `PrivateLobby:*` funnel events this rollout was missing (committed,
+> not deployed; the GameAnalytics funnel is `0455`) — [[tasks/private-lobby-funnel-events]].
+
 ## Goal
 
 Private lobbies (a citizen perk, `0302`) were live but shown only to **testers** (a browser marker) since `0354`
@@ -75,3 +78,4 @@ None in the repo. Console values, owner-confirmed live (*"Yes, exactly as expect
 - [[decisions/sprint-8]] — the board (rank 30)
 - [[decisions/sprint-backlog]] — where `0435` (the 1-minute lobby re-check that needs this flip time) sits
 - [[systems/weekend-deploy-window]] — console flips are not deploys; the deploy queue this sat beside
+- [[tasks/private-lobby-funnel-events]] — task `0451`: the funnel events for this rollout

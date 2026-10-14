@@ -222,3 +222,4 @@ of the perks would depend on it."*
 - [[tasks/join-lobby-race-fix]] — task `0228`, gate item 3, fixed (not deployed); live check `0433`
 - [[tasks/join-lobby-race-fix-live]] — task `0433`, gate item 3's live check (closed 2026-10-11, partial)
 - [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`, the everyone-flag flip, 2026-10-13
+- [[tasks/private-lobby-funnel-events]] — task `0451`: the private-lobby funnel events

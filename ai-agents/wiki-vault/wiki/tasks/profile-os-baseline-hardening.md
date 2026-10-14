@@ -16,6 +16,11 @@
 >
 > ⛔ No hosts, IPs, usernames or key material on this page.
 
+> 📌 *2026-10-14 sync:* this task's *HARDENING SSHD* section was copied into a shared library, `sshd-hardening.sh`, for
+> the game and telemetry boxes by `0442` ([[tasks/ssh-password-login-off]]); `setup-profile.sh` is untouched and a
+> harness drift check pins the two to the same settings. Same day, `0453` ([[tasks/profile-deploy-key-only]]) made the
+> profile deploy's key path refuse a password prompt, so guard 0's `key` label is true by construction.
+
 ## Goal
 
 `setup-profile.sh` provisioned swap, Docker, ufw, nginx and TLS but **no OS security baseline** on an internet-facing
@@ -72,3 +77,5 @@ to a deploy or stop.
 - [[decisions/sprint-7]] — the board (rank 7); closed 2026-10-01
 - [[tasks/deploy-ssh-key-login]] — task `0441` (2026-10-12): this key-only profile box is the model for the game and telemetry boxes (`0442` copies its sshd hardening)
 - [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): login / fail2ban-down / daily-count alerts on this box and the other three
+- [[tasks/ssh-password-login-off]] — task `0442`: copies this sshd section into `sshd-hardening.sh` for game + telemetry
+- [[tasks/profile-deploy-key-only]] — task `0453`: the profile deploy's key path refuses a password prompt

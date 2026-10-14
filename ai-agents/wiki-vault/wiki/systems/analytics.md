@@ -3,6 +3,23 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-14 sync:**
+> - **Private Lobby Events (task `0451`, committed `daa1bcc`, NOT deployed):** 16 `PrivateLobby:*` events for the
+>   private-lobby funnel — Private tab → `Created` → `InviteCopied:{Link|Code}` → `Joined:{Link|Code}` →
+>   `Start:Tapped` → `MatchStarted:{Host|Guest}` → `MatchEnded`, plus failure events and `Left:{Host|Guest}`.
+>   `Game:Mode:Multiplayer` is unchanged. Fired only through `src/client/PrivateLobbyAnalytics.ts`; no code, link or id
+>   in any name or value. Rows in `analytics-event-reference.md` § *Private Lobby Events*. `0454` (also not deployed)
+>   makes the wrong-code screen match `JoinFailed:NotFound`. See [[tasks/private-lobby-funnel-events]]; the
+>   GameAnalytics funnel and arrival check is `0455`.
+> - **The 500-per-user limit breached again — 12 Oct, 1,822.3 events per active user** (task `0456`); normal days
+>   ~114. The excess was extra copies of the once-per-page-load events, not new page loads; leading explanation the
+>   GameAnalytics SDK re-sending queued events from a queue shared by all builds — **not proven**. Recurs roughly
+>   weekly since late August. **Owner ruling: no code fix; monitoring task `0458`; collect events from all builds —
+>   never filter old builds or meddle with GameAnalytics' de-duplication.** See
+>   [[tasks/gameanalytics-event-limit-recurring-spikes]] and the limit section below.
+> - The numeric GameAnalytics game ID was removed from three tracked task files (`0459`,
+>   [[tasks/gameanalytics-game-id-removed]]); git history still holds it. Never write it in the vault.
+>
 > 🆕 **2026-10-08 sync — game `0.0.157` is LIVE (2026-10-08), so the code for these events is now in the production client:**
 > `Ad:InterstitialSuppressed:PaidCitizen` (`0248`), `Citizenship:Status:*` (`0397`), the `0301` explainer events, and
 > `0404`'s `Session:LongSessionRefresh:*` / `AfterRefreshPopup` strings (image contents per `0396`'s worklog; not each
@@ -641,6 +658,14 @@ Experiment:Tutorial:Disabled → Game:Start → Match:SpawnChosen
 
 ## The 500-Events-Per-Active-User-Per-Day Limit
 
+> 📌 *2026-10-14 sync — read this first:* the breach **recurred** — 12 Oct at 1,822.3, and `Platform` spikes roughly
+> weekly since late August (the biggest, 26 Sep, was never noticed). Task `0456` found 4 Sep and 12 Oct had the same
+> shape: extra copies of the once-per-page block with **normal session counts** — not new page loads. Leading
+> explanation: the GameAnalytics SDK re-sending queued events — **not proven**. `0230`'s hypothesis 1 (owner's dev
+> testing) is **refuted** by arithmetic; `0230` stays open. GameAnalytics' docs say going over a limit shows an alert
+> and do not say anything is dropped. The September record below is kept as history. Full record:
+> [[tasks/gameanalytics-event-limit-recurring-spikes]].
+
 **GameAnalytics enforces a limit of 500 events per active user per day, and it was breached on 4 Sep 2026.** 🔴 **Read the limit precisely: it is PER USER PER DAY, not a total-volume limit.** It is a statement about a **chatty client**, not about the game being popular. A response framed as "too much traffic" or "we outgrew the plan" has misread the banner and will chase a bigger plan instead of fewer events per player.
 
 ⚠️ **Every figure below is a human reading off the GameAnalytics UI on 2026-09-06.** Reliable enough to direct investigation; **not** reliable enough to quote as exact without re-reading the dashboard.
@@ -772,3 +797,6 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/start-screen-private-tab]] — task `0412`: `UI:Tap:PrivateTab`
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409`: `UI:Tap:PurchasePaidCitizenshipExplainer`
 - [[tasks/long-session-refresh-popup-live]] — task `0406`: first live counts of `Session:LongSessionRefresh:*` (0 `Refresh`)
+- [[tasks/private-lobby-funnel-events]] — task `0451`: the 16 `PrivateLobby:*` funnel events (not deployed)
+- [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`: the 12 Oct breach, weekly spikes, SDK re-send lead (not proven)
+- [[tasks/gameanalytics-game-id-removed]] — task `0459`: game ID removed from tracked task files

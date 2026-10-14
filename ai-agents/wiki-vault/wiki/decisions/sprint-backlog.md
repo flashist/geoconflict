@@ -3,6 +3,24 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-14 sync (newest, `2d2ab4a`): 160 rows, 111 open.** Re-counted by me at `HEAD` = `2d2ab4a`, by each row's
+> leading status glyph: 108 `🔲 Backlog` · 40 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 156 / 108).
+> Filed by spawned `fkit-producer`s on owner rulings relayed by `fkit-lead` (⛔ not producer precedent). Open briefs —
+> summary from the board only, no vault page:
+> - **`0292` CANCELLED** `(agent-closed — not owner-verified)` — absorbed by `0454`
+>   ([[tasks/private-lobby-wrong-code-not-found]], [[decisions/cancelled-tasks]]).
+> - **`0457`** — host lobby: the copy button copies the **previous** lobby's code while a new lobby is being created
+>   (found in `0451`'s plan); *"File in Backlog (Recommended)"* ([[tasks/private-lobby-funnel-events]]).
+> - **`0458`** — monitor GameAnalytics for event-volume spikes, read-only in the owner's Chrome — **monitoring only, no
+>   solutions named** (owner ruling at `0456`'s close; [[tasks/gameanalytics-event-limit-recurring-spikes]]).
+> - **`0460`** — verify `0453`: one profile deploy over the key finishes with no password prompt; **top of Sprint 9** by
+>   owner ruling *"Verify task, top of Sprint 9 (Recommended)"* ([[tasks/profile-deploy-key-only]]).
+> - **`0461`** — verify `0454` on the live game: a wrong code shows "Lobby not found" (EN + RU) and no archive request
+>   is made; top of Sprint 9 under the standing build/verify-split rule.
+> - **Dated notes, status unchanged:** `0230` kept open, with the SDK re-send as its open lead; `0226` (the repo is
+>   public); `0212`'s row no longer carries the GameAnalytics game ID ([[tasks/gameanalytics-game-id-removed]]).
+>   `0446` (game boxes rebuilt from scripts) is still open — see [[tasks/ssh-password-login-off]].
+>
 > 🆕 **2026-10-13 sync (newest, `dd9a8fd`): 156 rows, 108 open — four SSH/deploy follow-ups filed 2026-10-12; `0447`
 > moved to Sprint 8.** Re-counted by me at `HEAD` = `dd9a8fd`, by each row's leading status glyph: 105 `🔲 Backlog` ·
 > 40 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 3 `⛔ Cancelled` (was 152 / 105). All filed by a spawned `fkit-producer`
@@ -989,3 +1007,9 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/deploy-ssh-key-login]] — task `0441`; its follow-ups `0444` and `0446` filed here 2026-10-12
 - [[tasks/ssh-security-alerts]] — task `0443`; its inventory produced `0447` and `0448`, and `0446` builds on its root step
 - [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`; its flip time recorded in `0435`
+- [[tasks/ssh-password-login-off]] — task `0442` (Sprint 8); `0446` here moves its sshd settings into the root step
+- [[tasks/profile-deploy-key-only]] — task `0453` (Sprint 8); its verify `0460` sits here
+- [[tasks/private-lobby-funnel-events]] — task `0451` (Sprint 8); `0457` found in its plan
+- [[tasks/private-lobby-wrong-code-not-found]] — task `0454` (Sprint 8); `0292` absorbed, verify `0461` here
+- [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456` (Sprint 8); `0458`, `0230`, `0226` here
+- [[tasks/gameanalytics-game-id-removed]] — task `0459` (Sprint 8); edited the `0212` row

@@ -15,6 +15,13 @@
 > `0445` installs the root key, **is SKIPPED and makes the deploy exit 3** — the game IS live, but the run reports
 > failure. See *Gotchas* below.
 
+> 📌 *2026-10-14 sync:* `779ddc2` is in game `0.0.164` (prod, 2026-10-13) and telemetry `0.0.163-telemetry.1`, so the
+> "not deployed" line above is history. `0445` installed the root key, so the game root step now logs in by key —
+> and **every game deploy ended exit 3 with `GAME HOST SETUP SKIPPED: PROFILE_SSH_ALERT_TOKEN is empty`**, as
+> expected until `0449` sets the token ([[tasks/ssh-key-login-live]]). Since `0442` (committed `daa1bcc`) the root
+> step runs on every key deploy and also applies the sshd hardening; only its alerts part is skipped while the token
+> is blank ([[tasks/ssh-password-login-off]]). Whether any SSH alert has reached Telegram is not recorded — `0449`.
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily
@@ -123,3 +130,5 @@ deploy"*, clarified *"After swap; skip also fails (Recommended)"*** — overridi
 - [[decisions/sprint-8]] — the board (rank 40)
 - [[decisions/sprint-backlog]] — where `0446` and `0448` sit
 - [[tasks/vps-access-hardening]] — task `0132`, the April 2026 host-hardening target the game and telemetry boxes had not reached
+- [[tasks/ssh-key-login-live]] — task `0445`: root key installed; deploys over the key end exit 3 until the token is set
+- [[tasks/ssh-password-login-off]] — task `0442`: adds sshd hardening to `setup-game-host.sh`; root step runs on every key deploy

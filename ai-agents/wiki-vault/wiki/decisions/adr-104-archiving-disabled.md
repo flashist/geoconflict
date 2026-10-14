@@ -8,6 +8,11 @@
 >
 > Source: `ai-agents/knowledge-base/decisions/adr-104-match-archiving-disabled-until-s3-citizen-gated.md`
 
+> 🆕 **2026-10-14 sync — the client read is now behind this switch in the committed code** (task `0454`, `2d2ab4a`,
+> **not deployed** — production still makes the read until the next game deploy), and the 2026-09-22 *"benign"*
+> framing below was **wrong for production** (200 HTML → the generic error for a wrong lobby code). `0292` was
+> cancelled as absorbed. See [[tasks/private-lobby-wrong-code-not-found]] and the dated note under *Consequences*.
+
 > 🔴 **SCOPE CORRECTED 2026-09-22 — THIS ADR DARKENED THE *SERVER* LEG, NOT ALL OF ARCHIVING.**
 > A reader of this page would reasonably conclude the archive path is entirely dark. **It is not.**
 > `archiveEnabled()` has exactly **two** consumers — `src/server/Archive.ts` (the write) and
@@ -61,6 +66,7 @@ The follow-up is S3-backed archival gated to citizen games, scoped as a backlog 
 - **Two things this ADR does *not* cover, and which remain genuine findings:** when re-enabled the destination is still an HTTP POST to the JWT issuer, **not** S3 (the S3 write is still unwritten); and when uploads resume the singleplayer ingest route needs an explicit bounded body limit, remembering it applies to the **decompressed** size.
 - 🔴 **A THIRD, ADDED 2026-09-22 — THE CLIENT ARCHIVE *READ* WAS NEVER PUT BEHIND THIS SWITCH AND IS STILL LIVE.** `archiveEnabled()` is a hard `false` in `src/core/configuration/DefaultConfig.ts` with **no override anywhere**, and it has exactly **two** consumers: `src/server/Archive.ts` and `src/client/LocalServer.ts`. **`src/client/JoinPrivateLobbyModal.ts` is not one of them** — its `checkArchivedGame()` issues `fetch(\`${getApiBase()}/game/${lobbyId}\`)` **ungated**, the read side of the endpoint this ADR stopped the server POSTing to. ⇒ **`0159`/this ADR switched off the *server* archive write and left a *client* archive read live.**
   - ⚠️ **BENIGN TODAY, and do not overstate it: NO user impact and NO failure observed.** The 404 is handled in the same method as `"not_found"` and the player sees the ordinary `private_lobby.not_found` message. ⛔ **Not an incident and not a user-facing bug.**
+  - 📌 *2026-10-14 sync — corrected, the text above kept as history:* the "benign — the 404 is handled as not-found" reading was **wrong for production**. Nothing serves `/game/<id>`, so production answered **200 with the site's HTML page** (the Master's page catch-all); `.json()` threw and a player who typed a wrong private-lobby code saw the **generic error**, not "not found" (found by task `0451`'s review, one read-only request, 2026-10-13). Task `0454` ([[tasks/private-lobby-wrong-code-not-found]]) put the read **behind `archiveEnabled()`** — no request while it is false — committed `2d2ab4a`, **not deployed** (live check `0461`). `0292` was cancelled as absorbed by `0454`.
   - ⚠️ **It fires only for lobby IDs that are NOT currently active.** `checkActiveLobby()` runs first and returns for a live lobby, so the read is reached only by a typo, a stale link, or a finished game. **An earlier framing that it "fires on every private-lobby-ID entry" was OVER-STATED and is corrected here** — the defect is unchanged, the volume is lower.
   - ✅ **The destination is OUR OWN INFRASTRUCTURE, not a third party — measured 2026-09-22 on the live production deployment** by `fkit-lead` via a read-only `GET /api/env` (the route in `src/server/Master.ts` that serves the client its runtime config): both `apiBaseUrl` and `jwtIssuer` classified as **own infra**, `gameEnv` `prod`, `publicProtocol` `https`. ⇒ **no third-party traffic and no 152-ФЗ question; severity stays BENIGN.** 🔒 **Classification only — no endpoint, hostname, domain or URL was recorded.**
   - ⚠️ **Ceiling on that measurement, stated so nobody widens it:** one reading, one moment, **two fields**, **prod only** — dev and preprod unmeasured — and it says **nothing** about identity, entitlements or matchmaking, so ⛔ **`0009` finding 1 is NOT discharged.**
@@ -80,3 +86,5 @@ The follow-up is S3-backed archival gated to citizen games, scoped as a backlog 
 - [[decisions/sprint-4]] — the board the `0292` finding surfaced on
 - [[decisions/sprint-5]] — where `0030`, this ADR's expected exit, ~~now sits~~ sat (later Sprint 6 → Sprint 7 → **Backlog board, postponed indefinitely, 2026-10-03**)
 - [[decisions/adr-118-archive-read-through-game-server]] — 🆕 the read path `0030` must build: through the game server, bucket private
+- [[tasks/private-lobby-wrong-code-not-found]] — task `0454`: the client read is now behind this switch (not deployed)
+- [[decisions/cancelled-tasks]] — `0292`, cancelled as absorbed by `0454`

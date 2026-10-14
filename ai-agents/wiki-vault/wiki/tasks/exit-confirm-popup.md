@@ -8,6 +8,11 @@
 > Code committed in `5449571` ("Sprint push"); `git tag --contains 5449571` → **no tag**, so **committed, NOT
 > deployed** (checked 2026-10-12). Live check: `0439` (Backlog board; belongs at the top of the next sprint).
 
+> 📌 *2026-10-14 sync:* **LIVE on game prod since 2026-10-13 (~20:06–20:13 MSK) in `0.0.164`** (`git tag --contains
+> 5449571` → `0.0.164`). It shipped mid-week as `0445`'s proof release by owner ruling *"Real release now"*, which
+> accepted that it goes out never seen live ([[tasks/ssh-key-login-live]]). The live check `0439` is still open. Game
+> dev still runs an older build. The "committed, NOT deployed" line above is history.
+
 ## Goal
 
 Tapping the in-match exit button used to leave the match at once — one mis-tap ended it. Upstream OpenFront asks with
@@ -65,3 +70,4 @@ that **skipped** the interstitial ad and the reconnect-session clear — the two
 - [[decisions/sprint-8]] — the board (rank 35)
 - [[decisions/sprint-backlog]] — where it was filed, and `0439`
 - [[tasks/yandex-outage-recovery-checklist]] — task `0440`: listed `0439` as item 4; re-planned 2026-10-13 so `0439` stands alone
+- [[tasks/ssh-key-login-live]] — task `0445`: the `0.0.164` proof release that shipped this to prod

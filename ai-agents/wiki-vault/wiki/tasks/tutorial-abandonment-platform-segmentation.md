@@ -16,6 +16,11 @@
 > 🔴 **Priority `Medium–High` is the PRODUCER'S rank, NOT an owner ruling. The owner did not rank
 > this.** ⛔ Do not restate it as the owner's.
 
+> 📌 *2026-10-14 sync:* the numeric GameAnalytics game ID was removed from this task's brief and its Backlog-board row
+> (`0459`, [[tasks/gameanalytics-game-id-removed]]). `0456`'s report lists registering the custom dimensions (the gap
+> this task found) as fix option F — analysis only; the owner ruled no code fix there
+> ([[tasks/gameanalytics-event-limit-recurring-spikes]]).
+
 ## Goal
 
 Answer the owner's actual question, which is **about segmentation, not the aggregate rate**:
@@ -149,3 +154,5 @@ assume a mobile fix is automatically in scope.**
 - [[systems/analytics]] — the event conventions, the custom dimensions, and the production-only `DEPLOY_ENV` guard this task depends on
 - [[decisions/sprint-backlog]] — the Backlog board this task sits on, unscheduled
 - [[tasks/tutorial-reduce-bots]] — an earlier tutorial config change, for contrast: a shipped tweak rather than an investigation
+- [[tasks/gameanalytics-game-id-removed]] — task `0459`: the game ID removed from this brief
+- [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`: option F, the unregistered custom dimensions

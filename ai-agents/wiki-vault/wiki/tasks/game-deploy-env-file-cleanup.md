@@ -12,6 +12,12 @@
 > and a live dev-deploy check moved to the verify task **`0450`** (Sprint 8, Backlog). Committed in `910bc14`;
 > `git tag --contains` → none at this sync ⇒ **not deployed**.
 
+> 📌 *2026-10-14 sync:* `910bc14` is in game tag `0.0.164`, deployed to game prod on 2026-10-13
+> ([[tasks/ssh-key-login-live]]); the "not deployed" line above is history. Game dev still runs an older build; the
+> leftover files there and the dev check are still `0450` (open, now unblocked by `0445`'s key). ⚠️ With `0442`
+> committed, `0450`'s dev deploy will also turn SSH password login off on game dev — `0452`'s pre-checks first
+> ([[tasks/ssh-password-login-off]]).
+
 ## Goal
 
 `0443`'s read-only inventory ([[tasks/ssh-security-alerts]]) found **~21 leftover `dev-*.env` deploy files** in root's
@@ -58,3 +64,5 @@ container. Whether every leftover file is 0600 and root-owned is **not recorded*
 - [[systems/weekend-deploy-window]] — the deploy that will carry the new `update.sh`
 - [[decisions/sprint-8]] — the board (rank 43)
 - [[decisions/sprint-backlog]] — where `0444` (secrets off the ssh command line, item 5 now required) and the moved row sit
+- [[tasks/ssh-key-login-live]] — task `0445`: the game key that unblocks `0450`; `0.0.164` deployed
+- [[tasks/ssh-password-login-off]] — task `0442`: a `0450` dev deploy now also turns password login off

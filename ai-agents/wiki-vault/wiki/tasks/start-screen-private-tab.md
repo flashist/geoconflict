@@ -71,3 +71,4 @@ rule resolve switches to a stored Private tab unless the player already tapped a
 - [[decisions/sprint-8]] — `0420`, the live-check checklist
 - [[tasks/no-native-tooltips]] — task `0415`, the app-wide tooltip removal; left this task's two rows as they were
 - [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, item 6 passed
+- [[tasks/private-lobby-funnel-events]] — task `0451`: `UI:Tap:PrivateTab` is the funnel's first step

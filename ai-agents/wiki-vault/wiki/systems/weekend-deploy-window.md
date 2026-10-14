@@ -5,6 +5,21 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-14 sync — game `0.0.164` went to PROD MID-WEEK (2026-10-13, ~20:06–20:13 MSK)** as `0445`'s proof deploy
+> over the key — owner ruling *"Real release now"* (bends the weekend rule; full `npm test` green first). It carried
+> `0437` (exit confirm popup — live, unseen: `0439`), `0441`'s deploy fixes, `0443`'s root step and `0447`'s
+> `update.sh` (`git tag --contains` → `0.0.164` for `5449571`, `779ddc2`, `910bc14`). Telemetry got
+> `0.0.163-telemetry.1` the same evening. Game dev still runs `20261003-122424`. Every game deploy exits 3
+> (`GAME HOST SETUP SKIPPED: PROFILE_SSH_ALERT_TOKEN is empty`) until `0449` — expected; the game is live. See
+> [[tasks/ssh-key-login-live]].
+> - **Committed since, waiting for a deploy** (`git tag --contains` → none for `daa1bcc`, `2d2ab4a`): game client —
+>   `0451` private-lobby events, `0454` wrong-code "not found"; deploy scripts — `0442` sshd hardening, `0453` profile
+>   key-only client options.
+> - 🚨 **Before the next game or telemetry deploy:** with `0442` committed, **any key deploy turns SSH password login
+>   off on that box**, whatever task it is for — `0452`'s pre-checks P1–P4 first (provider console logged into as
+>   root, keys and passphrases backed up, root passwords stored, a read-only sshd look). Game prod waits for the
+>   weekend slot (owner Q2). See [[tasks/ssh-password-login-off]].
+>
 > 🆕 **2026-10-13 sync — committed, waiting for a deploy** (`git tag --contains` → none for `5449571`, `779ddc2`,
 > `910bc14`, checked 2026-10-13):
 > - **Game:** `0437` exit confirmation popup ([[tasks/exit-confirm-popup]]; live check `0439`); `0441`'s `deploy.sh`
@@ -922,3 +937,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/ssh-security-alerts]] — task `0443`: committed `779ddc2`; once deployed, game deploys exit 3 until `0445`
 - [[tasks/game-deploy-env-file-cleanup]] — task `0447`: new `update.sh`, committed `910bc14`, waiting for a game deploy
 - [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`: a console flip (2026-10-13), not a deploy
+- [[tasks/ssh-key-login-live]] — task `0445`: the mid-week `0.0.164` release over the key
+- [[tasks/ssh-password-login-off]] — task `0442`: the next key deploy turns password login off — pre-checks first

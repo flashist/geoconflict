@@ -27,6 +27,10 @@ What the code does today (the ADR's reading of the working tree, 2026-10-03; fin
 - **The client read** (`checkArchivedGame()` in `src/client/JoinPrivateLobbyModal.ts`) fetches
   `` `${getApiBase()}/game/${lobbyId}` `` from the shared API root — not from any bucket — and is **not** behind
   `archiveEnabled()`. Task `0292` tracks repointing it.
+  📌 *2026-10-14 sync:* task `0454` put this read behind `archiveEnabled()` (no request while it is false; committed
+  `2d2ab4a`, not deployed) and `0292` was cancelled as absorbed — [[tasks/private-lobby-wrong-code-not-found]]. The
+  repoint to this ADR's read endpoint is now `0030`'s alone; `0454`'s choice — an archive answer that is not a real one,
+  after the worker said `exists: false`, reads as not-found — is what `0030` inherits.
 - **The server write** (`src/server/Archive.ts`) POSTs to the same root behind the `archiveEnabled()` early return. A
   server-side reader, `readGameRecord()`, exists but **has no caller** in `src/` or `tests/`.
 - **The storage slots** (`Config.ts`, `DefaultConfig.ts`, forwarded by `deploy.sh`) have no caller outside
@@ -96,3 +100,4 @@ check to mint the URL, so only the byte transfer is saved.
 - [[decisions/sprint-backlog]] — where `0030` and `0292` now sit (archiving postponed indefinitely 2026-10-03)
 - [[decisions/sprint-7]] — the board `0030` left on 2026-10-03
 - [[systems/yandex-games-platform-rules]] — Rule 4 (one main domain, never a raw IP) cites this ADR's domain constraint
+- [[tasks/private-lobby-wrong-code-not-found]] — task `0454`: the client read gated; `0292` cancelled
