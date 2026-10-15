@@ -80,7 +80,7 @@ deploy. ⇒ **Pre-checks P1–P4 must be done before the first game or telemetry
 that deploy is for. This touches:
 - [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md) —
   deploys profile → telemetry → game dev → game prod;
-- [`0450`](../0450-verify-0447-on-the-boxes-list-the-leftover-deploy-env-files-owner-deletes-them-on-game-dev-and-confirm-a-dev-deploy-leaves-no-file/brief.md)
+- [`0450`](../../done/0450-verify-0447-on-the-boxes-list-the-leftover-deploy-env-files-owner-deletes-them-on-game-dev-and-confirm-a-dev-deploy-leaves-no-file/brief.md)
   — deploys game dev.
 
   A `0449`/`0450` deploy **may double as this task's step 2 for that box**, but only if P1–P4 passed first and terminal A

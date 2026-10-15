@@ -45,7 +45,9 @@ Owner ran the steps; outputs pasted to and read by the main session.
   `permitemptypasswords no`, `permitrootlogin prohibit-password`, each "global + root-effective", then
   `✅ sshd hardened: password login OFF, root key-only`. Deployed version `0.0.164-telemetry.1` (git tag pushed).
   `SSH SECURITY ALERTS (0443)` warned that `PROFILE_SSH_ALERT_TOKEN` is empty — expected until `0449`.
-- **V5 — pending:** fail2ban "Total failed" a few hours after the change, to compare with P4's 25430.
+- **V5 — passed 2026-10-15, 16:01 MSK** (`0462`; run by the main session over SSH with the owner's in-session OK,
+  read-only). fail2ban sshd jail answers: currently failed 3 / total failed **25627** / currently banned 0 / total banned
+  4180. 25627 > P4's 25430 (fail2ban running since 2026-10-03, no restart). → **pass.**
 - **Game dev:** see the next section.
 
 ## 2026-10-15 — game dev: deploy
@@ -64,11 +66,18 @@ and read by the main session.
   `Permission denied (publickey)` with no password prompt.
 - **V3 — passed 2026-10-15.** `sshd -T` and `sshd -T -C user=root,host=localhost,addr=127.0.0.1` both show
   `passwordauthentication no` and `permitrootlogin without-password`.
-- **V5 — pending:** fail2ban "Total failed" a few hours after the change, to compare with P4's 160736.
+- **V5 — passed 2026-10-15, 16:01 MSK, with a note** (`0462`; run by the main session over SSH with the owner's
+  in-session OK, read-only). fail2ban sshd jail answers: currently failed 2 / total failed **9** / currently banned 1 /
+  total banned 1. **Note:** fail2ban was restarted at 15:47–15:55 MSK by `0449`'s step 7 test (fail2ban down / back),
+  which resets its in-memory counters, so the comparison with P4's 160736 cannot be made. The 9 failures and 1 ban in the
+  ~6 minutes since the restart, with password login off, show the filter still counts refused attempts (the sshd journal
+  also showed 553 refused / invalid-auth lines since 12:15 MSK). → **pass**, per 📌 OWNER RULING 2026-10-15 (live
+  `AskUserQuestion` in the main session, relayed via `fkit-lead`; ⛔ not producer precedent), verbatim *"Pass, with the
+  note (Recommended)"*.
 
 ## Where 0452 stands (2026-10-15)
 
-- Telemetry: V2, V3, V4 passed; V5 pending.
-- Game dev: V2, V3, V4 passed; V5 pending.
-- Game prod: not started — weekend slot.
+- Telemetry: V2, V3, V4 passed; V5 passed 2026-10-15 16:01 MSK (`0462`).
+- Game dev: V2, V3, V4 passed; V5 passed 2026-10-15 16:01 MSK, with the fail2ban-restart note (`0462`, owner ruling).
+- Game prod: not started — weekend slot (V5 still pending there).
 - Q3 switch removal (verification step 7): after all three boxes pass — not started.

@@ -57,11 +57,26 @@ task.
 **Prerequisite:** `0350`'s code is committed and deployed to the profile box. Committed ≠ deployed (owner deploys in
 weekend slots).
 
+> 🚀 **2026-10-15 — `0350` IS NOW DEPLOYED** to the profile box: `npm run deploy:profile` → **`0.0.164-profile.1`**,
+> exit 0, `/health` ok — the profile deploy made for [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/worklog.md).
+> 📌 **OWNER RULING 2026-10-15**, live `AskUserQuestion` in the main session, relayed by `fkit-lead` to a spawned
+> `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Verbatim selection: **"Deploy now,
+> ship both (Recommended)"** — ship `0350` early in that deploy instead of its own weekend profile deploy (this
+> supersedes, for this one deploy, the "own weekend profile-server deploy" placement above).
+> - **Step 1 below (the deploy) is therefore already done.** The prerequisite is met; the box checks (steps 2–4) can
+>   run **any time** — no weekend slot needed.
+> - The deploy-time digest reported **3 name requests waiting** (count only; who and which names not recorded).
+> - Recorded from `fkit-lead`'s relay; the producer did not see the deploy output itself. Verification step 1's
+>   second half — the walk-through command actually starting on the box — is **not yet checked**.
+> - Status unchanged: `🔲 Backlog`.
+
 ## What to build
 
 Nothing. Deploy + verification only.
 
-1. **Deploy (owner).** In a weekend slot, run the profile deploy (`./build-deploy-profile.sh`, runbook § *Deploy*).
+1. ✅ **Done 2026-10-15** — `npm run deploy:profile` → `0.0.164-profile.1`, not in a weekend slot, by owner ruling (see
+   the deployed note in *Context*). Original step, kept for the record: ~~**Deploy (owner).** In a weekend slot, run the
+   profile deploy (`./build-deploy-profile.sh`, runbook § *Deploy*).~~
    Note that every profile deploy sends one extra digest on purpose (runbook § *Deploy*) — expected, not a fault.
 2. **Runbook checks (owner).** On the profile box, run the five steps of the runbook's *Verification the owner must
    do on the real box — never claimed by an agent (task `0350`)*:
@@ -104,7 +119,8 @@ the SSH + docker chain is exactly what `0350` could not prove off the box — it
 of `0350`.
 
 ## Notes
-- **Depends on:** `0350` (done, agent-closed — not owner-verified) — and a weekend profile-server deploy of it.
+- **Depends on:** `0350` (done, agent-closed — not owner-verified) — and a ~~weekend~~ profile-server deploy of it
+  (✅ deployed 2026-10-15, `0.0.164-profile.1`, owner ruling *"Deploy now, ship both (Recommended)"* — see *Context*).
 - **Blocks:** nothing. Per OWNER RULING 3 (2026-10-15) it does not hold back the final Sprint 8 deploy or `0426`.
 - **Related:** `0361` (Telegram confirmation when a name change is decided — builds on `0350`'s shape A1). Later
   additions named in `0350`'s brief, not part of this check: a one-word laptop wrapper over SSH, and Claude's question
