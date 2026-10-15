@@ -1,4 +1,5 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
-model = "gpt-5.5"
-review_model = "gpt-5.5"
+# No model is pinned here on purpose (owner ruling 2026-10-15). Codex uses the model from your own
+# ~/.codex/config.toml. A pinned "gpt-5.5" here outlived the account's model list and broke every
+# Codex run in this repo (review second opinions, wiki work) until it was removed.
