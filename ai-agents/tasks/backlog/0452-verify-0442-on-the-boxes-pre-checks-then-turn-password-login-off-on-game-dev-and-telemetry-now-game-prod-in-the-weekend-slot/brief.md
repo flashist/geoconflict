@@ -25,14 +25,16 @@ Sprint 8
 46
 
 🚨 **On merit this is the FIRST OPEN WORK on the board** (`0442` was the owner's top priority, ruling 2026-10-12).
-⚠️ **Priority 46 is append rank, NOT a merit ranking — flagged for owner confirmation.**
+⚠️ **Priority 46 is append rank, NOT a merit ranking** — ~~flagged for owner confirmation~~. ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent; verbatim *"Confirm that order (Recommended)"*): **`0452` → `0462` → `0449`/`0450` near the top, and `0219` near the top for its deadline.** Rank number unchanged (ADR-035). See the 2026-10-15 four-rulings addendum on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
 **On merit this belongs directly above `0449`**, because `0449` and `0450` both deploy the game boxes (and `0449` the
 telemetry box too), and once `0442`'s code is committed any such deploy turns password login off — so this task's
 pre-checks must come first. ADR-035 forbids inserting a new row above closed rows, so it appends after the highest
 (45, `0451`).
 
 ## Status
-🔲 Backlog
+🔄 In progress — 2026-10-15, OWNER RULING (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Both (Recommended)"* to *"Mark 0452 and 0426 as 'In progress' on the board, since work on both has started?"*. Pre-checks P1–P4 passed 2026-10-15; password login is off on telemetry and game dev (V2–V4 passed on both). Left: V5 on those two boxes (`0462`), game prod in the weekend slot, and the Q3 switch removal (verification step 7). Details: `worklog.md`.
+
+*(Status until 2026-10-15, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** Every box step, the commit, every deploy and the env-file edits are

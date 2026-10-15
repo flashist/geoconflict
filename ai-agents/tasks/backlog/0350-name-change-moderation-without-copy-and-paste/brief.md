@@ -115,6 +115,10 @@ what this one builds on.
 
 - **Depends on: nothing.**
 - **Blocks:** nothing.
+- 📌 **2026-10-15 — ships ON ITS OWN.** OWNER RULING 2026-10-15 (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Ship 0350 on its own (Recommended)"* to *"Should 0350 (the name-change helper, a tool only you use) hold back the final Sprint 8 deploy and the player news text (0426)?"*. Not player-facing (a tool only the owner uses), so it does
+  **not** hold back the final Sprint 8 deploy or the player news task `0426`; it goes out in its own weekend
+  profile-server deploy. The build/verify split still applies (live check → a verify task at the top of the next
+  sprint).
 - ⚠️ **Open owner question (Step 0) — plain words.** Today you SSH to the profile box and paste a long line per
   request; for requests only in the daily list you build that line by hand. Which should replace it?
   - **A1 — one command on the profile box that walks you through the waiting requests** and asks approve / reject /

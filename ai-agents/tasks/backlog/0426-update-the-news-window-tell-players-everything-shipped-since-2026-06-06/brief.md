@@ -26,7 +26,9 @@ other Sprint 8 build task (see *Timing*). 23 already sits there. **Rank barely m
 governs when this task starts, not its number.**
 
 ## Status
-🔲 Backlog
+🔄 In progress — 2026-10-15, OWNER RULING (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Both (Recommended)"* to *"Mark 0452 and 0426 as 'In progress' on the board, since work on both has started?"*. The news text was drafted 2026-10-11 and owner-approved 2026-10-12 (step 4 gate passed — `worklog.md`). Waiting for deploy day: `resources/announcements.json` is not edited yet (step 5 and verification 3–5 run in the final Sprint 8 deploy).
+
+*(Status until 2026-10-15, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-coder
@@ -78,7 +80,8 @@ tasks. Every other open row is a verify/re-read task that ships no code.
 ### Timing — the rule that governs this task
 - **Start only after the last Sprint 8 build task that ships in the final Sprint 8 deploy is built** — today that means
   `0415` and `0423`, plus any Sprint 8 build task filed after 2026-10-09 that rides the same deploy. Check the Sprint 8
-  board at start; if a build task is still open, wait or ask the owner.
+  board at start; if a build task is still open, wait or ask the owner. **Not `0350`** — it ships on its own
+  (owner ruling 2026-10-15, see *Notes*).
 - **Ship it in that final Sprint 8 deploy**, together with the features it describes. **It must never ship ahead of a
   feature it mentions.** If a described feature slips out of the deploy, its line comes out of the entry before the
   deploy.
@@ -151,7 +154,9 @@ No change to `resources/lang/*.json` is expected (entry text is self-contained).
 
 - **Depends on:** `0415`, `0423` — and every other Sprint 8 build task that ships in the final Sprint 8 deploy,
   including any filed after 2026-10-09 (see *Timing*; the open set cannot be listed in full today, so the coder
-  re-checks the Sprint 8 board at start).
+  re-checks the Sprint 8 board at start). **Excludes `0350`** (name-change moderation helper).
+- 📌 **Why `0350` is excluded (2026-10-15):** OWNER RULING 2026-10-15 (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Ship 0350 on its own (Recommended)"* to *"Should 0350 (the name-change helper, a tool only you use) hold back the final Sprint 8 deploy and the player news text (0426)?"*. `0350` is not player-facing, so this task does not wait for
+  it; `0350` ships in its own weekend profile-server deploy.
 - The SSH-only tester-roles task (Sprint 8 rank 22) is deliberately not a dependency: it is a box-side operator tool
   players never see.
 - **Blocks:** nothing — but it should ride the final Sprint 8 game deploy, so that deploy waits for it.

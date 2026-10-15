@@ -19,7 +19,7 @@ Sprint 8
 ## Priority
 53
 
-⚠️ **Priority 53 is append rank, NOT a merit ranking — flagged for owner confirmation.**
+⚠️ **Priority 53 is append rank, NOT a merit ranking** — ~~flagged for owner confirmation~~. ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent; verbatim *"Confirm that order (Recommended)"*): **`0452` → `0462` → `0449`/`0450` near the top, and `0219` near the top for its deadline.** Rank number unchanged (ADR-035). See the 2026-10-15 four-rulings addendum on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
 **On merit this belongs directly below `0452`**, because it is one of `0452`'s own verification steps (V5) for two of
 its three boxes, and it is time-gated, so it cannot run before `0452`'s game dev and telemetry steps anyway. ADR-035
 forbids inserting a new row above closed rows, so it appends after the highest (52, `0350`).
