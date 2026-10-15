@@ -152,3 +152,34 @@ did not run the searches itself.
 - A 24 h window with zero per-guess messages.
 
 Status unchanged: `🔲 Backlog`.
+
+## 2026-10-15 (later) — commits in the deploys, a second game dev redeploy, game prod
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) from facts relayed by `fkit-lead`. The producer did
+not see the boxes or the deploy output itself.
+
+- 📌 **OWNER RULING 2026-10-15**, live `AskUserQuestion` in the main session, relayed by `fkit-lead`; ⛔ **not producer
+  precedent.** Verbatim selection: **"Add the short note (Recommended)"** — append these lines; nothing above is touched.
+- **Commits in the deploys.** `0442`'s code is commit **`daa1bcc`** (2026-10-14). All three deploy tags —
+  `0.0.164-telemetry.1`, `0.0.164-profile.1`, `0.0.164-telemetry.2` — contain both `779ddc2` (`0443`) and `daa1bcc`
+  (`0442`); checked by `fkit-lead` with `git merge-base --is-ancestor`.
+- **`0.0.164-telemetry.1` (12:13 MSK) does not count for this task.** It ran before `PROFILE_SSH_ALERT_TOKEN` was added
+  (its output warned the token was empty — `0452`'s worklog). The telemetry deploy that counts is `0.0.164-telemetry.2`
+  (Step 3 above).
+- **Second game dev redeploy, after 16:23 MSK.** Owner ran `./deploy.sh dev 20261003-122424` (same image, no game
+  change); output pasted to and read by `fkit-lead`. Key lines:
+  - `OK  preconditions — root, GAME_ENV=dev, role marker 'game'`
+  - `ssh-alerts: agent v1 unchanged and running — not restarted` — the agent was **already installed** before this
+    deploy (by the earlier deploy in Step 3).
+  - `ssh-alerts: installed for box 'game-dev' (token: stdin; fail2ban jail: sshd)` · `OK  ssh-alerts — agent installed
+    for game-dev`
+  - sshd checks all ✅, `OK  sshd — password login off, root key-only`
+  - `GAME HOST SETUP: OK`, final banner `✅ GAME HOST SETUP OK (root step: SSH security alerts + sshd hardening up to
+    date)`
+  - ⚠️ **Exit code not printed.** "Exit 0" is an **inference**: the OK banner prints only on success (a failed setup
+    exits 3 with a "HOST SETUP NOT DONE" banner).
+- **Game prod: still unconfirmed from git.** There is no game deploy tag today; the last game tag is `0.0.164`
+  (2026-10-13). A same-version `./deploy.sh prod` leaves no git trace, so git can neither confirm nor rule out a deploy
+  today. This matches Step 3's **NOT deployed**. Game prod stays in the weekend slot, with `0452`.
+
+Nothing above changes "Still open (updated)". Status unchanged: `🔲 Backlog`.
