@@ -1,7 +1,11 @@
 # Name-change digest — runbook (task `0283`)
 
-> 📌 **Approving or rejecting a request** (the Approve/Reject lines in each per-request Telegram
-> message) is covered at the end: [Deciding a request: approve or reject (task `0312`)](#deciding-a-request-approve-or-reject-task-0312).
+> 📌 **Deciding the waiting requests — start here (task `0350`):** SSH to the profile box and run
+> **one** command that walks you through every waiting request, approve / reject / skip — nothing to
+> copy, paste or type by hand: [Deciding everything waiting: the walk-through command](#deciding-everything-waiting-the-walk-through-command-task-0350).
+>
+> **The paste lines** (the Approve/Reject lines in each per-request Telegram message) still work —
+> fallback until the walk-through is proven on the box: [Deciding a request: approve or reject (task `0312`)](#deciding-a-request-approve-or-reject-task-0312).
 > A request you only see in the digest's **list** message (task `0315`) is covered there too:
 > [Acting on a request you only see in the list](#acting-on-a-request-you-only-see-in-the-list-task-0315).
 > **Removing a name that was already approved** (task `0314`) uses the same command with
@@ -234,6 +238,9 @@ than anything else here.
 
 ## Deciding a request: approve or reject (task `0312`)
 
+> **Since task `0350`, start with the walk-through command** (first subsection below). The paste
+> lines described here **still work** — fallback until the walk-through is proven on the box.
+
 Every per-request Telegram message ("[Name change] Pending request") ends with **two ready-to-paste
 lines**: **Approve** and **Reject**. Each runs a small command shipped inside the profile-server
 image, `npm run -s name-change:decide` (`src/profile-server/decideNameChange.ts`), in the running
@@ -252,7 +259,109 @@ environment** and posts the decision to the server's decide route on `127.0.0.1`
 withdraw does **not** reset it: withdraw → re-request inside 10 minutes sends **no** new message, so
 that request shows only in the daily digest's list (task `0315`).
 
+### Deciding everything waiting: the walk-through command (task `0350`)
+
+**One command, no copy-and-paste.** It shows the waiting requests one at a time, oldest first, and
+asks what to do with each. It fills in the exact name for you, so nothing is typed as `\uXXXX` codes
+— and it covers the requests that are only in the daily digest's list too.
+
+**Where to run it:** SSH to the **profile box** first (same user as below), then run:
+
+```bash
+docker compose -f <profile dir>/docker-compose.yml exec profile-api npm run -s name-change:review
+```
+
+- ⚠️ **No `-T`.** This command asks questions, so it needs a terminal. With `-T` (or with input
+  piped in) it refuses before reading anything: `Refused: this command asks questions …` — exit 2,
+  nothing sent. That is on purpose: a script typing `a` would approve names nobody read.
+- ⛔ **Not from your laptop**, and not as `ssh <box> '<command>'` — SSH in first, then run it. Same
+  rule as the paste lines below (nginx's `/internal/` allowlist, task `0276`).
+
+**What it shows per request:**
+
+```
+Request 1 · 4 waiting
+Player:  <player uuid>
+Name:    «<name>»
+Waiting: 2 d 5 h
+[a] approve  [r] reject  [s] skip  [q] quit >
+```
+
+- **The name:** letters (Cyrillic included) show as written. Any hidden or unusual character shows
+  as a `⟨U+…⟩` code, with a ⚠️ line under the name. The **real** name — not the codes — is what gets
+  sent as `expectedName`.
+- A ⚠️ line also shows when the match's **rude-name filter** would hide the name (task `0322`, see
+  below).
+- `4 waiting` counts the requests still to show in this run, this one included (skipped ones are
+  not counted).
+
+**The keys:**
+
+| Key | What happens |
+|---|---|
+| `a` | Asks `Approve «<name>»? y/N`. **Only `y` approves** (owner ruling 2026-10-15). Anything else — Enter, `n`, other text — prints `Not approved. Nothing was sent.` and asks the choice again. |
+| `r` | Asks for the **reason the player will read** (at most 500 characters). An **empty line goes back** to the choice. Too long, or the placeholder `REPLACE-WITH-REASON`, is refused and asked again — nothing sent. |
+| `s` | Skip. The request **stays waiting** and is not shown again in this run. It shows again next time you run the command. |
+| `q` | Quit. Prints `Approved N, rejected M, skipped K. Still waiting: W.` and exits 0. |
+| anything else | `Type a, r, s or q.` — nothing sent. |
+
+**What the answer means** — the same meaning as for the paste commands (table in *What the answer
+means* below), worded for the walk-through: it never tells you to copy or paste anything, and a
+`409 name_mismatch` says only that the name changed after it was shown — no `\uXXXX` codes. What the
+walk-through does next:
+
+- `HTTP 200` → counted; next request.
+- `HTTP 404 no_pending` (withdrawn, or decided elsewhere meanwhile — e.g. a pasted line) → next request.
+- `HTTP 409 name_mismatch` (the player changed the name after it was shown) → **nothing applied**. The
+  new name comes up as its own card later in the run, read fresh — decide on what you then see.
+- `HTTP 409 name_taken` → nothing applied; the request is **still waiting** and is shown again right
+  away. Reject it with a reason, or skip it.
+- `HTTP 400 / 401 / 503 / 500`, an unexpected answer, or **no answer** → the run **stops** (exit 1).
+  These point to a problem with the whole system, not one request. After **no answer** or a **500**,
+  the decision may or may not have been applied: run *Confirming the outcome* below before trying
+  again.
+- The database cannot be read → `Could not read the waiting requests …`, the run stops (exit 1),
+  nothing sent.
+
+**Ctrl-C and Ctrl-D:**
+
+- **Ctrl-D** on an **empty** line at a question → same as `q`: summary, exit 0. Nothing sent for that
+  request. After you have typed something, Ctrl-D does **not** quit (it only deletes forward) — clear
+  the line first, or use `q`.
+- **Ctrl-C** at a question → nothing sent for that request; `Stopped (Ctrl-C).`, summary, exit 130.
+- **Ctrl-C while a decision is being sent** → that decision is allowed to finish (at most 10 seconds)
+  and its result is printed; then the run stops: `Stopped (Ctrl-C).`, summary, exit 130. Ctrl-C
+  itself never cuts a decision off.
+  - **Exception:** if that decision's answer is one that stops the run anyway (`HTTP 400 / 401 / 503 /
+    500`, an unexpected answer, or **no answer**), the run stops as for that error: `Stopped.`, **no
+    summary, exit 1**. After **no answer** or a **500** the outcome is still unknown (the timeout, not
+    Ctrl-C) — run *Confirming the outcome* below.
+- ⚠️ **A dropped SSH connection while a decision is being sent** kills the command; that decision's
+  outcome is then unknown — run *Confirming the outcome* below.
+
+**What it needs: nothing new.** No new variable, route or nginx change. The token is read from the
+`profile-api` container's own environment (`PROFILE_INTERNAL_TOKEN`), exactly like the paste lines —
+never typed, never printed. No Telegram message changes.
+
+#### Verification the owner must do on the real box — never claimed by an agent (task `0350`)
+
+Done in the separate verify task, after the weekend profile deploy:
+
+1. Have **3 or more** requests waiting, including one with a **Cyrillic** name and one with a
+   **hidden character** (for example a no-break space). Run the walk-through and decide all of them —
+   no copy-paste, no hand-typed `\uXXXX`. The Cyrillic name reads as letters; the hidden character
+   shows as a `⟨U+…⟩` code with the ⚠️ line.
+2. Show a request, then — before answering — change its name from the player side (withdraw and ask
+   for a different name). Approve the shown card: it must answer `HTTP 409 name_mismatch` and apply
+   nothing; the new name then comes up as its own card.
+3. Check that the token appears nowhere in the terminal output, for every answer you saw.
+4. Check **Ctrl-C** at a question (nothing sent, exit 130) and a Cyrillic **reject reason** typed into
+   the prompt arrives in the player's inbox as typed.
+5. Record the date in the verify task's worklog. ⛔ No host, IP, token, player id or name.
+
 ### Where to run it
+
+The paste lines below still work — **fallback until the walk-through is proven on the box.**
 
 1. SSH to the **profile box**, as the user you run the other profile-directory commands as (the
    profile directory is root-only).
@@ -388,8 +497,13 @@ docker compose -f <profile dir>/docker-compose.yml exec -T postgres \
 ### Acting on a request you only see in the list (task `0315`)
 
 A request that never got its own message (see the `0313` note above) still shows in the daily
-digest's **list**, which has **no** Approve/Reject lines (owner ruling). Build the line yourself from
-the Approve or Reject shape above:
+digest's **list**, which has **no** Approve/Reject lines (owner ruling).
+
+**Use the walk-through first** (task `0350`): it shows **every** waiting request, list-only ones
+included, and fills in the exact name for you —
+[Deciding everything waiting](#deciding-everything-waiting-the-walk-through-command-task-0350).
+
+**Fallback — build the line by hand** from the Approve or Reject shape above:
 
 1. **`playerId`** — the id shown in the list line (the monospace uuid).
 2. **`expectedName`** — the name exactly as shown, with **every `⟨U+XXXX⟩` replaced by `\uXXXX`**

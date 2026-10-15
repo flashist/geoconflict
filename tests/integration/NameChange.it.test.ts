@@ -22,6 +22,7 @@ import {
   NameChangeRepository,
   buildDecideCommandBody,
 } from "../../src/profile-server/NameChangeRepository";
+import { fetchNextPending } from "../../src/profile-server/NameChangeReviewCommand";
 import { createApp } from "../../src/profile-server/Routes";
 import {
   TEST_SESSION_CONFIG,
@@ -904,6 +905,79 @@ RUN("citizen name change over real Postgres (integration)", () => {
       const capped = await listPendingNameChanges(pool, 1);
       expect(capped.entries).toHaveLength(1);
       expect(capped.total).toBe(2);
+    });
+  });
+
+  // Task 0350: the walk-through command's query, against the real schema — the order,
+  // the exclusion by history ROW id (not player id), and the total without skipped rows.
+  describe("next request for the walk-through command (task 0350)", () => {
+    const cancel = (yandexId: string) =>
+      request(app)
+        .post("/v1/profile/name-change-cancel")
+        .set("Authorization", callerFor(yandexId))
+        .send({});
+
+    it("returns null when nothing is pending", async () => {
+      await expect(fetchNextPending(pool, [])).resolves.toBeNull();
+    });
+
+    it("oldest first; skipped row ids are left out of the row AND the total", async () => {
+      await submit(CITIZEN, "WaitingOne").expect(200);
+      await submit(OTHER, "Иван_Петров").expect(200);
+      const settled = await createYandexPlayer(pool, "yandex-nc-settled");
+      await pool.query(
+        `INSERT INTO player_name_history
+           (player_id, old_display_name, new_display_name, moderation_status, decided_at)
+         VALUES ($1, NULL, 'Decided', 'approved', now())`,
+        [settled],
+      );
+      await pool.query(
+        `UPDATE player_name_history SET changed_at = now() - interval '2 hours'
+         WHERE player_id = $1 AND moderation_status = 'pending'`,
+        [ids[OTHER]],
+      );
+
+      const first = await fetchNextPending(pool, []);
+      expect(first).toEqual(
+        expect.objectContaining({
+          playerId: ids[OTHER],
+          requestedName: "Иван_Петров",
+          waitingTotal: 2,
+        }),
+      );
+      expect(first?.requestedAt).toBeInstanceOf(Date);
+      expect(first?.playerId).not.toContain("yandex");
+
+      const second = await fetchNextPending(pool, [first!.historyId]);
+      expect(second).toEqual(
+        expect.objectContaining({
+          playerId: ids[CITIZEN],
+          requestedName: "WaitingOne",
+          waitingTotal: 1,
+        }),
+      );
+      await expect(
+        fetchNextPending(pool, [first!.historyId, second!.historyId]),
+      ).resolves.toBeNull();
+    });
+
+    it("a re-request after a skipped one shows: the skip is by row, not by player", async () => {
+      await submit(CITIZEN, "FirstAsk").expect(200);
+      const skipped = await fetchNextPending(pool, []);
+      expect(skipped?.requestedName).toBe("FirstAsk");
+
+      await cancel(CITIZEN).expect(200);
+      await submit(CITIZEN, "SecondAsk").expect(200);
+
+      const next = await fetchNextPending(pool, [skipped!.historyId]);
+      expect(next).toEqual(
+        expect.objectContaining({
+          playerId: ids[CITIZEN],
+          requestedName: "SecondAsk",
+          waitingTotal: 1,
+        }),
+      );
+      expect(next?.historyId).not.toBe(skipped?.historyId);
     });
   });
 });

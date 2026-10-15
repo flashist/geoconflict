@@ -66,7 +66,7 @@ server once the decision is saved, would replace it.
 - **Not throttled by the request notify slot.** Task `0313`'s 10-minute per-player slot limits *request* messages.
   A confirmation is one message per decision and must neither use nor claim that slot.
 - **Put the hook in the repository (after commit), not in the terminal command.** Then any future way of deciding —
-  including [`0350`](../0350-name-change-moderation-without-copy-and-paste/brief.md)'s chosen shape A1, an
+  including [`0350`](../../done/0350-name-change-moderation-without-copy-and-paste/brief.md)'s chosen shape A1, an
   interactive command on the box — gets the confirmation for free.
 - en / ru translation is **not** needed — this is an operator message, not player-facing.
 
@@ -140,7 +140,7 @@ server once the decision is saved, would replace it.
 - **Sibling, not a dependency:** [`0362`](../0362-telegram-notification-when-a-player-becomes-a-citizen-in-a-new-citizenship-topic/brief.md)
   (citizenship notifications, new topic). Both copy the same never-throw Telegram pattern; if one extracts a small
   shared "send operator message, never throw" helper, the other should reuse it rather than write a second one.
-- **Related:** [`0350`](../0350-name-change-moderation-without-copy-and-paste/brief.md) (moderation without copy and
+- **Related:** [`0350`](../../done/0350-name-change-moderation-without-copy-and-paste/brief.md) (moderation without copy and
   paste — shape A1 chosen); hooking this in the repository means `0350`'s command inherits it. `0360` (refuse
   Anon-like names) and `0308` (name charset) touch the same feature, not this message.
 - ⚠️ **Deploy timing (Sprint 7, soft):** [`plan-sprint-7.md`](../../../sprints/done/plan-sprint-7.md) records that there is

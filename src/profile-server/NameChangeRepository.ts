@@ -770,30 +770,43 @@ function visibleCodePoint(ch: string): string {
 }
 
 /**
- * The requested name as the moderator should see it (task 0307, F3; owner ruling
- * Q1): any character that is not a letter, digit, `_`, `[`, `]` or plain space is
- * shown as a visible code, so a name carrying an invisible or look-alike space — or
- * a newline that would fake a second line in the message — cannot pass as a clean
- * one. Only how the Telegram message LOOKS changes; the name that is stored, and
- * that `expectedName` must match, is untouched.
+ * The requested name as the moderator should see it, as PLAIN text (task 0307, F3;
+ * owner ruling Q1): any character that is not a letter, digit, `_`, `[`, `]` or plain
+ * space is shown as a visible `⟨U+XXXX⟩` code, so a name carrying an invisible or
+ * look-alike space — or a newline that would fake a second line — cannot pass as a
+ * clean one. Letters stay letters, so a Cyrillic name reads as written.
  *
- * Returns HTML-escaped text for a `parse_mode: HTML` message.
+ * Also what the walk-through command (task 0350) prints in a root terminal: every
+ * control, format, bidi, combining or invisible character becomes a code, so a name
+ * cannot move the cursor or fake a line there either. Only how the name LOOKS
+ * changes; the name that is stored, and that `expectedName` must match, is untouched.
+ */
+export function visibleRequestedName(requestedName: string): {
+  text: string;
+  hasHiddenCharacters: boolean;
+} {
+  let hasHiddenCharacters = false;
+  let text = "";
+  for (const ch of requestedName) {
+    if (PLAIN_NAME_CHARACTER.test(ch)) {
+      text += ch;
+    } else {
+      hasHiddenCharacters = true;
+      text += visibleCodePoint(ch);
+    }
+  }
+  return { text, hasHiddenCharacters };
+}
+
+/**
+ * `visibleRequestedName`, HTML-escaped for a `parse_mode: HTML` Telegram message.
  */
 export function describeRequestedNameForModerator(requestedName: string): {
   html: string;
   hasHiddenCharacters: boolean;
 } {
-  let hasHiddenCharacters = false;
-  let shown = "";
-  for (const ch of requestedName) {
-    if (PLAIN_NAME_CHARACTER.test(ch)) {
-      shown += ch;
-    } else {
-      hasHiddenCharacters = true;
-      shown += visibleCodePoint(ch);
-    }
-  }
-  return { html: escapeTelegramHtml(shown), hasHiddenCharacters };
+  const { text, hasHiddenCharacters } = visibleRequestedName(requestedName);
+  return { html: escapeTelegramHtml(text), hasHiddenCharacters };
 }
 
 /**

@@ -18,6 +18,7 @@ import { spawnSync } from "child_process";
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { escapeTelegramHtml } from "../../src/core/notifications/TelegramNotifier";
 import {
   DECIDE_NPM_SCRIPT,
   REASON_PLACEHOLDER,
@@ -28,6 +29,7 @@ import {
   buildOperatorNotificationText,
   decideCommandLines,
   describeRequestedNameForModerator,
+  visibleRequestedName,
   wouldMatchFilterHideName,
 } from "../../src/profile-server/NameChangeRepository";
 
@@ -1833,6 +1835,49 @@ describe("describeRequestedNameForModerator (task 0307, F3)", () => {
     const text = telegramSend.mock.calls[0][1] as string;
     expect(text).toContain("<b>Requested:</b> Ivan");
     expect(text).not.toContain("hidden or unusual characters");
+  });
+});
+
+// Task 0350: the plain-text form the walk-through command prints in a root terminal.
+// describeRequestedNameForModerator is now this plus HTML escaping, so its output above
+// is unchanged; the pin below checks the two stay in step.
+describe("visibleRequestedName (task 0350)", () => {
+  it.each([
+    ["Иван_Петров", "Иван_Петров", false],
+    ["[Clan] Name_1", "[Clan] Name_1", false],
+    ["Iv\u00A0an", "Iv⟨U+00A0⟩an", true],
+    ["Bob\u3164", "Bob⟨U+3164⟩", true],
+    [
+      "a\u001b[2J\u202Eb\nc<d\u0301",
+      "a⟨U+001B⟩[2J⟨U+202E⟩b⟨U+000A⟩c⟨U+003C⟩d⟨U+0301⟩",
+      true,
+    ],
+  ])("shows %j as plain text %j", (name, text, hasHiddenCharacters) => {
+    expect(visibleRequestedName(name)).toEqual({ text, hasHiddenCharacters });
+  });
+
+  it("no raw control, format or line-breaking character survives", () => {
+    const hostile =
+      "x\u0000\u0007\u001b\u007f\u0085\u200b\u200e\u202a\u2028\u2066\ufeffy";
+    expect(visibleRequestedName(hostile).text).toMatch(/^[x⟨U+0-9A-F⟩y]+$/);
+  });
+
+  it.each(["Ivan", "Привет 123", "Iv\u00A0an", "a<b>&c", "Bob\u3164"])(
+    "describeRequestedNameForModerator(%j) is visibleRequestedName, HTML-escaped (pinned)",
+    (name) => {
+      const { text, hasHiddenCharacters } = visibleRequestedName(name);
+      expect(describeRequestedNameForModerator(name)).toEqual({
+        html: escapeTelegramHtml(text),
+        hasHiddenCharacters,
+      });
+    },
+  );
+
+  it("pins the moderator HTML for a name with markup characters", () => {
+    expect(describeRequestedNameForModerator("a<b>&c")).toEqual({
+      html: "a⟨U+003C⟩b⟨U+003E⟩⟨U+0026⟩c",
+      hasHiddenCharacters: true,
+    });
   });
 });
 

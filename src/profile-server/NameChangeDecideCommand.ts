@@ -352,37 +352,45 @@ function describeNetworkError(error: unknown, token: string): string {
 }
 
 /**
- * Sends one bound decision to the decide route and reports what happened.
- * Exit 0 only on 200; 1 when the server refused or could not be reached; 2 when the
- * input was bad and NOTHING was sent. The token is never printed.
+ * Why the container's internal token cannot be used, as a full `Refused: …` line —
+ * or null when it can. Names the problem, never the value. Shared by the decide
+ * command and the walk-through command (task 0350).
  */
-export async function runNameChangeDecide(
-  options: DecideRunOptions,
-): Promise<number> {
-  const input = parseDecideInput(options.decisionJson, options.reason);
-  if (!input.ok) {
-    options.err(`Refused: ${input.error} Nothing was sent.`);
-    return EXIT_BAD_INPUT;
-  }
-  const token = options.token ?? "";
-  if (token.trim() === "") {
-    options.err(
-      "Refused: PROFILE_INTERNAL_TOKEN is not set in this container. Run the command on the profile box, in the profile-api container, exactly as pasted. Nothing was sent.",
-    );
-    return EXIT_BAD_INPUT;
+export function checkInternalToken(token: string | undefined): string | null {
+  const value = token ?? "";
+  if (value.trim() === "") {
+    return "Refused: PROFILE_INTERNAL_TOKEN is not set in this container. Run the command on the profile box, in the profile-api container, exactly as pasted. Nothing was sent.";
   }
   // A token that is not printable ASCII (a stray line break, NUL or non-ASCII
   // character in profile.env) cannot go in an HTTP header, and Node's error for it
   // would quote the whole header, token included (review 0312 R1). Refuse it here,
   // naming the problem but never the value.
-  if (/[^\x20-\x7E]/.test(token)) {
-    options.err(
-      "Refused: PROFILE_INTERNAL_TOKEN in this container holds a character that cannot go in an HTTP header (a line break, control or non-ASCII character). Check the token in the profile box's env file. Nothing was sent.",
-    );
-    return EXIT_BAD_INPUT;
+  if (/[^\x20-\x7E]/.test(value)) {
+    return "Refused: PROFILE_INTERNAL_TOKEN in this container holds a character that cannot go in an HTTP header (a line break, control or non-ASCII character). Check the token in the profile box's env file. Nothing was sent.";
   }
+  return null;
+}
 
-  const request = input.request;
+/** What one POST to the decide route came back with. `detail` is already token-redacted. */
+export type DecidePostOutcome =
+  | { kind: "answer"; status: number; body: unknown }
+  | { kind: "no_answer"; detail: string };
+
+/**
+ * Posts one bound decision to the decide route on 127.0.0.1 (task 0350: shared by
+ * the decide command and the walk-through command, so there is one decision path).
+ * Never throws for a network failure: that comes back as `no_answer`. The token
+ * must already have passed checkInternalToken.
+ */
+export async function postNameChangeDecision(
+  request: NameChangeDecisionRequest,
+  options: {
+    token: string;
+    port: number;
+    fetch: DecideFetch;
+    timeoutMs?: number;
+  },
+): Promise<DecidePostOutcome> {
   let status: number;
   let body: unknown;
   try {
@@ -391,7 +399,7 @@ export async function runNameChangeDecide(
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${options.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
@@ -407,15 +415,53 @@ export async function runNameChangeDecide(
       body = undefined;
     }
   } catch (error) {
-    options.err(
-      `No answer from the profile API on 127.0.0.1:${options.port} (${describeNetworkError(error, token)}). The decision may or may not have been applied: run the read-only check in the runbook before retrying.`,
-    );
+    return {
+      kind: "no_answer",
+      detail: describeNetworkError(error, options.token),
+    };
+  }
+  return { kind: "answer", status, body };
+}
+
+/** The line printed when the decide route did not answer: the outcome is unknown. */
+export function describeNoAnswer(port: number, detail: string): string {
+  return `No answer from the profile API on 127.0.0.1:${port} (${detail}). The decision may or may not have been applied: run the read-only check in the runbook before retrying.`;
+}
+
+/**
+ * Sends one bound decision to the decide route and reports what happened.
+ * Exit 0 only on 200; 1 when the server refused or could not be reached; 2 when the
+ * input was bad and NOTHING was sent. The token is never printed.
+ */
+export async function runNameChangeDecide(
+  options: DecideRunOptions,
+): Promise<number> {
+  const input = parseDecideInput(options.decisionJson, options.reason);
+  if (!input.ok) {
+    options.err(`Refused: ${input.error} Nothing was sent.`);
+    return EXIT_BAD_INPUT;
+  }
+  const tokenRefusal = checkInternalToken(options.token);
+  if (tokenRefusal !== null) {
+    options.err(tokenRefusal);
+    return EXIT_BAD_INPUT;
+  }
+
+  const request = input.request;
+  const outcome = await postNameChangeDecision(request, {
+    token: options.token ?? "",
+    port: options.port,
+    fetch: options.fetch,
+    timeoutMs: options.timeoutMs,
+  });
+  if (outcome.kind === "no_answer") {
+    options.err(describeNoAnswer(options.port, outcome.detail));
     return EXIT_REFUSED;
   }
 
   const { exitCode, message } = describeDecideResponse(
-    status,
-    body,
+    outcome.status,
+    outcome.body,
     request.decision,
   );
   (exitCode === EXIT_OK ? options.out : options.err)(message);

@@ -18,7 +18,7 @@ Sprint 8 *(was ~~Backlog~~ — moved 2026-10-15, see below)*
 52 on Sprint 8 *(was ~~Unscheduled~~ — append rank, not a merit rank; 2026-10-15)*
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
