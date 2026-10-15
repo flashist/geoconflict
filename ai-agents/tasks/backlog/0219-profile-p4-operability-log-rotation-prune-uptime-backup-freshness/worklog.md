@@ -264,3 +264,100 @@ Order matters: B2/B3 before B4 so the URL ships with the deploy.
   `profile-checks.sh`; telemetry half remains"; `0182` limitation bullets); V9 grep the diff, the
   cron file, the logs and the ping bodies for endpoints/bucket/tokens — this worklog was written to
   that standard.
+
+## 2026-10-15 (evening) — reboot, Better Stack findings, B7 drill
+
+**Provenance:** the owner ran every box command and pasted the output to fkit-lead; fkit-lead read
+Better Stack read-only in the owner's Chrome; recorded here by a spawned fkit-producer (no owner
+channel). This is relayed evidence, not producer precedent. Times are UTC unless marked MSK. No
+hosts, IPs, ping URLs, tokens or bucket names are written here.
+
+### 1. Better Stack state, as found (read-only, before any fix)
+
+- **Heartbeat `profile-daily-checks`** (period 1 day, grace 3 h): an incident open since
+  2026-10-07 11:00 MSK, **never acknowledged**. ONE email, on 2026-10-07. Every later daily failure
+  was appended to the same open incident with no new alert — so while it stayed open, new failures
+  (e.g. a failed renewal) were **effectively muted**.
+- **Daily failure reasons:** `reboot-required` every day 2026-10-07 → 2026-10-15; plus
+  `daily-backup-object` size mismatch on 2026-10-07 and 2026-10-08 (not explained yet — see task
+  0465).
+- **B3 monitors ALREADY EXIST:** "Profile API health" (`/health`) and "Profile API ready"
+  (`/ready`) — check every 5 min, confirmation period 5 min, recovery 3 min, Up for ~1 month.
+  Notifications: E-mail only (no call/SMS/push); on no-ack: "Do nothing". Heartbeat notifications:
+  E-mail only; on no-ack: "within 3 minutes alert all other team members".
+- **SSL-expiration check on the monitors: OFF, and NOT available on the current (free) Better Stack
+  plan** — every option reads "(upgrade to use)". fkit-lead attempted to enable it on the owner's
+  instruction ("do it"); **nothing was changed or saved**. Compensating control: `profile-checks.sh`
+  `cert-days-remaining` fails under 20 days (default `PROFILE_CHECKS_CERT_MIN_DAYS=20`).
+- **No Telegram anywhere in Better Stack:** every alert reaches the owner by email only. B2's
+  "Telegram ops chat" part is therefore **NOT met**. Owner decision pending (email + the Better
+  Stack phone app may suffice, or a webhook).
+
+### 2. Reboot (owner)
+
+- Pre-check: pending packages `linux-image-7.0.0-38-generic`, `linux-base`; "nothing running" (no
+  backup/certbot); `docker images postgres` → `16-alpine 721873c34ceb`.
+- Rebooted ~19:19. After: up 0 min; `systemctl is-active profile` → `active`; both containers Up
+  (healthy); postgres container image
+  `sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea` (unchanged — no
+  surprise upgrade); "no reboot needed".
+
+### 3. Checker back to green
+
+- `checks.sh` 19:20:32 → 12 ok, 1 failed: `daily-backup-object: profile-2026-10-15.dump.age exists
+  off-box but is 2821619 bytes while the marker says 2761747`.
+- Owner ran `/opt/profile/backup.sh` 19:22 → `upload verified`, `backup OK … (2885244 bytes)`.
+- `checks.sh` 19:22:43 → 13 ok, 0 failed, `ping: success delivered`.
+- Better Stack: the 2026-10-07 incident "resolved automatically" Oct 15 10:22pm MSK, length 1 week
+  and 1 day.
+- Follow-up filed: **task 0465** (the deploy smoke backup overwrites the daily object; Backlog
+  board).
+
+### 4. B7 drill (owner on the box; Better Stack verified by fkit-lead)
+
+- **(a) failed renewal — alert path proven.** The B7(a) command from Part B above (certbot
+  `renew --dry-run` against the deliberately unreachable local ACME URL, appended to
+  `/var/log/certbot-renew.log`), then `checks.sh` 19:26:45 → `FAIL cert-renewal-errors:
+  certbot-renew.log grew by 907 bytes … 1 renew failure(s)`, `/fail delivered`. Better Stack:
+  incident started Oct 15 10:26pm MSK; timeline "Sent an email to" the owner's email at 10:26pm
+  MSK. Normal run 19:27:24 → 13 ok, success → "Incident resolved automatically" 10:27pm MSK (length
+  39 s). **Side effect:** the fake renewal counts as an attempt (`certbot last ran 0h ago`) because
+  `cert-renewal-attempted` reads the `letsencrypt.log` mtime (`profile-checks.sh:279-300`).
+- **(c) cert expiry threshold — alert path proven.** `PROFILE_CHECKS_CERT_MIN_DAYS=90
+  /opt/profile/checks.sh` 19:27:41 → `FAIL cert-days-remaining: certificate expires within 90 days
+  (notAfter=Nov 20 11:01:42 2026 GMT)`, `/fail delivered`. Better Stack: incident started 10:27pm
+  MSK, "Sent an email" 10:27pm MSK. Normal run 19:27:56 → 13 ok, success → resolved automatically
+  (length 15 s).
+- **(d) `certbot.timer`:** `systemctl is-enabled certbot.timer; systemctl is-active certbot.timer`
+  → `disabled`, `inactive`. Met.
+- **(b) "no renewal attempt for too long": NOT tested — owner-skipped, not passed.** A run with
+  `PROFILE_CHECKS_MAX_RENEW_ATTEMPT_AGE_HOURS=0` at 19:28:12 read OK (age 0h, not > 0 — the fake
+  renewal in (a) had just reset the age), as expected. The owner then chose to skip (b). Owner's
+  words in the fkit lead session, 2026-10-15: "I would rather skip it" — in reply to fkit-lead's
+  note that (b) tests the same alert path as (a) and (c), with a different failure reason.
+- **Honest limit:** fkit-lead saw Better Stack's record "Sent an email" for (a) and (c). Arrival in
+  the owner's inbox is **pending owner confirmation** — it counts as owner-confirmed only if the
+  owner says so.
+
+### 5. Still open for 0219 after tonight
+
+- **B2** — Telegram part not met; owner decision pending (see §1).
+- **B8** — stop the service → both monitors alert → start → "up" notices.
+- **B9** — stale-backup alerts + missing-ping (dead-man) drill.
+- **B10** — name the destinations; so far: "the owner's email via Better Stack".
+- **B6/V2** — via 0385.
+- Hold-open ruling unchanged. Status, brief and boards not touched by this entry.
+
+### Addendum 2026-10-15 ~19:30 UTC — OWNER CONFIRMATION: B7 alert emails arrived
+
+Supersedes the "pending owner confirmation" in §4's "Honest limit" bullet above. The owner showed
+fkit-lead a screenshot of their inbox: three email threads from Better Stack, each with 2 messages
+(incident started + resolved):
+
+- "profile-daily-checks - Oct 15, 2026 at 10:27pm MSK" — B7 test (c).
+- "profile-daily-checks - Oct 15, 2026 at 10:26pm MSK" — B7 test (a).
+- "profile-daily-checks - Oct 7, 2026 at 11:00am MSK" — the 8-day incident, resolved tonight.
+
+So for (a) and (c) the alert was **seen arriving in the owner's email inbox**. This is owner-confirmed,
+not just Better Stack's "Sent an email" record. Owner's words: "I got multiple emails from it". (b)
+is still owner-skipped, not passed.
