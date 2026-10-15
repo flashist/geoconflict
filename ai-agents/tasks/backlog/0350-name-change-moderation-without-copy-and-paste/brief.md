@@ -4,10 +4,18 @@
 0350
 
 ## Sprint
-Backlog
+Sprint 8 *(was ~~Backlog~~ — moved 2026-10-15, see below)*
+
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-15 — OWNER RULING given live in the coordinating
+> session** (the owner's own words), relayed by the main session to a spawned `fkit-producer` with no owner channel
+> (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Move the task to the current sprint"* — resolved to Sprint 8, the only
+> `🔄 In progress` board (`dashboard.sh select-active`). Appended to Sprint 8 at rank 52 (ADR-035 append position, **not** a
+> merit rank). Status unchanged (`🔲 Backlog`, not started); scope unchanged — v1 is shape **A1** per the 2026-09-29 ruling in
+> *Notes*. The Backlog-board row is kept as `➡️ Moved`. The line *"`## Sprint` / `## Priority` / `## Status` unchanged (still on
+> the Backlog board, unscheduled)"* in the 2026-09-29 note below is history.
 
 ## Priority
-Unscheduled
+52 on Sprint 8 *(was ~~Unscheduled~~ — append rank, not a merit rank; 2026-10-15)*
 
 ## Status
 🔲 Backlog
