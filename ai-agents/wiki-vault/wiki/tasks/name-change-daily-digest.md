@@ -209,3 +209,4 @@ red. **Those are the guards working, not broken tests.**
 - [[decisions/sprint-backlog]] — the board this task was filed on before its promotion to Sprint 4
 - [[tasks/name-change-decision-resets-notify-limit]] — task `0313` (2026-09-27): an operator decision resets the player's 10-minute notify slot
 - [[tasks/alert-delivery-after-idle]] — task `0289`: this digest's ~9.5 h gap was a near-miss that did not discharge it; `0289` closed 2026-10-01 on a name-change notifier gap instead
+- [[tasks/name-change-review-walkthrough]] — task `0350`, the walk-through section added to this task's runbook

@@ -3,6 +3,16 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-15 sync, second run (newest of all, `aa0973b`): 162 rows, 112 open.** Re-counted by me by each row's
+> leading status glyph: 109 `🔲 Backlog` · 41 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 160 / 110).
+> - **New `0463`** — *Verify 0350 on the profile box: decide waiting name changes with the walk-through command* — filed
+>   at `0350`'s close; **goes to the TOP of Sprint 9** (standing build/verify-split rule, owner ruling 2026-09-29); parked
+>   here because no Sprint 9 board exists (same as `0460`, `0461`). Its deploy step is already done (`0.0.164-profile.1`,
+>   2026-10-15). [[tasks/name-change-review-walkthrough]]
+> - **New `0464`** — *Replace real server IP addresses in tracked files with placeholders* — owner ruling *"File a
+>   cleanup task (Recommended)"*; 12 older tracked files found during `0449`'s step 10; owner `fkit-coder`; the wiki vault
+>   part is a hand-off to `fkit-wiki` (step 4); git history out of scope.
+
 > 🆕 **2026-10-15 sync (newest, `48c4285`): 160 rows, 110 open.** Re-counted by me at `HEAD` = `48c4285`, by each row's
 > leading status glyph: 107 `🔲 Backlog` · 41 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 160 / 111).
 > - **`0350` (name-change moderation without copy-and-paste) moved to [[decisions/sprint-8]]**, appended at rank 52 —
@@ -1024,3 +1034,4 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/private-lobby-wrong-code-not-found]] — task `0454` (Sprint 8); `0292` absorbed, verify `0461` here
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456` (Sprint 8); `0458`, `0230`, `0226` here
 - [[tasks/gameanalytics-game-id-removed]] — task `0459` (Sprint 8); edited the `0212` row
+- [[tasks/name-change-review-walkthrough]] — task `0350`, moved from this board; its verify `0463` is parked here

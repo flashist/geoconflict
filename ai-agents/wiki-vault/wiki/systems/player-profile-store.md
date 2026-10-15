@@ -3,6 +3,8 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* profile **`0.0.164-profile.1`** deployed 2026-10-15 (for `0449`): SSH alert agent and route, plus `0350`'s operator walk-through `npm run -s name-change:review` (no new env var, route or migration) — not yet run on the box (`0463`). [[tasks/name-change-review-walkthrough]]
+
 > 📌 *2026-10-12 sync: **migration `008` is on the box** — profile deploy 2026-10-10 ~17:45 UTC, mid-week by owner ruling (rollback target `0.0.156-profile.4`; the new version tag was not recorded — a git tag `0.0.161-profile.1` exists, likely this deploy, not confirmed). During the ~40 s restart the game server logged 4 `player resolve failed after retries` (self-healing; none after). First tester-role run passed — [[tasks/tester-roles-live]]. The full backup dry-run ran green over **11 tables** on 2026-10-11 (`0436`, local harness, not the live-box drill) — [[tasks/backup-dryrun-minio-image]]. The "BUILT, NOT on the box" note below is history.*
 
 > 🆕 **2026-10-10 sync — migration `008` and an operator command are BUILT, NOT on the box.** `0425`
@@ -615,3 +617,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/tester-roles-command]] — task `0425`, which built it
 - [[tasks/tester-roles-live]] — task `0430`, profile deploy of migration `008` and the first tester-role run
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the backup dry-run green on the 11-table schema
+- [[tasks/name-change-review-walkthrough]] — task `0350`, the operator walk-through command in the profile image

@@ -29,6 +29,8 @@
 >   hardening … may be missing"* although its sshd section passed — the banner is driven by the skipped SSH-alerts part
 >   (`0449`'s token). Noted in the worklog, not a failure ([[tasks/ssh-security-alerts]]).
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* **V5 passed for telemetry and game dev** (`0462`, closed 2026-10-15): telemetry "Total failed" 25627 > 25430; game dev passed **with a note** by owner ruling — fail2ban there had been restarted by `0449`'s down/back test, which resets the counter, so the > 160736 comparison could not apply (9 failures and 1 ban in the ~6 minutes since). `0452` is left with game prod (weekend slot) and the Q3 switch removal. The game dev "misleading banner" above is gone on `0449`'s later deploy (`GAME HOST SETUP OK`). [[tasks/fail2ban-recheck-after-password-off]]
+
 ## Goal
 
 Once [[tasks/ssh-key-login-live]] (`0445`) proved key login on every in-scope box, switch password login off so
@@ -90,3 +92,5 @@ out, so the task is mostly a safe order and a way back. The profile box was alre
 - [[decisions/sprint-8]] — the board (rank 39; verify `0452` at rank 46)
 - [[decisions/sprint-backlog]] — `0446` (game boxes rebuilt from scripts alone)
 - [[tasks/game-deploy-env-file-cleanup]] — task `0447`: its verify `0450` deploys game dev, which now applies this hardening
+- [[tasks/fail2ban-recheck-after-password-off]] — task `0462`, V5 for telemetry and game dev (passed)
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`, whose deploys waited for this task's pre-checks

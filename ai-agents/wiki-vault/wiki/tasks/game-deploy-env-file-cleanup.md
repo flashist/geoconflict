@@ -27,6 +27,8 @@
 > (working-tree state at the time not recorded). `0450` stays `🔲 Backlog`; its game-dev deploys are unblocked by
 > `0452`'s pre-checks ([[tasks/ssh-password-login-off]]).
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* **the box half is done** — `0450` closed 2026-10-15 (agent-closed — not owner-verified). F1: 21 leftover files on game dev (all `600 root:root`), 0 on prod; F2 deleted the 21; an ordinary dev deploy then left **0**; a deliberately failed dev deploy left the running game up and **0** files — the first box proof of the remove-on-failure path and of Part C. The "still there" warning and the "partial evidence" note above are **history**. Step 6 (a real dropped ssh session) not run; the `deploy.sh`-side window stays with `0444`. [[tasks/game-deploy-env-file-cleanup-verified]]
+
 ## Goal
 
 `0443`'s read-only inventory ([[tasks/ssh-security-alerts]]) found **~21 leftover `dev-*.env` deploy files** in root's
@@ -75,3 +77,4 @@ container. Whether every leftover file is 0600 and root-owned is **not recorded*
 - [[decisions/sprint-backlog]] — where `0444` (secrets off the ssh command line, item 5 now required) and the moved row sit
 - [[tasks/ssh-key-login-live]] — task `0445`: the game key that unblocks `0450`; `0.0.164` deployed
 - [[tasks/ssh-password-login-off]] — task `0442`: a `0450` dev deploy now also turns password login off
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`, the box half: 21 files deleted, deploys leave none

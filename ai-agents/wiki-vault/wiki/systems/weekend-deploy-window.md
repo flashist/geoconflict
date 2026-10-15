@@ -5,6 +5,21 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-15 sync, second run (`aa0973b`) — more mid-week deploys the same day, for `0449` and `0450`** (from their
+> worklogs; deploys run by the owner, read-only checks by `fkit-lead` over SSH with the owner's OK; not re-verified by me):
+> - **Profile:** `npm run deploy:profile` → **`0.0.164-profile.1`**, exit 0, `/health` ok — carried `0443`'s SSH alert
+>   agent **and `0350`'s name-change walk-through early**, by owner ruling *"Deploy now, ship both (Recommended)"* (instead
+>   of `0350`'s own weekend profile deploy). `git tag -l` → `0.0.164-profile.1` on `739fc0e`; `git tag --contains 828ef1a`
+>   → that tag. [[tasks/name-change-review-walkthrough]]
+> - **Telemetry:** `npm run deploy:telemetry` → **`0.0.164-telemetry.2`** (tag on `739fc0e`); SSH alert agent installed;
+>   exit code not stated in the relay.
+> - **Game dev:** two more same-version redeploys of image `20261003-122424` — one for `0449` (exit 0, `GAME HOST SETUP
+>   OK`, SSH alerts installed; the exit-3 "SKIPPED" case is gone now the token is set) and one for `0450`'s deploy check
+>   (0 env files after) — plus a deliberately **failed** dev deploy with a made-up tag: pull failed, the running game was
+>   left alone, 0 env files left ([[tasks/game-deploy-env-file-cleanup-verified]]).
+> - **Game prod:** still not deployed — waits for the weekend slot with `0452` (password login still on there) and
+>   `0449`'s last box. Still waiting for a game client deploy: `0451`, `0454`.
+
 > 🆕 **2026-10-15 sync — two key deploys ran for `0452`, and they turned SSH password login OFF on telemetry and game
 > dev** (from `0452`'s worklog; every box step run by the owner, outputs read by the main session):
 > - **Telemetry:** `npm run deploy:telemetry` → **`0.0.164-telemetry.1`** (git tag on `c42aded`). Its
@@ -955,3 +970,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/private-lobbies-everyone-flag-flip]] — task `0428`: a console flip (2026-10-13), not a deploy
 - [[tasks/ssh-key-login-live]] — task `0445`: the mid-week `0.0.164` release over the key
 - [[tasks/ssh-password-login-off]] — task `0442`: the next key deploy turns password login off — pre-checks first
+- [[tasks/name-change-review-walkthrough]] — task `0350`, shipped early in the 2026-10-15 profile deploy
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`: the 2026-10-15 dev deploy check and failed-deploy test

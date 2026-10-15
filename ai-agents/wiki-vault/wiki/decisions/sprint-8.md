@@ -5,6 +5,24 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-15 sync, second run (newest of all, `aa0973b`): 53 rows — 36 `✅ Done` · 5 `🔲 Backlog` · 3 `🔄 In progress` ·
+> 8 `➡️ Moved` · 1 `⛔ Cancelled`; 8 OPEN** (was 53 / 11), counted by me by each row's leading status glyph. Banner
+> unchanged (`🔄 In progress — 2026-10-12`). **Three rows closed, all `✅ Done (agent-closed — not owner-verified)`**, each
+> by a spawned `fkit-producer` via `/fkit-task-done` (no owner channel, ADR-021/037/033):
+> - **52 `0350`** — the name-change walk-through command `npm run -s name-change:review`, repo work + tests (full
+>   `npm test` 228/228 suites green); verify task **`0463`** filed on the Backlog board for the top of Sprint 9. Then
+>   **deployed early** in `0449`'s profile deploy (`0.0.164-profile.1`, owner ruling *"Deploy now, ship both
+>   (Recommended)"*) — not yet run on the box. [[tasks/name-change-review-walkthrough]]
+> - **44 `0450`** — leftover deploy env files: F1 listed 21 on game dev / 0 on prod, F2 deleted the 21, a dev deploy left
+>   0, and a deliberately failed dev deploy left the game up and 0 files. [[tasks/game-deploy-env-file-cleanup-verified]]
+> - **53 `0462`** — fail2ban re-check (`0452`'s V5) passed on telemetry, and on game dev with a note by owner ruling (a
+>   fail2ban restart from `0449`'s test reset the counter). [[tasks/fail2ban-recheck-after-password-off]]
+> - ℹ️ The board carries a close addendum for `0350` only; `0450`'s and `0462`'s rows changed status with no addendum —
+>   their evidence is in their worklogs.
+> - **Still open:** `0343`, `0418`, `0213`, `0449`, `0455` (Backlog); `0219`, `0426`, `0452` (In progress). `0449`
+>   progressed (profile, telemetry, game dev deployed with SSH alerts live — [[tasks/ssh-security-alerts]]); game prod
+>   and the two-day watch remain.
+
 > 🆕 **2026-10-15 sync (newest, `48c4285`): 53 rows — 33 `✅ Done` · 8 `🔲 Backlog` · 3 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 11 OPEN** (was 51 / 9), counted by me by each row's leading status glyph. Banner unchanged
 > (`🔄 In progress — 2026-10-12`). **No row closed in this window.**
@@ -528,3 +546,6 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/private-lobby-wrong-code-not-found]] — task `0454` (48): wrong lobby code shows "not found"; `0292` absorbed
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456` (50): the 500-per-user limit investigation, no code fix
 - [[tasks/gameanalytics-game-id-removed]] — task `0459` (51): game ID removed from three task files
+- [[tasks/name-change-review-walkthrough]] — task `0350` (52), closed 2026-10-15; verify `0463` parked for Sprint 9
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450` (44), closed 2026-10-15
+- [[tasks/fail2ban-recheck-after-password-off]] — task `0462` (53), `0452`'s V5 for two boxes, closed 2026-10-15

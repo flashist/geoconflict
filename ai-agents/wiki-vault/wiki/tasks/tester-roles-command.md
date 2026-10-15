@@ -61,3 +61,4 @@ restore exactly.
 - [[decisions/sprint-8]] — the board (rank 22); `0430` at 32
 - [[tasks/tester-roles-live]] — task `0430`, the first live run (passed)
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the full backup dry-run with migration `008`
+- [[tasks/name-change-review-walkthrough]] — task `0350`, a third operator command built in the same shape

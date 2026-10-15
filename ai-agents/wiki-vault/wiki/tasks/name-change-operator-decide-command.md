@@ -10,6 +10,8 @@
 >
 > ⛔ No token values, hosts, IPs, player ids or names on this page.
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* the paste lines are now the **fallback**: task `0350` added `npm run -s name-change:review`, a walk-through that decides every waiting request with no copy-paste and fills in `expectedName` itself, reusing this command's code (split into shared helpers, output unchanged). Deployed in `0.0.164-profile.1` (2026-10-15), not yet run on the box (`0463`). [[tasks/name-change-review-walkthrough]]
+
 ## Goal
 
 The owner's live name-change test on release `0.0.154` (2026-09-26) found that the only decide command the
@@ -71,3 +73,4 @@ by hand on the profile box. Give the operator a working, documented Approve **an
 - [[tasks/config-parity-guard-arm-enforce]] — task `0298` (2026-09-28): the config guards' first real report-only run, then armed `--enforce`
 - [[tasks/tester-roles-command]] — task `0425`, a second operator command built the same way
 - [[systems/profile-tester-roles]] — that command's runbook
+- [[tasks/name-change-review-walkthrough]] — task `0350`, the walk-through that makes these paste lines the fallback

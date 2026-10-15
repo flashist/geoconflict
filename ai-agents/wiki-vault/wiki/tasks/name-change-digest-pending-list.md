@@ -7,6 +7,8 @@
 > ✅ Done (agent-closed — not owner-verified). Code committed in `390c4b4`. **No agent can observe Telegram
 > delivery** — the live checks are owner-run and not done.
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* a request seen only in this list no longer needs a hand-built line: the `0350` walk-through shows every waiting request, list-only ones included; building the line with `\uXXXX` is now the fallback. The list itself still carries no Approve/Reject lines (owner ruling unchanged). [[tasks/name-change-review-walkthrough]]
+
 ## Goal
 
 The `0283` digest sends one message a day with the **count** of pending name requests. On 2026-09-26 a
@@ -53,3 +55,4 @@ whether `0313` made it unnecessary.
 - [[systems/alert-delivery]] — the Telegram topic routing and check 12
 - [[decisions/sprint-6]] — the board carrying this task
 - [[tasks/citizenship-name-change]] — task `0067`, the name-change feature this follow-up extends
+- [[tasks/name-change-review-walkthrough]] — task `0350`, decides list-only requests without a hand-built line

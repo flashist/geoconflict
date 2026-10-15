@@ -84,3 +84,4 @@ Nothing in the repo. Owner actions and read-only checks, 2026-10-13 (worklog):
 - [[tasks/deployment-credential-hardening]] — task `0134`, the key-first deploy contract, now exercised
 - [[systems/weekend-deploy-window]] — the mid-week `0.0.164` release, a bend of the weekend rule
 - [[decisions/sprint-8]] — the board (rank 41)
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`, unblocked by this task's game key; closed 2026-10-15

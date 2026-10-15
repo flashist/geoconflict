@@ -28,6 +28,8 @@
 > — the banner follows the skipped alerts part, wording only. Still no SSH alert recorded as reaching Telegram — `0449`,
 > whose deploys `0452`'s pre-checks have now unblocked ([[tasks/ssh-password-login-off]]).
 
+> 📌 *2026-10-15 sync, second run (`aa0973b`):* **SSH alerts are live on three boxes** (`0449`'s worklog; `0449` still `🔲 Backlog`): `PROFILE_SSH_ALERT_TOKEN` set (names checked only); profile `0.0.164-profile.1`, telemetry `0.0.164-telemetry.2`, game dev redeploy (exit 0, `GAME HOST SETUP OK` — no more exit 3 there). Per box: test event delivered, service active, no overlapping ticks; a `🔑 SSH login` alert within a minute with the source **masked**; on game dev, "Telegram unreachable" held 2 alerts and delivered them ~5 min after restore, and fail2ban `DOWN` / `back` arrived inside their limits. A `logrotate -d` on the single file reports insecure-parent-dir — **not a defect** (the real run via `/etc/logrotate.conf` accepts it). **Still open:** game prod (weekend slot), two consecutive daily digests (from 2026-10-16), a 24 h window with no per-guess messages. Step 10 found box addresses in 12 older tracked files — handed to `0464`. ⚠️ The fail2ban down/back test reset game dev's counters, which voided `0462`'s literal comparison ([[tasks/fail2ban-recheck-after-password-off]]). Game dev env-file side: [[tasks/game-deploy-env-file-cleanup-verified]].
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily
@@ -138,3 +140,5 @@ deploy"*, clarified *"After swap; skip also fails (Recommended)"*** — overridi
 - [[tasks/vps-access-hardening]] — task `0132`, the April 2026 host-hardening target the game and telemetry boxes had not reached
 - [[tasks/ssh-key-login-live]] — task `0445`: root key installed; deploys over the key end exit 3 until the token is set
 - [[tasks/ssh-password-login-off]] — task `0442`: adds sshd hardening to `setup-game-host.sh`; root step runs on every key deploy
+- [[tasks/fail2ban-recheck-after-password-off]] — task `0462`; `0449`'s fail2ban test reset game dev's counters
+- [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`; one of `0449`'s dev deploys carried `0447` uncounted
