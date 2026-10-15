@@ -5,7 +5,27 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-15 sync, second run (newest of all, `aa0973b`): 53 rows — 36 `✅ Done` · 5 `🔲 Backlog` · 3 `🔄 In progress` ·
+> 🆕 **2026-10-15 sync, third run (newest of all, `930048b`): 55 rows — 37 `✅ Done` · 6 `🔲 Backlog` · 3 `🔄 In progress` ·
+> 8 `➡️ Moved` · 1 `⛔ Cancelled`; 9 OPEN** (was 53 / 8), counted by me by each row's leading status glyph. Banner
+> unchanged (`🔄 In progress — 2026-10-12`).
+> - **Moved in from the Backlog board, appended at 54 / 55** — four OWNER RULINGS 2026-10-15 (live `AskUserQuestion` in
+>   the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent): **A** *"Build
+>   it as 0384 (Recommended)"* — `0219`'s B6/V2 fix (*"Pin by digest"*) is built under `0384`, checked by `0385`;
+>   **B** *"Yes, add the check (Recommended)"* — a test fails if the four copies of the Postgres reference stop matching;
+>   **C** *"Keep in Sprint 8 (Recommended)"* — `0385` stays here, bending the build/verify-split rule for this case only;
+>   **D** *"Yes: 0219, then 0384, then 0385 (Recommended)"* — merit order confirmed, row numbers unchanged (ADR-035).
+> - **54 `0384` closed `✅ Done (agent-closed — not owner-verified)`** the same day by a spawned `fkit-producer` at the
+>   ship-loop's close step (owner ruling *"Restart the ship-loop for 0384 (Recommended)"*): Postgres pinned by digest in
+>   `setup-profile.sh`, the restore drill and the dry-run; full `npm test` 228/228 suites green; dry-run 55/0. Committed
+>   `d6458d9` after the close; **not deployed** (no tag contains it). [[tasks/profile-postgres-digest-lock]],
+>   [[decisions/adr-120-third-party-images-digest-pinned]]
+> - **55 `0385`** — `🔲 Backlog`; the on-box check after the weekend profile deploy; when it passes, `0219`'s B6/V2 item
+>   (Status item 4) is met. A formal `Depends on` from `0219` to `0385` was **not** added (lead's cheapest-to-reverse call,
+>   not an owner ruling).
+> - **Still open:** `0343`, `0418`, `0213`, `0449`, `0455`, `0385` (Backlog); `0219`, `0426`, `0452` (In progress).
+>   `0219` stays held open until its alerts are watched arriving (2026-09-13 ruling).
+
+> 🆕 **2026-10-15 sync, second run (`aa0973b`): 53 rows — 36 `✅ Done` · 5 `🔲 Backlog` · 3 `🔄 In progress` ·
 > 8 `➡️ Moved` · 1 `⛔ Cancelled`; 8 OPEN** (was 53 / 11), counted by me by each row's leading status glyph. Banner
 > unchanged (`🔄 In progress — 2026-10-12`). **Three rows closed, all `✅ Done (agent-closed — not owner-verified)`**, each
 > by a spawned `fkit-producer` via `/fkit-task-done` (no owner channel, ADR-021/037/033):
@@ -464,6 +484,8 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, rank 54, closed 2026-10-15 (not deployed); `0385` at 55
+- [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed), the decision `0384`/`0385` implement for the profile box
 - [[decisions/sprint-6]] — the closed board whose brief-less rows became `0342` / `0343`
 - [[decisions/sprint-7]] — ~~the active sprint~~ 📌 *2026-10-09: closed; `0219` / `0213` moved here before the close*
 - [[decisions/sprint-5]] — the original home of most of these items; its prose now points at `0343`

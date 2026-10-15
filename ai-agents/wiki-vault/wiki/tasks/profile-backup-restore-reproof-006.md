@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0275`
 
+> 📌 *2026-10-15 sync (`930048b`): the runbook drill's throwaway `restore-test` container and both dry-run Postgres
+> images now use the **same digest-pinned reference** as the box (`postgres:16.15-alpine@sha256:…`), and `npm test` fails
+> if they drift — `0384`, [[tasks/profile-postgres-digest-lock]]. Before that the drill pulled the moving `16-alpine` label
+> (on the builder's Mac the dry-run had been running a stale cached image). This task's 2026-09-16 proof ran on the moving
+> label; it has **not** been re-run on the box against the pinned reference. Every deliberate Postgres upgrade now reuses
+> this drill against the new reference (runbook "Updating the pinned Postgres image").*
+
 > 📌 *2026-10-12 sync: the local **dry-run harness** (`tests/profile-backup-dryrun.sh`) now runs again and passed on the 11-table schema on 2026-10-11 — `fingerprint IDENTICAL (11 tables, …)`, `RESULT: 55 passed, 0 failed` (`0436`, [[tasks/backup-dryrun-minio-image]]). That is the local harness, **not** the owner's drill on the live box, which has still not been re-run on 11 tables. ⚠️ No `tester_role_snapshots` row is seeded, so that table's structure is proven, not a row's data (`0438`, Backlog).*
 
 > 📌 *2026-10-10 sync: the drill's table inventory grew from 10 to **11** — `tester_role_snapshots` (migration `008`,
@@ -90,6 +97,7 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, the drill's image now digest-pinned to match the box
 - [[tasks/profile-durability-restore-drill]] — task `0218`, the original drill this re-proves and annotates
 - [[tasks/profile-identity-s1-database-rekeying]] — task `0270`, the `006` schema this proves against
 - [[decisions/adr-113-internal-player-id]] — the decision behind that schema

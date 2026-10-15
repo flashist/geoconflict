@@ -115,6 +115,7 @@ fixed**.
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`: wrote its Postgres pin as a heredoc literal, not a fifth substitution; harness A3 holds the count at 4
 - [[tasks/internal-path-case-variant-allowlist-bypass]] — task `0276`: **same file, same class of defect** — a deploy-time layer weaker than it reads
 - [[tasks/profile-deploy-hardening]] — the harness this extends, and the `npm test` gate that now locks the delimiter
 - [[systems/player-profile-store]] — the box this deploy script provisions

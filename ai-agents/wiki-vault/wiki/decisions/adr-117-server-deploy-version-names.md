@@ -94,3 +94,4 @@ bumping or suffixing `package.json`; warn-and-deploy on uncommitted files (decli
 - [[tasks/profile-deploy-version-tags-production-check]] — task `0358`, the profile name verified in production (2026-10-03)
 - [[tasks/telemetry-deploy-version-tags-production-check]] — task `0363`, the telemetry name verified in production (2026-10-03)
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed), which extends the "deploy by `@sha256` digest" rule from our app image to third-party images
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, the first third-party image (profile Postgres) pinned the same way, 2026-10-15

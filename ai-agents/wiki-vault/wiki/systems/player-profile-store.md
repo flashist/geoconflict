@@ -3,6 +3,14 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 *2026-10-15 sync (`930048b`):* **F-C's fix is built, not deployed.** `0384` pins this box's Postgres to
+> `postgres:16.15-alpine@sha256:<index digest>` — the build it already runs — in `setup-profile.sh`, the restore drill and
+> the backup dry-run (four identical copies; `npm test` fails if they drift) — [[tasks/profile-postgres-digest-lock]],
+> [[decisions/adr-120-third-party-images-digest-pinned]] (`proposed`). Committed `d6458d9`, **no deploy tag yet** — until
+> the next (weekend-slot) profile deploy the box still resolves the moving `postgres:16-alpine`. On-box check: `0385`.
+> The runbook now has an "Updating the pinned Postgres image" procedure (fresh backup in the deploy slot, drill against
+> the new reference, hand rollback). ⚠️ The automatic rollback still covers `profile-api` only, not Postgres.
+
 > 📌 *2026-10-15 sync, second run (`aa0973b`):* profile **`0.0.164-profile.1`** deployed 2026-10-15 (for `0449`): SSH alert agent and route, plus `0350`'s operator walk-through `npm run -s name-change:review` (no new env var, route or migration) — not yet run on the box (`0463`). [[tasks/name-change-review-walkthrough]]
 
 > 📌 *2026-10-12 sync: **migration `008` is on the box** — profile deploy 2026-10-10 ~17:45 UTC, mid-week by owner ruling (rollback target `0.0.156-profile.4`; the new version tag was not recorded — a git tag `0.0.161-profile.1` exists, likely this deploy, not confirmed). During the ~40 s restart the game server logged 4 `player resolve failed after retries` (self-healing; none after). First tester-role run passed — [[tasks/tester-roles-live]]. The full backup dry-run ran green over **11 tables** on 2026-10-11 (`0436`, local harness, not the live-box drill) — [[tasks/backup-dryrun-minio-image]]. The "BUILT, NOT on the box" note below is history.*
@@ -512,6 +520,7 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, this box's Postgres pinned by digest (built 2026-10-15, not deployed)
 - [[tasks/name-change-dismiss-and-clear]] — task `0314`, migration `007` and the clear decision
 - [[tasks/name-change-operator-decide-command]] — task `0312`, the decide command shipped in the profile image
 - [[tasks/player-name-path-security-review]] — task `0307`, the name-path SQL proof and residual (b)

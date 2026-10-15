@@ -32,6 +32,7 @@ The trust anchor for a production image is the combination of repo commit, image
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, cites this policy's digest-as-trust-anchor rule for the profile box's Postgres
 - [[decisions/vps-credential-leak-response]] — incident that prompted the policy
 - [[systems/game-overview]] — deploy and runtime context
 - [[tasks/registry-image-audit]] — source investigation that established the need for explicit image classification

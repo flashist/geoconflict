@@ -5,6 +5,18 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-15 sync (`930048b`) — F-C's fix is BUILT, waiting for a weekend profile deploy.** `0384` pins the profile
+> box's Postgres by digest (`postgres:16.15-alpine@sha256:…`, the build the box already runs — so the deploy should change
+> no Postgres bytes): [[tasks/profile-postgres-digest-lock]]. Committed `d6458d9`; **no deploy tag contains it** at this
+> sync ⇒ F-C can still recur until that deploy. Expect the postgres container to be **recreated once** on the first
+> deploy (not verified — `0385`). Take a **fresh backup in the same slot, right before** it. `0385` (on-box check, Sprint 8,
+> rank 55) also closes `0219`'s B6/V2. ⚠️ The deploy's auto-rollback still does not cover Postgres.
+> - Also from `0449`'s worklog (2026-10-15, later; read by `fkit-lead`, not by me): a **second game dev redeploy** after
+>   16:23 MSK (same image) found the SSH alert agent already installed and left it running; ⚠️ its exit code was **not
+>   printed** — "exit 0" is inferred from the OK banner. `0.0.164-telemetry.1` does **not** count for `0449` (token still
+>   empty then); `0.0.164-telemetry.2` does. **Game prod: no deploy tag today**, so git can neither confirm nor rule out a
+>   same-version prod deploy — treated as not deployed; it stays in the weekend slot with `0452`.
+
 > 🆕 **2026-10-15 sync, second run (`aa0973b`) — more mid-week deploys the same day, for `0449` and `0450`** (from their
 > worklogs; deploys run by the owner, read-only checks by `fkit-lead` over SSH with the owner's OK; not re-verified by me):
 > - **Profile:** `npm run deploy:profile` → **`0.0.164-profile.1`**, exit 0, `/health` ok — carried `0443`'s SSH alert
@@ -883,6 +895,7 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, F-C's fix (Postgres pinned by digest), built 2026-10-15, waiting for a weekend profile deploy
 - [[tasks/config-parity-guard-arm-enforce]] — task `0298`: W12 was its first real report-only run; Part B armed both guards for later deploys
 - [[systems/alert-delivery]] — the second caller on `PROFILE_INTERNAL_ALLOW_IPS`, and the 403
   channel-disable trap in full

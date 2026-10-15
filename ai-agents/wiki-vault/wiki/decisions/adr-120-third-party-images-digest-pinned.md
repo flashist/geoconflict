@@ -15,6 +15,17 @@
 > box: lock Postgres by digest) + its verify `0385`; `0386` (telemetry box: lock all five outside images) + its verify
 > `0387`; `0388` (quarterly Postgres minor-release check, first instance).
 
+> 📌 *2026-10-15 sync (`930048b`):* **§1 is BUILT for the profile box — NOT deployed.** `0384` closed `✅ Done
+> (agent-closed — not owner-verified)` ([[tasks/profile-postgres-digest-lock]]): `setup-profile.sh` now names
+> `postgres:16.15-alpine@sha256:<index digest>` — the digest the box already ran, so the deploy changes no Postgres
+> bytes — and the runbook drill plus both dry-run images carry the same reference; harness checks A1–A4 fail if any copy
+> drifts or any compose image is unpinned. Committed in `d6458d9`; no deploy tag contains it at this sync. `0384` and
+> `0385` moved to [[decisions/sprint-8]] (ranks 54/55, owner ruling *"Build it as 0384 (Recommended)"*); they now carry
+> `0219`'s B6/V2 item. **§2's procedure is written** in the runbook ("Updating the pinned Postgres image"). Still
+> unbuilt: `0386`/`0387` (telemetry), `0388`. ADR status unchanged — still `proposed`. ⚠️ The *Context* anchor
+> `image: postgres:16-alpine` below no longer matches `setup-profile.sh` — it describes the state before `0384` (kept as
+> history).
+
 ## Context
 
 Both server boxes ran third-party images from **moving tags** — names whose content the publisher changes:
@@ -101,3 +112,5 @@ unplanned, un-backed-up, un-rolled-back database changes.
 - [[tasks/profile-backup-restore-reproof-006]] — task `0275`, the restore drill the upgrade routine reuses
 - [[decisions/adr-117-server-deploy-version-names]] — the box deploys our own app by `@sha256` digest
 - [[decisions/sprint-backlog]] — where `0384`–`0388` were filed
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, §1 built for the profile box (2026-10-15, not deployed)
+- [[decisions/sprint-8]] — `0384`/`0385` moved there 2026-10-15

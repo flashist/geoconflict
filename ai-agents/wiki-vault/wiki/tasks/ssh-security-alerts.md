@@ -30,6 +30,12 @@
 
 > 📌 *2026-10-15 sync, second run (`aa0973b`):* **SSH alerts are live on three boxes** (`0449`'s worklog; `0449` still `🔲 Backlog`): `PROFILE_SSH_ALERT_TOKEN` set (names checked only); profile `0.0.164-profile.1`, telemetry `0.0.164-telemetry.2`, game dev redeploy (exit 0, `GAME HOST SETUP OK` — no more exit 3 there). Per box: test event delivered, service active, no overlapping ticks; a `🔑 SSH login` alert within a minute with the source **masked**; on game dev, "Telegram unreachable" held 2 alerts and delivered them ~5 min after restore, and fail2ban `DOWN` / `back` arrived inside their limits. A `logrotate -d` on the single file reports insecure-parent-dir — **not a defect** (the real run via `/etc/logrotate.conf` accepts it). **Still open:** game prod (weekend slot), two consecutive daily digests (from 2026-10-16), a 24 h window with no per-guess messages. Step 10 found box addresses in 12 older tracked files — handed to `0464`. ⚠️ The fail2ban down/back test reset game dev's counters, which voided `0462`'s literal comparison ([[tasks/fail2ban-recheck-after-password-off]]). Game dev env-file side: [[tasks/game-deploy-env-file-cleanup-verified]].
 
+> 📌 *2026-10-15 sync (`930048b`), from `0449`'s worklog (relayed by `fkit-lead`):* a **second game dev redeploy** (same
+> image) found the agent already installed (`agent v1 unchanged and running — not restarted`) and ended `GAME HOST SETUP:
+> OK`; ⚠️ its exit code was **not printed** — "exit 0" is inferred from the banner. `0.0.164-telemetry.1` does not count
+> for `0449` (token empty then). **Game prod: no deploy tag today** — not confirmable from git, treated as not deployed,
+> stays in the weekend slot. `0449` still `🔲 Backlog`; the two-day watch remains.
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily

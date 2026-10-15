@@ -3,7 +3,16 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-15 sync, second run (newest of all, `aa0973b`): 162 rows, 112 open.** Re-counted by me by each row's
+> 🆕 **2026-10-15 sync, third run (newest of all, `930048b`): 162 rows, 110 open.** Re-counted by me by each row's leading
+> status glyph: 107 `🔲 Backlog` · 43 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 162 / 112).
+> - **`0384` and `0385` moved to [[decisions/sprint-8]]** (ranks 54 / 55, ADR-035 append ranks) on the OWNER RULING
+>   *"Build it as 0384 (Recommended)"* (live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not
+>   producer precedent) — they now carry `0219`'s B6/V2 item. Rows kept as `➡️ Moved`; the old *"not placed here"* clause
+>   on `0385` is history. `0384` then closed on Sprint 8 — [[tasks/profile-postgres-digest-lock]].
+> - **Stay on this board:** `0386` (telemetry box, five images), `0387` (its check), `0388` (quarterly bump — depends on
+>   `0384` **and** `0386`).
+
+> 🆕 **2026-10-15 sync, second run (`aa0973b`): 162 rows, 112 open.** Re-counted by me by each row's
 > leading status glyph: 109 `🔲 Backlog` · 41 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 160 / 110).
 > - **New `0463`** — *Verify 0350 on the profile box: decide waiting name changes with the walk-through command* — filed
 >   at `0350`'s close; **goes to the TOP of Sprint 9** (standing build/verify-split rule, owner ruling 2026-09-29); parked
@@ -1011,6 +1020,7 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/tenure-popup-never-over-match]] — task `0336`, whose popup gate `0374` (filed here 2026-10-02, open) fixes for a hung lobby request
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — task `0272`: its watch item F-B recurred 2026-10-03 and is now investigation task `0375` (filed here, open)
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed, 2026-10-04): the decision behind `0384`–`0388`, filed on this board
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, moved to Sprint 8 and closed there 2026-10-15
 - [[decisions/adr-121-login-signature-24h-window]] — `0393` (the >24 h residue) and `0394` (its unbuilt Decision 3) live here
 - [[tasks/login-signature-24h-window]] — task `0391`, which filed `0394` and feeds `0393`
 - [[tasks/session-verified-status-line]] — task `0397`, into which this board's `0278` was folded (cancelled 2026-10-06)

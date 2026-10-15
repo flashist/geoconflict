@@ -47,6 +47,7 @@ waiting on Yandex infrastructure. Out of scope by design: this harness stays **o
 
 ## Related
 
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, which pinned the dry-run's Postgres images by digest (2026-10-15)
 - [[tasks/tester-roles-live]] — task `0430`, whose step (f) this ran
 - [[tasks/tester-roles-command]] — task `0425`, migration `008`
 - [[tasks/profile-backup-restore-reproof-006]] — the restore proof on the earlier 10-table schema
