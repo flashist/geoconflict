@@ -31,3 +31,44 @@ Guided by the main Claude session; every box step run by the owner. No host, add
 
 **Result:** pre-checks P1–P4 all passed — this unblocks `0449`'s and `0450`'s game/telemetry deploys (they waited on
 P1–P4 only). Next: per-box steps 1–5 on game dev and telemetry; game prod in the weekend slot.
+
+## 2026-10-15 — telemetry: password login off
+
+Owner ran the steps; outputs pasted to and read by the main session.
+
+- **V2 — passed 2026-10-15.** From a new terminal: key login printed `KEY-OK`; password-only login got
+  `Permission denied (publickey)` with no password prompt.
+- **V3 — passed 2026-10-15.** `sshd -T` and `sshd -T -C user=root,host=localhost,addr=127.0.0.1` both show
+  `passwordauthentication no` and `permitrootlogin without-password`.
+- **V4 — passed 2026-10-15.** `npm run deploy:telemetry` output (pasted later the same day): `SSHD HARDENING (0442)`
+  section shows `✅ sshd: …` for `passwordauthentication no`, `kbdinteractiveauthentication no`,
+  `permitemptypasswords no`, `permitrootlogin prohibit-password`, each "global + root-effective", then
+  `✅ sshd hardened: password login OFF, root key-only`. Deployed version `0.0.164-telemetry.1` (git tag pushed).
+  `SSH SECURITY ALERTS (0443)` warned that `PROFILE_SSH_ALERT_TOKEN` is empty — expected until `0449`.
+- **V5 — pending:** fail2ban "Total failed" a few hours after the change, to compare with P4's 25430.
+- **Game dev:** see the next section.
+
+## 2026-10-15 — game dev: deploy
+
+Owner ran `./deploy.sh dev` as a same-version redeploy (image tag `20261003-122424`); the end of its output was pasted to
+and read by the main session.
+
+- **V4 — passed 2026-10-15 (deploy).** `SSHD HARDENING (0442)` section: `✅ sshd: …` lines for `passwordauthentication
+  no`, `kbdinteractiveauthentication no`, `permitemptypasswords no`, `permitrootlogin prohibit-password`, each
+  "global + root-effective", then `OK  sshd — password login off, root key-only`. Ended with `SKIPPED ssh-alerts`
+  (`PROFILE_SSH_ALERT_TOKEN` empty — `0449`'s token), i.e. the expected exit-3 case (Q1). Exit code itself not pasted.
+- The deploy's final banner reads "HOST SETUP NOT DONE … the sshd hardening … may be missing" although the sshd section
+  passed — the banner is driven by the skipped ssh-alerts section. Wording only; noted, not a failure.
+- Same output also shows the deploy removing its env file (`Environment file removed.`) — evidence for `0450`.
+- **V2 — passed 2026-10-15.** From a new terminal: key login printed `KEY-OK`; password-only login got
+  `Permission denied (publickey)` with no password prompt.
+- **V3 — passed 2026-10-15.** `sshd -T` and `sshd -T -C user=root,host=localhost,addr=127.0.0.1` both show
+  `passwordauthentication no` and `permitrootlogin without-password`.
+- **V5 — pending:** fail2ban "Total failed" a few hours after the change, to compare with P4's 160736.
+
+## Where 0452 stands (2026-10-15)
+
+- Telemetry: V2, V3, V4 passed; V5 pending.
+- Game dev: V2, V3, V4 passed; V5 pending.
+- Game prod: not started — weekend slot.
+- Q3 switch removal (verification step 7): after all three boxes pass — not started.
