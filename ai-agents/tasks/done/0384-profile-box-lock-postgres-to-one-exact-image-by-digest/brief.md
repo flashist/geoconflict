@@ -7,13 +7,26 @@
 > `done/` and `cancelled/`: `0383`. `0384`–`0388` allocated in this run, in that order.
 
 ## Sprint
-Backlog
+Sprint 8
+
+📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md) on 2026-10-15** — OWNER RULING given live
+via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
+channel (ADR-021/037); ⛔ not producer precedent. Verbatim **"Build it as 0384 (Recommended)"** (Ruling A — see the
+2026-10-15 note under `## Context`).
+
+*(Earlier value, kept as history — true until 2026-10-15:)* ~~Backlog~~
 
 ## Priority
-Unscheduled
+**54** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
+merit ranking** — ~~flagged for owner confirmation~~. On merit it belongs directly below `0219`, whose B6/V2 item it fixes.
+✅ **Merit order OWNER-CONFIRMED 2026-10-15** (Ruling D, live `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
+precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"* — option text *"Confirms the importance order. Row
+numbers stay as they are; it's only a note on the board."*). Row number unchanged (ADR-035).
+
+*(Earlier value:)* ~~Unscheduled~~
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified) *(2026-10-15 — closed by a spawned `fkit-producer` at the close step of `fkit-sprint-ship-loop`, on the OWNER RULING *"Restart the ship-loop for 0384 (Recommended)"*; no owner channel, so agent-closed (ADR-033 §5). Plan owner-approved, `plan.md` blob `7f1166851e45bac1b001d673054a5120593fab2f` unchanged. Build + review round 1 done; `review.md` closed-out, R1–R4 ✅. Tests: full `npm test` 228/228 suites, 4757/4757 tests; hardening harness ALL PASS; `npm run test:scripts:docker` 55/0. **Not committed, not deployed** — weekend-slot deploy after the owner commits; on-box check is `0385`.)* — earlier: ~~🔄 In progress~~
 
 ## Owner
 fkit-coder
@@ -27,11 +40,37 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
    *"Producer files a small task: lock the version in setup-profile.sh + the restore-test files, plus a test check that
    it stays locked. Deploys in a weekend slot."*
 2. Telemetry included — and, by a same-day follow-up ruling, **all five** of its outside images → that is the sibling
-   task [`0386`](../0386-telemetry-box-lock-postgres-and-redis-to-one-exact-image-by-digest/brief.md), not this one.
+   task [`0386`](../../backlog/0386-telemetry-box-lock-postgres-and-redis-to-one-exact-image-by-digest/brief.md), not this one.
 3. *"Locked means no automatic patches. How should we remember to update Postgres?"* → **"Quarterly backlog item
-   (Recommended)"** → [`0388`](../0388-quarterly-check-for-a-new-postgres-minor-release-on-both-boxes-and-bump-the-lock/brief.md).
+   (Recommended)"** → [`0388`](../../backlog/0388-quarterly-check-for-a-new-postgres-minor-release-on-both-boxes-and-bump-the-lock/brief.md).
 
 **Decision record:** [ADR-120](../../../knowledge-base/decisions/adr-120-third-party-images-digest-pinned-postgres-upgrades-deliberate-backup-first.md) (status *proposed*; the decision itself is owner-ruled). §1: every third-party image on both boxes is pinned by digest; §2: a Postgres upgrade is deliberate and backup-first, with a restore drill against the new image.
+
+> 📌 **2026-10-15 — two OWNER RULINGS: this task carries `0219`'s B6/V2 fix, and the four-place match check is in
+> scope.** Given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+> `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
+>
+> - **Ruling A.** Earlier the same day the owner chose *"Pin by digest (Recommended)"* inside
+>   [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the same fix as this
+>   task (2026-10-04 ruling, ADR-120). Asked which task the work goes under (*"The work is identical either way; this
+>   is just which record it lives in."*), the owner selected, verbatim: **"Build it as 0384 (Recommended)"** — option
+>   text: *"The producer moves 0384 into Sprint 8, and 0385 checks it on the box after the deploy. 0219's B6 item just
+>   points to them. It uses the task, checklist and check-task split that already exist."* Not chosen: *"Build it
+>   under 0219"*. ⇒ Built **here**; `0219`'s B6/V2 item points to this task and to
+>   [`0385`](../../backlog/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), and is met
+>   when `0385` passes.
+> - **Ruling B.** Asked: *"The exact Postgres fingerprint will be written in 4 places: the box setup file, the restore
+>   instructions, and twice in the backup test. Should a test fail if those ever stop matching?"* Selected, verbatim:
+>   **"Yes, add the check (Recommended)"** — option text: *"Cheap, and it stops a future update from leaving the
+>   restore drill on an old Postgres. Downside: reformatting that one line in the instructions could make the test
+>   fail by mistake. It can never let a real problem through."* ⇒ **What-to-build item 6's second assertion is no
+>   longer optional:** `tests/scripts/profile-deploy-hardening.test.sh` asserts that the runbook's `restore-test` image
+>   and both images in `tests/profile-backup-dryrun.sh` equal the pinned `setup-profile.sh` postgres reference, byte
+>   for byte (coder plan item A4).
+> - **Plan state.** A `fkit-coder` plan has been drafted (relayed by `fkit-lead`; not saved in this folder as of this
+>   note). It is **not yet owner-approved** and waits on the read-only digest batch the owner runs on the profile box
+>   (What-to-build item 2). The build follows this brief and ADR-120. `## Status` unchanged, `🔲 Backlog` — the lead
+>   sets `🔄 In progress` when the build starts.
 
 ### The problem, in plain terms
 
@@ -41,7 +80,7 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
   `profile` systemd unit's `compose up` can also recreate it. Any of those can silently move the database to a newer
   minor version that nobody chose.
 - **It already happened.** Recorded in
-  [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the 2026-09-26 slot,
+  [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the 2026-09-26 slot,
   *FINDING (W5 → W10)*): the box was running an older, untagged image; `0219`'s G2 prune deleted the tagged
   `postgres:16-alpine`; after a Docker restart the systemd unit re-pulled the label and recreated the DB on
   **PostgreSQL 16.15**. Data was intact — but it was an unplanned upgrade. `0219` left the fix direction undecided;
@@ -93,8 +132,11 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
    normal. The plan checks whether the keep-list prune treats a digest-pulled image (which may list as `<none>` in
    `docker images`) correctly — today it keeps container images by ID, which should still hold.
 6. **New structural assertion** in `tests/scripts/profile-deploy-hardening.test.sh`: the compose `postgres` image in
-   `setup-profile.sh` ends in `@sha256:[0-9a-f]{64}`. The plan may propose a second assertion that the runbook and
-   dry-run use the **same** reference (cheap, and it stops the drill drifting from the box) — owner decides.
+   `setup-profile.sh` ends in `@sha256:[0-9a-f]{64}`. ~~The plan may propose a second assertion that the runbook and
+   dry-run use the **same** reference (cheap, and it stops the drill drifting from the box) — owner decides.~~
+   ✅ **Owner decided 2026-10-15 (Ruling B, *"Yes, add the check (Recommended)"*): add it.** The runbook's `restore-test`
+   image and both images in `tests/profile-backup-dryrun.sh` must equal the `setup-profile.sh` postgres reference byte
+   for byte, or the harness fails.
 7. **One deploy note** for the owner, in the worklog: the first deploy after this change will likely **recreate the
    Postgres container once** (same image bytes, new reference). Data lives on the volume and is untouched. Weekend
    slot (owner's standing rule). Take a backup (or confirm last night's backup marker is fresh) before deploying.
@@ -125,8 +167,9 @@ prune's strategy.
 - **Blocks:** 0385, 0388
 - **Why its own task.** Different box, different script, different deploy command from the telemetry lock (`0386`);
   each can be built, tested and deployed alone. The quarterly bump (`0388`) needs both locks to exist first.
-- **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — where the
-  incident is recorded and where this fix direction was left open. `0282` (the R3 substitution residual). `0275`
+- **Related:** [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — where the
+  incident is recorded and where this fix direction was left open. Since 2026-10-15 (Ruling A) this task **is** `0219`'s B6/V2 fix; `0219`'s
+  B6/V2 is met when `0385` passes. `0282` (the R3 substitution residual). `0275`
   (restore proven against the moving label — the drill should keep using the same image as the box).
 - **Unverified side notes (carried from the architect, not checked):**
   - The stray `postgres:16` image (642 MB) pulled during `0219`'s W5 — the owner was told to remove it; **removal not

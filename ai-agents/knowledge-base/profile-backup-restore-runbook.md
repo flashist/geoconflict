@@ -256,7 +256,7 @@ KEY="$(sed -n 's/.*"object_key": "\(.*\)".*/\1/p' /opt/profile/backups/last-back
 # 3) Throwaway target on the box (own container + volume, NOT the prod stack):
 docker run -d --name restore-test --network profile_default \
   -e POSTGRES_USER=profile -e POSTGRES_PASSWORD=test -e POSTGRES_DB=profile \
-  postgres:16-alpine
+  postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
 #    (must be the same docker network as the profile compose project — the P3 value — so the postgres
 #     container can reach `restore-test:5432`.)
 #    ⛔ This line used to read `--network opt_profile_default`. THAT NETWORK DOES NOT EXIST —
@@ -439,6 +439,54 @@ citizen volume. **Re-measure once real data exists — the number will not extra
    objects — one from the deploy smoke check, one from a cron run — **both dumps of an empty
    database**. Earlier runs went to the old, now-deleted bucket. ⛔ Do not read the nightly log's
    five-day history as five days of retrievable backups.
+
+---
+
+## Updating the pinned Postgres image (ADR-120 §2)
+
+The profile box's Postgres is **pinned by digest** (task `0384`, ADR-120 §1): the compose file names
+`postgres:16.N-alpine@sha256:<index digest>`, and Docker uses the digest — the tag is a label for humans.
+Nothing updates it by itself. Changing it **is** a Postgres upgrade, so it is deliberate and backup-first.
+
+The same reference lives in **four** places, byte for byte:
+
+- `setup-profile.sh` — the `postgres` service's `image:` line in the compose heredoc;
+- this runbook — the `restore-test` image in drill step 3;
+- `tests/profile-backup-dryrun.sh` — the `postgres` and `restore-target` services (twice).
+
+`tests/scripts/profile-deploy-hardening.test.sh` (part of `npm test`) fails until all four match.
+
+1. **Pick the newest release within major 16.** A major (16 → 17) is its own dump/restore project
+   (ADR-120 §4) — not this procedure. The harness's major-16 check is a deliberate tripwire for it.
+2. **Get its index digest**, e.g. `docker buildx imagetools inspect postgres:16.N-alpine`, and read the
+   top-level `Digest`. Confirm `linux/amd64` is in the platform list (the box is linux/amd64).
+3. **Change the reference in all four places identically.** Run
+   `bash tests/scripts/profile-deploy-hardening.test.sh` — it must print `ALL PASS`.
+4. **Backup first — a fresh one, in the same slot as the deploy, right before it** (ADR-120 §2). Last
+   night's backup is not enough: up to a day of writes would sit outside it. Run `/opt/profile/backup.sh`
+   and confirm `/opt/profile/backups/last-backup.json` shows `exit_status` 0 and a `finished_at` from
+   minutes ago. Run steps 4–6 back to back in that one slot, so only the restore drill lies between this
+   backup and the deploy (the drill's own step 2 takes another fresh backup; that one counts too). Never
+   deploy *during* the drill (see the drill's warning above).
+5. **Restore drill against the NEW reference**, using this runbook's drill above. Run
+   `npm run test:scripts:docker` too where its tools are available.
+6. **Commit, then `npm run deploy:profile` in a weekend slot.** Expect the postgres container to be
+   recreated once. Before deploying, record the **previous** reference in the task's worklog — it is the
+   rollback.
+7. **Verify on the box:**
+   - `select version()` shows the new minor;
+   - the postgres container runs the new digest: from `/opt/profile`,
+     `docker image inspect --format '{{json .RepoDigests}}' "$(docker inspect --format '{{.Image}}' "$(docker compose ps -q postgres)")"`
+     lists `postgres@<new digest>`. On this box's containerd image store the container's `{{.Image}}`
+     itself also equals the new digest (task `0384` plan §3). ⚠️ On a classic-store Docker (e.g. a rebuilt
+     box) `{{.Image}}` is a different, config-based ID — do not compare it to the digest there, or a
+     correct upgrade reads as failed. (That `RepoDigests` lists it on a classic store is expected Docker
+     behaviour, not tested on this project.)
+   - `/ready` returns 200;
+   - the `schema_migrations` row count is unchanged.
+8. **Rollback is a hand revert:** put back the previous reference (from step 6's worklog note) in all four
+   places and redeploy. Valid only within the same major. ⚠️ The deploy's auto-rollback covers
+   `profile-api` only — it does **not** cover Postgres.
 
 ---
 

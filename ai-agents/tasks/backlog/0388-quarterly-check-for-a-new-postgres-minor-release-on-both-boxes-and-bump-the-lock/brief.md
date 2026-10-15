@@ -22,7 +22,7 @@ no owner channel (ADR-021/037). The owner was asked, live via `AskUserQuestion` 
 means no automatic patches. How should we remember to update Postgres?"* → **"Quarterly backlog item (Recommended)"** —
 *"A recurring backlog task each quarter: check for a new Postgres minor release and bump the lock, backup first."*
 
-**Why this exists.** [`0384`](../0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) (profile box,
+**Why this exists.** [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) (profile box,
 Postgres 16) and [`0386`](../0386-telemetry-box-lock-postgres-and-redis-to-one-exact-image-by-digest/brief.md)
 (telemetry box — all five outside images: Postgres 17, Redis 7, ClickHouse, Uptrace, OTel collector) lock the images to one exact digest. That stops surprise upgrades —
 and it also stops **security and bug-fix patches**, including Alpine base-image fixes that Docker Hub ships under the

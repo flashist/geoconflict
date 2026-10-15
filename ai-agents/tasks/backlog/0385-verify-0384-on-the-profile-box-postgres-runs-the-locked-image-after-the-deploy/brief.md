@@ -4,15 +4,40 @@
 0385
 
 ## Sprint
-Backlog
+Sprint 8
+
+📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md) on 2026-10-15, together with
+[`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md)** — OWNER RULING given live via
+`AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+(ADR-021/037); ⛔ not producer precedent. Verbatim **"Build it as 0384 (Recommended)"** — option text: *"The producer
+moves 0384 into Sprint 8, and 0385 checks it on the box after the deploy. 0219's B6 item just points to them. It uses the
+task, checklist and check-task split that already exist."* ⇒ **This task is now also
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)'s B6/V2 re-check** (*"prune
+leaves current + rollback intact"*, and the database stays on the image the compose file names): when it passes,
+`0219`'s item (4) is met — record the result in both worklogs; do not run the check twice.
+⚠️ **This bends the owner's standing 2026-09-29 build/verify rule** (verify task at the top of the NEXT sprint), as for
+`0445`, `0449`, `0450`, `0452`. The ruling's text does not name this task's board — the move is `fkit-lead`'s reading of
+it. ~~**Flagged for owner confirmation.**~~ ✅ **OWNER-CONFIRMED 2026-10-15 — Ruling C** (live `AskUserQuestion`,
+relayed by `fkit-lead`; ⛔ not producer precedent). Asked: *"0385 is the check you run on the profile box after the
+Postgres fix is deployed. Your usual rule puts check tasks at the top of the NEXT sprint, but you've made exceptions
+before (0445, 0449, 0450, 0452). Where should 0385 go?"* Selected, verbatim: **"Keep in Sprint 8 (Recommended)"** —
+option text: *"Same exception as before. 0219 can't close until 0385 passes, so keeping them on the same board keeps it
+simple."* The rule is bent **for this case only**. It still must not hold back any other Sprint 8 deploy.
+
+*(Earlier value, kept as history — true until 2026-10-15:)* ~~Backlog~~
 
 ## Priority
-Unscheduled
+**55** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
+merit ranking** — ~~flagged for owner confirmation~~. On merit directly below `0384`, which it needs built and deployed.
+✅ **Merit order OWNER-CONFIRMED 2026-10-15** (Ruling D, live `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
+precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"*). Row number unchanged (ADR-035).
 
-> 📌 **Placement note.** No sprint was named, so this is on the Backlog board for now. The owner's standing
+*(Earlier value:)* ~~Unscheduled~~
+
+> 📌 **Placement note** *(history — written 2026-10-04, superseded 2026-10-15 by the move above).* No sprint was named, so this is on the Backlog board for now. The owner's standing
 > build/verify rule (2026-09-29) puts a verify task **at the top of the next sprint after its build ships**, and it
 > must not block the build's own sprint deploy. When
-> [`0384`](../0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) closes, that placement is the
+> [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) closes, that placement is the
 > producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
@@ -74,5 +99,5 @@ backup marker existed before the deploy (record its date).
 - **Can share a weekend slot with** [`0387`](../0387-verify-0386-on-the-telemetry-box-postgres-and-redis-run-the-locked-images-after-the-deploy/brief.md)
   (the telemetry check). Producer's suggestion, owner's call.
 - **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the
-  incident; its V2 *"leaves current + rollback intact"* is the same concern).
+  incident; its V2 *"leaves current + rollback intact"* is the same concern). Since 2026-10-15 (Ruling A) this task **is** `0219`'s B6/V2 re-check.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

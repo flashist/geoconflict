@@ -640,7 +640,7 @@ On the box, `/opt/profile/docker-compose.yml` runs two containers:
 
 | Service | Image | Binding |
 |---|---|---|
-| `postgres` | `postgres:16-alpine`, tuned for low RAM (`shared_buffers=128MB`, `max_connections=25`) | `127.0.0.1:5432` only |
+| `postgres` | `postgres:16.15-alpine`, digest-pinned (ADR-120), tuned for low RAM (`shared_buffers=128MB`, `max_connections=25`) | `127.0.0.1:5432` only |
 | `profile-api` | the digest-pinned app image | `127.0.0.1:${PROFILE_PORT}` (default 8080) |
 
 Plus: `ufw` default-deny with only SSH/80/443 open, a swapfile, the clock pinned to UTC, a `profile`
@@ -674,8 +674,8 @@ nginx here maps `/v1/` → the OTLP HTTP ingest and `/` → the Uptrace UI. HTTP
 Yandex Games serves the game over HTTPS and browsers refuse mixed-content OTLP POSTs.
 
 > **Two Postgres instances exist and are easy to confuse:** the *application* DB
-> (`postgres:16-alpine`) on the profile VPS, and Uptrace's *metadata* DB (`postgres:17-alpine`) on the
-> telemetry VPS. **Only the former is backed up.**
+> (`postgres:16.15-alpine`, digest-pinned — ADR-120) on the profile VPS, and Uptrace's *metadata* DB
+> (`postgres:17-alpine`) on the telemetry VPS. **Only the former is backed up.**
 
 > **Access note:** the Russian telemetry VPS is unreachable while a full-tunnel VPN is on — add a `/32`
 > bypass route or turn the VPN off.

@@ -34,7 +34,7 @@ session:
    work. The rule stays simple: every outside program on both servers is locked to exact bytes."*
 
 The lock itself and the reminder to bump it are the owner's other rulings, recorded in full in
-[`0384`](../0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md)'s Context.
+[`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md)'s Context.
 
 **Decision record:** [ADR-120](../../../knowledge-base/decisions/adr-120-third-party-images-digest-pinned-postgres-upgrades-deliberate-backup-first.md)
 (status *proposed*; the decision itself is owner-ruled) — §1: *every* third-party image on both boxes is pinned by

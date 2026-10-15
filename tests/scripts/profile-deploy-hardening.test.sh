@@ -1050,6 +1050,54 @@ done
 printf '%s\n' "$COMPOSE_BLOCK" | sed 's/\$\$//g' | grep -qE '\$[A-Za-z_]' \
   && fail "compose heredoc: an UNBRACED \$NAME appears in the block — only \${NAME} is substituted, so Compose would interpolate it on the box (0282)" \
   || pass "compose heredoc: no unbraced \$NAME placeholders (0282)"
+# ── Task 0384 (ADR-120): Postgres is pinned by digest, and the restore drill uses the SAME image ──
+# A1: the postgres service's image: is name:16.N-alpine@sha256:<64 hex>, anchored at both ends.
+# Major 16 is a deliberate TRIPWIRE: a major upgrade is its own dump/restore project (ADR-120 §4),
+# so moving off 16 must be a conscious edit of this check, not a drive-by digest bump.
+PG_IMAGE=$(printf '%s\n' "$COMPOSE_BLOCK" | awk '/^  postgres:$/{b=1; next} b && (/^  [a-z][a-z0-9-]*:$/ || /^[^ ]/){exit} b && /^    image: /{sub(/^    image: /, ""); print; exit}')
+[ -n "$PG_IMAGE" ] && pass "compose: found the postgres service's image: line (0384)" \
+  || fail "compose: no image: line under the postgres service (the pin checks below would be vacuous) (0384)"
+printf '%s\n' "$PG_IMAGE" | grep -qxE 'postgres:16\.[0-9]+-alpine@sha256:[0-9a-f]{64}' \
+  && pass "compose: postgres is digest-pinned within major 16 ($PG_IMAGE) (0384, ADR-120)" \
+  || fail "compose: postgres image is '${PG_IMAGE:-<none>}', expected postgres:16.N-alpine@sha256:<64 hex> — a moving tag lets the box change Postgres on a restart (0384). A MAJOR upgrade is its own project (ADR-120 §4): update this check on purpose, never as a side effect"
+# A2 (ADR-120 §1): EVERY image in the compose file is pinned — either the \${PROFILE_IMAGE}
+# placeholder (K2 refuses an unpinned value at runtime) or a literal name:tag@sha256:<64 hex>.
+# Any image added later is therefore pinned from day one. Both forms match the WHOLE value
+# (grep -x, review 0384 R4): an end-only anchor let 'redis:7-alpine # was @sha256:<64 hex>' pass,
+# and ADR-120 § Related asks new digest checks not to repeat 0287's unanchored one. A form this
+# pattern does not know (a quoted value, a registry with a :port) reds — false RED, never false green.
+COMPOSE_IMAGES=$(printf '%s\n' "$COMPOSE_BLOCK" | sed -n 's/^[[:space:]]*image:[[:space:]]*//p')
+[ -n "$COMPOSE_IMAGES" ] && pass "compose: found the image: lines to check (0384)" \
+  || fail "compose: no image: lines found (the every-image-pinned check would be vacuous) (0384)"
+unpinned_images=$(printf '%s\n' "$COMPOSE_IMAGES" | grep -vxF '${PROFILE_IMAGE}' \
+  | grep -vxE '[a-z0-9][a-z0-9._/-]*:[A-Za-z0-9_][A-Za-z0-9_.-]*@sha256:[0-9a-f]{64}' || true)
+[ -z "$unpinned_images" ] \
+  && pass "compose: every image is digest-pinned or \${PROFILE_IMAGE} (ADR-120 §1)" \
+  || fail "compose: image(s) not pinned by digest: $(printf '%s' "$unpinned_images" | tr '\n' ' ') — every third-party image is pinned (ADR-120 §1)"
+# A3: still exactly FOUR explicit substitutions after the heredoc (0282 R3: "Adding a fifth value
+# is the moment to revisit this"). The pin is plain text in the heredoc, NOT a fifth value — a
+# fifth substitution has to be a conscious edit of this number.
+n_subst=$(grep -cF 'compose_rendered="${compose_rendered//' "$P" || true)
+[ "$n_subst" = "4" ] && pass "setup-profile.sh: exactly 4 compose substitutions (0282 R3, 0384)" \
+  || fail "setup-profile.sh: $n_subst compose substitution line(s), expected 4 — a fifth value must revisit 0282 R3 first, then update this number on purpose"
+# A4 (owner ruling 0384 Q2): the restore drill tests the SAME Postgres the box runs. The runbook's
+# restore-test image and both Postgres services in the dry-run must equal A1's value byte for byte.
+# Known residual: this is the harness's first read of a knowledge-base/*.md file — reformatting the
+# runbook's docker run command can cause a false RED, never a false green.
+RB="$REPO_ROOT/ai-agents/knowledge-base/profile-backup-restore-runbook.md"
+DRY="$REPO_ROOT/tests/profile-backup-dryrun.sh"
+# The image is the last word of the backslash-continued 'docker run -d --name restore-test' command.
+RB_IMAGES=$(awk '/^docker run -d --name restore-test /{b=1} b && !/\\$/{print $NF; b=0}' "$RB")
+DRY_IMAGES=$(sed -n 's/^    image: \(postgres.*\)$/\1/p' "$DRY")
+[ -n "$RB_IMAGES" ] && pass "runbook: found the restore-test image (0384)" \
+  || fail "runbook: no 'docker run -d --name restore-test' image found (the same-image check would be vacuous) (0384)"
+[ "$(printf '%s\n' "$DRY_IMAGES" | grep -c .)" = "2" ] && pass "profile-backup-dryrun.sh: found both postgres image: lines (0384)" \
+  || fail "profile-backup-dryrun.sh: expected 2 postgres image: lines (postgres + restore-target), found '$DRY_IMAGES' (0384)"
+for drill_image in $RB_IMAGES $DRY_IMAGES; do
+  [ -n "$PG_IMAGE" ] && [ "$drill_image" = "$PG_IMAGE" ] \
+    && pass "restore drill image matches setup-profile.sh ($drill_image) (0384)" \
+    || fail "restore drill image '$drill_image' differs from setup-profile.sh's '${PG_IMAGE:-<none>}' — the drill would test a different Postgres than the box runs. Change all four places together (runbook: 'Updating the pinned Postgres image') (0384)"
+done
 # Services = 2-space-indented keys under services: (before the top-level volumes: key).
 n_services=$(printf '%s\n' "$COMPOSE_BLOCK" | awk '/^volumes:/{exit} /^  [a-z][a-z0-9-]*:$/{n++} END{print n+0}')
 n_logging=$(printf '%s\n' "$COMPOSE_BLOCK" | grep -cE '^    logging:$' || true)

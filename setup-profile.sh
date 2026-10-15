@@ -1044,7 +1044,13 @@ fi
 cat > "$PROFILE_DIR/docker-compose.yml" << 'EOF'
 services:
   postgres:
-    image: postgres:16-alpine
+    # Pinned by digest (ADR-120, task 0384): the digest is the multi-arch INDEX digest; the tag
+    # is a label for humans, Docker uses the digest. Changing it is a deliberate Postgres
+    # upgrade: same major only, backup first, restore drill on the new image, weekend slot.
+    # The same reference also lives in the restore runbook and twice in
+    # tests/profile-backup-dryrun.sh; the hardening harness fails if they differ. Procedure:
+    # profile-backup-restore-runbook.md, section 'Updating the pinned Postgres image'.
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     # unless-stopped (0221, G7): comes back after a Docker DAEMON restart — on-failure did not;
     # only systemd's reboot path covered it — without fighting a deliberate 'docker compose stop'
     # the way 'always' does. Same intent as the game box's --restart=always (update.sh).
@@ -1514,9 +1520,10 @@ fi
 # KEEP-LIST, not update.sh's `-a` prune: on the game box `prune -a` removes every image no
 # container uses, which on THIS box is precisely the rollback image (PREV_PROFILE_IMAGE) that
 # the health gate above rolls back to. Keep = the image of every container (running AND
-# stopped) ∪ PREV_PROFILE_IMAGE ∪ PROFILE_IMAGE; remove everything else (a superseded
-# postgres:16-alpine included), then drop dangling layers. Removal is best-effort (`|| true`)
-# — a prune can never fail a deploy that has already proven itself.
+# stopped) ∪ PREV_PROFILE_IMAGE ∪ PROFILE_IMAGE; remove everything else (e.g. a Postgres image
+# the compose file no longer names, after a deliberate digest bump), then drop dangling layers.
+# Removal is best-effort (`|| true`) — a prune can never fail a deploy that has already proven
+# itself.
 
 print_header "PRUNING UNUSED IMAGES"
 

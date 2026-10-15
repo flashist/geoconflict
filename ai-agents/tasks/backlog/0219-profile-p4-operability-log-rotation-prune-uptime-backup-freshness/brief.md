@@ -212,7 +212,7 @@ deploy; only its *confirmation* is deferred.
 ---
 
 ## Status
-🔄 In progress — 🟢 **G3/G4 DEFERRAL LIFTED 2026-10-09 BY OWNER RULING** (*"Yes, un-pause in Sprint 8 (Recommended)"* — see the 2026-10-09 block above). Built + reviewed 2026-09-13 (Part A, all of G1–G4) and deployed 2026-09-26 (B4). **Done so far:** B4 ✅, B5/V1 ✅ (rotation observed), B2's daily check exists and alerted the owner by email on 2026-09-25 (owner-side, not otherwise verified). **Left, all owner-side on the box or in the outside services, except the last item:** (1) **B3** — the two outside uptime monitors (`/health` and `/ready`), alerting to Telegram + email; (2) confirm **B2** alerts to the Telegram ops chat, not only email; (3) drills **B7–B10** — make each alarm fire on purpose and watch it arrive (failed renewal incl. `certbot.timer` → `disabled`, service stopped, stale backup record, then clear), and name the alert destinations in the worklog (no URLs or tokens); (4) **B6/V2 was only PARTIAL** — the 2026-09-26 prune kept the rollback image but removed the Postgres image tag the compose file names, which led to an unplanned Postgres minor upgrade (data intact). Fix direction (keep-list by tag, or pin compose by digest) **not decided — owner/architect call**; a code change by `fkit-coder` may follow. ⛔ The 2026-09-13 hold-open ruling stands: **no close until the alerts have been watched arriving.** ⚠️ `🔄 In progress`, not `🔲 Backlog`: the code is built and deployed — the sprint loop must not re-plan it.
+🔄 In progress — 🟢 **G3/G4 DEFERRAL LIFTED 2026-10-09 BY OWNER RULING** (*"Yes, un-pause in Sprint 8 (Recommended)"* — see the 2026-10-09 block above). Built + reviewed 2026-09-13 (Part A, all of G1–G4) and deployed 2026-09-26 (B4). **Done so far:** B4 ✅, B5/V1 ✅ (rotation observed), B2's daily check exists and alerted the owner by email on 2026-09-25 (owner-side, not otherwise verified). **Left, all owner-side on the box or in the outside services, except the last item:** (1) **B3** — the two outside uptime monitors (`/health` and `/ready`), alerting to Telegram + email; (2) confirm **B2** alerts to the Telegram ops chat, not only email; (3) drills **B7–B10** — make each alarm fire on purpose and watch it arrive (failed renewal incl. `certbot.timer` → `disabled`, service stopped, stale backup record, then clear), and name the alert destinations in the worklog (no URLs or tokens); (4) **B6/V2 was only PARTIAL** — the 2026-09-26 prune kept the rollback image but removed the Postgres image tag the compose file names, which led to an unplanned Postgres minor upgrade (data intact). Fix direction ~~(keep-list by tag, or pin compose by digest) not decided — owner/architect call~~ ✅ **decided: pin compose by digest (owner ruling 2026-10-15 — see the dated note under the W5→W10 finding below)**; ~~a `fkit-coder` plan is being drafted for owner approval~~ ➡️ **carried by [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) (build) and [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the profile deploy), both moved onto Sprint 8 — OWNER RULING 2026-10-15, *"Build it as 0384 (Recommended)"*. This item is met when `0385` passes; no separate B6/V2 re-check here.** ⛔ The 2026-09-13 hold-open ruling stands: **no close until the alerts have been watched arriving.** ⚠️ `🔄 In progress`, not `🔲 Backlog`: the code is built and deployed — the sprint loop must not re-plan it.
 
 *(Status until 2026-10-09, kept verbatim as history:)* ~~🚧 Blocked~~ — 🔴 **SPLIT 2026-09-19 BY OWNER RULING (block directly above): G1/G2 prepared for the weekend deploy slot, G3/G4 DEFERRED with `0285` and `0289`.** Built + reviewed 2026-09-13 (Part A: code, tests, docs — **all of G1–G4**; stateful review round 1 closed out, Codex coverage full). ⛔ **THIS TASK DOES NOT CLOSE AT THE WEEKEND SLOT.** Narrowed, accurate remainder — **at the slot:** B4 (`npm run deploy:profile`, which lands G1's log rotation and G2's prune), then B5 (V1, rotation observed) and B6 (V2, prune keeps current + rollback). **Deferred past the slot:** B2/B3 (dead-man's-switch check + the two external uptime monitors) and the observed-alert drills B7–B10, incl. `systemctl is-enabled certbot.timer` → `disabled`. ⚠️ Expect the slot's deploy to report `alerting: no` — with B2 deferred there is no ping URL; that is the ruling, not a fault. Owner ruled 2026-09-13, live in the lead session: hold open, do not close until the alerts have been watched arriving — **that ruling stands and is what keeps this open.** Driven by `/fkit-sprint-ship-loop` · earlier: 🚧 Blocked — built + reviewed 2026-09-13 (Part A: code, tests, docs; stateful review round 1 closed out, Codex coverage full); open pending the OWNER-side live tail B2–B10 (dead-man's-switch check + uptime monitors, `npm run deploy:profile`, and the observed-alert drills incl. `systemctl is-enabled certbot.timer` → disabled)
 
@@ -250,13 +250,39 @@ deploy; only its *confirmation* is deferred.
 > `721873c3…` = `postgres:16-alpine`, **PostgreSQL 16.15** — the very image ID the prune had removed.
 > **Data intact** (`schema_migrations` count 5; `/ready` OK). ⇒ bears on **V2** (*"leaves current +
 > rollback intact"*): the prune kept the app's rollback image but removed the tag the compose file names.
-> Candidate directions — **⛔ NOT decided**: keep the prune's keep-list **by tag/reference**, or **pin
-> compose by digest**. Owner/architect call.
+> Candidate directions — ~~**⛔ NOT decided**~~ *(superseded 2026-10-15 — see the ruling directly below)*:
+> keep the prune's keep-list **by tag/reference**, or **pin compose by digest**. Owner/architect call.
+>
+> ✅ **DECIDED 2026-10-15 — OWNER RULING: pin compose by digest.** Given live via `AskUserQuestion` in the
+> `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
+> (ADR-021/037); ⛔ not producer precedent. Asked: *"How should we fix B6/V2, so the profile box's
+> database can't silently switch Postgres versions again?"* Owner selected, verbatim: *"Pin by digest
+> (Recommended)"* — option text: *"The setup file names one exact Postgres build. It never changes by
+> itself, and updates become a deliberate one-line edit. The coder plans it, you approve, then it's
+> built."* Not chosen: *"Keep-list by name"* (cleanup also keeps the image the setup file names —
+> smaller, but Postgres can still change version when the name is re-downloaded); *"Architect compares
+> first"*. ~~**Next:** `fkit-coder` drafts a plan for owner approval before any build.~~ *(superseded the same
+> day — see the note directly below)* ⛔ `## Status` token unchanged (`🔄 In progress`); the hold-open ruling (no
+> close until alerts are watched arriving) stands.
+>
+> ➡️ **2026-10-15, later — OWNER RULING: the fix is built as [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md),
+> not inside this task.** Given live via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a
+> spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Asked: *"This fix already has
+> its own task, 0384, filed on 2026-10-04, and today you chose the same fix inside 0219. Which task should the work go
+> under? The work is identical either way; this is just which record it lives in."* Selected, verbatim: **"Build it
+> as 0384 (Recommended)"** — option text: *"The producer moves 0384 into Sprint 8, and 0385 checks it on the box after
+> the deploy. 0219's B6 item just points to them. It uses the task, checklist and check-task split that already
+> exist."* Not chosen: *"Build it under 0219"*. ⇒ **B6/V2 is carried by `0384` (build, Sprint 8 rank 54) and
+> [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the
+> weekend profile deploy, rank 55); this task's B6/V2 re-verification is satisfied when `0385` passes.** A same-day
+> second ruling (*"Yes, add the check (Recommended)"*) puts a four-place same-reference test check into `0384` — see
+> that brief. The `fkit-coder` plan already drafted belongs to `0384`; it waits on the owner's read-only digest batch
+> and approval. No canonical `Depends on` added here (not ruled). `## Status` token unchanged (`🔄 In progress`).
 
 ## Owner
 fkit-coder + the owner (live steps)
 
-The owner (the person) runs B3, the B2 Telegram check and drills B7–B10 (outside services and the live box). `fkit-coder` owns any code change — chiefly a fix for the B6/V2 prune finding once its direction is decided — and the worklog record. *(Earlier value: `fkit-coder`.)*
+The owner (the person) runs B3, the B2 Telegram check and drills B7–B10 (outside services and the live box). `fkit-coder` owns any code change ~~— chiefly a fix for the B6/V2 prune finding once its direction is decided —~~ and the worklog record. *(2026-10-15: the B6/V2 fix is no longer this task's code — it is built as [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) and checked on the box by [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), OWNER RULING *"Build it as 0384 (Recommended)"*; no code change is left in this task today.)* *(Earlier value: `fkit-coder`.)*
 
 ## Depends on
 - [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.

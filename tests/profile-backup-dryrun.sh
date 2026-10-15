@@ -67,7 +67,7 @@ mkdir -p "$WORK/backups"
 cat > "$WORK/docker-compose.yml" <<YAML
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     environment:
       POSTGRES_USER: profile
       POSTGRES_PASSWORD: $PGPASS
@@ -75,7 +75,7 @@ services:
     ports:
       - "127.0.0.1:$SOURCE_PORT:5432"
   restore-target:
-    image: postgres:16-alpine
+    image: postgres:16.15-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     environment:
       POSTGRES_USER: profile
       POSTGRES_PASSWORD: $PGPASS
