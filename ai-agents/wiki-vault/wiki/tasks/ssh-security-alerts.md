@@ -22,6 +22,12 @@
 > step runs on every key deploy and also applies the sshd hardening; only its alerts part is skipped while the token
 > is blank ([[tasks/ssh-password-login-off]]). Whether any SSH alert has reached Telegram is not recorded — `0449`.
 
+> 📌 *2026-10-15 sync:* two more deploys for `0452` ran with the alerts part still skipped — telemetry
+> `0.0.164-telemetry.1` warned `PROFILE_SSH_ALERT_TOKEN` is empty; game dev ended `SKIPPED ssh-alerts` (the expected
+> exit-3 case). ⚠️ On game dev the final banner said the sshd hardening *"may be missing"* although that section passed
+> — the banner follows the skipped alerts part, wording only. Still no SSH alert recorded as reaching Telegram — `0449`,
+> whose deploys `0452`'s pre-checks have now unblocked ([[tasks/ssh-password-login-off]]).
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily

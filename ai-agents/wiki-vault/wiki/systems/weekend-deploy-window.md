@@ -5,6 +5,22 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🆕 **2026-10-15 sync — two key deploys ran for `0452`, and they turned SSH password login OFF on telemetry and game
+> dev** (from `0452`'s worklog; every box step run by the owner, outputs read by the main session):
+> - **Telemetry:** `npm run deploy:telemetry` → **`0.0.164-telemetry.1`** (git tag on `c42aded`). Its
+>   `SSHD HARDENING (0442)` section passed (password and keyboard-interactive off, root key-only); the SSH-alerts
+>   section warned that `PROFILE_SSH_ALERT_TOKEN` is empty — expected until `0449`.
+> - **Game dev:** `./deploy.sh dev` as a **same-version redeploy** of image `20261003-122424` (the game build on dev did
+>   not change; the deploy scripts did). sshd section passed; ended `SKIPPED ssh-alerts` — the expected exit-3 case
+>   (exit code not pasted). The same run printed the env file being removed — partial evidence for `0450`
+>   ([[tasks/game-deploy-env-file-cleanup]]).
+> - **Game prod:** not touched — password login still on there; its step waits for the weekend slot (owner Q2).
+> - Pre-checks P1–P4 passed 2026-10-15, which also **unblocks `0449`'s and `0450`'s game/telemetry deploys**. Still
+>   waiting for a deploy: game client `0451`, `0454`; `0453` (profile deploy script). Merit order owner-confirmed
+>   2026-10-15: `0452` → `0462` → `0449`/`0450`, `0219` near the top for its deadline ([[decisions/sprint-8]]).
+>   `0350` (owner-only name-change tool) ships in **its own** weekend profile-server deploy, not the final Sprint 8
+>   one. See [[tasks/ssh-password-login-off]].
+>
 > 🆕 **2026-10-14 sync — game `0.0.164` went to PROD MID-WEEK (2026-10-13, ~20:06–20:13 MSK)** as `0445`'s proof deploy
 > over the key — owner ruling *"Real release now"* (bends the weekend rule; full `npm test` green first). It carried
 > `0437` (exit confirm popup — live, unseen: `0439`), `0441`'s deploy fixes, `0443`'s root step and `0447`'s

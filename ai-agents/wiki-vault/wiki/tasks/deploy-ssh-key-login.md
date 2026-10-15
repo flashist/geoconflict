@@ -21,6 +21,9 @@
 > steps (`0452`). The same R1 lesson reached the profile deploy as `0453` ([[tasks/profile-deploy-key-only]]). The
 > "nothing done on any box" and "not shipped" lines above are history.
 
+> 📌 *2026-10-15 sync:* password login is **off on telemetry and game dev since 2026-10-15** (`0452`, V2–V4 passed on
+> both); game prod still accepts passwords until its weekend-slot step ([[tasks/ssh-password-login-off]]).
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim: *"File it to the current sprint, and it should be our top priority to work on."*

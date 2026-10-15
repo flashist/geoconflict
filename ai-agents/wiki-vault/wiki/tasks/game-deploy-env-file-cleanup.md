@@ -18,6 +18,15 @@
 > committed, `0450`'s dev deploy will also turn SSH password login off on game dev — `0452`'s pre-checks first
 > ([[tasks/ssh-password-login-off]]).
 
+> 📌 *2026-10-15 sync:* `0450` now has a worklog. The 2026-10-15 game dev deploy (a same-version redeploy for `0452`)
+> printed *"Removing environment file …"* then *"Environment file removed."*, copied in by owner ruling *"Copy it into
+> 0450 now (Recommended)"*. ⚠️ **It satisfies none of `0450`'s verification steps** — partial evidence toward step 4
+> only: no file count was taken; the ~21 old leftovers are almost certainly still there (F1/F2 not run); those two lines
+> are the success-path messages, which `update.sh` printed **before** `0447` too, so they do not show the new
+> remove-on-every-exit behaviour; and whether that deploy really carried `0447`'s `update.sh` is **likely, not proven**
+> (working-tree state at the time not recorded). `0450` stays `🔲 Backlog`; its game-dev deploys are unblocked by
+> `0452`'s pre-checks ([[tasks/ssh-password-login-off]]).
+
 ## Goal
 
 `0443`'s read-only inventory ([[tasks/ssh-security-alerts]]) found **~21 leftover `dev-*.env` deploy files** in root's

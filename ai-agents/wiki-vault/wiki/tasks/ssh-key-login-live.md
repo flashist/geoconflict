@@ -12,6 +12,8 @@
 > 🚦 **KEY LOGIN IS NOW IN EFFECT on game prod, game dev and telemetry (2026-10-13).** Password login is **still on**
 > on all three — switching it off is `0442` (built, [[tasks/ssh-password-login-off]]) and its live step `0452` (open).
 
+> 📌 *2026-10-15 sync:* password login is **off on telemetry and game dev since 2026-10-15** (`0452`: V2–V4 passed on both — key login works, a password-only login gets `Permission denied (publickey)`, effective `sshd -T` shows `passwordauthentication no`). **Game prod still accepts passwords** until its weekend-slot step (`0452`, [[tasks/ssh-password-login-off]]); its fail2ban re-check is `0462`.
+
 ## Goal
 
 The box side of [[tasks/deploy-ssh-key-login]] (`0441`, repo work only): make the two keys, install them, prove a key

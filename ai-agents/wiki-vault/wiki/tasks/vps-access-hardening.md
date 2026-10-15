@@ -10,6 +10,8 @@
 > root, proved key-only login and deployed all three boxes over the key on 2026-10-13 ([[tasks/ssh-key-login-live]]).
 > Password login is **still on**. Turning it off is built (`0442`, [[tasks/ssh-password-login-off]]) and waits on its box steps (`0452`).
 
+> 📌 *2026-10-15 sync:* password login is **off on telemetry and game dev since 2026-10-15** (`0452`: V2–V4 passed on both — key login works, a password-only login gets `Permission denied (publickey)`, effective `sshd -T` shows `passwordauthentication no`). **Game prod still accepts passwords** until its weekend-slot step (`0452`, [[tasks/ssh-password-login-off]]); its fail2ban re-check is `0462`.
+
 ## Goal
 
 Treat the production VPS as potentially accessed, reconstruct the host-access timeline, and harden the machine so it no longer depends on password-based trust assumptions.

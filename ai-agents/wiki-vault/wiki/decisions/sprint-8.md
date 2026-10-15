@@ -5,6 +5,37 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-15 sync (newest, `48c4285`): 53 rows — 33 `✅ Done` · 8 `🔲 Backlog` · 3 `🔄 In progress` · 8 `➡️ Moved` ·
+> 1 `⛔ Cancelled`; 11 OPEN** (was 51 / 9), counted by me by each row's leading status glyph. Banner unchanged
+> (`🔄 In progress — 2026-10-12`). **No row closed in this window.**
+> - **Four OWNER RULINGS, 2026-10-15** (live `AskUserQuestion` in the main session after a `/fkit-status` briefing,
+>   relayed by the main session to a spawned `fkit-producer` with no owner channel — ADR-021/037; ⛔ not producer
+>   precedent):
+>   1. *"Both (Recommended)"* — **46 `0452`** and **23 `0426`** → `🔄 In progress`. `0452`: pre-checks P1–P4 passed;
+>      **SSH password login is OFF on telemetry and game dev** (V2–V4 passed on both); left: V5 on those two boxes
+>      (`0462`), game prod in the weekend slot, the Q3 switch removal ([[tasks/ssh-password-login-off]]). `0426`: the news
+>      text was drafted 2026-10-11 and owner-approved 2026-10-12; `resources/announcements.json` is **not edited yet** —
+>      that happens in the final Sprint 8 deploy.
+>   2. *"Copy it into 0450 now (Recommended)"* — the 2026-10-15 game dev deploy's env-file removal is copied into a new
+>      `0450` worklog. ⚠️ **Partial evidence toward step 4 only — it satisfies no verification step**; `0450` stays
+>      `🔲 Backlog` ([[tasks/game-deploy-env-file-cleanup]]).
+>   3. *"Ship 0350 on its own (Recommended)"* — `0350` is a tool only the owner uses, not player-facing, so it does
+>      **not** hold back the final Sprint 8 deploy or `0426`; it goes out in its own weekend profile-server deploy.
+>   4. *"Confirm that order (Recommended)"* — owner-confirmed merit order: **`0452` → `0462` → `0449`/`0450` near the
+>      top, and `0219` near the top for its deadline.** Row numbers unchanged (ADR-035). ⚠️ The ruling does not order
+>      `0219` against the `0452` chain beyond "near the top". `0426`'s and `0350`'s append-rank flags were not part of it.
+> - **New rows (ADR-035 append ranks, not merit):** **52 `0350`** — name-change moderation without copy-and-paste,
+>   **moved in from the Backlog board** (owner, verbatim *"Move the task to the current sprint"*); still `🔲 Backlog`, scope
+>   unchanged (shape A1, ruled 2026-09-29); off this sprint's theme — recorded, not a blocker ([[decisions/sprint-backlog]]).
+>   **53 `0462`** — re-check fail2ban on telemetry and game dev a few hours after password login went off (owner, verbatim
+>   *"I think we need to create a task to the current sprint, to keep track of it."*). It **is** `0452`'s V5 for those
+>   two boxes, not an extra check; run by the owner (agent SSH to the boxes was denied in `0445`). Open briefs — no vault
+>   page.
+> - **Deploys, 2026-10-15** (from `0452`'s worklog): telemetry `0.0.164-telemetry.1` (tag on `c42aded`); game dev a
+>   same-version redeploy of image `20261003-122424` — see [[systems/weekend-deploy-window]].
+> - **Still open on this board:** `0343`, `0418`, `0213`, `0449`, `0450`, `0455`, `0350`, `0462` (Backlog); `0219`,
+>   `0426`, `0452` (In progress).
+>
 > 🆕 **2026-10-14 sync (newest, `2d2ab4a`): 51 rows — 33 `✅ Done` · 8 `🔲 Backlog` · 1 `🔄 In progress` · 8 `➡️ Moved` ·
 > 1 `⛔ Cancelled`; 9 OPEN** (was 44 / 9), counted by me by each row's leading status glyph. Banner unchanged
 > (`🔄 In progress — 2026-10-12`).

@@ -10,6 +10,8 @@
 > root, proved key-only login and deployed all three boxes over the key on 2026-10-13 ([[tasks/ssh-key-login-live]]).
 > Password login is **still on**. Turning it off is built (`0442`) and waits on its box steps (`0452`).
 
+> 📌 *2026-10-15 sync:* password login is **off on telemetry and game dev since 2026-10-15** (`0452`: V2–V4 passed on both — key login works, a password-only login gets `Permission denied (publickey)`, effective `sshd -T` shows `passwordauthentication no`). **Game prod still accepts passwords** until its weekend-slot step (`0452`, [[tasks/ssh-password-login-off]]); its fail2ban re-check is `0462`.
+
 ## Goal
 
 Replace the repo's password-friendly deployment model with a key-first operator contract and reduce how often host credentials appear in env files and docs.

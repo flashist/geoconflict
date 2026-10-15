@@ -3,6 +3,17 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-15 sync (newest, `48c4285`): 160 rows, 110 open.** Re-counted by me at `HEAD` = `48c4285`, by each row's
+> leading status glyph: 107 `🔲 Backlog` · 41 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 160 / 111).
+> - **`0350` (name-change moderation without copy-and-paste) moved to [[decisions/sprint-8]]**, appended at rank 52 —
+>   OWNER RULING given live 2026-10-15, verbatim *"Move the task to the current sprint"* (relayed by the main session to
+>   a spawned `fkit-producer`; ⛔ not producer precedent). Status carried over unchanged (`🔲 Backlog`, not started); row
+>   kept here as `➡️ Moved`; folder not moved. A second ruling the same day: it **ships on its own** (own weekend
+>   profile-server deploy), not with the final Sprint 8 deploy.
+> - 📌 **Correction to an older line on this page:** the 2026-09-30 re-count entry below (rows filed 2026-09-29) says
+>   `0350` had three shapes, **"none chosen"**. Per the brief, shape **A1** (one interactive command on the profile box) was chosen the same day by owner
+>   ruling (Q3). That line is history.
+>
 > 🆕 **2026-10-14 sync (newest, `2d2ab4a`): 160 rows, 111 open.** Re-counted by me at `HEAD` = `2d2ab4a`, by each row's
 > leading status glyph: 108 `🔲 Backlog` · 40 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 156 / 108).
 > Filed by spawned `fkit-producer`s on owner rulings relayed by `fkit-lead` (⛔ not producer precedent). Open briefs —

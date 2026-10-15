@@ -17,6 +17,18 @@
 > up, root passwords in the password manager, a read-only `sshd` look) must pass **before** that first deploy — this
 > includes deploys made for `0449` and `0450`.
 
+> 📌 *2026-10-15 sync:* **the box steps have started** (`0452`, now `🔄 In progress`). Pre-checks P1–P4 passed
+> (provider console logged into as root on all three boxes; both keys, passphrases and root passwords in the password
+> manager; a read-only sshd look found no `Match` line, no drop-in sorting before `00-`, the `Include` line present).
+> Then password login is **off on telemetry and game dev since 2026-10-15** (`0452`: V2–V4 passed on both — key login works, a password-only login gets `Permission denied (publickey)`, effective `sshd -T` shows `passwordauthentication no`). **Game prod still accepts passwords** until its weekend-slot step. Telemetry went out as `0.0.164-telemetry.1`; game dev as a same-version redeploy
+> ([[systems/weekend-deploy-window]]). The "password login is still ON" line above is **history for those two boxes**.
+> - **Still open:** V5 — fail2ban "Total failed" should keep rising a few hours later (baselines at P4: telemetry 25430,
+>   game dev 160736) — tracked as **`0462`** (it *is* `0452`'s V5 for those two boxes, not an extra check); game prod in
+>   the weekend slot; the Q3 switch removal (verification step 7), after all three boxes pass.
+> - ⚠️ **Misleading banner, wording only:** the game dev deploy's final banner read *"HOST SETUP NOT DONE … the sshd
+>   hardening … may be missing"* although its sshd section passed — the banner is driven by the skipped SSH-alerts part
+>   (`0449`'s token). Noted in the worklog, not a failure ([[tasks/ssh-security-alerts]]).
+
 ## Goal
 
 Once [[tasks/ssh-key-login-live]] (`0445`) proved key login on every in-scope box, switch password login off so
@@ -73,6 +85,7 @@ out, so the task is mostly a safe order and a way back. The profile box was alre
 - [[tasks/profile-os-baseline-hardening]] — task `0221`, the profile box's sshd hardening this copies
 - [[tasks/profile-deploy-key-only]] — task `0453`, the R1 lesson applied to the profile deploy
 - [[tasks/vps-access-hardening]] — task `0132`, the April 2026 target this finishes for the game and telemetry boxes (once `0452` runs)
+- [[tasks/deployment-credential-hardening]] — the SSH-key-first deploy contract; password login now off on telemetry and game dev (2026-10-15)
 - [[systems/weekend-deploy-window]] — the deploy consequence above; game prod waits for the weekend slot
 - [[decisions/sprint-8]] — the board (rank 39; verify `0452` at rank 46)
 - [[decisions/sprint-backlog]] — `0446` (game boxes rebuilt from scripts alone)
