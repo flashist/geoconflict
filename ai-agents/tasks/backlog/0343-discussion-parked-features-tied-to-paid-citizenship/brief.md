@@ -1,13 +1,17 @@
-# Discussion: eight parked features for Sprint 8 — paid-citizenship perks (paid map packs, nickname styling, map voting, premium replays, custom uploaded flags) and more (leaderboard rewards, coin economy, clans)
+# Discussion: eight parked features — paid-citizenship perks (paid map packs, nickname styling, map voting, premium replays, custom uploaded flags) and more (leaderboard rewards, coin economy, clans)
 
 ## ID
 0343
 
 ## Sprint
-Sprint 8
+Sprint 9
+
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"Move the task 0343 to the next sprint"*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. ~~⚠️ The H1 title still says *"for Sprint 8"* — left as written (spent), folder not renamed (ADR-029).~~ 📌 **Retitled 2026-10-16, later** — OWNER RULINGS given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Drop "for Sprint 8" (Recommended)"*. Only the words "for Sprint 8" were removed from the H1; folder not renamed (ADR-029).
 
 ## Priority
-6
+2
+
+> 📌 **2026-10-16 — was 6 (Sprint 8), now 2 (Sprint 9).** Rank is board-scoped: on the move to Sprint 9 (owner ruling *"Move the task 0343 to the next sprint"*, relayed) this task was **appended** at 2, below `0469` (ADR-035 append rank). ~~The producer's placement — **not owner-ruled, not a merit judgement**; the owner ranks Sprint 9.~~ ✅ **Owner-confirmed 2026-10-16, later** — OWNER RULINGS given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Keep slot 2 (Recommended)"*. The note(s) below are Sprint 8 history, kept as written (ADR-035).
 
 > 📌 **2026-10-02 (later) — was 5, now 6.** Moved down one by the OWNER-RULED move of `0373` (read the
 > stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
@@ -117,7 +121,7 @@ using the agenda below. For each item, record one outcome in `worklog.md` in thi
 
 ### Item A — Paid Campaign Map Packs
 
-⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. New-maps content is on hold with no restart date (the same day's ruling *"We wil postpone the new maps, don't know for how long …"*, which moved [`0027`](../0027-new-maps-community-demand/brief.md) to the Backlog board). This item stays in this brief and `0343` stays on Sprint 8 — row, rank and status unchanged — but item A is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. New-maps content is on hold with no restart date (the same day's ruling *"We wil postpone the new maps, don't know for how long …"*, which moved [`0027`](../0027-new-maps-community-demand/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item A is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
 
 **In plain words.** Themed map packs to buy (WW2 first). 1–2 maps per pack free, the rest unlocked by buying.
 These are campaign maps (can be unfair / scripted on purpose), single-player or co-op — **not** part of normal
@@ -200,7 +204,7 @@ lobbies and their maps are scheduled by the server master process.
 
 ### Item D — Replay Access as a Premium Feature
 
-⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. Match archiving is on hold with no restart date (the same day's ruling *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, which moved [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) to the Backlog board). This item stays in this brief and `0343` stays on Sprint 8 — row, rank and status unchanged — but item D is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. Match archiving is on hold with no restart date (the same day's ruling *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, which moved [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item D is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
 
 **In plain words.** Free players keep their last 3 match replays; premium players keep 20+ and can share replay
 links.
