@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 39 (ADR-035 append rank; 🚨 top priority by owner ruling 2026-10-12, second after `0441`) / task `0442`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — password login is now OFF on GAME PROD too** (`0452`'s worklog, owner-run, relayed — **not
+> re-verified by me**): game prod `0.0.165` deployed mid-week 2026-10-16 ~12:17Z (owner ruling *"Now, I'll run them"*),
+> a root key session kept open as the safety net. V4 ✅ (`OK  sshd — password login off, root key-only`, `GAME HOST SETUP
+> OK`, no exit 3); V2 ✅ (key login works; password-only gets `Permission denied (publickey)` with no prompt); V3 ✅
+> (`sshd -T`, global and root-effective, show password auth off). ⏳ **Left:** V5 (fail2ban re-check a few hours after —
+> mind that a fail2ban restart resets the counters) and the Q3 switch removal. `0452` is now [[decisions/sprint-9]] rank 4.
+> ⇒ Password login is off on game prod, game dev and telemetry (this task's scope).
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-13. Scope widened 2026-10-12 to the **telemetry** box by
 > owner ruling *"Yes, add telemetry (Recommended)"* (the folder slug predates it; the title is the scope).
 >
@@ -94,3 +102,4 @@ out, so the task is mostly a safe order and a way back. The profile box was alre
 - [[tasks/game-deploy-env-file-cleanup]] — task `0447`: its verify `0450` deploys game dev, which now applies this hardening
 - [[tasks/fail2ban-recheck-after-password-off]] — task `0462`, V5 for telemetry and game dev (passed)
 - [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`, whose deploys waited for this task's pre-checks
+- [[decisions/sprint-9]] — verify `0452` at rank 4 since the 2026-10-16 Sprint 8 close

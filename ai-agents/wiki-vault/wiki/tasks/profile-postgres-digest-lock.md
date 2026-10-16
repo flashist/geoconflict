@@ -4,6 +4,16 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 54 (ADR-035 append rank; merit order `0219` → `0384` → `0385` owner-confirmed 2026-10-15) / task `0384`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED in profile `0.0.164-profile.2`** (mid-week, 2026-10-16 ~12:10–12:15Z, owner-run; `git tag
+> --contains d6458d9` → yes, checked by me). From `0385`'s worklog (owner-run read-only batches, relayed — **not
+> re-verified by me**): before — the box already ran image ID `721873c3…` (same as the lock's digest prefix), version
+> 16.15, 7 migrations, fresh nightly backup; the stray 642 MB `postgres:16` image was already gone. After — Postgres
+> names exactly the locked reference (`MATCHES LOCK`) ✅, version 16.15 ✅, migrations 7 → 7 and `/ready` 200 ✅, the
+> locked image survived the prune ✅; the container **was recreated once** (12:12:44Z, healthy) — matches the "likely
+> once" guess; optional restart **skipped** by owner ruling *"Skip it (Recommended)"*. ⏳ **Only step 5 left:** the next
+> nightly backup marker (~02:30Z 2026-10-17) must be fresh and successful. `0385` is now [[decisions/sprint-9]] rank 1.
+> The "NOT DEPLOYED" lines below are history.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-15 by a spawned `fkit-producer` at the close step of
 > `fkit-sprint-ship-loop`, on the owner ruling *"Restart the ship-loop for 0384 (Recommended)"* (relayed by `fkit-lead`;
 > ⛔ not producer precedent). Plan owner-approved; review round 1 closed-out (R1–R4, all low, all fixed).
@@ -116,3 +126,4 @@ Backlog board); `0388` (quarterly minor bump, depends on `0384` + `0386`; three 
 - [[decisions/adr-117-server-deploy-version-names]] — our own app image is already deployed by `@sha256` digest
 - [[decisions/sprint-8]] — rank 54; `0385` at 55
 - [[decisions/sprint-backlog]] — where `0384`–`0388` were filed; `0386`–`0388` still there
+- [[decisions/sprint-9]] — verify task `0385` moved there at the Sprint 8 close (rank 1)

@@ -3,7 +3,12 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-16 sync, second run (newest of all, `5a12b73`): 167 rows, 114 open.** Re-counted by me by each row's
+> 📌 **2026-10-16 sync, third run (newest of all, `29811f0`): board unchanged in rows and statuses — 167 rows, 114 open**
+> (re-counted by me). Link repoints only (`plan-sprint-8.md` → `done/plan-sprint-8.md` after the Sprint 8 close) plus
+> small notes that `0343` now sits on Sprint 9. ⚠️ `0460`, `0461`, `0463` are **still here** — the Sprint 8 close moved only
+> Sprint 8's own open rows. See [[decisions/sprint-8]], [[decisions/sprint-9]].
+>
+> 🆕 **2026-10-16 sync, second run (`5a12b73`): 167 rows, 114 open.** Re-counted by me by each row's
 > leading status glyph: 111 `🔲 Backlog` · 44 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 165 / 113).
 > Two rows appended, on owner rulings relayed by `fkit-lead` to spawned `fkit-producer`s (⛔ not producer precedent):
 > - **New `0468`** — `🔲 Backlog`, unscheduled — *Rename the Custom Game window's title to «Своя Игра» / "Custom Game"

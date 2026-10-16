@@ -3,6 +3,12 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 *2026-10-16 sync, third run (`29811f0`):* profile **`0.0.164-profile.2`** deployed mid-week 2026-10-16 (owner-run; deploy backup + smoke OK,
+> `/health` and `/ready` 200 — from `0385`'s worklog, not re-verified by me). Postgres now runs the **digest-locked**
+> image (recreated once, data intact, 7 migrations) — [[tasks/profile-postgres-digest-lock]]. `0385`, `0219`, `0213`
+> moved to [[decisions/sprint-9]] (ranks 1–3) at the Sprint 8 close; `0219` still waits on `0385`'s step 5 (next nightly
+> backup marker, ~02:30Z 2026-10-17), then the close-time V8/V9.
+
 > 📌 *2026-10-16 sync (`32dd5cf`) — this box's outside alarms are now **watched**, by email only.* From `0219`'s worklog
 > (owner ran the box commands; `fkit-lead` read Better Stack read-only; relayed — **not re-verified by me**):
 > - **Alarms in place:** the daily heartbeat `profile-daily-checks` (fed by `profile-checks.sh`) and two uptime monitors,
@@ -651,3 +657,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/tester-roles-live]] — task `0430`, profile deploy of migration `008` and the first tester-role run
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the backup dry-run green on the 11-table schema
 - [[tasks/name-change-review-walkthrough]] — task `0350`, the operator walk-through command in the profile image
+- [[decisions/sprint-9]] — `0385`, `0219`, `0213` at ranks 1–3 since the 2026-10-16 Sprint 8 close

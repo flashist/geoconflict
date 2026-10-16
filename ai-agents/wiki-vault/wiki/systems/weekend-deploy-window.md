@@ -5,6 +5,19 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — THE WEEKEND SLOT WAS NOT USED: both deploys went out MID-WEEK, Fri
+> 2026-10-16**, by owner ruling *"Now, I'll run them"* (to finish Sprint 8). Tags checked by me; box results from owner-run
+> batches in the worklogs, **not re-verified by me**:
+> - **Profile `0.0.164-profile.2`** (~12:10–12:15Z, tag on `84d322e`) — `0384`'s digest lock; deploy backup + smoke OK;
+>   Postgres recreated once on the locked image, data intact ([[tasks/profile-postgres-digest-lock]]). The locked image
+>   survived the deploy's own prune (`0385` step 6). `0385` waits only on the next nightly backup marker.
+> - **Game prod `0.0.165`** (~12:17Z, tag on `3c00dcf`, image `20261016-151715`) — carries `0426`'s news (now dated a day
+>   late → `0470`), `0451`'s events, `0454`'s fix; its root step installed `0449`'s SSH alerts and `0452`'s password-off on
+>   game prod ([[tasks/ssh-security-alerts]], [[tasks/ssh-password-login-off]]); `GAME HOST SETUP OK`, no exit 3.
+> - **Open after the deploys:** `0385` step 5, `0452` V5 + Q3, `0449` digest 2 and windows, `0469` live news look, `0461`
+>   (wrong-code check), `0455` (funnel, after several days). Sprint 8 closed the same day ([[decisions/sprint-8]]).
+> - The "Saturday 2026-10-17" plans in the notes below are history.
+>
 > 📌 **2026-10-16 sync, second run (`5a12b73`) — the Saturday 2026-10-17 game prod deploy now also carries the news
 > catch-up.** `0426`'s two news entries are committed (`8c448a9`), no release tag contains them yet; owner ruling: the
 > weekend game prod deploy (2026-10-17/18) is the **final Sprint 8 deploy**. The live look in Yandex (Russian) is `0469`
@@ -994,3 +1007,5 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/name-change-review-walkthrough]] — task `0350`, shipped early in the 2026-10-15 profile deploy
 - [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`: the 2026-10-15 dev deploy check and failed-deploy test
 - [[tasks/news-catch-up-2026-10-17]] — task `0426`: the news entries that ride the 2026-10-17 game prod deploy (committed `8c448a9`)
+- [[tasks/private-lobby-funnel-events]] — task `0451`: its events shipped in the 2026-10-16 game prod deploy (`0.0.165`)
+- [[tasks/private-lobby-wrong-code-not-found]] — task `0454`: its fix shipped in the 2026-10-16 game prod deploy (`0.0.165`)

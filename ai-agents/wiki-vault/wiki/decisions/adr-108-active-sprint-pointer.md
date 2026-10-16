@@ -3,6 +3,11 @@
 **Date**: 2026-08-24 *(updates: 2026-09-07, 2026-09-08)*
 **Status**: superseded in part by **fkit ADR-047** (upstream; owner-accepted as the superseding ADR 2026-09-24) — **the 2026-09-08 amendment still stands**. *(Was: accepted — re-confirmed in practice 2026-09-07, still unshipped upstream; scope widened by an in-place amendment 2026-09-08. The earlier wording below is kept in full.)*
 
+> 📌 **2026-10-16, later — status note (synced from `29811f0`, `plan-index.md`).** Sprint 8 was closed by
+> `/fkit-sprint-done` *(agent-closed — not owner-verified)*; its board is now **`ai-agents/sprints/done/plan-sprint-8.md`**.
+> **Sprint 9 is the one sprint `🔄 In progress`** (started 2026-10-16, owner ruling *"Start it now (Recommended)"*). The
+> note directly below is history. The source ADR did not change in this window.
+>
 > 📌 **2026-10-16 — status note (synced from `5a12b73`, `plan-index.md`).** Sprint 8 is the one sprint
 > `🔄 In progress` (started 2026-10-12, owner ruling). A **Sprint 9** board was created 2026-10-16 and is **not
 > started** (`🔲 Backlog`) — it holds one verify task, `0469`. The "No sprint is `🔄 In progress` now" line in the
@@ -173,7 +178,7 @@ The pointer is a **dotfile** so the existing `*.md` candidate scan never sees it
 - [[decisions/sprint-4]] — the board that was silently skipped in the reproduced failure
 - [[decisions/sprint-5]] — ~~pre-scoped open plan, part of the condition that triggers it~~ was a pre-scoped open plan (part of the condition that triggered it); started and ✅ closed 2026-09-26 (agent-closed — not owner-verified), board now in `sprints/done/`
 - [[decisions/sprint-6]] — the plan `select-active` wrongly returned
-- [[decisions/sprint-9]] — a board created not started (2026-10-16) while Sprint 8 is in progress — two open plans, one active
+- [[decisions/sprint-9]] — created not started (2026-10-16) while Sprint 8 was in progress; started the same day after Sprint 8 closed — the active sprint
 - [[decisions/adr-numbering-two-series]] — the ADR number bands
 
 Evaluation source: `ai-agents/knowledge-base/reports/2026-08-24-eval-active-sprint-pointer.md`.

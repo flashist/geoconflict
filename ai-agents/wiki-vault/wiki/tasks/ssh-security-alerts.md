@@ -46,6 +46,16 @@
 > **not yet recorded complete**. **Left:** game prod deploy (weekend slot, with `0452`), digest 2 of 2 (2026-10-17
 > 08:10 UTC), the window checks. See [[decisions/sprint-8]].
 
+> 🚀 *2026-10-16 sync, third run (`29811f0`), from `0449`'s worklog (owner-run, relayed — **not re-verified by me**):*
+> **SSH alerts are live on game prod — all four boxes now.** Game prod `0.0.165` deployed mid-week 2026-10-16 ~12:17Z
+> (owner ruling *"Now, I'll run them"*): `agent v1 installed and (re)started`, `GAME HOST SETUP OK`. Step 4 on game prod:
+> test event delivered (HTTP 202) and the 🧪 message arrived, service `active`, logrotate accepted via the real config
+> (same nuance as the other boxes), `flock` present, 0 overlapping ticks. Step 5: a `🔑 SSH login · game-prod` alert for
+> the test login (root, by key, source masked) arrived within the minute. ⇒ **Steps 4–5 pass on all four boxes.**
+> ⏳ **Left:** digest 2 of 2 (2026-10-17 08:10 UTC — the first with game prod reporting); 24 h with no per-guess messages,
+> counted from this deploy (to ~12:17Z 2026-10-17); the per-box report-window check. `0449` is now
+> [[decisions/sprint-9]] rank 5 (moved at the Sprint 8 close).
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily
@@ -158,3 +168,4 @@ deploy"*, clarified *"After swap; skip also fails (Recommended)"*** — overridi
 - [[tasks/ssh-password-login-off]] — task `0442`: adds sshd hardening to `setup-game-host.sh`; root step runs on every key deploy
 - [[tasks/fail2ban-recheck-after-password-off]] — task `0462`; `0449`'s fail2ban test reset game dev's counters
 - [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`; one of `0449`'s dev deploys carried `0447` uncounted
+- [[decisions/sprint-9]] — verify `0449` at rank 5 since the 2026-10-16 Sprint 8 close

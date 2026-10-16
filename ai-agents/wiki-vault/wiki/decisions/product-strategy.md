@@ -12,6 +12,13 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 🆕 **2026-10-16, later — `plan-index.md` (synced from `29811f0`): SPRINT 8 CLOSED; SPRINT 9 IS THE ACTIVE SPRINT.**
+> Sprint 8's row reads `✅ Done 2026-10-16` (closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner
+> rulings *"Move all + close Sprint 8 (Recommended)"*, *"At the top (Recommended)"*) and links to `done/plan-sprint-8.md`.
+> Sprint 9 reads `🔄 In progress — started 2026-10-16` (*"Start it now (Recommended)"*), **still no name, goal or scope**,
+> 9 rows. In the priority table, tasks 8a and 10–15 (all via discussion brief `0343`) now point to Sprint 9. The note
+> directly below is history (true for part of 2026-10-16). See [[decisions/sprint-8]] and [[decisions/sprint-9]].
+>
 > 🆕 **2026-10-16 — `plan-index.md` (synced from `5a12b73`): A SPRINT 9 BOARD EXISTS, NOT STARTED; Sprint 8 is the
 > only sprint in progress.** New row: Sprint 9 — no theme name, `🔲 Backlog — created 2026-10-16, not started`, no goal
 > or scope (the owner's to plan later). Created on the owner's free-text ruling *"Create Sprint 9 board and move the
@@ -117,8 +124,8 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 ## Related
 
 - [[decisions/sprint-7]] — created 2026-09-27, listed in `plan-index.md`; **active since 2026-09-29**; no theme or goal yet
-- [[decisions/sprint-8]] — *Paid Citizenship Perks and More Content*, created 2026-09-29, ~~not started~~ in progress since 2026-10-12, no goal
-- [[decisions/sprint-9]] — created 2026-10-16, not started, no name or goal; holds `0469`
+- [[decisions/sprint-8]] — *Paid Citizenship Perks and More Content*, created 2026-09-29, ~~not started~~ ~~in progress since 2026-10-12~~ ✅ closed 2026-10-16 (agent-closed — not owner-verified), no goal
+- [[decisions/sprint-9]] — created 2026-10-16, ~~not started~~ **active since 2026-10-16**, no name or goal; 9 rows
 
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding

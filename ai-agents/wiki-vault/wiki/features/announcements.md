@@ -3,6 +3,10 @@
 **Status**: active
 **Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/0126-global-announcements/brief.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`): the 2026-10-17-dated entries are LIVE** in game prod `0.0.165` (2026-10-16 ~12:17Z, mid-week), checked by
+> me with `git tag --contains`. They show **17 Oct** although live since 16 Oct — date fix `0470` (keep the ids, change
+> only `date`). Live look in Yandex: `0469`, still open. See [[tasks/news-catch-up-2026-10-17]].
+
 > 🆕 **2026-10-16 sync — first news entries since 2026-06-06 committed, NOT deployed** (task `0426`,
 > [[tasks/news-catch-up-2026-10-17]]): `2026-10-17-citizenship` (tag `new`) and `2026-10-17-game-update` (tag `update`)
 > prepended to `resources/announcements.json` in `8c448a9`; no release tag contains it at this sync. They ship with the

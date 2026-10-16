@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 23 (ADR-035 append rank; on merit last on the board, which is where it sits) / task `0426`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — LIVE in game prod `0.0.165`, deployed MID-WEEK 2026-10-16 ~12:17Z, a day early** (owner ruling *"Now,
+> I'll run them"*). `git tag --contains 8c448a9` → `0.0.165` (and `0.0.164-profile.2`), checked by me. The "NOT
+> deployed" and "Saturday 2026-10-17" lines below are history. ⚠️ **So both entries show 17 Oct on news live since
+> 16 Oct** → fix task **`0470`** ([[decisions/sprint-9]], rank 9): change only the two `date` fields to `2026-10-16`,
+> **keep the ids** (owner ruling *"Keep the ids (Recommended)"* — new ids would re-light the unread dot for everyone);
+> no hurry, next game deploy. ⚠️ The live look in Yandex (Russian), **`0469`**, is **still open** (now Sprint 9 rank 6).
+
 > ✅ Done (agent-closed — not owner-verified), closed **2026-10-16** by a spawned `fkit-producer` via `/fkit-task-done`,
 > at the end of a `fkit-sprint-ship-loop` run restarted by the owner for `0426` only (relayed by `fkit-lead`; ⛔ not
 > producer precedent).

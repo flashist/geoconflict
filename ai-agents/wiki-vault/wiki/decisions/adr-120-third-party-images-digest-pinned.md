@@ -3,6 +3,11 @@
 **Date**: 2026-10-04
 **Status**: proposed
 
+> 📌 **2026-10-16 sync, third run (`29811f0`):** §1 (profile Postgres digest-pinned, `0384`) is **deployed** — profile `0.0.164-profile.2`, 2026-10-16;
+> the running container names the locked reference (`0385` step 1, owner-run, not re-verified by me); `0385` waits only on
+> the next nightly backup marker. See [[tasks/profile-postgres-digest-lock]]. The ADR's status is still `proposed` — the
+> source ADR did not change in this window.
+
 > Source: `ai-agents/knowledge-base/decisions/adr-120-third-party-images-digest-pinned-postgres-upgrades-deliberate-backup-first.md`
 >
 > ⚠️ **PROPOSED — NOT ACCEPTED. Read this before citing it.** The **decision itself is owner-ruled** (2026-10-04, live

@@ -1,7 +1,33 @@
 # Sprint 9 *(no theme name yet)*
 
 **Date**: 2026-10-16
-**Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔲 Backlog — 2026-10-16`** — created, NOT started)*
+**Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-16`** — started by owner ruling *"Start it now (Recommended)"*; was ~~`🔲 Backlog — 2026-10-16` — created, NOT started~~)*
+
+> 🆕 **2026-10-16 (latest, `29811f0`) — SPRINT 9 STARTED; 9 rows — 6 `🔲 Backlog` · 3 `🔄 In progress`; 9 OPEN**
+> (counted by me by each row's leading status glyph; was 1 / 1). Owner rulings given live 2026-10-16 in a Claude Code
+> session, relayed to spawned `fkit-producer`s (⛔ not producer precedent). **Now the only sprint in progress** —
+> [[decisions/sprint-8]] closed the same day.
+>
+> | Rank | Task | Status | From | Vault |
+> |---|---|---|---|---|
+> | 1 | `0385` verify `0384` on the profile box | 🔲 Backlog — steps 1, 2, 3, 6 pass; only step 5 (next nightly backup marker, ~02:30Z 2026-10-17) left | Sprint 8 close | [[tasks/profile-postgres-digest-lock]] |
+> | 2 | `0219` P4 operability on the profile box | 🔄 In progress — waits on `0385`, then the close-time V8/V9 | Sprint 8 close | [[systems/player-profile-store]] |
+> | 3 | `0213` profile clean-slate rebuild epic | 🔲 Backlog | Sprint 8 close | [[systems/player-profile-store]] |
+> | 4 | `0452` verify `0442` (password login off) | 🔄 In progress — game prod V2–V4 pass; V5 and the Q3 switch removal left | Sprint 8 close | [[tasks/ssh-password-login-off]] |
+> | 5 | `0449` verify `0443` (SSH alerts) | 🔄 In progress — steps 4–5 pass on all four boxes; digest 2 of 2 and two windows left | Sprint 8 close | [[tasks/ssh-security-alerts]] |
+> | 6 | `0469` verify `0426` live (news in Yandex, Russian) | 🔲 Backlog (was rank 1) | Backlog board | [[tasks/news-catch-up-2026-10-17]] |
+> | 7 | `0343` discussion: parked paid-citizenship features | 🔲 Backlog (appended at 2, owner-confirmed *"Keep slot 2"*) | Sprint 8 | — |
+> | 8 | `0455` private-lobby funnel in GameAnalytics | 🔲 Backlog (appended at 3, owner-confirmed *"Keep slot 3"*); needs several days of data after `0451`'s deploy | Sprint 8 | [[tasks/private-lobby-funnel-events]] |
+> | 9 | `0470` fix the two newest news dates 17 Oct → 16 Oct | 🔲 Backlog (new; owner-confirmed *"Keep slot 9"*) | new | [[tasks/news-catch-up-2026-10-17]] |
+>
+> - **`0470`** (new open brief — summary only, no task page): the 2026-10-16 mid-week deploy put the news live a day
+>   early, so both entries show 17 Oct. Change only the two `date` fields to `2026-10-16`; **keep the ids** — owner
+>   ruling *"Keep the ids (Recommended)"* (renaming them would make the news show as unread again to everyone who opened
+>   it). Owner: *"no need to be hurry with it"*; ships with the next game deploy.
+> - ⚠️ Ranks 6–8 were renumbered (1→6, 2→7, 3→8) by the owner-ruled *"At the top"* order — recorded on the board as a
+>   placement, not a merit change.
+> - ⚠️ **Still no theme name, no goal, no scope** — the owner's to set. The *Context* / *Decision* sections below
+>   describe the board as created (1 row, not started) and are history.
 
 > Source: `ai-agents/sprints/plan-sprint-9.md` (and its row in `ai-agents/sprints/plan-index.md`).
 
@@ -37,4 +63,9 @@ text, verbatim: ***"Create Sprint 9 board and move the task there"*** (relayed b
 - [[tasks/news-catch-up-2026-10-17]] — task `0426`, the build `0469` verifies
 - [[decisions/product-strategy]] — `plan-index.md`, which lists this board
 - [[decisions/adr-108-active-sprint-pointer]] — the active-sprint rule; this board is not active
-- [[systems/weekend-deploy-window]] — the 2026-10-17 game prod deploy `0469` checks
+- [[systems/weekend-deploy-window]] — the game prod deploy `0469` checks (went out mid-week, 2026-10-16, `0.0.165`)
+- [[tasks/profile-postgres-digest-lock]] — task `0384`, verified by `0385` (rank 1)
+- [[systems/player-profile-store]] — `0219` (2) and epic `0213` (3)
+- [[tasks/ssh-password-login-off]] — task `0442`, verified by `0452` (4)
+- [[tasks/ssh-security-alerts]] — task `0443`, verified by `0449` (5)
+- [[tasks/private-lobby-funnel-events]] — task `0451`, whose funnel `0455` (8) builds

@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 45 (ADR-035 append rank; on merit directly above `0426`) / task `0451`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED:** `daa1bcc` is in game prod **`0.0.165`** (2026-10-16 ~12:17Z, mid-week), checked by me with
+> `git tag --contains`; the client events ship with the game image. The "NOT deployed" line below is history.
+> **Not checked:** that any `PrivateLobby:*` event has arrived in GameAnalytics — that is `0455`, now
+> [[decisions/sprint-9]] rank 8, which needs several full days of data first (owner ruling).
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-14. Code committed in `daa1bcc` (2026-10-14);
 > `git tag --contains` → **none** ⇒ **committed, NOT deployed** — no `PrivateLobby:*` event has reached GameAnalytics.
 > The funnel itself is built in GameAnalytics, and the events confirmed arriving, by task **`0455`** (Sprint 8, rank
@@ -78,3 +83,5 @@ which maps fixed buckets to enum keys in `flashistConstants.analyticEvents` — 
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`, which budgeted these events against the 500-per-user limit
 - [[decisions/sprint-8]] — the board (rank 45; `0455` at rank 49)
 - [[decisions/sprint-backlog]] — `0457` (copy button copies the previous lobby's code)
+- [[decisions/sprint-9]] — where the GameAnalytics funnel task `0455` moved (rank 8)
+- [[systems/weekend-deploy-window]] — the 2026-10-16 mid-week deploy that shipped it

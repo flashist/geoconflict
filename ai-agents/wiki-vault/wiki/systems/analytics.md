@@ -3,6 +3,10 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`): `0451`'s 16 `PrivateLobby:*` events are DEPLOYED** — `daa1bcc` is in game
+> prod `0.0.165` (2026-10-16 ~12:17Z), checked by me with `git tag --contains`. Arrival in GameAnalytics **not checked** —
+> that is `0455` (Sprint 9), after several full days of data. See [[tasks/private-lobby-funnel-events]].
+>
 > 📌 **2026-10-16 sync — `Citizenship:Status:*` re-read (`0418`, [[tasks/citizenship-status-events-recheck]]):** over
 > 2026-10-08..15 (8 full days, *"Demo mode"* banner shown) `Unverified` **57**, `Restart` **1** (08 Oct only),
 > `ReadFailed` **1,716** — all three now seen; `0400`'s check-8 gap closed by owner ruling *"Accept and close"*.

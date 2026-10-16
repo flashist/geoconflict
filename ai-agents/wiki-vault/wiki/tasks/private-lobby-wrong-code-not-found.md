@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 48 (ADR-035 append rank; on merit directly below `0451`) / task `0454`
 
+> 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED:** `2d2ab4a` (client, `JoinPrivateLobbyModal.ts`) is in game prod **`0.0.165`** (2026-10-16
+> ~12:17Z, mid-week), checked by me with `git tag --contains`. The "NOT deployed / production still shows the generic
+> error" line below is history as of that deploy. ⚠️ **Not checked live** — live check `0461` is still `🔲 Backlog` on the
+> Backlog board ([[decisions/sprint-backlog]]).
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-14. Code committed in `2d2ab4a` (2026-10-14);
 > `git tag --contains` → **none** ⇒ **committed, NOT deployed** — production still shows the generic error for a wrong
 > code. Live check: **`0461`** (Backlog board; goes to the top of Sprint 9 under the standing build/verify-split rule).
@@ -65,3 +70,4 @@ not-found"* ([[tasks/archive-endpoint-failures]], [[decisions/adr-104-archiving-
 - [[decisions/cancelled-tasks]] — `0292`, absorbed by this task
 - [[decisions/sprint-8]] — the board (rank 48)
 - [[decisions/sprint-backlog]] — verify task `0461`; `0030` (archiving, postponed)
+- [[systems/weekend-deploy-window]] — the 2026-10-16 mid-week deploy that shipped it

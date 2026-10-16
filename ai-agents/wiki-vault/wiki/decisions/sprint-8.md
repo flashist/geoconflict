@@ -1,9 +1,28 @@
 # Sprint 8 — Paid Citizenship Perks and More Content
 
 **Date**: 2026-09-29
-**Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-12`** — started by owner ruling *"Mark it started (Recommended)"*; was ~~`🔲 Backlog — 2026-09-29` — created, NOT started~~)*
+**Status**: accepted *(✅ **closed 2026-10-16** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-10-12~~ (started by owner ruling *"Mark it started (Recommended)"*); ~~`🔲 Backlog — 2026-09-29` — created, NOT started~~; was `proposed` while open)*
 
-> Source: `ai-agents/sprints/plan-sprint-8.md`.
+> Source: `ai-agents/sprints/done/plan-sprint-8.md` *(moved there at the close, 2026-10-16; was ~~`ai-agents/sprints/plan-sprint-8.md`~~ — that path no longer exists)*.
+>
+> # 🆕 2026-10-16 (latest, `29811f0`) — ✅ SPRINT 8 CLOSED 2026-10-16: 55 ROWS, 39 DONE, 15 MOVED, 1 CANCELLED, 0 OPEN
+>
+> **Re-counted by me at `29811f0`, by each row's leading status glyph** (was 55 / 7 open). Line-3 banner: `✅ Done —
+> 2026-10-16. Closed by /fkit-sprint-done (agent-closed — not owner-verified). Superseded by Sprint 9 — its five open rows
+> moved there.` Closed by a spawned `fkit-producer` on OWNER RULINGS given 2026-10-16 in a Claude Code session, relayed by
+> it (⛔ not producer precedent): typed *"Can we move all the tasks tha require wait for certain time to Sprint 9?"*; then
+> live `AskUserQuestion` — **"Move all + close Sprint 8 (Recommended)"** and **"At the top (Recommended)"**.
+> - **Moved to [[decisions/sprint-9]] before the close** (owner rulings, typed): `0343` (*"Move the task 0343 to the next
+>   sprint"*) and `0455` (*"… it requires few days of analytics after deploy."*).
+> - **Moved at the close, to the top of Sprint 9 in the owner's order:** `0385` 1 → `0219` 2 → `0213` 3 → `0452` 4 →
+>   `0449` 5 (then `0469` 6, `0343` 7, `0455` 8). Each Sprint 8 row stays as a `➡️ Moved` pointer at its old rank.
+> - 🚀 **Final deploys were MID-WEEK, Fri 2026-10-16, not the weekend slot** — owner ruling *"Now, I'll run them"*:
+>   profile **`0.0.164-profile.2`** (~12:10–12:15Z, carries `0384`'s digest lock) and game prod **`0.0.165`** (~12:17Z,
+>   carries `0426`'s news, `0451`'s events, `0454`'s fix, and the root step that installs `0449`'s alerts and `0452`'s
+>   password-off on game prod). Tag contents checked by me with `git tag --contains`; box results come from the owner-run
+>   batches in `0385`/`0449`/`0452`'s worklogs — **not re-verified by me**. See [[systems/weekend-deploy-window]].
+> - ⚠️ Sprint 8 **never had a goal** (owner's call); the name (ruling D) is not a goal.
+> - Every note below is history, true when written.
 >
 > 🆕 **2026-10-16 sync, second run (`5a12b73`): 55 rows — 39 `✅ Done` · 4 `🔲 Backlog` · 3 `🔄 In progress` ·
 > 8 `➡️ Moved` · 1 `⛔ Cancelled`; 7 OPEN** (was 55 / 9), counted by me by each row's leading status glyph. Banner
