@@ -29,6 +29,13 @@ Features are **excluded** from experiments if:
 
 ## Sprint Files
 
+> 📌 **2026-10-16 — SPRINT 9 BOARD CREATED, NOT STARTED.** [Sprint 9](plan-sprint-9.md)'s line-3 banner reads
+> `🔲 Backlog — 2026-10-16`. **OWNER RULING given in the `fkit lead` session on 2026-10-16** (free text in reply to an
+> `AskUserQuestion`), relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent —
+> *"Create Sprint 9 board and move the task there"*. It holds one row, verify task `0469` (for `0426`), at rank 1. No
+> name, goal or scope yet — the owner will plan them later. [Sprint 8](plan-sprint-8.md) is still the only
+> `🔄 In progress` sprint; its banner was not touched.
+>
 > ▶️ **2026-10-12 — SPRINT 8 STARTED.** [Sprint 8](plan-sprint-8.md)'s line-3 banner now reads `🔄 In progress — 2026-10-12`.
 > **OWNER RULING given live via `AskUserQuestion` in the `fkit lead` session on 2026-10-12**, relayed by `fkit-lead` to a
 > spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent — *"Mark it started (Recommended)"*. The ⚠️ *"No sprint is
@@ -100,6 +107,7 @@ Features are **excluded** from experiments if:
 | [plan-sprint-6.md](done/plan-sprint-6.md) | Sprint 6 — Full F2P Loop & Social Features ~~More Content~~ *(renamed 2026-09-26, owner ruling — takes Sprint 5's former title)* ~~*(pre-scoped, not in work)*~~ ~~🔄 **In progress since 2026-09-26**~~ ✅ **Done 2026-09-29** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner ruling R1; in `done/`)* *(owner ruling; see the 🔄 note above)* | Additional content; ~~**the board the tooling wrongly reports as active — see the note above**~~ *(superseded; see the 📌 note above)*; since 2026-09-26 also the 16 rows moved out of Sprint 5 (owner ruling) |
 | [plan-sprint-7.md](done/plan-sprint-7.md) | Sprint 7 *(no theme name yet — the owner has not named it)* ~~🔲 **Backlog — created 2026-09-27, not started**~~ ~~🔄 **In progress since 2026-09-29**~~ *(owner ruling R2)* ✅ **Done 2026-10-09** *(closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner ruling 2026-10-09; in `done/`)* *(owner ruling, verbatim: *"Move the tasks 0027, 0030, 0032, 0219, 0221 to the Sprint 7"*)* | ⚠️ No goal set yet (owner's call). Holds the five rows moved out of Sprint 6 on 2026-09-27: `0027`, `0030`, `0032`, `0219`, `0221` |
 | [plan-sprint-8.md](plan-sprint-8.md) | **Sprint 8 — Paid Citizenship Perks and More Content** *(named 2026-09-29, owner ruling D)* ~~*(no theme name yet)*~~ 🔄 **In progress — started 2026-10-12** *(OWNER RULING, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: "Mark it started (Recommended)")* ~~🔲 Backlog — created 2026-09-29, not started~~ *(owner ruling, relayed by `fkit-lead`: split Sprint 6's 11 brief-less rows into two discussion briefs — paid-citizenship items to Sprint 8, the rest to the Backlog board; then ruling C moved leaderboard rewards, coin economy and clans to Sprint 8 too)* | ⚠️ No goal set yet (owner's call). Holds one discussion brief, [`0343`](../tasks/backlog/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md): paid map packs, nickname styling, map voting, premium replays, custom uploaded flags, leaderboard rewards, coin economy, clans. Its twin [`0342`](../tasks/backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (restart UX, mobile warning, free historical maps) is on the [Backlog board](backlog.md) |
+| [plan-sprint-9.md](plan-sprint-9.md) | Sprint 9 *(no theme name yet — the owner has not named it)* 🔲 **Backlog — created 2026-10-16, not started** *(OWNER RULING 2026-10-16, free text in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not producer precedent: "Create Sprint 9 board and move the task there")* | ⚠️ No goal or scope set yet (owner's call — to be planned later). Holds one row: verify task [`0469`](../tasks/backlog/0469-verify-0426-live-the-2026-10-17-news-entries-show-in-yandex-russian-after-the-weekend-deploy/brief.md) (the 2026-10-17 news entries show in Yandex), rank 1, on the build/verify-split rule |
 
 ---
 
