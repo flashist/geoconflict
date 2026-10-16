@@ -361,3 +361,71 @@ fkit-lead a screenshot of their inbox: three email threads from Better Stack, ea
 So for (a) and (c) the alert was **seen arriving in the owner's email inbox**. This is owner-confirmed,
 not just Better Stack's "Sent an email" record. Owner's words: "I got multiple emails from it". (b)
 is still owner-skipped, not passed.
+
+**2026-10-15, later — OWNER RULING (free text in chat, relayed by fkit-lead; not producer precedent):** email-only Better Stack alerts accepted — *"we're ok abou the current email-only alerts. We can brief a task to the backlog to think about upgrading it in the future, but now."* (read as "but not now") ⇒ B2's Telegram part (§1, §5) is waived and B2 is met by email; the Telegram upgrade is carried by task **0466** (Backlog board); dated note under the brief's `## Status`; status token unchanged.
+
+## 2026-10-16 (morning) — B9 drills and B10
+
+**Provenance:** the owner ran every box command and made every Better Stack change, and pasted the
+outputs and screenshots to fkit-lead; fkit-lead verified Better Stack read-only in the owner's
+Chrome; recorded here by a spawned fkit-producer (no owner channel). This is relayed evidence, not
+producer precedent. Times are UTC unless marked MSK (UTC+3). No emails, hosts, URLs, ping URLs,
+tokens or bucket names are written here.
+
+### 1. B9 — V5: stale-backup alerts and the dead-man (missing ping) alert
+
+- **(a) stale weekly copy — alert path proven.** `PROFILE_CHECKS_MAX_WEEKLY_AGE_DAYS=0
+  /opt/profile/checks.sh` 06:45:23 → `FAIL weekly-backup-object: newest weekly copy is 5d old (> 0d;
+  5 object(s))`, `/fail delivered`. Normal run 06:45:34 → 13 ok, success. (Not a Sunday, so the
+  Part B `0`-vs-`-1` caveat did not apply.)
+- **(b) stale daily marker — alert path proven.** `PROFILE_CHECKS_MAX_BACKUP_AGE_HOURS=0
+  /opt/profile/checks.sh` 06:45:43 → `FAIL daily-backup-marker: daily marker age 4h > 0h — the
+  nightly run was missed`, `/fail delivered`. Normal run 06:45:57 → 13 ok, success (and again
+  06:46:06). (Part B suggested `=1`; `=0` was used — the marker was 4 h old, so either fails.)
+- **(a) and (b) seen arriving — OWNER-CONFIRMED** by inbox screenshot: one Better Stack thread
+  "profile-daily-checks - Oct 16, 2026 at 9:45am MSK" with 4 messages (2 started + 2 resolved).
+- **(c) dead-man property — alert path proven.** The owner changed the `profile-daily-checks`
+  heartbeat in Better Stack to period 10 minutes, grace 1 minute. (fkit-lead's own attempt to make
+  this edit was blocked by the permission classifier; fkit-lead discarded its unsaved edit, verified
+  nothing had changed, and from then on only opened the page for the owner.) No ping was sent after
+  06:46:07. The owner received "profile-daily-checks - Oct 16, 2026 at 9:57am MSK" (06:57 UTC) —
+  the missing-heartbeat alert **seen arriving, owner-confirmed**.
+- **Restore.** The owner set the heartbeat back to period 1 day / grace 3 hours, then ran
+  `checks.sh` → success. fkit-lead verified read-only: heartbeat "Up · Expected every 1 day"; last
+  heartbeat recorded after the owner's run; incident closed; today's downtime 3 minutes (the three
+  drills). ⚠️ **Honest limit:** the **period** (1 day) was re-read by fkit-lead; the **grace (3
+  hours) was set by the owner but NOT re-read by fkit-lead** — the edit page timed out. Grace = 3 h
+  rests on the owner's word only.
+- **Side note:** the 2026-10-16 02:30 UTC nightly backup's off-box object matched its marker
+  (2901572 bytes) — no `daily-backup-object` false alarm after a normal night (cf. task 0465).
+- ⇒ **B9 met.** All three alert paths (weekly copy stale, daily marker stale, missing ping) fired
+  on purpose and were seen arriving in the owner's inbox; each cleared on a normal run.
+
+### 2. B10 — V6–V9: alert destinations
+
+**OWNER CONFIRMATION 2026-10-16**, live `AskUserQuestion` in the fkit lead session, relayed by
+fkit-lead (not producer precedent). Asked: *"B10: is this the full and correct picture of where the
+profile box's alerts go? Every Better Stack alert (the daily heartbeat and both uptime monitors)
+goes to your email only. No SMS, calls, phone pushes or Telegram."* Selected, verbatim: **"Yes,
+that's right (Recommended)"**.
+
+- **V6 — alert destination:** the owner's email, via Better Stack — heartbeat
+  `profile-daily-checks`, monitors "Profile API health" and "Profile API ready". No SMS, calls,
+  phone pushes or Telegram.
+- **Telegram:** none — waived 2026-10-15 (owner ruling; see the 2026-10-15 addendum above and the
+  brief's `## Status` note). Upgrade carried by task **0466** (Backlog board).
+- **V7:** doc done earlier (A6).
+- **V8:** cross-refs (`0034` item 5, `0182` limitation bullets) are the producer's at close — not
+  done yet.
+- **V9:** secret grep at close — not done yet. This entry was written to that standard.
+- ⇒ **B10 met** for its destination part; V8 and V9 are close-time steps.
+
+### 3. Still open for 0219 after this morning
+
+- **B8 — V4:** `systemctl stop profile` → both monitors alert → start → "up" notices. ~10 min
+  downtime; the owner picks a quiet hour.
+- **B6/V2** — via `0385`, after the `0384` profile deploy.
+- **B7(b)** — owner-skipped, not passed (2026-10-15).
+- At close: V8 cross-refs and V9 secret grep (producer).
+- Hold-open ruling unchanged (no close until the alerts have been watched arriving — B8's monitor
+  alerts are still unwatched). Status token unchanged; no board touched by this entry.
