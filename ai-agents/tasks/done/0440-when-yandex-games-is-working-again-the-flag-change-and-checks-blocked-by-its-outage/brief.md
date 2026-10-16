@@ -113,7 +113,7 @@ item 1 is a convenient way to confirm the reload picked up the flag before check
 
 ### 3. `0426` — the news window's flag gate (owner, at `0426`'s approval gate)
 
-[`0426`](../../backlog/0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md): its approval gate
+[`0426`](../0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md): its approval gate
 needs the **real** flag values at deploy time — `citizenship_ui` and `private_lobbies_all` — not the 2026-10-10
 screenshot. Its `draft.md` has two conditional lines: the **Private tab** line (kept only if `0428` has turned the flag
 on before the deploy) and the **exit-confirm** line (kept only if `0437` ships in the same deploy). Give `0426` the

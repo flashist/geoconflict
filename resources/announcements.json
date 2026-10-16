@@ -1,5 +1,31 @@
 [
   {
+    "id": "2026-10-17-citizenship",
+    "date": "2026-10-17",
+    "title": {
+      "en": "Citizenship is here",
+      "ru": "Гражданство уже в игре"
+    },
+    "body": {
+      "en": "- A Citizenship card is now on the start screen. Log in with Yandex to earn XP: 1 XP for every multiplayer match, and at 100 XP you become a citizen for free.\n- You can also buy citizenship — from the card or from the \"What is citizenship?\" window.\n- Citizens get a ★ badge next to their name in matches and can change their name. A moderator reviews the new name, and the answer arrives in the Personal tab of this window.\n- Paid citizenship also removes the ads between levels.\n- Players who have been with us for a while get a one-time gift of up to 50 XP after logging in.\n- A new Private tab: citizens can create private lobbies and invite friends with a code or an invite link, and any player can join.",
+      "ru": "- На стартовом экране появилась карточка «Гражданство». Войдите в Яндекс и копите XP: 1 XP за каждый матч в мультиплеере, а на 100 XP гражданство выдаётся бесплатно.\n- Гражданство можно и купить — в карточке или в окне «Что такое гражданство?».\n- Граждане получают значок ★ рядом с именем в матчах и могут сменить имя. Новое имя проверяет модератор, ответ приходит во вкладку «Личные» этого окна.\n- Платное гражданство вдобавок убирает рекламу между уровнями.\n- Тем, кто играет с нами давно, после входа дарится разовый бонус — до 50 XP.\n- Новая вкладка «Приватная»: граждане создают приватные лобби и зовут друзей по коду или ссылке-приглашению, а присоединиться может любой игрок."
+    },
+    "tag": "new"
+  },
+  {
+    "id": "2026-10-17-game-update",
+    "date": "2026-10-17",
+    "title": {
+      "en": "Game update",
+      "ru": "Обновление игры"
+    },
+    "body": {
+      "en": "- The start screen is redesigned: modes are split into Multiplayer and Singleplayer tabs, and \"Single Player\" is now called \"Custom Game\".\n- Country labels on the map now show troops as \"current / max\", with attacking troops on a separate red line.\n- Public matches have a new random modifier — 5 million starting gold.\n- The public lobby wait is now 1 minute instead of 2.\n- If the game has been open for about a day, the start screen asks you to refresh the page — your progress is kept.\n- Game windows now have a thin dark scrollbar, and stray browser tooltips are gone.\n- The game now asks for confirmation before you leave a match with the exit button.\n- Bugfixes and stability improvements: the game loads and joins matches more reliably, including when Yandex services are slow.",
+      "ru": "- Стартовый экран обновлён: режимы разложены по вкладкам «Мультиплеер» и «Одиночная», а «Одиночная игра» теперь называется «Своя Игра».\n- На карте у страны теперь видно войска в виде «сейчас / максимум», а войска в атаке — отдельной красной строкой.\n- В публичных матчах появился новый случайный модификатор — 5 миллионов золота на старте.\n- Ожидание в публичном лобби сократилось с 2 минут до 1 минуты.\n- Если игра открыта около суток, на стартовом экране появится просьба обновить страницу — прогресс при этом сохраняется.\n- Окна игры получили тёмную тонкую полосу прокрутки, а лишние всплывающие подсказки браузера убраны.\n- Перед выходом из матча кнопкой выхода игра теперь спрашивает подтверждение.\n- Багфиксы и улучшения стабильности: игра надёжнее загружается и подключается к матчам, в том числе когда сервисы Яндекса отвечают медленно."
+    },
+    "tag": "update"
+  },
+  {
     "id": "2026-06-06-game-update",
     "date": "2026-06-06",
     "title": {

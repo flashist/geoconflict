@@ -26,7 +26,7 @@ other Sprint 8 build task (see *Timing*). 23 already sits there. **Rank barely m
 governs when this task starts, not its number.**
 
 ## Status
-🔄 In progress — 2026-10-15, OWNER RULING (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Both (Recommended)"* to *"Mark 0452 and 0426 as 'In progress' on the board, since work on both has started?"*. The news text was drafted 2026-10-11 and owner-approved 2026-10-12 (step 4 gate passed — `worklog.md`). Waiting for deploy day: `resources/announcements.json` is not edited yet (step 5 and verification 3–5 run in the final Sprint 8 deploy).
+✅ Done (agent-closed — not owner-verified)
 
 *(Status until 2026-10-15, kept as history:)* ~~🔲 Backlog~~
 

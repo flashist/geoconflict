@@ -33,7 +33,7 @@ join); 4d not run (see item 5's reason — same refusal). Rollback not used. `04
 
 Real values recorded, 2026-10-13: **`citizenship_ui` = `enabled` for everyone** (no condition); **`private_lobbies_all`
 = `enabled` for everyone since about 17:09–17:12 MSK, 2026-10-13**. The same fact is added to
-[`0426`'s worklog](../../backlog/0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/worklog.md). So
+[`0426`'s worklog](../0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/worklog.md). So
 `0426`'s **Private tab** line may stay, provided the flag is still on at `0426`'s deploy (the owner confirms at
 `0426`'s approval gate). The **exit-confirm** line still turns on whether `0437` ships in the same deploy — not decided
 here.
