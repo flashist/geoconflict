@@ -10,7 +10,9 @@
 > `0064`'s worklog.
 
 ## Sprint
-Sprint 8
+Sprint 9
+
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"I think we need to move the 0455 task to the next sprint, because it requires few days of analytics after deploy."*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. This supersedes the 2026-10-14 placement ruling below (*"Sprint 8"*), which is kept as written.
 
 > 📌 **OWNER RULING, 2026-10-14, given live via `AskUserQuestion` in the `fkit lead` session driving
 > `fkit-sprint-ship-loop`**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
@@ -21,7 +23,9 @@ Sprint 8
 > build/verify-split rule (2026-09-29: the verify task goes to the top of the **next** sprint) **for this case only.**
 
 ## Priority
-49
+3
+
+> 📌 **2026-10-16 — was 49 (Sprint 8), now 3 (Sprint 9).** Rank is board-scoped: on the move to Sprint 9 this task was **appended** at 3, below `0343` (ADR-035 append rank). ~~⚠️ **The producer's placement — NOT owner-ruled, not a merit judgement.**~~ ✅ **Owner-confirmed 2026-10-16, later** — OWNER RULING given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Keep slot 3 (Recommended)"*. The note below is Sprint 8 history, kept as written.
 
 > ⚠️ **Priority 49 is append rank, NOT a merit ranking — flagged for owner confirmation.**
 > **On merit its rank barely matters:** it blocks nothing and is time-gated (only workable once `0451` is deployed to
@@ -135,8 +139,8 @@ names, counts, dates, times and the names of saved funnels/dashboards only.
   slots unless urgent, ruling 2026-09-29 — the earliest is 2026-10-17/18), **and several full days of data after it**.
   Until then the board may show this task as ready; it is not. If the deploy slips so that the data window would fall
   after Sprint 8 ends, that is the owner's call (the placement ruling above was *"if 0451 will be deployed and have
-  data before Sprint 8 ends"*).
-- **Not in `0426`'s wait set.** `0426`'s Timing rule waits on Sprint 8 tasks that **ship code** in the final Sprint 8
+  data before Sprint 8 ends"*). 📌 **2026-10-16: the owner made that call — moved to Sprint 9** (*"… it requires few days of analytics after deploy."*). The gate itself is unchanged: `0451` committed, deployed to production, then several full days of data.
+- **Not in `0426`'s wait set** *(history — `0426` is closed, and since 2026-10-16 this task is on Sprint 9)*. `0426`'s Timing rule waits on Sprint 8 tasks that **ship code** in the final Sprint 8
   deploy. This task ships no code, so `0426` does not wait on it.
 - **Related:** [`0418`](../../done/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
   (the model: a GameAnalytics read in the owner's Chrome),
