@@ -5,7 +5,19 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
-> 🆕 **2026-10-15 sync, third run (newest of all, `930048b`): 55 rows — 37 `✅ Done` · 6 `🔲 Backlog` · 3 `🔄 In progress` ·
+> 📌 **2026-10-16 sync (`32dd5cf`) — board unchanged, `0219`'s brief moved.** `plan-sprint-8.md` has no change in this
+> window (still 55 rows, 9 open, banner `🔄 In progress — 2026-10-12`). From `0219`'s brief and worklog (backlog working
+> artifacts, read as evidence; owner-run steps relayed by `fkit-lead`, **not re-verified by me**): **every alarm drill is
+> done** — B7 (failed renewal and cert-expiry alerts; **B7(b) owner-skipped, not passed**), B8 (service stop → both
+> uptime monitors' down and recovery emails), B9 (stale weekly copy, stale daily marker, missing-ping alerts), B10
+> (destinations: the owner's email only). All were **seen arriving in the owner's inbox** (owner-confirmed). ⇒ The
+> 2026-09-13 hold-open ruling ("no close until the alerts have been watched arriving") is **satisfied**. B2's Telegram
+> part was **waived** by owner ruling 2026-10-15 (email-only accepted; upgrade → `0466`, Backlog board). ⛔ **`0219` is
+> still `🔄 In progress` and does not close yet:** it waits on B6/V2 via `0385` (after the `0384` profile deploy), then
+> the close-time V8 cross-refs and V9 secret grep (producer). See [[systems/player-profile-store]],
+> [[decisions/sprint-backlog]].
+>
+> 🆕 **2026-10-15 sync, third run (`930048b`): 55 rows — 37 `✅ Done` · 6 `🔲 Backlog` · 3 `🔄 In progress` ·
 > 8 `➡️ Moved` · 1 `⛔ Cancelled`; 9 OPEN** (was 53 / 8), counted by me by each row's leading status glyph. Banner
 > unchanged (`🔄 In progress — 2026-10-12`).
 > - **Moved in from the Backlog board, appended at 54 / 55** — four OWNER RULINGS 2026-10-15 (live `AskUserQuestion` in

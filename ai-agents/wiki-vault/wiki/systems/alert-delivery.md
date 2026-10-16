@@ -23,6 +23,14 @@
 > (the `0284` probe still does). Its runbook is `docs/vps-deployment-guide.md` §8; the operator runbook
 > (`alert-delivery-runbook.md`) now carries that pointer at its top. ⚠️ Delivering game dev's alerts needs game dev
 > **added** to `PROFILE_INTERNAL_ALLOW_IPS` (verify task `0449`) — the append-never-replace rule below applies.
+>
+> 📌 **2026-10-16 sync — the profile box's Better Stack alarms do NOT use this relay.** The heartbeat
+> `profile-daily-checks` and the monitors "Profile API health" / "Profile API ready" alert the owner **by email only**
+> (owner-confirmed 2026-10-16; drilled and seen arriving under `0219`). Email-only is **accepted** by owner ruling
+> 2026-10-15. Whether to add Telegram (this relay is one existing path the brief names) or another faster channel is
+> **decision task `0466`** on the Backlog board, unscheduled — see [[decisions/sprint-backlog]] and
+> [[systems/player-profile-store]]. ⚠️ Per `0466`'s brief, a faster channel alone does not fix the "open incident mutes
+> later failures" trap seen 2026-10-07 → 10-15.
 
 ## Summary
 

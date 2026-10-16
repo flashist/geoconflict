@@ -3,6 +3,26 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 📌 *2026-10-16 sync (`32dd5cf`) — this box's outside alarms are now **watched**, by email only.* From `0219`'s worklog
+> (owner ran the box commands; `fkit-lead` read Better Stack read-only; relayed — **not re-verified by me**):
+> - **Alarms in place:** the daily heartbeat `profile-daily-checks` (fed by `profile-checks.sh`) and two uptime monitors,
+>   "Profile API health" (`/health`) and "Profile API ready" (`/ready`) — the monitors already existed (~1 month). All
+>   three alert **by email only**: no Telegram, SMS, calls or phone pushes (owner-confirmed 2026-10-16). Email-only is
+>   **accepted** by owner ruling 2026-10-15; a faster channel is decision task `0466` ([[decisions/sprint-backlog]]).
+> - **Drills, 2026-10-15/16 — each alert seen arriving in the owner's inbox:** failed certificate renewal and the
+>   cert-days-remaining threshold (B7 (a)/(c)); service stop → both monitors' down and recovery emails, ≈5 min after the
+>   outage began, matching the 5-min confirmation period (B8); stale weekly copy, stale daily marker, and a missing ping
+>   (dead-man) (B9). ⚠️ **B7(b) — "no renewal attempt for too long" — owner-skipped, not passed.** ⚠️ The heartbeat's
+>   restored grace (3 h) rests on the owner's word; only its period (1 day) was re-read.
+> - 🚨 **Gotcha — an open, unacknowledged heartbeat incident mutes later failures.** From 2026-10-07 to 2026-10-15 one
+>   incident stayed open (one email on day one); every later daily failure was appended to it **with no new alert**. The
+>   daily failures were `reboot-required` (cleared by a kernel-update reboot on 2026-10-15 — both containers healthy after,
+>   Postgres image unchanged) plus `daily-backup-object` size mismatches (likely the deploy smoke backup — `0465`, cause
+>   not yet confirmed from the box).
+> - **No SSL-expiry check in Better Stack** — not available on the free plan; nothing was changed. The compensating
+>   control is `profile-checks.sh`'s `cert-days-remaining` (fails under 20 days by default), proven by B7(c).
+> - ⛔ `0219` still open — waits on B6/V2 via `0385` after the `0384` deploy ([[decisions/sprint-8]]).
+
 > 📌 *2026-10-15 sync (`930048b`):* **F-C's fix is built, not deployed.** `0384` pins this box's Postgres to
 > `postgres:16.15-alpine@sha256:<index digest>` — the build it already runs — in `setup-profile.sh`, the restore drill and
 > the backup dry-run (four identical copies; `npm test` fails if they drift) — [[tasks/profile-postgres-digest-lock]],
@@ -261,6 +281,10 @@
 >    (`0219`, open), so a break between now and the twice-daily renewal window (~2026-10-21) fails
 >    **silently** until the certificate expires **2026-11-20**.
 >    📌 *2026-10-09 sync: `0219`'s G3/G4 deferral is **LIFTED** (owner ruling *"Yes, un-pause in Sprint 8 (Recommended)"*): `0219` moved to Sprint 8 (rank 24, `🔄 In progress`) to switch on and test the server-down and backups-stopped alarms. Until that is done the fuse is **still unwatched**, and Sprint 8 is not started ([[decisions/sprint-8]]).*
+>    📌 *2026-10-16 sync: the fuse is now **watched, by email**: `profile-checks.sh` reads the renewal log, and `0219`'s
+>    B7 drill (2026-10-15) made a failed renewal and the cert-expiry threshold fire on purpose — both alerts seen arriving
+>    in the owner's inbox. ⚠️ B7(b) (no renewal attempt for too long) owner-skipped, not passed. "Fails silently" above is
+>    history. See the 2026-10-16 note at the top of this page.*
 > 4. 🔴 **Two silent barriers still sit on the credit path** and neither reveals the other: the
 >    persisted `/opt/profile/.internal_token` now holds a **stale, superseded** value that a
 >    blank-valued future deploy would silently re-adopt (→ 401 on every credit call, XP **lost, not

@@ -3,7 +3,31 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-15 sync, third run (newest of all, `930048b`): 162 rows, 110 open.** Re-counted by me by each row's leading
+> 🆕 **2026-10-16 sync (newest of all, `32dd5cf`): 165 rows, 113 open.** Re-counted by me by each row's leading status
+> glyph: 110 `🔲 Backlog` · 43 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 162 / 110). Three rows
+> appended, all `🔲 Backlog`, unscheduled, filed by spawned `fkit-producer`s on owner words relayed by `fkit-lead` (⛔ not
+> producer precedent). Open briefs — summary from the board and the briefs only, no vault task page (backlog rule):
+> - **New `0465`** — *Stop the profile deploy's smoke backup from breaking the `daily-backup-object` check* (owner:
+>   *"yes, file the follow-up task"*, 2026-10-15; owner `fkit-coder`). The deploy's test backup uploads under the **same
+>   date-only name** as the nightly backup but writes its size to a **separate** record, so the morning check can see a
+>   size mismatch and fail although no backup is bad — and while that Better Stack incident stays open, new real alerts
+>   are muted. Per the brief it is narrower than "every deploy, next morning": the **scheduled** check fails only after a
+>   deploy between the 02:30 UTC nightly and the 08:00 UTC check; a later deploy breaks only **manual** check runs before
+>   the next nightly (the 2026-10-15 failure was such a manual run). Cause **likely, not yet confirmed from the box** —
+>   the brief's first step. Follow-up to `0219`'s accepted build-time residuals R3/R9; weekend-slot deploy; verify task at
+>   close.
+> - **New `0466`** — *Consider Telegram (or another faster channel) for the profile box's Better Stack alerts* — a
+>   **decision task**, owner `fkit-producer`. OWNER RULING 2026-10-15 (free text, verbatim *"we're ok abou the current
+>   email-only alerts. We can brief a task to the backlog to think about upgrading it in the future, but now."* — read
+>   by the relaying agents as "but not now"): **email-only accepted today**; carries the Telegram part waived from
+>   `0219`'s B2/B3. See [[systems/alert-delivery]], [[systems/player-profile-store]].
+> - **New `0467`** — *Investigation: a mobile player reports Halkidiki always lags at ~01:38 and they cannot finish
+>   "task 7"* (owner request 2026-10-16; owner `fkit-coder`; investigation, not a fix). Build `0.0.164`, Android 10,
+>   4 GB, Adreno 610. Producer lead, **unconfirmed**: "task 7" is likely single-player mission 7, which appears to be
+>   Halkidiki (one of the larger maps). The brief keeps the player's name out on purpose — so does this page.
+> - **`0219`** (on [[decisions/sprint-8]]) — all its alarm drills were done 2026-10-15/16; see that page.
+
+> 🆕 **2026-10-15 sync, third run (`930048b`): 162 rows, 110 open.** Re-counted by me by each row's leading
 > status glyph: 107 `🔲 Backlog` · 43 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 162 / 112).
 > - **`0384` and `0385` moved to [[decisions/sprint-8]]** (ranks 54 / 55, ADR-035 append ranks) on the OWNER RULING
 >   *"Build it as 0384 (Recommended)"* (live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead`; ⛔ not
