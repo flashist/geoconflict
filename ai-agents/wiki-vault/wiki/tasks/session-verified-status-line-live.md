@@ -1,8 +1,14 @@
 # Verify 0397 Live — the Session-Status Line Shows the Right State in Production (task 0400)
 
 **Source**: `ai-agents/tasks/done/0400-verify-0397-live-the-session-status-line-shows-the-right-state-in-production/brief.md` (the record: the same folder's `worklog.md`)
-**Status**: done (agent-closed — not owner-verified) — ⚠️ **check 8 (analytics) NOT passed; carried by `0418`**
+**Status**: done (agent-closed — not owner-verified) — ⚠️ **check 8 (analytics) NOT passed; carried by `0418`** — 📌 *2026-10-16: gap counted closed by `0418` on owner ruling*
 **Sprint/Tag**: Sprint 7, rank 51 (append rank, not a merit rank; moved in from Sprint 8 rank 12 on 2026-10-06) / task `0400`
+
+> 📌 **2026-10-16 sync — check 8's gap counted CLOSED by `0418`** ([[tasks/citizenship-status-events-recheck]], closed
+> 2026-10-16, agent-closed — not owner-verified). Re-read over 2026-10-08..15 (8 full days): `Unverified` **57**,
+> `Restart` **1** (08 Oct only), `ReadFailed` **1,716**. Owner ruling *"Accept and close"*. ⚠️ Whether `Restart` presses
+> are lost before the reload is **still unanswered** (0 `Restart` vs 1,508 `ReadFailed` from 09 to 15 Oct) — accepted
+> knowingly, no investigation. This page's check 8 row and *Outcome* keep the 2026-10-08 reading as history.
 
 > ✅ Done (agent-closed — not owner-verified), closed **2026-10-08** by a spawned `fkit-producer` via `/fkit-task-done`,
 > on the owner's rulings given live in the `fkit lead` session: typed, *"Close it, pointing at the Sprint 8 re-check"*;
@@ -70,3 +76,4 @@ approved RU text in `resources/lang/ru.json` (`citizenship_status.*`):
 - [[decisions/sprint-7]] — the board (rank 51)
 - [[decisions/sprint-8]] — filed there (rank 12) before moving; `0418` appended there at 17
 - [[decisions/sprint-backlog]] — where `0410` was filed
+- [[tasks/citizenship-status-events-recheck]] — task `0418`, the re-read that closed check 8's gap (2026-10-16)

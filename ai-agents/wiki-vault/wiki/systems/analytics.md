@@ -3,6 +3,12 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 📌 **2026-10-16 sync — `Citizenship:Status:*` re-read (`0418`, [[tasks/citizenship-status-events-recheck]]):** over
+> 2026-10-08..15 (8 full days, *"Demo mode"* banner shown) `Unverified` **57**, `Restart` **1** (08 Oct only),
+> `ReadFailed` **1,716** — all three now seen; `0400`'s check-8 gap closed by owner ruling *"Accept and close"*.
+> ⚠️ Open, accepted: whether `Restart` (fired just before a page reload) is lost before GameAnalytics sends it — 0
+> against 1,508 `ReadFailed` from 09 to 15 Oct. `analytics-event-reference.md` did not change in this window.
+>
 > 🆕 **2026-10-14 sync:**
 > - **Private Lobby Events (task `0451`, committed `daa1bcc`, NOT deployed):** 16 `PrivateLobby:*` events for the
 >   private-lobby funnel — Private tab → `Created` → `InviteCopied:{Link|Code}` → `Joined:{Link|Code}` →
@@ -800,3 +806,4 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/private-lobby-funnel-events]] — task `0451`: the 16 `PrivateLobby:*` funnel events (not deployed)
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`: the 12 Oct breach, weekly spikes, SDK re-send lead (not proven)
 - [[tasks/gameanalytics-game-id-removed]] — task `0459`: game ID removed from tracked task files
+- [[tasks/citizenship-status-events-recheck]] — task `0418`: the `Citizenship:Status:*` re-read, 2026-10-08..15

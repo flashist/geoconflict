@@ -79,3 +79,4 @@ None in the repo. Console values, owner-confirmed live (*"Yes, exactly as expect
 - [[decisions/sprint-backlog]] — where `0435` (the 1-minute lobby re-check that needs this flip time) sits
 - [[systems/weekend-deploy-window]] — console flips are not deploys; the deploy queue this sat beside
 - [[tasks/private-lobby-funnel-events]] — task `0451`: the funnel events for this rollout
+- [[tasks/news-catch-up-2026-10-17]] — task `0426`: the news entry whose Private-tab line this flip allows (committed 2026-10-16, ships 2026-10-17)

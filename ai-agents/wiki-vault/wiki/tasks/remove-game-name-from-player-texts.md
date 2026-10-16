@@ -47,3 +47,4 @@ the inbox title *"Вы получили гражданство Geoconflict!"*.
 - [[tasks/name-change-approved-message-wording]] — task `0316`, same files, shipped together
 - [[systems/localization]] — the en/ru rule and the deliberate all-languages exception for `main.title`
 - [[decisions/sprint-6]] — the board carrying this task
+- [[tasks/news-catch-up-2026-10-17]] — task `0426`: the 2026-10-17 news entries, checked by this task's no-game-name test

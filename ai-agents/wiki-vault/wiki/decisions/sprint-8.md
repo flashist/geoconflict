@@ -5,6 +5,23 @@
 
 > Source: `ai-agents/sprints/plan-sprint-8.md`.
 >
+> 🆕 **2026-10-16 sync, second run (`5a12b73`): 55 rows — 39 `✅ Done` · 4 `🔲 Backlog` · 3 `🔄 In progress` ·
+> 8 `➡️ Moved` · 1 `⛔ Cancelled`; 7 OPEN** (was 55 / 9), counted by me by each row's leading status glyph. Banner
+> unchanged (`🔄 In progress — 2026-10-12`). All three changes on owner rulings relayed to spawned `fkit-producer`s
+> (⛔ not producer precedent):
+> - **17 `0418` closed `✅ Done (agent-closed — not owner-verified)`** — the GameAnalytics re-read (2026-10-08..15):
+>   `Unverified` 57, `Restart` 1 (08 Oct only), `ReadFailed` 1,716; owner *"Accept and close"*. Whether `Restart`
+>   presses are lost before the reload stays **unanswered**. [[tasks/citizenship-status-events-recheck]]
+> - **23 `0426` closed `✅ Done (agent-closed — not owner-verified)`** — two news entries dated 2026-10-17; review R1
+>   accepted (owner *"Keep text + file a fix task (Recommended)"*) → `0468` on the Backlog board. The row says *"Built,
+>   NOT committed"* — ⚠️ **stale: committed in `8c448a9`**; not deployed (no tag contains it). Ships in the Saturday
+>   2026-10-17 game prod deploy. Live check `0469` → [[decisions/sprint-9]] (new board, rank 1).
+>   [[tasks/news-catch-up-2026-10-17]]
+> - **42 `0449` → `🔄 In progress`** (owner *"Mark it In progress (Recommended)"*). Steps 1–7 and 10 done for profile,
+>   telemetry, game dev; daily digest 1 of 2 arrived 2026-10-16. Left: game prod (weekend slot, with `0452`), digest 2
+>   (2026-10-17 08:10 UTC), the 24 h no-per-guess window, the per-box report-window check. [[tasks/ssh-security-alerts]]
+> - **Still open:** `0343`, `0213`, `0455`, `0385` (Backlog); `0219`, `0449`, `0452` (In progress).
+>
 > 📌 **2026-10-16 sync (`32dd5cf`) — board unchanged, `0219`'s brief moved.** `plan-sprint-8.md` has no change in this
 > window (still 55 rows, 9 open, banner `🔄 In progress — 2026-10-12`). From `0219`'s brief and worklog (backlog working
 > artifacts, read as evidence; owner-run steps relayed by `fkit-lead`, **not re-verified by me**): **every alarm drill is
@@ -583,3 +600,6 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/name-change-review-walkthrough]] — task `0350` (52), closed 2026-10-15; verify `0463` parked for Sprint 9
 - [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450` (44), closed 2026-10-15
 - [[tasks/fail2ban-recheck-after-password-off]] — task `0462` (53), `0452`'s V5 for two boxes, closed 2026-10-15
+- [[tasks/citizenship-status-events-recheck]] — task `0418` (17), the GameAnalytics re-read for `0400` check 8, closed 2026-10-16
+- [[tasks/news-catch-up-2026-10-17]] — task `0426` (23), the news catch-up, closed 2026-10-16; verify `0469` on Sprint 9
+- [[decisions/sprint-9]] — the next board, created 2026-10-16 (not started) to hold `0469`

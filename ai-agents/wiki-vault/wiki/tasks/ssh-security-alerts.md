@@ -36,6 +36,16 @@
 > for `0449` (token empty then). **Game prod: no deploy tag today** — not confirmable from git, treated as not deployed,
 > stays in the weekend slot. `0449` still `🔲 Backlog`; the two-day watch remains.
 
+> 📌 *2026-10-16 sync, second run (`5a12b73`), from `0449`'s brief + worklog (owner's Telegram screenshot and inbox,
+> relayed by `fkit-lead`; **not re-verified by me**):* **`0449` is now `🔄 In progress`** (owner *"Mark it In progress
+> (Recommended)"*). **Daily digest 1 of 2 arrived** 2026-10-16 08:10 UTC — one line per box: game dev, profile and
+> telemetry with real counts and *fail2ban up*; game prod `NO REPORT` — **expected**, it is not deployed yet. No
+> "could not be sent" line, no "OLD numbers" flag. 🔑 login alerts arrived for each of the owner's profile-box logins
+> that morning (owner-confirmed). ⚠️ **Not shown by the message:** whether each box's window is the 24 h before
+> **08:00 UTC** rather than 08:00 local (three boxes on Moscow time) — still owed. The 24 h no-per-guess window is
+> **not yet recorded complete**. **Left:** game prod deploy (weekend slot, with `0452`), digest 2 of 2 (2026-10-17
+> 08:10 UTC), the window checks. See [[decisions/sprint-8]].
+
 ## Goal
 
 Owner ruling 2026-10-12, verbatim selection *"All three (Recommended)"* — *"Login alert + fail2ban-down alert + daily

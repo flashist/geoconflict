@@ -3,7 +3,22 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
-> 🆕 **2026-10-16 sync (newest of all, `32dd5cf`): 165 rows, 113 open.** Re-counted by me by each row's leading status
+> 🆕 **2026-10-16 sync, second run (newest of all, `5a12b73`): 167 rows, 114 open.** Re-counted by me by each row's
+> leading status glyph: 111 `🔲 Backlog` · 44 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 165 / 113).
+> Two rows appended, on owner rulings relayed by `fkit-lead` to spawned `fkit-producer`s (⛔ not producer precedent):
+> - **New `0468`** — `🔲 Backlog`, unscheduled — *Rename the Custom Game window's title to «Своя Игра» / "Custom Game"
+>   to match the start-screen button and the 2026-10-17 news*. From `0426`'s review finding R1 (owner *"Keep text + file
+>   a fix task (Recommended)"*): `0166` renamed only the button, so the window it opens still reads "Single Player" /
+>   «Одиночная игра». Strings only, en + ru; translation keys, analytics event names and code identifiers are **not**
+>   renamed; the *Singleplayer* tab and the stats filter stay as they are; no news edit. Routine fix — routing says
+>   Codex, owner decides. Open brief — no vault task page (backlog rule). See [[tasks/news-catch-up-2026-10-17]].
+> - **`0469` → `➡️ Moved to Sprint 9`, rank 1** — the live check for `0426` (news in Yandex, Russian, after the weekend
+>   deploy). Filed here at `0426`'s close, then moved on the owner's free-text ruling *"Create Sprint 9 board and move
+>   the task there"*; the new board was created for it. See [[decisions/sprint-9]].
+> - ⚠️ `0460`, `0461`, `0463` — also flagged for "the top of Sprint 9" — **stay here** as `🔲 Backlog`; only `0469`
+>   was moved.
+>
+> 🆕 **2026-10-16 sync (`32dd5cf`): 165 rows, 113 open.** Re-counted by me by each row's leading status
 > glyph: 110 `🔲 Backlog` · 43 `➡️ Moved` · 5 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled` (was 162 / 110). Three rows
 > appended, all `🔲 Backlog`, unscheduled, filed by spawned `fkit-producer`s on owner words relayed by `fkit-lead` (⛔ not
 > producer precedent). Open briefs — summary from the board and the briefs only, no vault task page (backlog rule):
@@ -1069,3 +1084,5 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456` (Sprint 8); `0458`, `0230`, `0226` here
 - [[tasks/gameanalytics-game-id-removed]] — task `0459` (Sprint 8); edited the `0212` row
 - [[tasks/name-change-review-walkthrough]] — task `0350`, moved from this board; its verify `0463` is parked here
+- [[tasks/news-catch-up-2026-10-17]] — task `0426` (Sprint 8); its fix task `0468` is filed here, its verify `0469` moved to Sprint 9
+- [[decisions/sprint-9]] — created 2026-10-16 to receive `0469` from this board

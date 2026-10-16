@@ -36,6 +36,9 @@ None — read-only. GameAnalytics read by `fkit-lead` through the owner's browse
 - **Open question, recorded, no task (the owner did not ask for one):** 3 `Shown` but 0 `Refresh`, though the popup has
   no close button — tabs closed, or `Refresh` lost before the reload (the same shape as `0418`'s missing
   `Citizenship:Status:Restart`). Also unchecked: 1 `Due` on 8 Oct, before 23 h could have passed.
+  📌 *2026-10-16 sync:* `0418`'s re-read saw `Restart` **once** in 8 days (08 Oct), 0 against 1,508 `ReadFailed` after
+  that; closed *"Accept and close"* without answering the lost-before-reload question
+  ([[tasks/citizenship-status-events-recheck]]).
 
 ## Related
 
@@ -45,3 +48,4 @@ None — read-only. GameAnalytics read by `fkit-lead` through the owner's browse
 - [[decisions/adr-121-login-signature-24h-window]] — why a login pass lives 24 h
 - [[systems/analytics]] — the `Session:LongSessionRefresh:*` events
 - [[decisions/sprint-8]] — the board (rank 16)
+- [[tasks/citizenship-status-events-recheck]] — task `0418`: its 2026-10-16 re-read saw `Citizenship:Status:Restart` once in 8 days — the same "fires just before a reload" question, left unanswered

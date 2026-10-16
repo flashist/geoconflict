@@ -5,6 +5,14 @@
 `setup-telemetry.sh`, `src/client/flashist/FlashistFacade.ts`, `src/client/CitizenshipCard.ts`,
 `src/server/ProfileApiClient.ts`, `tests/scripts/profile-deploy-hardening.test.sh` *(lint 2026-10-08: was `src/client/ProfileApiClient.ts`, a path that has never existed in git history)*
 
+> 📌 **2026-10-16 sync, second run (`5a12b73`) — the Saturday 2026-10-17 game prod deploy now also carries the news
+> catch-up.** `0426`'s two news entries are committed (`8c448a9`), no release tag contains them yet; owner ruling: the
+> weekend game prod deploy (2026-10-17/18) is the **final Sprint 8 deploy**. The live look in Yandex (Russian) is `0469`
+> ([[tasks/news-catch-up-2026-10-17]], [[decisions/sprint-9]]). Also waiting on the weekend slot: `0449`'s game prod step
+> (with `0452`); its daily digest 2 of 2 is due the same day, 08:10 UTC — [[tasks/ssh-security-alerts]]. In the runbook, the residual pointer to
+> `0418` now names its `done/` path — `0418` closed 2026-10-16 ([[tasks/citizenship-status-events-recheck]]); the
+> 2026-10-08 residual list below keeps it as history.
+>
 > 🆕 **2026-10-15 sync (`930048b`) — F-C's fix is BUILT, waiting for a weekend profile deploy.** `0384` pins the profile
 > box's Postgres by digest (`postgres:16.15-alpine@sha256:…`, the build the box already runs — so the deploy should change
 > no Postgres bytes): [[tasks/profile-postgres-digest-lock]]. Committed `d6458d9`; **no deploy tag contains it** at this
@@ -985,3 +993,4 @@ date. 📌 The runbook's own section labels (`C1`–`C3`, `G1`–`G4`) were neve
 - [[tasks/ssh-password-login-off]] — task `0442`: the next key deploy turns password login off — pre-checks first
 - [[tasks/name-change-review-walkthrough]] — task `0350`, shipped early in the 2026-10-15 profile deploy
 - [[tasks/game-deploy-env-file-cleanup-verified]] — task `0450`: the 2026-10-15 dev deploy check and failed-deploy test
+- [[tasks/news-catch-up-2026-10-17]] — task `0426`: the news entries that ride the 2026-10-17 game prod deploy (committed `8c448a9`)

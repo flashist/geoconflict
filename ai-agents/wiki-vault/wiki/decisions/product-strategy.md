@@ -12,6 +12,13 @@ Geoconflict's primary revenue is ad impressions. The strategic sequence is:
 
 Source: `ai-agents/sprints/plan-index.md`
 
+> 🆕 **2026-10-16 — `plan-index.md` (synced from `5a12b73`): A SPRINT 9 BOARD EXISTS, NOT STARTED; Sprint 8 is the
+> only sprint in progress.** New row: Sprint 9 — no theme name, `🔲 Backlog — created 2026-10-16, not started`, no goal
+> or scope (the owner's to plan later). Created on the owner's free-text ruling *"Create Sprint 9 board and move the
+> task there"* to hold verify task `0469` (rank 1). Sprint 8 (*Paid Citizenship Perks and More Content*) reads
+> `🔄 In progress — started 2026-10-12` — so the *"no sprint is in progress"* line in the 2026-10-09 note below is
+> history (true 2026-10-09 → 2026-10-12). See [[decisions/sprint-9]] and [[decisions/sprint-8]].
+>
 > 🆕 **2026-10-09 — `plan-index.md` (synced from `78f9c7b`): SPRINT 7 CLOSED 2026-10-09; NO SPRINT IS IN PROGRESS.**
 > Sprint 7's row reads `✅ Done 2026-10-09` (closed by `/fkit-sprint-done`, agent-closed — not owner-verified; owner
 > ruling *"I've commited the files. You can close Sprint 7"*) and links to `done/plan-sprint-7.md`. No row was open at the
@@ -110,7 +117,8 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 ## Related
 
 - [[decisions/sprint-7]] — created 2026-09-27, listed in `plan-index.md`; **active since 2026-09-29**; no theme or goal yet
-- [[decisions/sprint-8]] — *Paid Citizenship Perks and More Content*, created 2026-09-29, not started, no goal
+- [[decisions/sprint-8]] — *Paid Citizenship Perks and More Content*, created 2026-09-29, ~~not started~~ in progress since 2026-10-12, no goal
+- [[decisions/sprint-9]] — created 2026-10-16, not started, no name or goal; holds `0469`
 
 - [[decisions/sprint-1]] — stop the bleeding
 - [[decisions/sprint-2]] — fix onboarding

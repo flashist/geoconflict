@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified) — **built and committed (`036a5c8`); LIVE since 2026-10-08** in game `0.0.157`, checked by `0400` (⚠️ check 8 not passed) *(was: "NOT deployed" — true until 2026-10-08)*
 **Sprint/Tag**: Sprint 7, rank 46 (append rank, not a merit rank; on merit directly below `0250`) / task `0397`
 
+> 📌 **2026-10-16 sync — all three status events are now seen in GameAnalytics** (`0418`,
+> [[tasks/citizenship-status-events-recheck]]): 2026-10-08..15, `Unverified` 57, `Restart` 1 (08 Oct only),
+> `ReadFailed` 1,716. `0400`'s check-8 gap counted closed by owner ruling *"Accept and close"*. ⚠️ Whether `Restart`
+> presses are lost before the page reload stays **unanswered**. The "not seen" lines below are the 2026-10-08 reading.
+>
 > 🆕 **2026-10-08 (later) sync — the *verified paid* wording is superseded by `0407`** (built, committed `a555111`, **not
 > deployed**): owner ruling *"A: One line, no ✓"* rewrote `citizenship_status.verified_paid` to EN *"Thank you for
 > supporting the game! Your paid citizenship benefits are on."* / RU *"Спасибо, что поддерживаете игру! Преимущества
@@ -113,6 +118,7 @@ unverified.
 
 ## Related
 
+- [[tasks/citizenship-status-events-recheck]] — task `0418`: all three status events seen over 2026-10-08..15; check 8's gap closed by owner ruling
 - [[tasks/paid-citizen-ad-free]] — task `0248`, which may deploy only with or after this
 - [[tasks/authenticated-profile-read]] — task `0250`, the S3b owner view this reads
 - [[tasks/verified-login-enforce]] — task `0340`, verified sessions; live check `0395`

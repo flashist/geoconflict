@@ -3,6 +3,13 @@
 **Status**: active
 **Source files**: `ai-agents/knowledge-base/announcements-system-guide.md`, `ai-agents/tasks/done/0126-global-announcements/brief.md`, `src/client/Announcements.ts`, `src/client/components/NewsButton.ts`, `src/client/NewsModal.ts`, `resources/announcements.json`
 
+> 🆕 **2026-10-16 sync — first news entries since 2026-06-06 committed, NOT deployed** (task `0426`,
+> [[tasks/news-catch-up-2026-10-17]]): `2026-10-17-citizenship` (tag `new`) and `2026-10-17-game-update` (tag `update`)
+> prepended to `resources/announcements.json` in `8c448a9`; no release tag contains it at this sync. They ship with the
+> Saturday 2026-10-17 game prod deploy; live check `0469`. ⚠️ Checked locally on the standalone template only, not the
+> Yandex iframe. Known mismatch, owner-accepted: the news says "Custom Game" while that window's heading still reads
+> "Single Player" until `0468`.
+>
 > 🆕 **2026-09-26 — the Personal tab is LIVE** (release `0.0.154`, the citizenship launch —
 > [[tasks/citizenship-go-live]]), and was seen in the live iframe with read state persisting across two
 > devices ([[tasks/after-deploy-production-checks]]). ⚠️ The general-announcements unread dot is still
@@ -63,3 +70,4 @@ There is no core-game intent/execution path for this feature. It is client UI on
 - [[systems/player-profile-store]] — the profile service that owns `player_messages` and the inbox routes
 - [[decisions/adr-103-identity-trust-seam]] — the client-asserted-ID trust seam the inbox routes sit behind
 - [[tasks/personal-inbox]] — task `0012`, the Personal-tab task record; closed 2026-09-23, not launched
+- [[tasks/news-catch-up-2026-10-17]] — task `0426`, the 2026-10-17 catch-up entries (committed, not deployed at the 2026-10-16 sync)
