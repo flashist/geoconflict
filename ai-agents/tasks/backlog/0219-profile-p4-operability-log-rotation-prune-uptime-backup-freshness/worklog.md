@@ -466,3 +466,12 @@ unless marked MSK (UTC+3). No emails, hosts, URLs, ping URLs, tokens or bucket n
 - **B6/V2** — via `0385`, after the `0384` profile deploy. **0219 still waits on this.**
 - At close: V8 cross-refs and V9 secret grep (producer).
 - Status token unchanged (`🔄 In progress`); no board touched; no mover invoked.
+
+## 2026-10-16 08:00 UTC — first normal scheduled daily check since 2026-10-07
+
+Relayed by fkit-lead from the owner's inbox observation; recorded by a spawned fkit-producer (no owner channel); not
+producer precedent. fkit-lead did **not** re-read Better Stack for this.
+
+- The owner reports **no Better Stack email after 11:00 MSK** ⇒ the scheduled 08:00 UTC check passed (success ping) on
+  its own after the drills — the first normal morning since the 2026-10-07 incident.
+- Status token unchanged (`🔄 In progress`); no board touched; no mover invoked.

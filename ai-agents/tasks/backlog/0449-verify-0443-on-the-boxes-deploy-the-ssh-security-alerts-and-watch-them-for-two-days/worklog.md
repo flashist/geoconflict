@@ -183,3 +183,36 @@ not see the boxes or the deploy output itself.
   today. This matches Step 3's **NOT deployed**. Game prod stays in the weekend slot, with `0452`.
 
 Nothing above changes "Still open (updated)". Status unchanged: `🔲 Backlog`.
+
+## 2026-10-16 — step 8, daily digest 1 of 2
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) from the owner's Telegram screenshot and inbox
+observation, relayed by `fkit-lead` in the `fkit lead` session; ⛔ **not producer precedent.** The producer did not see
+the message itself. Append-only; nothing above is touched.
+
+- **Digest 1 of 2 arrived** — Telegram message from the alert bot at 11:10 MSK (08:10 UTC), verbatim:
+
+  > 🛡 SSH security · daily · 2026-10-16
+  > game-prod: NO REPORT — never reported (is its agent installed?)
+  > game-dev: 14 failed logins · 468 unknown-user tries · 36 bans · fail2ban up
+  > profile: 0 failed logins · 248 unknown-user tries · 27 bans · fail2ban up
+  > telemetry: 107 failed logins · 664 unknown-user tries · 71 bans · fail2ban up
+  > Counts cover the 24 h before each box's report. NO REPORT means the numbers are unknown — not zero. An unknown-user try that also sent a password counts in both failed logins and unknown-user tries.
+
+- **Against step 8:**
+  - One line per box ✅
+  - Real numbers for game-dev, profile, telemetry ✅
+  - game-prod `NO REPORT` — expected: game prod is not deployed yet (weekend slot, with `0452`) ✅
+  - No "⚠️ N SSH alert message(s) could not be sent" line ✅
+  - No "⚠️ OLD numbers" flag ✅
+- ⚠️ **NOT verified from this message:** that each box's report window is the 24 h before **08:00 UTC** rather than
+  08:00 local (three boxes on Moscow time). The message does not show per-box windows. Still owed (step 8's window
+  check; verification item 7).
+- **Step 9 progress (not complete).** The owner reports exactly one alert-type message in Telegram this morning besides
+  🔑 logins — i.e. no per-guess messages seen so far. The full 24 h window is **not yet recorded as complete**.
+- **🔑 login alerts (consistent with step 5).** 📌 Owner-confirmed via live `AskUserQuestion` 2026-10-16, verbatim
+  selection *"Yes, 🔑 messages came"*: a 🔑 login message arrived for each of the owner's profile-box logins, around
+  09:45 and 10:15 MSK.
+- **Next:** digest 2 of 2 due 2026-10-17 08:10 UTC. All four boxes can appear only once game prod is deployed.
+
+Status unchanged: `🔲 Backlog`.

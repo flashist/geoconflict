@@ -29,7 +29,9 @@ game key for `root` (see *Context*). ADR-035 forbids inserting a new row above c
 highest (41, `0445`). Its profile and telemetry steps do not wait on `0445`.
 
 ## Status
-🔲 Backlog
+🔄 In progress — 2026-10-16, OWNER RULING (live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Mark it In progress (Recommended)"* to *"0449 (SSH alerts: deploy, then watch them for two days) is mostly done, but its status still says "Backlog". Should a producer mark it "In progress" on the board and in its brief?"*. Work started 2026-10-15: steps 1–7 and 10 done for profile, telemetry and game dev. Left: game prod deploy in the weekend slot (with `0452`), then its steps 4–5; daily digest 2 of 2 (2026-10-17 08:10 UTC); the 24 h no-per-guess window; the per-box report-window check. Details: `worklog.md`.
+
+*(Status until 2026-10-16, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** Creating the token, the allow-list change, the commit, every
