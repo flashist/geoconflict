@@ -1984,7 +1984,7 @@ rollback target** (`0.0.156-profile.2`, which was `0340`'s target):
 - [`0411`](../tasks/backlog/0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)
   — a load where the flags fetch times out reads `citizenship_ui` as off for the session ⇒ card hidden **and a paid
   citizen sees ads on that load**, until a reload. Backlog board; frequency not measured.
-- [`0418`](../tasks/backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+- [`0418`](../tasks/done/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
   — GameAnalytics re-check: `Citizenship:Status:Unverified` and `:Restart` not seen in the 2026-10-08 read (`0400`
   check 8 not passed). Sprint 8.
 - **An empty player row** in the production profile DB, created at 07:27:11Z when `0396`'s Console snippet was first

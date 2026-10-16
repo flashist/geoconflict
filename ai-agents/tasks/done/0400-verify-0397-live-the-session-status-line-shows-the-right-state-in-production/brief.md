@@ -202,7 +202,7 @@ Use a **fresh page load** for each check. Compare every shown text with the *App
 > (Recommended)"**. Results in [`worklog.md`](worklog.md), game `0.0.157`.
 > - ⚠️ **Check 8 (analytics) is NOT passed.** `Citizenship:Status:Unverified` and `Citizenship:Status:Restart` were
 >   **not seen** in the 2026-10-08 GameAnalytics read; `Citizenship:Status:ReadFailed` was seen (95, partial day).
->   Carried by [`0418`](../../backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+>   Carried by [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
 >   (Sprint 8 — *Recheck in GameAnalytics the two 0397 status events missing from the 2026-10-08 read*).
 > - **Checks 3 and 4: not checked live — covered by unit tests** (both owner test accounts log in verified).
 > - **Verification step 7** (a failed check points at a new task) is met by pointing at `0418`, by the owner ruling

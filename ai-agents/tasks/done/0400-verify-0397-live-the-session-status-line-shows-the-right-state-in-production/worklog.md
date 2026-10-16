@@ -60,7 +60,7 @@ the `0397` *Approved wording*). No token, id, response body or URL recorded.
 ## 2026-10-08 — close
 
 Closed `✅ Done (agent-closed — not owner-verified)` by a spawned `fkit-producer` (no owner channel, ADR-021/037) via `/fkit-task-done`, on the OWNER RULING typed live 2026-10-08 in the `fkit lead` session, relayed by `fkit-lead`, verbatim *"Close it, pointing at the Sprint 8 re-check"* (then, via `AskUserQuestion`, *"New producer, my ruling in (Recommended)"*). The owner ran the live checks; the close itself is agent-run, hence the marker.
-- ⚠️ **Check 8 (analytics) is NOT passed.** `Citizenship:Status:Unverified` and `Citizenship:Status:Restart` were not seen in the 2026-10-08 GameAnalytics read; `ReadFailed` = 95 was seen. Carried by [`0418`](../../backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md) (Sprint 8).
+- ⚠️ **Check 8 (analytics) is NOT passed.** `Citizenship:Status:Unverified` and `Citizenship:Status:Restart` were not seen in the 2026-10-08 GameAnalytics read; `ReadFailed` = 95 was seen. Carried by [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md) (Sprint 8).
 - Checks 3 and 4: **not checked live — covered by unit tests.**
 - Verification step 7 (a failed check points at a new task) is met by pointing at `0418`, by the owner ruling above.
 - Carried as recorded above, not resolved: check 7's flag off/on times are approximate (~5 min ending ≈09:48Z), not exact.

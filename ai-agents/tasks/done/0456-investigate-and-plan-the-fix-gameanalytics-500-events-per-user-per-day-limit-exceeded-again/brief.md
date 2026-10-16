@@ -33,7 +33,7 @@ Sprint 8
 fkit-coder
 
 > ⚠️ **Part 1 NEEDS THE OWNER'S BROWSER.** GameAnalytics is read through the owner's Chrome with the owner logged in
-> himself (like [`0418`](../../backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
+> himself (like [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
 > An agent may do the clicking and reading only with the owner present and logged in. **Read-only in GameAnalytics** —
 > nothing is saved, changed or exported there. Parts 2–3 (code read, report, fix plan) are the coder's alone.
 

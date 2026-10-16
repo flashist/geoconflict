@@ -70,7 +70,7 @@ match started → match ended.
 `src/client/MatchStartAnalytics.ts` (`Game:Start` / `Game:Mode:*`, already skips reconnects and replays).
 
 **Related, not dependencies:** [`0434`](../../backlog/0434-private-lobby-host-window-keeps-polling-a-lobby-that-no-longer-exists/brief.md)
-(Backlog board) touches the same host window; no ordering between them. [`0418`](../../backlog/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+(Backlog board) touches the same host window; no ordering between them. [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
 is the model for the later GameAnalytics read (owner's Chrome, owner logged in).
 
 ## What to build

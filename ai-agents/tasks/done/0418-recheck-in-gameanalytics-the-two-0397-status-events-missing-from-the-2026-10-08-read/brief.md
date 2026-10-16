@@ -20,7 +20,7 @@ Sprint 8
 > (16, `0406`), never inserted (ADR-035) — a position, not merit.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **NEEDS THE OWNER'S BROWSER.** GameAnalytics is read through the owner's Chrome with the owner
@@ -69,7 +69,7 @@ either idea. Do not treat them as the answer; this task does not test them.
   5 minutes ending ≈09:48Z on 2026-10-08 (`0398` / `0400` check 7); during that time no event could fire.
 - A page load where the experiment flags time out reads `citizenship_ui` as off for that session, so no event fires
   there either (found during `0398`, filed as
-  [`0411`](../0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)).
+  [`0411`](../../backlog/0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)).
 
 ## What to build
 
@@ -110,7 +110,7 @@ names, counts, dates and times only.
   (its check 8 is the failed / pending part this task carries; `0400` itself is not closed by this filing),
   [`0397`](../../done/0397-show-players-whether-their-session-is-verified/brief.md) (the events),
   [`0402`](../../done/0402-re-read-the-post-0340-login-verification-numbers-in-a-few-days/brief.md) (another later re-read,
-  different numbers), [`0411`](../0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)
+  different numbers), [`0411`](../../backlog/0411-citizenship-card-suggest-a-reload-when-the-experiment-flags-fetch-timed-out/brief.md)
   (loads where the flags never arrive fire no citizenship event).
 - **Producer's suggestion, not an owner ruling:** if the owner wants a known-positive check for `Restart`, he can press
   **Перезапустить** once on the start screen (with the profile request blocked, as in `0400` check 5a–5b) and note the

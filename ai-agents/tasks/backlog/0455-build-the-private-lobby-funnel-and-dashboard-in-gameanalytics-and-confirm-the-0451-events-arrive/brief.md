@@ -33,7 +33,7 @@ Sprint 8
 
 ## Owner
 fkit-producer — ⚠️ **NEEDS THE OWNER'S BROWSER.** GameAnalytics is used through the owner's Chrome with the owner
-logged in himself (like [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
+logged in himself (like [`0418`](../../done/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)).
 An agent session may do the clicking and reading only with the owner present and logged in. **Unlike `0418`, this task
 does save things in GameAnalytics** (a funnel and a dashboard) — each one only after the owner says yes to it.
 
@@ -138,7 +138,7 @@ names, counts, dates, times and the names of saved funnels/dashboards only.
   data before Sprint 8 ends"*).
 - **Not in `0426`'s wait set.** `0426`'s Timing rule waits on Sprint 8 tasks that **ship code** in the final Sprint 8
   deploy. This task ships no code, so `0426` does not wait on it.
-- **Related:** [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+- **Related:** [`0418`](../../done/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
   (the model: a GameAnalytics read in the owner's Chrome),
   [`0454`](../../done/0454-private-lobbies-show-lobby-not-found-when-a-player-enters-a-wrong-code/brief.md) (changes what a player
   sees for a wrong code; if it ships in a different deploy than `0451`, note which deploys fall in the read window).

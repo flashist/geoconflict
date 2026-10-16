@@ -19,7 +19,7 @@ Unscheduled
 
 ## Owner
 fkit-producer — ⚠️ **NEEDS THE OWNER'S BROWSER.** GameAnalytics is read through the owner's Chrome with the owner
-logged in himself (like [`0418`](../0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
+logged in himself (like [`0418`](../../done/0418-recheck-in-gameanalytics-the-two-0397-status-events-missing-from-the-2026-10-08-read/brief.md)
 and `0456`). An agent session may do the clicking and reading only with the owner present and logged in. **Read-only**:
 nothing is saved, exported, shared, alerted or changed in GameAnalytics, and the banner is not dismissed.
 
