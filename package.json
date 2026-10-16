@@ -1,6 +1,6 @@
 {
   "name": "geoconflict",
-  "version": "0.0.164",
+  "version": "0.0.165",
   "engines": {
     "node": ">=24.13.0 <25"
   },
