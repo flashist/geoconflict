@@ -429,3 +429,40 @@ that's right (Recommended)"**.
 - At close: V8 cross-refs and V9 secret grep (producer).
 - Hold-open ruling unchanged (no close until the alerts have been watched arriving — B8's monitor
   alerts are still unwatched). Status token unchanged; no board touched by this entry.
+
+## 2026-10-16 (morning) — B8 service-stop drill
+
+**Provenance:** the owner ran the box commands and pasted the output and screenshots to fkit-lead;
+fkit-lead verified Better Stack read-only in the owner's Chrome; recorded here by a spawned
+fkit-producer (no owner channel). This is relayed evidence, not producer precedent. Times are UTC
+unless marked MSK (UTC+3). No emails, hosts, URLs, ping URLs, tokens or bucket names are written here.
+
+### 1. B8 — V4: stop the service → both monitors alert → start → recovery notices
+
+- **Stop.** The owner ran `systemctl stop profile` at about 07:15 UTC. ⚠️ The exact `date -u` output
+  was not captured; the time is inferred from Better Stack: incidents started 10:16 MSK (07:16 UTC)
+  for "Profile API health" and 10:17 MSK (07:17 UTC) for "Profile API ready".
+- **Down alerts — SEEN ARRIVING, owner-confirmed** by inbox screenshot:
+  - "Profile API health - Oct 16, 2026 at 10:16am MSK — New incident started …", received 10:21 MSK.
+  - "Profile API ready - Oct 16, 2026 at 10:17am MSK — New incident started …", received 10:22 MSK.
+  - ≈5 min from incident start to email, matching the monitors' 5-min confirmation period.
+- **Start.** The owner ran `systemctl start profile; sleep 20` → `active`; `profile-profile-api-1 Up
+  24 seconds (healthy)`, `profile-postgres-1 Up 30 seconds (healthy)`; postgres container image
+  `sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea` (unchanged — no surprise
+  Postgres upgrade on restart).
+- **Recovery.** fkit-lead read the Better Stack Monitors page after the restart: both monitors
+  "Validating recovery" (3-min recovery period). The owner then confirmed in chat, verbatim: *"Both
+  incidents resolve emails are here"* — recovery emails **seen arriving, owner-confirmed**.
+- **Downtime:** roughly 15–20 minutes (the owner's screenshot was taken 10:31 MSK, the restart
+  shortly after). Restarted well before the 08:00 UTC daily check and the 08:10 UTC SSH digest.
+- ⇒ **B8 / V4 met.** Both uptime monitors alerted on a real outage, the alerts were seen arriving in
+  the owner's inbox, and both recovery notices arrived after the restart.
+
+### 2. Still open for 0219 after this drill
+
+- **All of 0219's alarm drills are now done** (B7 except (b), owner-skipped; B8; B9). The 2026-09-13
+  hold-open ruling — *no close until the alerts have been watched arriving* — is now **satisfied for
+  every drill**.
+- **B6/V2** — via `0385`, after the `0384` profile deploy. **0219 still waits on this.**
+- At close: V8 cross-refs and V9 secret grep (producer).
+- Status token unchanged (`🔄 In progress`); no board touched; no mover invoked.
