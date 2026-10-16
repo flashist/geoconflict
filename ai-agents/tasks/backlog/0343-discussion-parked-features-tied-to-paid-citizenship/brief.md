@@ -6,15 +6,17 @@
 ## Sprint
 Sprint 9
 
-> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"Move the task 0343 to the next sprint"*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. ~~⚠️ The H1 title still says *"for Sprint 8"* — left as written (spent), folder not renamed (ADR-029).~~ 📌 **Retitled 2026-10-16, later** — OWNER RULINGS given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Drop "for Sprint 8" (Recommended)"*. Only the words "for Sprint 8" were removed from the H1; folder not renamed (ADR-029).
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"Move the task 0343 to the next sprint"*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/done/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. ~~⚠️ The H1 title still says *"for Sprint 8"* — left as written (spent), folder not renamed (ADR-029).~~ 📌 **Retitled 2026-10-16, later** — OWNER RULINGS given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Drop "for Sprint 8" (Recommended)"*. Only the words "for Sprint 8" were removed from the H1; folder not renamed (ADR-029).
 
 ## Priority
-2
+7
+
+> 📌 **2026-10-16, later — was 2, now 7.** Moved down five on the [Sprint 9 board](../../../sprints/plan-sprint-9.md) by the OWNER-RULED order *"At the top (Recommended)"*, which put the five rows relocated from Sprint 8 above it. Not a merit change for this task. The note(s) below are kept as written (ADR-035).
 
 > 📌 **2026-10-16 — was 6 (Sprint 8), now 2 (Sprint 9).** Rank is board-scoped: on the move to Sprint 9 (owner ruling *"Move the task 0343 to the next sprint"*, relayed) this task was **appended** at 2, below `0469` (ADR-035 append rank). ~~The producer's placement — **not owner-ruled, not a merit judgement**; the owner ranks Sprint 9.~~ ✅ **Owner-confirmed 2026-10-16, later** — OWNER RULINGS given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Keep slot 2 (Recommended)"*. The note(s) below are Sprint 8 history, kept as written (ADR-035).
 
 > 📌 **2026-10-02 (later) — was 5, now 6.** Moved down one by the OWNER-RULED move of `0373` (read the
-> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
+> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md).
 > OWNER RULING given live via `AskUserQuestion`, verbatim *"Move to rank 2 (Recommended)"*, relayed by `fkit-lead` to a
 > spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Not a merit judgement on this task; nothing else
 > about it changed. The note(s) below are kept as written (ADR-035).
@@ -38,7 +40,7 @@ Sprint 9
 > Sprint 8 (relayed by `fkit-lead` to a spawned `fkit-producer`, ADR-021/037; ⛔ not producer precedent). Not a merit
 > judgement; nothing else about this task changed. The note below is kept as written (ADR-035).
 
-> Rank 1 because it is the **first and only row** on the new [Sprint 8 board](../../../sprints/plan-sprint-8.md),
+> Rank 1 because it is the **first and only row** on the new [Sprint 8 board](../../../sprints/done/plan-sprint-8.md),
 > created 2026-09-29 to receive it. Not a merit judgement against anything else; the owner ranks Sprint 8.
 
 ## Status

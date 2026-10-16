@@ -4,9 +4,13 @@
 0385
 
 ## Sprint
-Sprint 8
+Sprint 9
 
-📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md) on 2026-10-15, together with
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** Relocated by `/fkit-sprint-done` at the Sprint 8 close (agent-closed — not owner-verified), on the OWNER RULINGS given 2026-10-16 in a Claude Code session, relayed by it to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Typed by the owner, verbatim *"Can we move all the tasks tha require wait for certain time to Sprint 9?"*; then live `AskUserQuestion`: *"Move all 5 waiting tasks (0452, 0449, 0385, 0219, 0213) to Sprint 9 — and close Sprint 8?"* → **"Move all + close Sprint 8 (Recommended)"**; *"Where should the 5 go on Sprint 9?"* → **"At the top (Recommended)"** — option text: *"They finish within about 24 hours, so they go first: 0385 → 0219 → 0213, then 0452, 0449, then 0469, 0343, 0455."*. The [Sprint 8](../../../sprints/done/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close of this task.
+
+*(Earlier value, kept as history — true until 2026-10-16:)* ~~Sprint 8~~
+
+📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/done/plan-sprint-8.md) on 2026-10-15, together with
 [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md)** — OWNER RULING given live via
 `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel
 (ADR-021/037); ⛔ not producer precedent. Verbatim **"Build it as 0384 (Recommended)"** — option text: *"The producer
@@ -27,7 +31,11 @@ simple."* The rule is bent **for this case only**. It still must not hold back a
 *(Earlier value, kept as history — true until 2026-10-15:)* ~~Backlog~~
 
 ## Priority
-**55** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
+1
+
+> 📌 **2026-10-16 — was 55 (Sprint 8), now 1 (Sprint 9).** ✅ **OWNER-RULED placement** — *"At the top (Recommended)"* (order `0385` → `0219` → `0213` → `0452` → `0449`, then `0469`, `0343`, `0455`); the mover had appended it at 8 (ADR-035). The text below is Sprint 8 history, kept as written.
+
+~~**55**~~ — board rank on [Sprint 8](../../../sprints/done/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
 merit ranking** — ~~flagged for owner confirmation~~. On merit directly below `0384`, which it needs built and deployed.
 ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (Ruling D, live `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
 precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"*). Row number unchanged (ADR-035).

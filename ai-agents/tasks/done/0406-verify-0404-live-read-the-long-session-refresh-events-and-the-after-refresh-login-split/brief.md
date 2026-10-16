@@ -15,7 +15,7 @@ Sprint 8
 16
 
 > ⚠️ **Priority 16 is append rank, NOT a merit ranking — flagged for owner confirmation.**
-> **On merit this belongs in the top group of the [Sprint 8 board](../../../sprints/plan-sprint-8.md)**, with the other
+> **On merit this belongs in the top group of the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md)**, with the other
 > verify tasks, because the owner's standing build/verify-split rule (2026-09-29) puts a verify task *"on top of the
 > next sprint"*. Not placed there: ranks 2–4 and 8–14 on that board are closed rows (`➡️ Moved` / `✅ Done`), and
 > moving this row above them would renumber them — ADR-035 forbids that *"not even under an owner ruling"*; a spawned

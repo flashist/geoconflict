@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 8 *(was ~~Backlog~~ — moved 2026-10-15, see below)*
 
-> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-15 — OWNER RULING given live in the coordinating
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-15 — OWNER RULING given live in the coordinating
 > session** (the owner's own words), relayed by the main session to a spawned `fkit-producer` with no owner channel
 > (ADR-021/037); ⛔ not producer precedent. Verbatim: *"Move the task to the current sprint"* — resolved to Sprint 8, the only
 > `🔄 In progress` board (`dashboard.sh select-active`). Appended to Sprint 8 at rank 52 (ADR-035 append position, **not** a

@@ -23,7 +23,7 @@ Sprint 8
 18
 
 > ⚠️ **Priority 18 is append rank, NOT a merit ranking — flagged for owner confirmation.**
-> **On merit this belongs at the very top of [Sprint 8](../../../sprints/plan-sprint-8.md), directly beside `0370`**,
+> **On merit this belongs at the very top of [Sprint 8](../../../sprints/done/plan-sprint-8.md), directly beside `0370`**,
 > because the owner ruled "top of Sprint 8" and his standing build/verify-split rule puts verify tasks there.
 > **Not placed there, and why:** inserting a new row at the top would renumber every row below it, and that board holds
 > closed rows below the top (`0373` ➡️ Moved, `0363` ✅ Done, `0358` ✅ Done, and `0392`–`0404` ➡️ Moved). ADR-035: closed

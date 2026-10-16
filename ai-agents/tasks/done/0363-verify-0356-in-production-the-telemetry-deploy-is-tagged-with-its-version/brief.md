@@ -10,7 +10,7 @@ Sprint 8
 3
 
 > 📌 **2026-10-02 (later) — was 2, now 3.** Moved down one by the OWNER-RULED move of `0373` (read the
-> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
+> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md).
 > OWNER RULING given live via `AskUserQuestion`, verbatim *"Move to rank 2 (Recommended)"*, relayed by `fkit-lead` to a
 > spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Not a merit judgement on this task; nothing else
 > about it changed. The note(s) below are kept as written (ADR-035).
@@ -24,7 +24,7 @@ Sprint 8
 > deploy plus an owner check goes *"on top of the next sprint"* and must not block the current sprint's deploy.
 > Applied to `0356` on 2026-10-01 by the lead's close instruction (relayed by `fkit-lead`, driving
 > `/fkit-sprint-ship-loop`), the same way it was applied to `0358`. It was appended at rank 4 (ADR-035: append, never
-> insert) and then moved to the top within the [Sprint 8 board](../../../sprints/plan-sprint-8.md)'s contiguous run of
+> insert) and then moved to the top within the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md)'s contiguous run of
 > open rows; no closed row exists on that board, so none was renumbered. `0358` moved 1 → 2, `0351` 2 → 3 and `0343`
 > 3 → 4. See the board's 2026-10-01 `0363` addendum. ⛔ Not producer precedent for re-ranking. ⚠️ Rank 1 vs `0358`
 > (rank 2) is **not a merit call** — both are short, independent owner checks on different boxes (telemetry vs

@@ -20,7 +20,7 @@ Sprint 8
 37
 
 ⚠️ **Priority 37 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (36, `0436`); the owner named the sprint, not a rank.
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (36, `0436`); the owner named the sprint, not a rank.
 **On merit this belongs directly above `0428`**, because its first check (is Yandex back?) gates `0428`'s console flip,
 and `0428` in turn feeds `0426`'s text gate. Rank barely matters in practice: this is a reminder list, and what starts
 it is Yandex recovering, not its number.

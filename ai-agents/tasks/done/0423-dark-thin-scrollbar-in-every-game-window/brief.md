@@ -20,7 +20,7 @@ Sprint 8
 21
 
 ⚠️ **Priority 21 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (20, `0415`); the owner named the sprint, not a rank.
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (20, `0415`); the owner named the sprint, not a rank.
 **On merit this belongs directly below `0415`**, because it is low-priority visual polish (nothing is broken, and no
 platform rule is involved), while `0415` is a Yandex-rules fix in the same file. 21 is already directly below `0415`.
 

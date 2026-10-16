@@ -14,7 +14,7 @@ Sprint 7
 > live 2026-10-04 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
 > `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Pull into
 > Sprint 7 (Recommended)"* — option text: *"Move 0373 onto Sprint 7 now. Sprint 7's goal includes citizenship, and 6
-> of its open tasks wait on this one task."* The [Sprint 8](../../../sprints/plan-sprint-8.md) row is kept as
+> of its open tasks wait on this one task."* The [Sprint 8](../../../sprints/done/plan-sprint-8.md) row is kept as
 > `➡️ Moved`. Status unchanged (`🔲 Backlog`); no folder moved, no mover run.
 
 ## Priority
@@ -28,7 +28,7 @@ Sprint 7
 > still holds: the rank does not let this task start early.
 
 > 📌 **2026-10-02 (later) — was 6, now 2. OWNER-RULED placement.** Moved to rank 2, directly below `0370`, on the
-> [Sprint 8 board](../../../sprints/plan-sprint-8.md), on the OWNER RULING given live via `AskUserQuestion`, verbatim
+> [Sprint 8 board](../../../sprints/done/plan-sprint-8.md), on the OWNER RULING given live via `AskUserQuestion`, verbatim
 > *"Move to rank 2 (Recommended)"*, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037; ⛔ not producer
 > precedent). `0363` 2 → 3, `0358` 3 → 4, `0351` 4 → 5, `0343` 5 → 6 (all open; no closed row on that board, so none
 > renumbered). The owner-confirmation flag below is **resolved**; its text is kept struck (ADR-035). The ⏳ note below

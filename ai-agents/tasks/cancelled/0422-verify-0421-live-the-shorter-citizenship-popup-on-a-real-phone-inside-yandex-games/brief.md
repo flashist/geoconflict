@@ -15,7 +15,7 @@ Sprint 8
 19
 
 > ⚠️ **Priority 19 is append rank, NOT a merit ranking — flagged for owner confirmation.**
-> **On merit this belongs directly below `0420`, in the top group of [Sprint 8](../../../sprints/plan-sprint-8.md)**,
+> **On merit this belongs directly below `0420`, in the top group of [Sprint 8](../../../sprints/done/plan-sprint-8.md)**,
 > because the owner's standing build/verify-split rule (2026-09-29) puts a verify task at the top of the next sprint,
 > and `0420` checks the same popup with the same test accounts, so the two are best run in one sitting.
 > **Where it sits, and why not higher:** ADR-035 — a new row always appends; it is never inserted, because closed rows

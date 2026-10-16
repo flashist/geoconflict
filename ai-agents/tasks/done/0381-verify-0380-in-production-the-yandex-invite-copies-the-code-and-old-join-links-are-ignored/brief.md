@@ -6,7 +6,7 @@
 ## Sprint
 Sprint 8
 
-> ➡️ **2026-10-09 — MOVED from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md).** OWNER RULING typed
+> ➡️ **2026-10-09 — MOVED from the Backlog board to [Sprint 8](../../../sprints/done/plan-sprint-8.md).** OWNER RULING typed
 > by the owner in the coordinating Claude Code session (the owner's own message), relayed to a spawned `fkit-producer`
 > with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"1. Yes move to the Sprint 8 and brief a
 > dedicated task for the Sprint 8 to turn the private lobbies on for everybody."* Was ~~Backlog~~. The flip itself is

@@ -25,7 +25,7 @@ implemented, but discussed)"*. The split test, delegated to the producer by the 
 the paid citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog."* End state: exactly
 two briefs. **This is the "no" brief.** The "yes" brief is
 [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on
-~~[Sprint 8](../../../sprints/plan-sprint-8.md)~~ [Sprint 9](../../../sprints/plan-sprint-9.md) *(moved 2026-10-16, owner ruling)*.
+~~[Sprint 8](../../../sprints/done/plan-sprint-8.md)~~ [Sprint 9](../../../sprints/plan-sprint-9.md) *(moved 2026-10-16, owner ruling)*.
 
 📌 **2026-09-29, later — three items moved OUT of this brief to `0343`.** **OWNER RULING given live in the `fkit lead` session on 2026-09-29 (ruling C)**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Leaderboard Rewards, Coin Economy, Clans → Backlog — move that to the Sprint 8."* Leaderboard — Rewards Layer, Coin Economy + Rewarded Ads, and Clans — with their agenda entries, dependencies, questions and verbatim prose — now live in [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (items F, G, H). This brief keeps 5b, 5c and the free historical maps. Nothing was duplicated: each item lives in exactly one brief.
 

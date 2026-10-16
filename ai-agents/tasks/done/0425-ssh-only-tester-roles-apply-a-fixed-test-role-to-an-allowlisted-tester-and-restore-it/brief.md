@@ -19,7 +19,7 @@ Sprint 8
 22
 
 ⚠️ **Priority 22 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (21, `0423`); the owner named the sprint, not a rank.
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (21, `0423`); the owner named the sprint, not a rank.
 **On merit this belongs at the very top of this board, directly beside `0420`**, because it unblocks live checks that
 cannot run today (`0420`'s earned-account items, possibly `0376`) and the owner asked for it *"as one of the first
 things"*. Not inserted there: closed rows sit below the top (`0373`, `0363`, `0358`, `0392`–`0404`, `0422`), and

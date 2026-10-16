@@ -19,7 +19,7 @@ Sprint 8
 30
 
 ⚠️ **Priority 30 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest, directly after the three gate tasks moved in by the same
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest, directly after the three gate tasks moved in by the same
 ruling (`0376` at 27, `0228` at 28, `0381` at 29). The owner named the sprint, not a rank.
 **On merit this belongs directly below `0381`**, because it is the last step of the release chain and cannot start
 before the three gate tasks above it finish. 30 already sits there.

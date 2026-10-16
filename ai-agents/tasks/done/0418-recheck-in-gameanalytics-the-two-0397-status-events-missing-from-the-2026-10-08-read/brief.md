@@ -16,7 +16,7 @@ Sprint 8
 
 > ⚠️ **Priority 17 is append rank, NOT a merit ranking — flagged for owner confirmation.**
 > **On merit its rank barely matters:** it blocks nothing and is time-gated (read it once several days of data exist
-> after the 2026-10-08 deploy). Appended after the [Sprint 8](../../../sprints/plan-sprint-8.md) board's highest
+> after the 2026-10-08 deploy). Appended after the [Sprint 8](../../../sprints/done/plan-sprint-8.md) board's highest
 > (16, `0406`), never inserted (ADR-035) — a position, not merit.
 
 ## Status

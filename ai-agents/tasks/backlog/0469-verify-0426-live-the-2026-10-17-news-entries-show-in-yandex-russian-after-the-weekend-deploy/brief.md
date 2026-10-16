@@ -30,7 +30,9 @@ Sprint 9
 > (the deploy is 2026-10-17, inside Sprint 8) or into Sprint 9 once it exists is the owner's call.
 
 ## Priority
-1
+6
+
+> 📌 **2026-10-16, later — was 1, now 6.** Moved down five on the [Sprint 9 board](../../../sprints/plan-sprint-9.md) by the OWNER-RULED order *"At the top (Recommended)"*, which put the five rows relocated from Sprint 8 above it. Not a merit change for this task. The note(s) below are kept as written (ADR-035).
 
 ## Status
 🔲 Backlog

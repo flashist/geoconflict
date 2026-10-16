@@ -31,7 +31,7 @@ Sprint 7
 > **fixed date** (the 10/11 Oct profile slot at the earliest) with four tasks' deploys waiting behind it (`0250` S3b,
 > `0319`, `0332`, `0323`).
 >
-> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/plan-sprint-8.md), ranks
+> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md), ranks
 > 2–4 are closed rows (`0373` ➡️ Moved, `0363` ✅ Done, `0358` ✅ Done). Putting this task at rank 1 or 2 would
 > renumber them, which ADR-035 forbids *"not even under an owner ruling"*; a new row always appends, and a spawned
 > producer never re-ranks. Same branch as `0390` and `0392`. **Read it as top group, whatever the number says.**
@@ -202,7 +202,7 @@ as `0340`'s rollback target, and the never-pre-S2 rule. Append-only; do not rewr
 placement *"Move to Sprint 7 (Recommended)"*; on `0250` S3b / `0319` / `0332` / `0323`, *"Note only (Recommended)"*.
 
 - **Placement answered:** this task is on [Sprint 7](../../../sprints/done/plan-sprint-7.md), appended at 45; its
-  [Sprint 8](../../../sprints/plan-sprint-8.md) row reads `➡️ Moved to Sprint 7 — priority 45` (rank 9 kept). The
+  [Sprint 8](../../../sprints/done/plan-sprint-8.md) row reads `➡️ Moved to Sprint 7 — priority 45` (rank 9 kept). The
   *Sprint placement is an open question* lines above are answered by this; kept as written.
 - **The four `verified` readers answered:** `0250` (S3b), `0319`, `0332` and `0323` each carry a dated note — *deploy
   only after this task confirms `vfy: true` live*. **No `Depends on` link to this task was added**, by the owner's

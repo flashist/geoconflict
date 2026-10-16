@@ -18,7 +18,7 @@ Sprint 8
 > Applied to `0367` on 2026-10-02 at its close (owner ruling *"Close + file both tasks (Recommended)"*, live
 > `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` driving `/fkit-sprint-ship-loop`), the same way
 > it was applied to `0358` and `0363`. It was appended at rank 5 (ADR-035: append, never insert) and then moved to the
-> top within the [Sprint 8 board](../../../sprints/plan-sprint-8.md)'s contiguous run of open rows; no closed row
+> top within the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md)'s contiguous run of open rows; no closed row
 > exists on that board, so none was renumbered. `0363` moved 1 → 2, `0358` 2 → 3, `0351` 3 → 4 and `0343` 4 → 5. See
 > the board's 2026-10-02 `0370` addendum. ⛔ Not producer precedent for re-ranking. ⚠️ Rank 1 vs `0363` / `0358` is
 > **not a merit call** — they are independent owner checks and do not compete; but this one has a **fixed date**

@@ -216,3 +216,30 @@ the message itself. Append-only; nothing above is touched.
 - **Next:** digest 2 of 2 due 2026-10-17 08:10 UTC. All four boxes can appear only once game prod is deployed.
 
 Status unchanged: `🔲 Backlog`.
+
+## 2026-10-16 — game prod: deploy and steps 4–5 (mid-week, owner's call)
+
+Owner ruling 2026-10-16, live `AskUserQuestion` in a Claude Code session: *"Now, I'll run them"*. Owner ran every box
+step; output pasted and read by that session. No host, address or token recorded here.
+
+- **Step 3 — game prod deploy:** `./build-deploy.sh prod` → `0.0.165` (image `20261016-151715`), ~12:17Z. Section
+  `SSH SECURITY ALERTS`: `agent v1 installed and (re)started`, `OK  ssh-alerts — agent installed for game-prod`;
+  summary `GAME HOST SETUP: OK`; final banner `GAME HOST SETUP OK`.
+  (Profile was redeployed earlier the same day, `0.0.164-profile.2`: *"agent v1 unchanged and running"*.)
+- **Step 4 — per-box sanity, game prod:**
+
+  | Check | Game prod |
+  |---|---|
+  | `geoconflict-ssh-alerts test` | `OK: test event delivered (HTTP 202)` |
+  | `🧪` message arrived | yes — `🧪 SSH alerts test · game-prod` (owner screenshot) |
+  | `geoconflict-ssh-alerts` service | `active` |
+  | `logrotate` installed, config accepted | yes — same nuance as the other boxes: alone it reports `insecure permissions`; the real run (`logrotate -d /etc/logrotate.conf`) considers the file with no error |
+  | `flock` present | yes (`/usr/bin/flock`) |
+  | Overlapping 5-minute ticks in the agent's log | 0 (`previous tick is still running` count) |
+
+- **Step 5 — login alert, game prod: passed.** Owner screenshot: one `🔑 SSH login · game-prod` message for the test
+  login — `root · by key`, time 2026-10-16 12:29 UTC, source **masked** to the first two parts of the address plus a
+  provider hint (digits not copied here). Arrived within the minute.
+- ⇒ **Steps 4 and 5 now pass on all four boxes.**
+- **Still open:** digest 2 of 2 (2026-10-17 08:10 UTC — the first one with game prod on the new agent); 24 h with no
+  per-guess messages (counted from this deploy, so until ~2026-10-17 12:17Z); the per-box report-window check.

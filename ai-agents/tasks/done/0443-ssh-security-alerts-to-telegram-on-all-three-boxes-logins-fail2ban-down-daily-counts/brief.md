@@ -21,7 +21,7 @@ Sprint 8
 40
 
 ⚠️ **Priority 40 is append rank (ADR-035: no insert above closed rows). Its real place is RIGHT AFTER `0441`/`0442`, by
-owner ruling 2026-10-12** — third in line on [Sprint 8](../../../sprints/plan-sprint-8.md), directly below `0442`.
+owner ruling 2026-10-12** — third in line on [Sprint 8](../../../sprints/done/plan-sprint-8.md), directly below `0442`.
 
 ## Status
 ✅ Done (agent-closed — not owner-verified)

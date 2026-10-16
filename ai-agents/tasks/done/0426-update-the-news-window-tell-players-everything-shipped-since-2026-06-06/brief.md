@@ -20,7 +20,7 @@ Sprint 8
 23
 
 ⚠️ **Priority 23 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (22, `0425`); the owner named the sprint, not a rank.
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (22, `0425`); the owner named the sprint, not a rank.
 **On merit this belongs last on the Sprint 8 board, directly below `0425`**, because by design it runs after every
 other Sprint 8 build task (see *Timing*). 23 already sits there. **Rank barely matters here — the Timing rule below
 governs when this task starts, not its number.**

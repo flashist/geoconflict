@@ -10,7 +10,7 @@
 ## Sprint
 Sprint 8 *(was ~~Backlog~~ — moved 2026-10-12, see below)*
 
-> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-12 — OWNER RULING given in the `fkit lead`
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-12 — OWNER RULING given in the `fkit lead`
 > session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer
 > precedent. Verbatim: *"Move it to the Sprint 8"*. Appended to Sprint 8 at rank 43 (ADR-035 append position, **not** a
 > merit rank). Status unchanged (`🔲 Backlog`); scope unchanged. The Backlog-board row is kept as `➡️ Moved`. The filing

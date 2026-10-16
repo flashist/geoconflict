@@ -28,7 +28,7 @@ Sprint 8
 20
 
 ⚠️ **Priority 20 is append rank, NOT a merit ranking — flagged for owner confirmation.** ADR-035 append position after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (19, the cancelled `0422`); the owner named the sprint, not a
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (19, the cancelled `0422`); the owner named the sprint, not a
 rank. **On merit this belongs directly below `0420`**, because the owner found these tooltips while running `0420`'s
 checklist and believes they break a Yandex Games rule — a compliance fix for the game's only storefront. Not inserted
 there: closed rows sit below the top of the board, and ADR-035 never renumbers them, so a new row always appends.

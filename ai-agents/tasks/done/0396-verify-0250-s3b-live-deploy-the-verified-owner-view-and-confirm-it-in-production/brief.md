@@ -29,7 +29,7 @@ note at the end.
 > **On merit this belongs directly below `0370`**, because the owner's standing build/verify-split rule (2026-09-29)
 > puts a verify task *"on top of the next sprint"* and `0370` holds rank 1 by an earlier ruling.
 >
-> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/plan-sprint-8.md), ranks
+> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md), ranks
 > 2–4 are closed rows (`0373` ➡️ Moved, `0363` ✅ Done, `0358` ✅ Done). Putting this task at rank 1 or 2 would
 > renumber them, which ADR-035 forbids *"not even under an owner ruling"*; a new row always appends, and a spawned
 > producer never re-ranks. Same branch as `0390`, `0392` and `0395`. **Read it as top group, whatever the number says.**

@@ -10,7 +10,7 @@ Sprint 8
 5
 
 > 📌 **2026-10-02 (later) — was 4, now 5.** Moved down one by the OWNER-RULED move of `0373` (read the
-> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
+> stale-login data, choose the fix) to rank 2, directly below `0370`, on the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md).
 > OWNER RULING given live via `AskUserQuestion`, verbatim *"Move to rank 2 (Recommended)"*, relayed by `fkit-lead` to a
 > spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Not a merit judgement on this task; nothing else
 > about it changed. The note(s) below are kept as written (ADR-035).
@@ -33,7 +33,7 @@ Sprint 8
 > **Rank 1 is OWNER-RULED placement** — the owner's standing rule (2026-09-29): a verify task that needs a deploy
 > plus an owner check goes *"on top of the next sprint"* and must not block the current sprint's deploy; restated
 > for this task on 2026-09-30 (*"File a verify task for Sprint 8"*). It was appended at rank 2 (ADR-035: append,
-> never insert) and then moved to the top within the [Sprint 8 board](../../../sprints/plan-sprint-8.md)'s
+> never insert) and then moved to the top within the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md)'s
 > contiguous run of open rows by that ruling; no closed row exists on that board, so none was renumbered. See the
 > board's 2026-09-30 addendum. ⛔ Not producer precedent for re-ranking.
 

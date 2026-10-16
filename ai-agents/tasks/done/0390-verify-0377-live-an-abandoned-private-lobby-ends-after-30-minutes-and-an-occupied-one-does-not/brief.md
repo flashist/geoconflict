@@ -18,7 +18,7 @@ Sprint 8
 > puts a verify task *"on top of the next sprint"*, and `0370` already holds rank 1 there by an earlier ruling.
 >
 > **Why it is not at the top — the rule's cheapest-to-reverse branch, stated plainly.** The relayed instruction was
-> "top of Sprint 8". On the [Sprint 8 board](../../../sprints/plan-sprint-8.md) today, ranks 2–4 are closed rows
+> "top of Sprint 8". On the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md) today, ranks 2–4 are closed rows
 > (`0373` ➡️ Moved, `0363` ✅ Done, `0358` ✅ Done). Putting this task at rank 1 or 2 would renumber those closed rows,
 > which ADR-035 forbids *"not even under an owner ruling"*; and a spawned producer never re-ranks anyway. So it was
 > **appended at 7** — the reversible branch. The earlier verify tasks (`0351`, `0358`, `0363`, `0370`) reached the top

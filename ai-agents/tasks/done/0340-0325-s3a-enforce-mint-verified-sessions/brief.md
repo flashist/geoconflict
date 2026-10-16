@@ -258,7 +258,7 @@ the fix ships — *"It gates starting `0340`"*); placement **"Fix: Sprint 7, che
   (the fix: freshness window 900 s → 24 h, id checked before age; [Sprint 7](../../../sprints/done/plan-sprint-7.md)) →
   [`0392`](../../done/0392-read-the-post-0391-login-numbers-before-the-0340-deploy/brief.md) (~~the S2-exit re-check, pass =
   ≤5% over 7 days~~ *superseded 2026-10-05 by ADR-122: reads whatever post-`0391` data exists when the owner needs it,
-  no fixed bar, gates nothing on its own*; [Sprint 8](../../../sprints/plan-sprint-8.md)) → this task. *(ADR-122:
+  no fixed bar, gates nothing on its own*; [Sprint 8](../../../sprints/done/plan-sprint-8.md)) → this task. *(ADR-122:
   → this task's **deploy**, not its start.)* `0373` produced the decision and stays
   open until the lead routes its close.
 - ~~**Gate item 1** (*"`0339`'s S2 exit is met"*) now reads: **`0392` PASS**.~~ *(Superseded 2026-10-05 by ADR-122 —
@@ -319,7 +319,7 @@ plan gate, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawne
 - **New close condition:** this task closes once it is **built and reviewed** (agent-closed, per ADR-033). The earlier
   *"does not close until that note is applied"* condition is struck above.
 - **Moved to [`0395`](../../done/0395-verify-0340-live-deploy-s3a-and-confirm-verified-logins-in-production/brief.md)**
-  (~~[Sprint 8](../../../sprints/plan-sprint-8.md)~~ [Sprint 7](../../../sprints/done/plan-sprint-7.md) — moved the same day by owner ruling *"Move to Sprint 7 (Recommended)"*): the deploy gate (`0391` live; the owner's look via `0392`; the
+  (~~[Sprint 8](../../../sprints/done/plan-sprint-8.md)~~ [Sprint 7](../../../sprints/done/plan-sprint-7.md) — moved the same day by owner ruling *"Move to Sprint 7 (Recommended)"*): the deploy gate (`0391` live; the owner's look via `0392`; the
   separate approval to enforce), the deploy itself, the delta check, the post-deploy watch, the worklog deploy entry, the
   ⛔ one-way rollback rule (target = the `0391` image; never pre-S2), the owner's DevTools `vfy` check, routing the
   ADR-113 note to `fkit-architect`, and the runbook's rollback-target line. Source: `plan.md` § 4 and § 3's rollback

@@ -23,7 +23,7 @@ Sprint 8
 > ⚠️ **Priority 51 is append rank, NOT a merit ranking — flagged for owner confirmation.**
 > **On merit its rank barely matters** — it blocks nothing, and the value is already public (public repository, and
 > git history keeps the old copies whatever this task does), so a day earlier or later changes little. Appended after
-> the [Sprint 8](../../../sprints/plan-sprint-8.md) board's highest (50, `0456`), never inserted (ADR-035) — a position,
+> the [Sprint 8](../../../sprints/done/plan-sprint-8.md) board's highest (50, `0456`), never inserted (ADR-035) — a position,
 > not merit.
 
 ## Status

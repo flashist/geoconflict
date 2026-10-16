@@ -31,7 +31,7 @@ Sprint 8
 
 🚨 **TOP PRIORITY BY OWNER RULING (2026-10-12).** **Priority 38 is append rank, NOT a merit ranking — flagged for owner
 confirmation.** ADR-035 forbids inserting a new row above closed rows, so it appends after
-[Sprint 8](../../../sprints/plan-sprint-8.md)'s highest (37, `0440`). **On merit — and by the owner's ruling — this is
+[Sprint 8](../../../sprints/done/plan-sprint-8.md)'s highest (37, `0440`). **On merit — and by the owner's ruling — this is
 the first open work to pick up on the board**, directly above `0440`, because the game box takes ~260 password guesses an
 hour and our own password logins already failed a production deploy.
 

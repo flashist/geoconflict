@@ -23,7 +23,7 @@ Sprint 8
 > **On merit this belongs directly below `0351` — i.e. above `0343`, the board's first open row**, because the owner
 > ruled it *"our next task in the Sprint 8"* and because every day the limit stays breached risks the metrics the owner
 > wants to keep collecting. ADR-035 forbids inserting above closed rows, so it appends after the
-> [Sprint 8](../../../sprints/plan-sprint-8.md) board's highest (49, `0455`) — a position, not merit. **The work
+> [Sprint 8](../../../sprints/done/plan-sprint-8.md) board's highest (49, `0455`) — a position, not merit. **The work
 > order is the owner's ruling, not the rank number: the ship loop takes this task next.**
 
 ## Status

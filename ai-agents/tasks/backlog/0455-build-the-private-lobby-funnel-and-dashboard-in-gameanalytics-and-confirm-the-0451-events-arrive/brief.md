@@ -12,7 +12,7 @@
 ## Sprint
 Sprint 9
 
-> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"I think we need to move the 0455 task to the next sprint, because it requires few days of analytics after deploy."*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. This supersedes the 2026-10-14 placement ruling below (*"Sprint 8"*), which is kept as written.
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** OWNER RULING typed live by the owner in a Claude Code session on 2026-10-16, relayed by that session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim *"I think we need to move the 0455 task to the next sprint, because it requires few days of analytics after deploy."*; the relaying session resolved "next sprint" = Sprint 9. Moved to the [Sprint 9 board](../../../sprints/plan-sprint-9.md); the [Sprint 8](../../../sprints/done/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close. This supersedes the 2026-10-14 placement ruling below (*"Sprint 8"*), which is kept as written.
 
 > 📌 **OWNER RULING, 2026-10-14, given live via `AskUserQuestion` in the `fkit lead` session driving
 > `fkit-sprint-ship-loop`**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
@@ -23,13 +23,15 @@ Sprint 9
 > build/verify-split rule (2026-09-29: the verify task goes to the top of the **next** sprint) **for this case only.**
 
 ## Priority
-3
+8
+
+> 📌 **2026-10-16, later — was 3, now 8.** Moved down five on the [Sprint 9 board](../../../sprints/plan-sprint-9.md) by the OWNER-RULED order *"At the top (Recommended)"*, which put the five rows relocated from Sprint 8 above it. Not a merit change for this task. The note(s) below are kept as written (ADR-035).
 
 > 📌 **2026-10-16 — was 49 (Sprint 8), now 3 (Sprint 9).** Rank is board-scoped: on the move to Sprint 9 this task was **appended** at 3, below `0343` (ADR-035 append rank). ~~⚠️ **The producer's placement — NOT owner-ruled, not a merit judgement.**~~ ✅ **Owner-confirmed 2026-10-16, later** — OWNER RULING given live via `AskUserQuestion` on 2026-10-16 in the same Claude Code session, relayed by it to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent: verbatim *"Keep slot 3 (Recommended)"*. The note below is Sprint 8 history, kept as written.
 
 > ⚠️ **Priority 49 is append rank, NOT a merit ranking — flagged for owner confirmation.**
 > **On merit its rank barely matters:** it blocks nothing and is time-gated (only workable once `0451` is deployed to
-> production and several days of data exist). Appended after the [Sprint 8](../../../sprints/plan-sprint-8.md) board's
+> production and several days of data exist). Appended after the [Sprint 8](../../../sprints/done/plan-sprint-8.md) board's
 > highest (48, `0454`), never inserted (ADR-035) — a position, not merit.
 
 ## Status

@@ -9,7 +9,7 @@
 ## Sprint
 Sprint 8
 
-📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/plan-sprint-8.md) on 2026-10-15** — OWNER RULING given live
+📌 **Moved from the Backlog board to [Sprint 8](../../../sprints/done/plan-sprint-8.md) on 2026-10-15** — OWNER RULING given live
 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
 channel (ADR-021/037); ⛔ not producer precedent. Verbatim **"Build it as 0384 (Recommended)"** (Ruling A — see the
 2026-10-15 note under `## Context`).
@@ -17,7 +17,7 @@ channel (ADR-021/037); ⛔ not producer precedent. Verbatim **"Build it as 0384 
 *(Earlier value, kept as history — true until 2026-10-15:)* ~~Backlog~~
 
 ## Priority
-**54** — board rank on [Sprint 8](../../../sprints/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
+**54** — board rank on [Sprint 8](../../../sprints/done/plan-sprint-8.md), set 2026-10-15. ⚠️ **Append rank (ADR-035), NOT a
 merit ranking** — ~~flagged for owner confirmation~~. On merit it belongs directly below `0219`, whose B6/V2 item it fixes.
 ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (Ruling D, live `AskUserQuestion`, relayed by `fkit-lead`; ⛔ not producer
 precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"* — option text *"Confirms the importance order. Row

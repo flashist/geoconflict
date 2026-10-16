@@ -32,7 +32,7 @@ Sprint 7
 > by an earlier ruling. Among the open verify rows it is also the one with the most work waiting behind it (`0340` and
 > six tasks after that).
 >
-> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/plan-sprint-8.md), ranks
+> **"Top" conflicts with ADR-035, stated plainly.** On the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md), ranks
 > 2–4 are closed rows (`0373` ➡️ Moved, `0363` ✅ Done, `0358` ✅ Done). Putting this task at rank 1 or 2 would
 > renumber them, which ADR-035 forbids *"not even under an owner ruling"*; a new row always appends, and a spawned
 > producer never re-ranks. So it was **appended at 8** — the same branch taken for `0390`. **Read it as top group,
@@ -179,7 +179,7 @@ placement *"Move to Sprint 7 (Recommended)"*; when it closes *"After the first l
 links"*.
 
 - **Sprint:** now [Sprint 7](../../../sprints/done/plan-sprint-7.md), appended at **44** (ADR-035 append rank, not a merit
-  rank). Its [Sprint 8](../../../sprints/plan-sprint-8.md) row is `➡️ Moved`.
+  rank). Its [Sprint 8](../../../sprints/done/plan-sprint-8.md) row is `➡️ Moved`.
 - **Scope, narrowed — one look, then close.** Read the post-`0391` login numbers (stale share, `ok`, `id_mismatch`,
   `bad_payload`, plus the per-day / per-hour split and the stale-age brackets) from the first post-deploy point to the
   time of the read, **before `0340`'s deploy** (target: the 10/11 Oct slot). The *"again before each later deploy that

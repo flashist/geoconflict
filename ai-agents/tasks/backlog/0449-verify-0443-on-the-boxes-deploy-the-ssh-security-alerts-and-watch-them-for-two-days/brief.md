@@ -8,7 +8,11 @@
 > `ai-agents/tasks/`, `ai-agents/sprints/` or `.claude/`, and no `tasks/*/0449*` path in any branch's history.
 
 ## Sprint
-Sprint 8
+Sprint 9
+
+> 📌 **2026-10-16 — was Sprint 8, now Sprint 9.** Relocated by `/fkit-sprint-done` at the Sprint 8 close (agent-closed — not owner-verified), on the OWNER RULINGS given 2026-10-16 in a Claude Code session, relayed by it to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Typed by the owner, verbatim *"Can we move all the tasks tha require wait for certain time to Sprint 9?"*; then live `AskUserQuestion`: *"Move all 5 waiting tasks (0452, 0449, 0385, 0219, 0213) to Sprint 9 — and close Sprint 8?"* → **"Move all + close Sprint 8 (Recommended)"**; *"Where should the 5 go on Sprint 9?"* → **"At the top (Recommended)"** — option text: *"They finish within about 24 hours, so they go first: 0385 → 0219 → 0213, then 0452, 0449, then 0469, 0343, 0455."*. The [Sprint 8](../../../sprints/done/plan-sprint-8.md) row stays as a `➡️ Moved` pointer. Not a close of this task.
+
+*(Earlier value, kept as history — true until 2026-10-16:)* ~~Sprint 8~~
 
 > 📌 **OWNER RULING, 2026-10-12, given live via `AskUserQuestion` in the `fkit lead` session** (driver of
 > `fkit-sprint-ship-loop`), relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037);
@@ -21,9 +25,13 @@ Sprint 8
 > standing rule.
 
 ## Priority
-42
+5
 
-⚠️ **Priority 42 is append rank, NOT a merit ranking** — ~~flagged for owner confirmation~~. ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent; verbatim *"Confirm that order (Recommended)"*): **`0452` → `0462` → `0449`/`0450` near the top, and `0219` near the top for its deadline.** Rank number unchanged (ADR-035). See the 2026-10-15 four-rulings addendum on the [Sprint 8 board](../../../sprints/plan-sprint-8.md).
+> 📌 **2026-10-16 — was 42 (Sprint 8), now 5 (Sprint 9).** ✅ **OWNER-RULED placement** — *"At the top (Recommended)"* (order `0385` → `0219` → `0213` → `0452` → `0449`, then `0469`, `0343`, `0455`); the mover had appended it at 6 (ADR-035). The text below is Sprint 8 history, kept as written.
+
+~~42~~ *(Sprint 8 rank — history)*
+
+⚠️ **Priority 42 is append rank, NOT a merit ranking** — ~~flagged for owner confirmation~~. ✅ **Merit order OWNER-CONFIRMED 2026-10-15** (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent; verbatim *"Confirm that order (Recommended)"*): **`0452` → `0462` → `0449`/`0450` near the top, and `0219` near the top for its deadline.** Rank number unchanged (ADR-035). See the 2026-10-15 four-rulings addendum on the [Sprint 8 board](../../../sprints/done/plan-sprint-8.md).
 **On merit this belongs directly below `0445`**, because its game-box steps cannot pass until `0445` has installed the
 game key for `root` (see *Context*). ADR-035 forbids inserting a new row above closed rows, so it appends after the
 highest (41, `0445`). Its profile and telemetry steps do not wait on `0445`.

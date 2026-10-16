@@ -81,3 +81,23 @@ and read by the main session.
 - Game dev: V2, V3, V4 passed; V5 passed 2026-10-15 16:01 MSK, with the fail2ban-restart note (`0462`, owner ruling).
 - Game prod: not started — weekend slot (V5 still pending there).
 - Q3 switch removal (verification step 7): after all three boxes pass — not started.
+
+## 2026-10-16 — game prod: deploy (mid-week, owner's call)
+
+**Context.** Owner ruling 2026-10-16, live `AskUserQuestion` in a Claude Code session: *"Now, I'll run them"* — game
+prod deployed on Friday instead of the weekend slot, to finish Sprint 8. Every box step run by the owner, guided by that
+session; output pasted and read by it. No host, address, key or password recorded here.
+
+- **Deploy:** `./build-deploy.sh prod` → **`0.0.165`** (commit `3c00dcf`, image tag `20261016-151715`), ~12:17Z
+  (15:17 MSK). A root key session (Terminal A) was open before the deploy and kept open until the checks passed.
+- **V4 — passed (deploy).** `SSHD HARDENING (0442)`: `✅ sshd:` lines for `passwordauthentication no`,
+  `kbdinteractiveauthentication no`, `permitemptypasswords no`, `permitrootlogin prohibit-password`, each "global +
+  root-effective", then `OK  sshd — password login off, root key-only`. Summary `GAME HOST SETUP: OK`, final banner
+  `✅ GAME HOST SETUP OK` (token set this time, so no exit-3 case).
+- **V2 — passed.** From a new terminal: key login printed `KEY-OK`; password-only login got
+  `Permission denied (publickey)` with no password prompt.
+- **V3 — passed.** `sshd -T` and `sshd -T -C user=root,host=localhost,addr=127.0.0.1` both show
+  `passwordauthentication no` and `permitrootlogin without-password`.
+- **V5 — pending:** fail2ban re-check a few hours after the deploy (baseline from P4: total failed 238595 — but see the
+  game dev note: a fail2ban restart resets the counters).
+- **Q3 switch removal** — after V5 on prod.

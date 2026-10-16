@@ -12,7 +12,7 @@
 ## Sprint
 Sprint 8 *(was ~~Backlog~~ — moved 2026-10-11, see below)*
 
-> ➡️ **MOVED TO [SPRINT 8](../../../sprints/plan-sprint-8.md) ON 2026-10-11 — OWNER RULING given live via
+> ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-11 — OWNER RULING given live via
 > `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner
 > channel (ADR-021/037); ⛔ not producer precedent. Verbatim selection: **"0436 backup test fix"** (same question as
 > `0437`'s move — work to do while waiting on Yandex infrastructure). Appended to Sprint 8 at rank 36 (ADR-035 append
