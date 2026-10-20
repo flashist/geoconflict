@@ -51,13 +51,13 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
 > `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent.
 >
 > - **Ruling A.** Earlier the same day the owner chose *"Pin by digest (Recommended)"* inside
->   [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the same fix as this
+>   [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the same fix as this
 >   task (2026-10-04 ruling, ADR-120). Asked which task the work goes under (*"The work is identical either way; this
 >   is just which record it lives in."*), the owner selected, verbatim: **"Build it as 0384 (Recommended)"** — option
 >   text: *"The producer moves 0384 into Sprint 8, and 0385 checks it on the box after the deploy. 0219's B6 item just
 >   points to them. It uses the task, checklist and check-task split that already exist."* Not chosen: *"Build it
 >   under 0219"*. ⇒ Built **here**; `0219`'s B6/V2 item points to this task and to
->   [`0385`](../../backlog/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), and is met
+>   [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), and is met
 >   when `0385` passes.
 > - **Ruling B.** Asked: *"The exact Postgres fingerprint will be written in 4 places: the box setup file, the restore
 >   instructions, and twice in the backup test. Should a test fail if those ever stop matching?"* Selected, verbatim:
@@ -80,7 +80,7 @@ with no owner channel (ADR-021/037), on rulings the owner gave live via `AskUser
   `profile` systemd unit's `compose up` can also recreate it. Any of those can silently move the database to a newer
   minor version that nobody chose.
 - **It already happened.** Recorded in
-  [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the 2026-09-26 slot,
+  [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the 2026-09-26 slot,
   *FINDING (W5 → W10)*): the box was running an older, untagged image; `0219`'s G2 prune deleted the tagged
   `postgres:16-alpine`; after a Docker restart the systemd unit re-pulled the label and recreated the DB on
   **PostgreSQL 16.15**. Data was intact — but it was an unplanned upgrade. `0219` left the fix direction undecided;
@@ -167,7 +167,7 @@ prune's strategy.
 - **Blocks:** 0385, 0388
 - **Why its own task.** Different box, different script, different deploy command from the telemetry lock (`0386`);
   each can be built, tested and deployed alone. The quarterly bump (`0388`) needs both locks to exist first.
-- **Related:** [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — where the
+- **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — where the
   incident is recorded and where this fix direction was left open. Since 2026-10-15 (Ruling A) this task **is** `0219`'s B6/V2 fix; `0219`'s
   B6/V2 is met when `0385` passes. `0282` (the R3 substitution residual). `0275`
   (restore proven against the moving label — the drill should keep using the same image as the box).

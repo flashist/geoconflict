@@ -624,7 +624,7 @@ PRODUCTION* block under `## Status`). ⛔ Not closed here — the close is route
   the 503 claim as superseded by this brief.**
   - **Live, open task briefs** — [`0014`](../../done/0014-yandex-catalog-registration/brief.md) (its verification
     section states all three payments routes return 503 without the key),
-    [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md),
+    [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
     [`0018`](../0018-citizenship-paid/brief.md), and
     [`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md) with its plan/worklog/review.
     ⚠️ **Not corrected** — the ruling scoped the correction to **this** brief and told the producer to
@@ -648,7 +648,7 @@ PRODUCTION* block under `## Status`). ⛔ Not closed here — the close is route
     NOT cleared by issuance alone."* ⚠️ **The redeploy DID happen (owner-attested) and the routes were
     observed not 503ing** — but the *conclusion* `0014` draws (its own gate is not satisfied) **still
     holds**, because the test-purchase login(s) are outstanding independently.
-  - **[`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)** (`:270`) and
+  - **[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)** (`:270`) and
     **[`0064`](../../done/0064-deploy-time-config-parity-guard/brief.md)** (`:244`, `:249`, plus its
     plan/worklog/review) — both already hedge the 503 claim as *never verified against a running box*,
     so they are the mildest cases.

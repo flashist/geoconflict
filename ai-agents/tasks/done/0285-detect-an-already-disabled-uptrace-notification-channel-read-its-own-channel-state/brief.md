@@ -147,7 +147,7 @@ fkit-coder
 
 ⚠️ Plus **owner steps** — reading the monitoring stack's internal state happens on the telemetry box,
 and the guard must be **seen to actually trip once** before anyone trusts it. A guard nobody has
-watched fire proves nothing ([`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+watched fire proves nothing ([`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
 precedent, cited the same way in `0284`).
 
 ### ⛔ DEFERRED past the weekend deploy slot — OWNER RULING 2026-09-19
@@ -159,7 +159,7 @@ and relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner chann
 Shown a conflict between their own two instructions of that day — *"prepare all the related things to
 citizenship and profile"* versus *"focus on the tasks that related to the core functionality of the
 features (not monitoring/messaging)"* — the owner **split
-[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
 (container log rotation) and G2 (image prune) are prepared before the weekend deploy slot, and its
 G3/G4 (external uptime check, `last-backup.json` freshness reader) are **deferred — together with THIS
 task and [`0289`](../0289-prove-a-telegram-alert-arrives-after-an-idle-period-0274-amendment-a1/brief.md)**,

@@ -246,7 +246,7 @@ Write `ai-agents/knowledge-base/reports/<YYYY-MM-DD>-0456-gameanalytics-per-user
      any problems during releases)"*. After `fkit-lead`'s answer (normal days fine, ~114 per user; spikes very likely
      to recur, ~10 since late August; docs say alert only, no data loss): **"Yes, file it in Backlog (Recommended)"** —
      *"Monitoring only; no proposed solutions; nothing dropped or filtered."* (→
-     [`0458`](../../backlog/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md)) and **"Yes, close with the
+     [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md)) and **"Yes, close with the
      report (Recommended)"** — *"A producer closes 0456 (agent-closed marker); I put the 0230/0226/game-ID questions to
      you then."* ⇒ **No code fix, no follow-up fix task.** The report's §12 fix options stay in the report as analysis
      only.
@@ -265,7 +265,7 @@ Write `ai-agents/knowledge-base/reports/<YYYY-MM-DD>-0456-gameanalytics-per-user
   [report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md) §11 leaves
   hypothesis 3 **open** on its broad reading — the leading lead is the GameAnalytics SDK re-sending queued events, **not
   proven** (§7, §10). `0230` stays `🔲 Backlog` on the Backlog board; future spikes are logged by
-  [`0458`](../../backlog/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md).
+  [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md).
 - ~~📌 **At close: cancel [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md) as absorbed by
   `0456` — only if the findings report marks all four of 0230's hypotheses confirmed/refuted; else back to the
   owner.** The producer closing `0456` runs `/fkit-task-cancelled` on `0230` in the same act, with a reason naming

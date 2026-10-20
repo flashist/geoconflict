@@ -58,7 +58,7 @@ anything.** The same quiet is what prompted this deferral.
   (12 Oct, 26 Sep, 4 Sep, 9 Sep) sessions stayed normal, so the extra events were **not new page loads**. Not proven:
   it needs GameAnalytics to keep duplicates and date them by arrival, and the rate is unexplained; which browser(s)
   or source drives it was **not identified**. ⛔ Not to be written down as the cause.
-- **Future spikes** are logged by [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md) (Backlog board, monitoring only). Status here unchanged: `🔲 Backlog`.
+- **Future spikes** are logged by [`0458`](../../done/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md) (Backlog board, monitoring only). Status here unchanged: `🔲 Backlog`.
 - The *"do not start separately while `0456` is open"* line in the struck section below has lapsed — `0456` is closed.
 
 ### ~~📌 2026-10-14 — TO BE CANCELLED AS ABSORBED BY `0456` WHEN `0456` CLOSES — conditional. Not cancelled yet.~~ *(Superseded 2026-10-14 by the section above — the condition was not met; kept as history.)*
@@ -374,7 +374,7 @@ found. See `0224`'s closing note §4.
 
 - 📌 **2026-10-14 — NOT cancelled, by OWNER RULING** *"Not answered: keep 0230 open (Recommended)"* (relayed by
   `fkit-lead`; ⛔ not producer precedent). Hypothesis 3 stays **open**; leading lead (**not proven**): the GameAnalytics
-  SDK re-sending queued events — [`0456`'s report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md) §7, §10, §11. Future spikes: [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md). Full note: the
+  SDK re-sending queued events — [`0456`'s report](../../../knowledge-base/reports/2026-10-14-0456-gameanalytics-per-user-event-limit-findings.md) §7, §10, §11. Future spikes: [`0458`](../../done/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md). Full note: the
   first 📌 section under `## Sprint`.
 - ~~📌 **2026-10-14 — to be cancelled as absorbed by [`0456`](../../done/0456-investigate-and-plan-the-fix-gameanalytics-500-events-per-user-per-day-limit-exceeded-again/brief.md)
   when `0456` closes**, by OWNER RULING *"Absorb, cancel at 0456 close (Recommended)"* — conditional on `0456`'s report

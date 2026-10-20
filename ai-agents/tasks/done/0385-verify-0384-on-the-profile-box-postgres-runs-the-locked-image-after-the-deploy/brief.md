@@ -49,7 +49,7 @@ precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"*). Row numb
 > producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
 > 📌 **2026-10-20 — was ~~🔲 Backlog~~, now `🔄 In progress`.** The work had started: the worklog records the 2026-10-16 deploy and after-checks (steps 1, 2, 3, 6 pass; 4 and 7 recorded; 8 skipped by the owner); only step 5 (the next nightly backup marker) is left. Corrected by a spawned `fkit-producer` on the owner ruling "fix it" (2026-10-20, fix the board/brief status mismatches), relayed; ⛔ not producer precedent. Board row on [Sprint 9](../../../sprints/plan-sprint-9.md) changed to match.
 
 ## Owner
@@ -105,7 +105,7 @@ backup marker existed before the deploy (record its date).
 - **Blocks:** nothing
 - **Why its own task.** The owner's build/verify rule: proof that needs a deploy plus an owner check is a separate task,
   so `0384` can close on its tests and this one does not hold up a sprint.
-- **Can share a weekend slot with** [`0387`](../0387-verify-0386-on-the-telemetry-box-postgres-and-redis-run-the-locked-images-after-the-deploy/brief.md)
+- **Can share a weekend slot with** [`0387`](../../backlog/0387-verify-0386-on-the-telemetry-box-postgres-and-redis-run-the-locked-images-after-the-deploy/brief.md)
   (the telemetry check). Producer's suggestion, owner's call.
 - **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the
   incident; its V2 *"leaves current + rollback intact"* is the same concern). Since 2026-10-15 (Ruling A) this task **is** `0219`'s B6/V2 re-check.

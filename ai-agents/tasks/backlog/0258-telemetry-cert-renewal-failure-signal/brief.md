@@ -12,7 +12,7 @@ Unscheduled
 **Producer's rank, if pulled into a sprint: Medium.** Not owner-ruled. Medium, not High, only because
 [`0257`](../../done/0257-telemetry-cert-expired-renew-now-and-fix-renewal-cron/brief.md) must land first and
 the next real renewal attempt is ~60 days after it does; but this is the **same "outage nobody
-noticed" class** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+noticed" class** [`0219`](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
 was promoted for on the profile box — and on this box the outage **actually happened**: the cron
 failed silently twice a day for ~30 days, then the certificate expired, and it took ten more days
 and an unrelated investigation to notice.

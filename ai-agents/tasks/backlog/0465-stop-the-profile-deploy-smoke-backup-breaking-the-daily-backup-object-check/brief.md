@@ -161,7 +161,7 @@ nightly backup `30 2 * * *` (`setup-profile.sh:1826`), checks `0 8 * * *` (`setu
 - **Build/verify split (owner rule).** This is the **build** task. The live check (verification step 7) is **not**
   filed now — when this task closes, the producer files a separate **verify** task at the top of the next sprint.
 - **Deploy in a weekend slot** unless the owner rules it urgent.
-- **Source of the residuals:** [`0219` worklog](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/worklog.md)
+- **Source of the residuals:** [`0219` worklog](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/worklog.md)
   R3 and R9; [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) for the
   restore-drill picture.
 - **Timing correction for the owner:** the offer behind this task said every deploy triggers a false alarm the next

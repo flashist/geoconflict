@@ -69,6 +69,6 @@ the newest Postgres backup on the box before the deploy.
 - **Blocks:** nothing
 - **Why its own task.** The owner's build/verify rule: proof needing a deploy plus an owner check is separate, so
   `0386` can close on its tests.
-- **Can share a weekend slot with** [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md).
+- **Can share a weekend slot with** [`0385`](../../done/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md).
   Producer's suggestion, owner's call.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

@@ -25,7 +25,7 @@ Backlog
 (Backlog board, unranked by design. On the rule above, it goes to the top of Sprint 9.)
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** It needs a deploy of `0454`'s code and a check in the owner's

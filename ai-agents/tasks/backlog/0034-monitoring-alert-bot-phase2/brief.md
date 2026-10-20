@@ -76,6 +76,16 @@ conditions to the existing dedup/state/digest path — it does not introduce a s
    > do NOT alert "missing marker" on a box whose first cron hasn't fired yet. Recoverability at
    > deploy time is instead proven by `last-smokecheck.json` (exit_status 0). Optionally also
    > surface `last-smokecheck.json != 0` as a deploy-health signal.
+   >
+   > 📌 **2026-10-20 — cross-reference from [`0219`](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+   > (its V8; owner ruling Q7: the producer adds this note at `0219`'s close).** ✅ **The PROFILE half of
+   > this item is implemented by `0219`** in `profile-checks.sh` (on the box as `checks.sh`, daily cron): it
+   > reads `last-backup.json` (`exit_status != 0`, or `finished_at` older than 26 h, with this item's
+   > fresh-box rule via `last-smokecheck.json`), checks the daily object really exists off-box, and checks the
+   > newest weekly copy is ≤ 8 days old; results go to a dead-man heartbeat that alerts the owner by email.
+   > Alarm drills watched arriving 2026-10-15/16 (`0219` worklog). **Do not build the profile half again.**
+   > ⏳ **The TELEMETRY half remains** — the telemetry box's weekly local dump is not covered by `0219`.
+   > Written by a spawned `fkit-producer` (agent-closed close of `0219`, not owner-verified).
 
 6. **Addition — predictive disk trend.** Alert on disk growth *rate* ("`/` fills in ~N days
    at current rate"), which catches slow Family-A growth earlier than a static % threshold.

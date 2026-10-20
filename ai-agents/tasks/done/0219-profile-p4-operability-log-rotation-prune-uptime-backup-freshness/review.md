@@ -1,6 +1,6 @@
 # Review — 0219
 
-Task: ai-agents/tasks/backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md
+Task: ai-agents/tasks/done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md
 File(s) under review: setup-profile.sh · build-deploy-profile.sh · profile-checks.sh (new) · example.env.profile · tests/profile-checks.sh (new) · tests/scripts/profile-deploy-hardening.test.sh · tests/scripts/ShellHarnesses.test.ts · CLAUDE.md · ai-agents/knowledge-base/container-log-retention.md · ai-agents/knowledge-base/profile-backup-restore-runbook.md (`:23` cell only)
 Status: closed-out
 

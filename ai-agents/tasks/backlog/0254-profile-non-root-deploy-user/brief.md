@@ -12,7 +12,7 @@
 > prefixes) — empty.
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../../done/0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Backlog

@@ -8,7 +8,7 @@ Sprint 4
 
 ➡️ **PROMOTED FROM THE BACKLOG BOARD INTO SPRINT 4 ON 2026-09-04**, on an owner ruling given live in
 session: **all phases P0–P7 of the profile backend clean-slate rebuild go into Sprint 4.** This task
-**is P7** of that epic ([`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)) — specifically
+**is P7** of that epic ([`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)) — specifically
 its **Phase 2**. The [Backlog board](../../../sprints/backlog.md) row is **kept as a pointer** and
 flipped to `➡️ Moved`, not deleted.
 

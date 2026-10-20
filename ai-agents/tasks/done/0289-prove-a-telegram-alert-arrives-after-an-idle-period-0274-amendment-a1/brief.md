@@ -177,7 +177,7 @@ and relayed by `fkit-lead` to a spawned `fkit-producer` holding **no owner chann
 Shown a conflict between their own two instructions of that day — *"prepare all the related things to
 citizenship and profile"* versus *"focus on the tasks that related to the core functionality of the
 features (not monitoring/messaging)"* — the owner **split
-[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)**: its G1
 (container log rotation) and G2 (image prune) are prepared before the weekend deploy slot, and its
 G3/G4 (external uptime check, `last-backup.json` freshness reader) are **deferred — together with THIS
 task and [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)**,
@@ -415,7 +415,7 @@ worklog must not round it up into one.**
     code.**
   - [`0285`](../../done/0285-detect-an-already-disabled-uptrace-notification-channel-read-its-own-channel-state/brief.md)
     — the separate hole: a channel that is **already** disabled reads green everywhere.
-  - [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
+  - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
     precedent this brief leans on twice: *a guard nobody has watched trip proves nothing*, and *an
     asserted arrival does not count*.
 - **Effort:** small. **No code.** Owner elapsed time is dominated by the wait, not by attention — minutes

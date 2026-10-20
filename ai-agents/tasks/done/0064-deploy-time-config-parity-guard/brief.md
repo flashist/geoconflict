@@ -300,7 +300,7 @@ which drifts, and which is then the thing lying to us.
   503 there. ✅ **The DEFECT and the FIX are unaffected** — the staged-export omission was real and
   `0195` fixed it; what was wrong was the phrase presenting a deduction as a sighting.
   ⚠️ **Read every "on the real box" in this brief as "on a box whose state nobody has checked."**
-  Inspection + rebuild: epic [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md),
+  Inspection + rebuild: epic [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md),
   phases P0–P7.
   Three consequences for this task:
   **(i)** the class table above should be read as four rows, not three, and this one confirms the

@@ -37,7 +37,7 @@
 > without an `age` identity nobody can name; disposition is
 > [`0222`](../../done/0222-profile-cleanup-obsolete-secrets-and-old-bucket-objects/brief.md).
 >
-> 📌 Epic: [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md). Full survey:
+> 📌 Epic: [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md). Full survey:
 > [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md)
 > — **read its §0 if you are unsure what was done and what was not.**
 > **This task's `✅ Done` status is CORRECT and deliberate — the work was done; what happened to the
@@ -386,9 +386,20 @@ These are by-design gaps in the current scripts; flag them, do not fix them here
   image storage grows across redeploys. Run `docker image prune -f` periodically (keep current +
   rollback). The script logs a disk warning to `/var/log/disk-warnings.log` once `df /` exceeds
   60% — nothing pages on it.
+  > 📌 **2026-10-20 — now done by [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+  > (its V8 cross-reference; owner ruling Q7, written at `0219`'s close by a spawned `fkit-producer`; the
+  > bullet above is kept as history).** Each profile deploy now prunes images with a keep-list (current +
+  > rollback + the Postgres image in use), first run 2026-09-26; the Postgres image is locked by digest since
+  > [`0384`](../0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) and was proven to survive
+  > the prune by [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md).
+  > The daily checker also alerts on disk use (task `0274`).
 - **No external monitoring on this box.** Container healthchecks + systemd auto-restart exist,
   but nothing off-box observes liveness — add one external uptime check on
   `https://api.geoconflict.ru/health` so an outage actually alerts someone.
+  > 📌 **2026-10-20 — now done by [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+  > (same note as above).** Two external uptime monitors (`/health` and `/ready`) alert the owner by email;
+  > the service-stop drill saw both alerts and both recovery notices arrive on 2026-10-16. The bullet above is
+  > kept as history.
 - **Container memory is not cgroup-capped** (Postgres is bounded by its `-c` flags; the Node API
   is unbounded), which is exactly why RAM must not be cut below 4 GB — swap is the only backstop.
 

@@ -5,7 +5,7 @@
 
 ## Parent / Epic
 None. Related to the citizenship/profile line of work but **not** a slice of
-[`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md) — that epic is the **backend** rebuild;
+[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md) — that epic is the **backend** rebuild;
 this is **client-side UI gating only** and depends on none of it.
 
 ## Sprint

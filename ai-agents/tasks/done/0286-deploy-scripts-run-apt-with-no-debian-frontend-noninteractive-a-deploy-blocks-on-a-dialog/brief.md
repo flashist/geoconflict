@@ -200,7 +200,7 @@ one does not fix the other, and neither should be described as fixing both.
     — the deploy during which this was observed. ⚠️ **Observed during, NOT caused by** — lead-verified.
   - [`0282`](../../done/0282-setup-profile-unquoted-heredoc-executes-compose-comments-as-root/brief.md) — another
     `setup-profile.sh` defect; if both are taken together, one harness run covers both.
-  - [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the source of
+  - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the source of
     the daily-checks and harness shape these scripts are anchored to.
 - 🔒 **No secrets in any artifact** — no IP, hostname, port, token or DSN in this brief, the plan, the worklog or
   a test fixture. Package names, file paths, line numbers and variable names only. **This file is tracked in git.**

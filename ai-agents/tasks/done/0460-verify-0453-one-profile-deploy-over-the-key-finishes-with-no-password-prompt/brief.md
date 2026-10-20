@@ -29,7 +29,7 @@ Backlog
 (Backlog board, unranked by design. On the ruling above, it becomes priority 1 of Sprint 9.)
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human).** The deploy is the owner's hands. Agents do not SSH to the boxes

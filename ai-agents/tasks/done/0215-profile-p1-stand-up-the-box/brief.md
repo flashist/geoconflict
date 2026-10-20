@@ -19,7 +19,7 @@
 > all week. Where a struck line and a correction disagree, **the correction wins.**
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4

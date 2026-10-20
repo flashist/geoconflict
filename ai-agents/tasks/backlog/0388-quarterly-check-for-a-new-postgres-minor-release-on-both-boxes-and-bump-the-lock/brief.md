@@ -84,7 +84,7 @@ back to this one. If an instance finds nothing to bump, it still closes — "che
 - **Rollback reminder.** On the profile box the deploy's auto-rollback covers `profile-api` only
   (`setup-profile.sh:1221-1250`); a bad Postgres bump is a hand revert to the previous locked reference. Same on
   telemetry. Keep the previous reference in the worklog.
-- **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the
+- **Related:** [`0219`](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (the
   unplanned upgrade that led to the lock), `0275` (the proven restore path).
 - **Open questions for the owner** (producer could not ask — spawned without an owner channel):
   1. **Which images does the quarterly check cover?** The ruling said *"check for a new Postgres minor release"*;

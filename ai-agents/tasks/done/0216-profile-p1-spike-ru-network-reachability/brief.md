@@ -41,7 +41,7 @@
 > ## 🚨 THE RESIDUAL THAT SURVIVES THIS CLOSE — do not lose it in the word "Done"
 >
 > **Renewal works TODAY. NOTHING READS THE RENEWAL LOG.** Monitoring is
-> [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md),
+> [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md),
 > which is **OPEN** and owns it.
 >
 > 🔴 **If renewal breaks between now and October — a firewall change, a provider change, an nginx config
@@ -91,7 +91,7 @@
 > - `setup-profile.sh:983` installs a **twice-daily `certbot renew`** cron, which starts attempting a
 >   real HTTP-01 challenge from roughly **2026-10-21** (certbot's 30-day window).
 > - 🚨 **NOTHING READS ITS LOG.** The renew cron writes to a log file on the box and **no human and no
->   system ever looks at it** — monitoring is [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md), which is **OPEN**.
+>   system ever looks at it** — monitoring is [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md), which is **OPEN**.
 >
 > ⇒ 🔴 **If HTTP-01 is blocked from that network, the renewal fails SILENTLY, twice a day, for a
 > month, and the first anyone learns of it is when the certificate EXPIRES and `api.geoconflict.ru`
@@ -189,7 +189,7 @@
 0216
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4
@@ -401,7 +401,7 @@ Nothing ships. This produces a **measurement**, written down.
 5. ✅ **BINDING, in its narrowed form.** ~~**If any check fails**, `0215`'s brief is amended with the
    consequence **before** `0215` starts, and the amendment is put to the owner.~~ 🔴 **`0215` is
    CLOSED.** **If the check fails, the DNS-01 rework is put to the owner as a scoping decision, and
-   the consequence is recorded against [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
+   the consequence is recorded against [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)
    too — because an unread renew log is what would let it go unnoticed.** ⚠️ **A failed check is a
    successful task** — it did its job. Do not treat it as a blocker to route around.
 6. 🔒 **BINDING. No values in the worklog** — no registry host, no token, no IP, no endpoint. Names and
@@ -430,7 +430,7 @@ Nothing ships. This produces a **measurement**, written down.
   halves are **answered**; the `get.docker.com` half is **dropped**. ⚠️ **Still answered by RUNNING
   the check, not by asking the owner.**
 - 🔴 **CROSS-DEPENDENCY, recorded and deliberately NOT fixed here:**
-  [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) owns
+  [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) owns
   the fact that **nothing reads the `certbot renew` log.** ⚠️ **That is what turns this task from "a
   check someone should run" into "a SILENT failure mode"** — the difference between a renewal that
   fails and a renewal that fails *unnoticed for a month*. ⛔ **Do not fix it here.** Neither task

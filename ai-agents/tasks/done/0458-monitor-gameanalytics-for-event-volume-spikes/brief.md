@@ -15,7 +15,7 @@ Backlog
 Unscheduled
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **NEEDS THE OWNER'S BROWSER.** GameAnalytics is read through the owner's Chrome with the owner
@@ -63,7 +63,7 @@ read of 2026-10-14 (its [findings report](../../../knowledge-base/reports/2026-1
   3 Oct and 12 Oct — roughly weekly. On the smaller days sessions also rose somewhat (e.g. 19 Sep).
 - **What GameAnalytics says the limit does** (its docs, read 2026-10-14): it alerts on Game Overview → Integrations;
   the docs do **not** say the per-user limit drops or throttles anything.
-- **Why the spikes happen is NOT settled** — see [`0230`](../0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)
+- **Why the spikes happen is NOT settled** — see [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)
   (Backlog, kept open by owner ruling 2026-10-14). This task's log is evidence for that question; it does not answer
   it.
 
@@ -91,7 +91,7 @@ read of 2026-10-14 (its [findings report](../../../knowledge-base/reports/2026-1
    first check and appended to by every later one (dated entries, newest last). Each instance's worklog links to its
    entry. *(Producer's proposal — open question 3.)*
 6. **Recurring:** the task system has no repeating task, so (as with
-   [`0388`](../0388-quarterly-check-for-a-new-postgres-minor-release-on-both-boxes-and-bump-the-lock/brief.md)) each
+   [`0388`](../../backlog/0388-quarterly-check-for-a-new-postgres-minor-release-on-both-boxes-and-bump-the-lock/brief.md)) each
    check is one instance; when an instance closes, the producer files the next one with a new ID, linking back here.
    *Cadence — producer's proposal, owner confirms (open question 1):* **about once a month**, reading the whole month.
 
@@ -112,13 +112,22 @@ read of 2026-10-14 (its [findings report](../../../knowledge-base/reports/2026-1
 - **Depends on:** nothing
 - **Blocks:** nothing
 - **One brief:** a single read-and-log check; nothing in it ships separately.
-- **Related (background only):** [`0230`](../0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)
+- **Related (background only):** [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)
   (why the spikes happen — open), `0456` (the investigation this comes from), `0418` and
-  [`0455`](../0455-build-the-private-lobby-funnel-and-dashboard-in-gameanalytics-and-confirm-the-0451-events-arrive/brief.md) (other GameAnalytics
+  [`0455`](../../backlog/0455-build-the-private-lobby-funnel-and-dashboard-in-gameanalytics-and-confirm-the-0451-events-arrive/brief.md) (other GameAnalytics
   reads in the owner's Chrome — a check could share one sitting with them).
 - **If the `Platform` events ever change**, re-check with the owner that the `Platform` ÷ sessions comparison still
   means what it means today before relying on it.
-- **Open questions for the owner** (the producer could not ask — spawned without an owner channel):
+- ✅ **OWNER RULING 2026-10-20 — Q1–Q3 ANSWERED: all three proposals accepted.** Given live via `AskUserQuestion`
+  in a Claude Code session, relayed by it to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not
+  producer precedent. Asked: *"accept the producer's proposals (check about once a month, spike = 1.5× the normal
+  Platform/session ratio, log in knowledge-base/reports/gameanalytics-spike-log.md)?"* Selected, verbatim: **"Accept all
+  three (Recommended)"**. ⇒ **Q1:** about once a month, reading the whole month. **Q2:** a day is a spike when
+  `Platform` ÷ sessions is **≥ 1.5** — ⚠️ the question's wording said *"1.5× the normal ratio"* (≈ 1.35), but the option
+  accepted is the producer's proposal, which is the absolute ratio 1.5 (Q2 below); this record reads it as the
+  proposal. ✅ **Gap closed — OWNER RULING 2026-10-20** (live `AskUserQuestion`, relayed; ⛔ not producer precedent): *"What should count as a spike for the monthly check?"* → verbatim **"Ratio 1.5 or more (Recommended)"**. Threshold = `Platform` ÷ sessions **≥ 1.5** (absolute ratio). The earlier "1.5× normal" wording was the relaying session's own error. **Q3:** one running log, `ai-agents/knowledge-base/reports/gameanalytics-spike-log.md`. The questions
+  below are kept as history.
+- ~~**Open questions for the owner**~~ *(answered 2026-10-20 — see the bullet directly above)* (the producer could not ask — spawned without an owner channel):
   1. **How often?** Recommended: **about monthly** — enough to keep the pattern, light on the owner's time (the 90-day
      view means a late check loses nothing). Alternative: every two weeks, or only when the banner is seen.
   2. **What counts as a spike?** Recommended: `Platform` ÷ sessions **≥ 1.5** (normal ~0.9; 12 Oct was ~40).

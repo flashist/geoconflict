@@ -156,7 +156,7 @@ introduced the variable and the fail-closed behavior.
 > ⛔ **This task's `✅ Done (agent-closed — not owner-verified)` status is CORRECT and deliberate — do
 > not "fix" it.** It shipped as **BUILT + DEFERRED LIVE TAIL**, which this correction does not change.
 >
-> 📌 Rebuild: epic [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), phases
+> 📌 Rebuild: epic [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), phases
 > P0–P7, all in Sprint 4 by owner ruling. Survey:
 > [`2026-09-04-profile-backend-clean-slate-survey.md`](../../../knowledge-base/reports/2026-09-04-profile-backend-clean-slate-survey.md).
 >
@@ -285,7 +285,7 @@ cannot close until that deploy happens.
   `/v1/payments/*`, which ~~return 503 on the real box~~ **would 503 on the box** until this ships —
   🔴 corrected 2026-09-04: never observed, and the box's state is unverified; ⚠️ **`0065` now
   additionally waits on the profile box being inspected and re-provisioned**
-  ([`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)),
+  ([`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md)),
   which is a **structural** gate rather than a fourth listed condition — its three conditions
   (`0014`, `0062`, `0195`) are unchanged and this correction clears none of them. **`0064`** must land *after*
   this, on the same hard-sequencing grounds its own hazard section states for `0062`/`0063`.

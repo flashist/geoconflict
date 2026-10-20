@@ -83,7 +83,7 @@ recorded in `0456`'s [findings report](../../../knowledge-base/reports/2026-10-1
 - **Out of scope:** the GameAnalytics **game key and secret key** are in the client source by design
   (`src/client/flashist/FlashistFacade.ts`, cited by location only in `0456`) — client keys ship in the bundle; that is
   not this task.
-- **Related:** `0456` (where it was found), `0212`, `0439`, [`0458`](../../backlog/0458-monitor-gameanalytics-for-event-volume-spikes/brief.md)
+- **Related:** `0456` (where it was found), `0212`, `0439`, [`0458`](../0458-monitor-gameanalytics-for-event-volume-spikes/brief.md)
   (future GameAnalytics reads must not write the value either).
 - **Do not invoke the mover skills.** Producer-only since ADR-033.
 - **Never touch `ai-agents/wiki-vault/`** — `fkit-wiki`'s exclusive write surface.

@@ -4,7 +4,7 @@
 0214
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4
@@ -80,7 +80,7 @@ NEW backup bucket if account-wide. The objection was put to the owner and OVERRU
 ✅ **The `0218` half above is UNCHANGED** — the new `age` keypair and its custody are still `0218`'s.
 **No new brief is being created
 for this ruling** — see the epic
-[`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
+[`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), whose P1–P7 chain already covers
 "wipe, re-provision in place, re-issue".
 
 📌 ~~**The `0222` old-bucket-objects decision is UNAFFECTED and still OPEN.** Redoing the box's keys

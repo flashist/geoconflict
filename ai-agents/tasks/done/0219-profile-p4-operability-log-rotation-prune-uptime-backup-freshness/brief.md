@@ -220,7 +220,7 @@ deploy; only its *confirmation* is deferred.
 ---
 
 ## Status
-🔄 In progress — 🟢 **G3/G4 DEFERRAL LIFTED 2026-10-09 BY OWNER RULING** (*"Yes, un-pause in Sprint 8 (Recommended)"* — see the 2026-10-09 block above). Built + reviewed 2026-09-13 (Part A, all of G1–G4) and deployed 2026-09-26 (B4). **Done so far:** B4 ✅, B5/V1 ✅ (rotation observed), B2's daily check exists and alerted the owner by email on 2026-09-25 (owner-side, not otherwise verified). **Left, all owner-side on the box or in the outside services, except the last item:** (1) **B3** — the two outside uptime monitors (`/health` and `/ready`), alerting to ~~Telegram +~~ email *(2026-10-15: Telegram part waived — same ruling as item (2); the monitors exist and alert by email only, see worklog 2026-10-15 §1; ~~B8's drill still owed~~ B8's drill done 2026-10-16)*; (2) ~~confirm **B2** alerts to the Telegram ops chat, not only email~~ ✅ **B2 met by email — Telegram part WAIVED for `0219`** (dated note below the paragraph); (3) drills **B7–B10** — make each alarm fire on purpose and watch it arrive (failed renewal incl. `certbot.timer` → `disabled`, service stopped, stale backup record, then clear), and name the alert destinations in the worklog (no URLs or tokens) *(2026-10-15/16: **B7 ✅** except (b), owner-skipped; **B9 ✅** and **B10 ✅** (destinations named; V8/V9 are close-time steps) — see the 2026-10-16 note below the paragraph; ~~**only B8 still owed**~~ **B8 ✅ 2026-10-16** — see the B8 note below the paragraph; **all of B7–B10 done**)*; (4) **B6/V2 was only PARTIAL** — the 2026-09-26 prune kept the rollback image but removed the Postgres image tag the compose file names, which led to an unplanned Postgres minor upgrade (data intact). Fix direction ~~(keep-list by tag, or pin compose by digest) not decided — owner/architect call~~ ✅ **decided: pin compose by digest (owner ruling 2026-10-15 — see the dated note under the W5→W10 finding below)**; ~~a `fkit-coder` plan is being drafted for owner approval~~ ➡️ **carried by [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) (build) and [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the profile deploy), both moved onto Sprint 8 — OWNER RULING 2026-10-15, *"Build it as 0384 (Recommended)"*. This item is met when `0385` passes; no separate B6/V2 re-check here.** ~~⛔ The 2026-09-13 hold-open ruling stands: **no close until the alerts have been watched arriving.**~~ ✅ *(2026-10-16: the 2026-09-13 hold-open ruling — no close until the alerts have been watched arriving — is now **satisfied for every drill**; `0219` still waits on item (4), B6/V2 via `0385`, plus the close-time V8 cross-refs and V9 secret grep.)* ⚠️ `🔄 In progress`, not `🔲 Backlog`: the code is built and deployed — the sprint loop must not re-plan it.
+✅ Done (agent-closed — not owner-verified) — *(2026-10-20: closed via `/fkit-task-done` by a spawned `fkit-producer` on the OWNER RULING *"Yes, close all 5 (Recommended)"*, live `AskUserQuestion`, relayed; ⛔ not producer precedent. Item (4) met by `0385` passing; V8 cross-refs written into `0034` item 5 and `0182` §8; V9 secret grep clean. The rest of this line is the last In-progress state, kept as history:)* ~~🔄 In progress~~ — 🟢 **G3/G4 DEFERRAL LIFTED 2026-10-09 BY OWNER RULING** (*"Yes, un-pause in Sprint 8 (Recommended)"* — see the 2026-10-09 block above). Built + reviewed 2026-09-13 (Part A, all of G1–G4) and deployed 2026-09-26 (B4). **Done so far:** B4 ✅, B5/V1 ✅ (rotation observed), B2's daily check exists and alerted the owner by email on 2026-09-25 (owner-side, not otherwise verified). **Left, all owner-side on the box or in the outside services, except the last item:** (1) **B3** — the two outside uptime monitors (`/health` and `/ready`), alerting to ~~Telegram +~~ email *(2026-10-15: Telegram part waived — same ruling as item (2); the monitors exist and alert by email only, see worklog 2026-10-15 §1; ~~B8's drill still owed~~ B8's drill done 2026-10-16)*; (2) ~~confirm **B2** alerts to the Telegram ops chat, not only email~~ ✅ **B2 met by email — Telegram part WAIVED for `0219`** (dated note below the paragraph); (3) drills **B7–B10** — make each alarm fire on purpose and watch it arrive (failed renewal incl. `certbot.timer` → `disabled`, service stopped, stale backup record, then clear), and name the alert destinations in the worklog (no URLs or tokens) *(2026-10-15/16: **B7 ✅** except (b), owner-skipped; **B9 ✅** and **B10 ✅** (destinations named; V8/V9 are close-time steps) — see the 2026-10-16 note below the paragraph; ~~**only B8 still owed**~~ **B8 ✅ 2026-10-16** — see the B8 note below the paragraph; **all of B7–B10 done**)*; (4) **B6/V2 was only PARTIAL** — the 2026-09-26 prune kept the rollback image but removed the Postgres image tag the compose file names, which led to an unplanned Postgres minor upgrade (data intact). Fix direction ~~(keep-list by tag, or pin compose by digest) not decided — owner/architect call~~ ✅ **decided: pin compose by digest (owner ruling 2026-10-15 — see the dated note under the W5→W10 finding below)**; ~~a `fkit-coder` plan is being drafted for owner approval~~ ➡️ **carried by [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) (build) and [`0385`](../../done/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the profile deploy), both moved onto Sprint 8 — OWNER RULING 2026-10-15, *"Build it as 0384 (Recommended)"*. This item is met when `0385` passes; no separate B6/V2 re-check here.** ~~⛔ The 2026-09-13 hold-open ruling stands: **no close until the alerts have been watched arriving.**~~ ✅ *(2026-10-16: the 2026-09-13 hold-open ruling — no close until the alerts have been watched arriving — is now **satisfied for every drill**; `0219` still waits on item (4), B6/V2 via `0385`, plus the close-time V8 cross-refs and V9 secret grep.)* ⚠️ `🔄 In progress`, not `🔲 Backlog`: the code is built and deployed — the sprint loop must not re-plan it.
 
 > 📌 **2026-10-15 — OWNER RULING: email-only Better Stack alerts are accepted; B2's Telegram part is WAIVED for this
 > task.** Given as free text in chat in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer`
@@ -233,7 +233,7 @@ deploy; only its *confirmation* is deferred.
 > on 2026-10-15 (worklog addendum ~19:30 UTC, B7 (a) and (c)). The B2 hand-off's *"attach Telegram … and email"* and
 > B3's *"contacts Telegram + email"* (worklog Part B) are read as email-only from here; the ruling covers the monitors
 > too, but B3's own drill (B8) is still owed. **The Telegram upgrade is carried by
-> [`0466`](../0466-consider-telegram-or-another-faster-channel-for-the-profile-box-better-stack-alerts/brief.md)**
+> [`0466`](../../backlog/0466-consider-telegram-or-another-faster-channel-for-the-profile-box-better-stack-alerts/brief.md)**
 > (Backlog board, unscheduled, decision task owned by `fkit-producer`). ⛔ `## Status` token unchanged
 > (`🔄 In progress`); the 2026-09-13 hold-open ruling is unaffected except that B2 now counts as met by email. Still
 > open: ~~B8, B9, B10 (destinations so far: the owner's email via Better Stack)~~ *(B8, B9 and B10 done 2026-10-16 — see
@@ -263,7 +263,7 @@ deploy; only its *confirmation* is deferred.
 > roughly 15–20 min. ⇒ **All of `0219`'s alarm drills are done** (B7 except (b), owner-skipped; B8; B9; B10
 > destinations named). **The 2026-09-13 hold-open ruling — no close until the alerts have been watched arriving — is
 > now satisfied for every drill.** ⛔ **`0219` still does not close:** it waits on **B6/V2 via
-> [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md)**, after the
+> [`0385`](../../done/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md)**, after the
 > `0384` profile deploy; then the close-time **V8** cross-refs (`0034` item 5, `0182` limitation bullets) and **V9**
 > secret grep (producer). `## Status` token unchanged (`🔄 In progress`); no board touched; no mover invoked.
 
@@ -326,7 +326,7 @@ deploy; only its *confirmation* is deferred.
 > as 0384 (Recommended)"** — option text: *"The producer moves 0384 into Sprint 8, and 0385 checks it on the box after
 > the deploy. 0219's B6 item just points to them. It uses the task, checklist and check-task split that already
 > exist."* Not chosen: *"Build it under 0219"*. ⇒ **B6/V2 is carried by `0384` (build, Sprint 8 rank 54) and
-> [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the
+> [`0385`](../../done/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md) (on-box check after the
 > weekend profile deploy, rank 55); this task's B6/V2 re-verification is satisfied when `0385` passes.** A same-day
 > second ruling (*"Yes, add the check (Recommended)"*) puts a four-place same-reference test check into `0384` — see
 > that brief. The `fkit-coder` plan already drafted belongs to `0384`; it waits on the owner's read-only digest batch
@@ -335,7 +335,7 @@ deploy; only its *confirmation* is deferred.
 ## Owner
 fkit-coder + the owner (live steps)
 
-The owner (the person) runs B3, ~~the B2 Telegram check~~ *(waived 2026-10-15 — email-only accepted, see the dated note under `## Status`; upgrade carried by `0466`)* and drills B7–B10 (outside services and the live box). `fkit-coder` owns any code change ~~— chiefly a fix for the B6/V2 prune finding once its direction is decided —~~ and the worklog record. *(2026-10-15: the B6/V2 fix is no longer this task's code — it is built as [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) and checked on the box by [`0385`](../0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), OWNER RULING *"Build it as 0384 (Recommended)"*; no code change is left in this task today.)* *(Earlier value: `fkit-coder`.)*
+The owner (the person) runs B3, ~~the B2 Telegram check~~ *(waived 2026-10-15 — email-only accepted, see the dated note under `## Status`; upgrade carried by `0466`)* and drills B7–B10 (outside services and the live box). `fkit-coder` owns any code change ~~— chiefly a fix for the B6/V2 prune finding once its direction is decided —~~ and the worklog record. *(2026-10-15: the B6/V2 fix is no longer this task's code — it is built as [`0384`](../../done/0384-profile-box-lock-postgres-to-one-exact-image-by-digest/brief.md) and checked on the box by [`0385`](../../done/0385-verify-0384-on-the-profile-box-postgres-runs-the-locked-image-after-the-deploy/brief.md), OWNER RULING *"Build it as 0384 (Recommended)"*; no code change is left in this task today.)* *(Earlier value: `fkit-coder`.)*
 
 ## Depends on
 - [`0215`](../../done/0215-profile-p1-stand-up-the-box/brief.md) (P1) — a box to configure.
@@ -507,7 +507,7 @@ The game box already solves two of these. **Mirror it:**
    check that runs on the box it is checking observes nothing when the box is down.
    💡 `/ready` also exists (`src/profile-server/Routes.ts:198-207`) — decide explicitly which endpoint
    the check hits and why.
-5. **A consumer for `last-backup.json`.** 🚨 **This is [`0034`](../0034-monitoring-alert-bot-phase2/brief.md) item 5** — check that task before building, so this is one
+5. **A consumer for `last-backup.json`.** 🚨 **This is [`0034`](../../backlog/0034-monitoring-alert-bot-phase2/brief.md) item 5** — check that task before building, so this is one
    implementation rather than two. Something must **read the freshness record and raise an alert when
    it goes stale**. ⚠️ **Do not "solve" this by installing an MTA so cron can mail root** — an email
    nobody reads is the same silence with extra steps.
@@ -557,8 +557,8 @@ The game box already solves two of these. **Mirror it:**
   correct and is NOT discarded: the canonical bullet makes `0219` read FULLY BLOCKED while only the
   weekly-copy half of G4 actually is. The per-item table under `## Depends on` is the record of what is
   really gated — read it before deferring this task.**
-- **Related:** [`0033`](../0033-monitoring-alert-bot-phase1/brief.md) and
-  [`0034`](../0034-monitoring-alert-bot-phase2/brief.md) — the alert-bot track. **Item 5 of `0034` is
+- **Related:** [`0033`](../../backlog/0033-monitoring-alert-bot-phase1/brief.md) and
+  [`0034`](../../backlog/0034-monitoring-alert-bot-phase2/brief.md) — the alert-bot track. **Item 5 of `0034` is
   the `last-backup.json` consumer.** Read both before starting; the right outcome may be that this
   task contributes to `0034` rather than duplicating it.
 - **Related:** `0182/brief.md:361-367` (post-2026-09-10-sweep numbering; see `0182`'s own citation frame) already recorded the prune and uptime-check

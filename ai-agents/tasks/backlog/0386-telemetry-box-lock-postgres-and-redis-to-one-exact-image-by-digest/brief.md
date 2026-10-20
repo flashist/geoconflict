@@ -129,7 +129,7 @@ names; raise it as an open question in the plan if the coder thinks it belongs u
   coder may build both in one session — that is fine; they still close separately.
 - **Why the three version-labelled images are in this task, not a third one** — the owner ruled *"Same task, tiny extra
   work"*; they share the file, the harness and the deploy.
-- **Related:** [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (where the
+- **Related:** [`0219`](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (where the
   profile-box incident that prompted this is recorded), `0285` (the Uptrace version pin and schema check this task must
   keep working).
 - **Deploy:** the owner's, in a weekend slot. Committed ≠ deployed.

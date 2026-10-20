@@ -222,7 +222,7 @@ that digest as covering alert delivery.
 
 **Uptrace persists every notification attempt's response status.** A run of `403`s therefore sits on the
 telemetry box, already written down, **unread**. This is the same shape as
-[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md): the signal
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md): the signal
 exists, nothing looks at it. Whether reading that store is a cheaper guard than the probe below is
 **not** settled here — the probe was chosen because it exercises the **whole path**, not just Uptrace's
 own opinion of it.
@@ -316,7 +316,7 @@ the plan** — refine the mechanics, keep the shape.
     A1–A6, which are what dies when the channel is disabled.
   - [`0276`](../0276-profile-internal-path-case-variants-bypass-nginx-allowlist/brief.md)
     — added the deploy-time allowlist print referenced in *Context* (2).
-  - [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
+  - [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) — the
     "the signal exists and nothing reads it" precedent this repeats, and the source of the
     `profile-checks.sh` + dead-man's-switch shape reused here.
 - **Effort:** small — the architect's estimate is ~10 lines in the relay, ~15 in `checks.sh`, one case

@@ -90,8 +90,8 @@ Licensing: AGPL-3.0 with an attribution clause (`LICENSE`, `LICENSING.md`), asse
 > ✅ **What still stands, unchanged:** everything §12 says at `:602-628` about what the profile deploy
 > scripts *do*. That text describes the scripts, not a running box, and it is **accurate**.
 >
-> 📌 Rebuild epic: [`0213`](../tasks/backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
-> (phases P0–P7, all in Sprint 4 by owner ruling). Survey:
+> 📌 Rebuild epic: [`0213`](../tasks/done/0213-profile-backend-clean-slate-rebuild/brief.md)
+> (phases P0–P7, all in Sprint 4 by owner ruling) — ✅ **done, closed 2026-10-20 (agent-closed — not owner-verified)**. Survey:
 > [`2026-09-04-profile-backend-clean-slate-survey.md`](reports/2026-09-04-profile-backend-clean-slate-survey.md).
 
 External dependencies that matter:

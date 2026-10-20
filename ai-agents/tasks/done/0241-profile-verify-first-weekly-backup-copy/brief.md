@@ -12,7 +12,7 @@ qualifier goes in prose below the field, never in the field.
 
 ⛔ **This is NOT Sprint 4.** 🔴 **Owner ruling 2026-09-11, given live in the lead session and relayed
 through the spawning session: FILE IT AS A TASK.** The owner **declined** two cheaper alternatives —
-*"just check it on Monday"* and *folding it into [`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)* — and ruled that it be **tracked**.
+*"just check it on Monday"* and *folding it into [`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md)* — and ruled that it be **tracked**.
 ⚠️ **The owner ruled that it be TRACKED. The owner did NOT rule where it sits, what it is worth, or
 when it runs.** It is filed on the unranked Backlog board.
 
@@ -57,7 +57,7 @@ on 2026-09-11: the `weekly/` prefix is EMPTY.** That is `0218`'s residual 3.
 
 ### 🔴 Why this is not busywork — it GATES `0219`
 
-[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (P4)
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (P4)
 builds the **freshness monitor** that reads the backup signals on that box.
 
 🚨 **If the weekly path silently fails, `0219` would build a monitor for a path that does not work** —

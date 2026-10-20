@@ -32,7 +32,7 @@ terminal output.** ⚠️ **No owner sign-off was taken on the close itself** �
 ## 🚨 Residual that survives this close
 
 **Renewal works TODAY. NOTHING READS THE RENEWAL LOG** — that is
-[`0219`](../../backlog/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md),
+[`0219`](../0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md),
 **OPEN**. If renewal breaks between now and October (a firewall change, a provider change, an nginx
 config change) it will still fail **SILENTLY, twice a day, until the certificate expires and
 `api.geoconflict.ru` stops serving TLS**.

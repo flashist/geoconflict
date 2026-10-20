@@ -206,7 +206,7 @@ the owner's ruling. **Re-filing it as a new task would quietly reverse that ruli
 ---
 
 ## Parent / Epic
-[`0213-profile-backend-clean-slate-rebuild`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md)
+[`0213-profile-backend-clean-slate-rebuild`](../0213-profile-backend-clean-slate-rebuild/brief.md)
 
 ## Sprint
 Sprint 4
@@ -410,7 +410,7 @@ the top of this brief. Read it before relying on anything in this paragraph.**
 
 1. ✅ **SATISFIED 2026-09-10 — Q3b is RULED and RECORDED: option (c), abandon the whole old bucket**,
    ruled and executed by the owner. Recorded in this brief, in
-   [`0213`](../../backlog/0213-profile-backend-clean-slate-rebuild/brief.md), in
+   [`0213`](../0213-profile-backend-clean-slate-rebuild/brief.md), in
    [`0218`](../../done/0218-profile-p3-durability-proof-restore-drill-and-key-custody/brief.md) and on the
    [Sprint 4](../../../sprints/done/plan-sprint-4.md) rows. **Which of the three: (c).** No paraphrase.
 2. ✅ **SATISFIED 2026-09-10 — the bucket is gone. Count: ZERO objects (it was empty).** 🔒 No object

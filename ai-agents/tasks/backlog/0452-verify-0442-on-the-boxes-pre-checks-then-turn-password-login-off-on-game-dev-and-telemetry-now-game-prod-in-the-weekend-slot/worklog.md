@@ -113,3 +113,20 @@ Read-only SSH by key from the Claude Code session, owner OK given live 2026-10-2
 - `sshd -T` re-read: `passwordauthentication no`, `permitrootlogin without-password` — unchanged.
 - **Left: the Q3 switch removal** (delete `ALLOW_SSH_PASSWORD_FALLBACK` from `.env.prod.secret` and
   `ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK` from `.env.telemetry.secret`) — needs the owner's OK; not given yet.
+
+## 2026-10-20 — Q3 switch removal (verification step 7) — done
+
+Owner OK, live `AskUserQuestion` 2026-10-20, verbatim *"Yes, remove them (Recommended)"* (after a plain-words
+explanation of what the switches are). Done by the agent on the owner's workstation, by variable **name**, no value
+printed:
+- deleted `ALLOW_SSH_PASSWORD_FALLBACK` from `.env.prod.secret`;
+- deleted `ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK` from `.env.telemetry.secret`.
+
+**Names-only inventory after:** no `ALLOW_*PASSWORD_FALLBACK*` name in any `.env*` file (`.env`, `.env.secret`,
+`.env.prod`, `.env.prod.secret`, `.env.dev`, `.env.dev.secret`, `.env.telemetry`, `.env.telemetry.secret`);
+`VPS_PASSWORD` still present (`.env`, `.env.prod.secret`, `.env.dev`, `.env.dev.secret`) and `TELEMETRY_VPS_PASSWORD`
+still present (`.env.telemetry.secret`) — the reg.ru-console emergency path is untouched. `.env.dev.secret` carries no
+switch. These files are git-ignored; nothing tracked changed.
+
+**Where 0452 stands:** V1–V5 passed on all three boxes (game prod V2–V4 on 2026-10-16, V5 on 2026-10-20) and the Q3
+switch removal is done ⇒ every verification step is met. Ready to close (producer).

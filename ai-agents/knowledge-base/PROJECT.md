@@ -205,9 +205,9 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 > known.** That gap is the owner's standing complaint — *"I am completely lost about what was done
 > and what wasn't"* — not a contradiction.
 
-The work to close it is epic
-[`0213`](../tasks/backlog/0213-profile-backend-clean-slate-rebuild/brief.md) — **wipe and rebuild onto
-the existing box and bucket** (phases P0–P7, all in Sprint 4 by owner ruling). The survey behind it,
+The work to close it was epic
+[`0213`](../tasks/done/0213-profile-backend-clean-slate-rebuild/brief.md) — **wipe and rebuild onto
+the existing box and bucket** (phases P0–P7, all in Sprint 4 by owner ruling) — ✅ **done, closed 2026-10-20 (agent-closed — not owner-verified)**. The survey behind it,
 whose §0 answers *"what was done and what wasn't"* directly, is
 [`2026-09-04-profile-backend-clean-slate-survey.md`](reports/2026-09-04-profile-backend-clean-slate-survey.md).
 The active chain is: **degraded-mode UX treatment → Citizenship Earned →
