@@ -8,7 +8,8 @@
 > `0447` in `ai-agents/tasks/`, `ai-agents/sprints/` or `.claude/`, and no `tasks/*/0447*` path in any branch's history.
 
 ## Sprint
-Sprint 8 *(was ~~Backlog~~ — moved 2026-10-12, see below)*
+Sprint 8
+*(was ~~Backlog~~ — moved 2026-10-12, see below)* *(📌 2026-10-20 — this note was moved down from the value line so the status script reads `Sprint 8`; wording unchanged. Owner ruling "fix it", relayed to a spawned `fkit-producer`; ⛔ not producer precedent.)*
 
 > ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-12 — OWNER RULING given in the `fkit lead`
 > session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer

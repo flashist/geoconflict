@@ -49,7 +49,8 @@ precedent; verbatim *"Yes: 0219, then 0384, then 0385 (Recommended)"*). Row numb
 > producer's to propose and the owner's to confirm — it is **not** made here.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+> 📌 **2026-10-20 — was ~~🔲 Backlog~~, now `🔄 In progress`.** The work had started: the worklog records the 2026-10-16 deploy and after-checks (steps 1, 2, 3, 6 pass; 4 and 7 recorded; 8 skipped by the owner); only step 5 (the next nightly backup marker) is left. Corrected by a spawned `fkit-producer` on the owner ruling "fix it" (2026-10-20, fix the board/brief status mismatches), relayed; ⛔ not producer precedent. Board row on [Sprint 9](../../../sprints/plan-sprint-9.md) changed to match.
 
 ## Owner
 fkit-producer — ⚠️ **the deploy is EXECUTED BY THE OWNER (human)** in a weekend slot. Every check below is read-only,

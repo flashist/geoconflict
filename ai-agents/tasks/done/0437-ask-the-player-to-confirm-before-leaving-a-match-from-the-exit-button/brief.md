@@ -10,7 +10,8 @@
 > `tasks/*/0437` path on any local or remote branch.
 
 ## Sprint
-Sprint 8 *(was ~~Backlog~~ — moved 2026-10-11, see below)*
+Sprint 8
+*(was ~~Backlog~~ — moved 2026-10-11, see below)* *(📌 2026-10-20 — this note was moved down from the value line so the status script reads `Sprint 8`; wording unchanged. Owner ruling "fix it", relayed to a spawned `fkit-producer`; ⛔ not producer precedent.)*
 
 > ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-11 — OWNER RULING given live via
 > `AskUserQuestion` in the `fkit lead` session**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner

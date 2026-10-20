@@ -4,7 +4,8 @@
 0350
 
 ## Sprint
-Sprint 8 *(was ~~Backlog~~ — moved 2026-10-15, see below)*
+Sprint 8
+*(was ~~Backlog~~ — moved 2026-10-15, see below)* *(📌 2026-10-20 — this note was moved down from the value line so the status script reads `Sprint 8`; wording unchanged. Owner ruling "fix it", relayed to a spawned `fkit-producer`; ⛔ not producer precedent.)*
 
 > ➡️ **MOVED TO [SPRINT 8](../../../sprints/done/plan-sprint-8.md) ON 2026-10-15 — OWNER RULING given live in the coordinating
 > session** (the owner's own words), relayed by the main session to a spawned `fkit-producer` with no owner channel
