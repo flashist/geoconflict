@@ -54,3 +54,15 @@ already shows the lock; a restart costs about a minute of profile downtime and l
 
 **Where 0385 stands:** steps 1, 2, 3, 6 pass; 4 and 7 recorded; 8 skipped by the owner. **Only step 5 is left** — the
 next nightly backup marker (due 2026-10-17 ~02:30Z) must be fresh and report success.
+
+## 2026-10-20 — step 5, by the agent
+
+Read-only SSH by key from the Claude Code session, owner OK given live 2026-10-20 (`AskUserQuestion`, *"Read-only SSH to
+the boxes"*), ~07:49Z. Output masked; no host or address recorded.
+
+- **Step 5 — Backups still work: ✅ pass.** `last-backup.json` 2026-10-20T02:30Z, `exit_status` 0 — the nightly backup
+  after the deploy is fresh and successful (nightlies since the deploy did not fail: the marker is the latest one).
+- Postgres re-read: image `postgres:16.15-alpine@sha256:721873c34ceb…` (the lock), started 2026-10-16T12:12:44Z,
+  `healthy` — no restart or image change since the deploy.
+
+**Result: every pass/fail step passes** (1, 2, 3, 5, 6); 4 and 7 recorded; 8 skipped by the owner. Ready to close.

@@ -243,3 +243,20 @@ step; output pasted and read by that session. No host, address or token recorded
 - ⇒ **Steps 4 and 5 now pass on all four boxes.**
 - **Still open:** digest 2 of 2 (2026-10-17 08:10 UTC — the first one with game prod on the new agent); 24 h with no
   per-guess messages (counted from this deploy, so until ~2026-10-17 12:17Z); the per-box report-window check.
+
+## 2026-10-20 — digests and the quiet window, by the agent
+
+Read-only SSH by key from the Claude Code session, owner OK given live 2026-10-20 (*"Read-only SSH to the boxes"*),
+~07:49Z. No host, address, token or chat id recorded.
+
+- **Step 8 — daily digests: sent every day.** `/var/log/profile-ssh-security-digest.log` on the profile box:
+  `ssh security digest sent (4 boxes)` at 2026-10-16 08:10:06Z, 10-17 08:10:07Z, 10-18 08:10:07Z, 10-19 08:10:09Z; no
+  `runner failed` line. ⚠️ The **content** of each digest (one line per box with real numbers, no `could not be sent` /
+  `OLD numbers` line, and the per-box report-window check) is only visible in the owner's Telegram — **not read by the
+  agent**; owner to confirm.
+- **Step 9 — 24 h with no per-guess messages:** the profile-api log since the game prod deploy (2026-10-16T12:20Z) has
+  **no** SSH-alert line at all (no rejected or failed events); by design the agents never send a message per guess. Owner's
+  Telegram today shows only the three `🔑` login messages of this session (screenshot) — no per-guess message.
+- **Login alerts still work 4 days after the deploy:** this session's three key logins (profile ×2, game prod ×1,
+  2026-10-20 07:49Z) each produced the expected `🔑` message, the second profile login as `+1 more … within 2 min`
+  (grouping, owner ruling Q3). Owner screenshot.

@@ -101,3 +101,15 @@ session; output pasted and read by it. No host, address, key or password recorde
 - **V5 — pending:** fail2ban re-check a few hours after the deploy (baseline from P4: total failed 238595 — but see the
   game dev note: a fail2ban restart resets the counters).
 - **Q3 switch removal** — after V5 on prod.
+
+## 2026-10-20 — game prod V5, by the agent
+
+Read-only SSH by key from the Claude Code session, owner OK given live 2026-10-20 (*"Read-only SSH to the boxes"*),
+~07:49Z. No host or address recorded.
+
+- **V5 — ✅ pass.** `fail2ban-client status sshd`: jail up; currently failed 4 / **total failed 247401** (P4 baseline
+  238595) / currently banned 0 / total banned 23598. fail2ban has run since 2026-08-02 (no restart, so the counters are
+  comparable with P4, unlike game dev). Failed attempts keep being counted with password login off.
+- `sshd -T` re-read: `passwordauthentication no`, `permitrootlogin without-password` — unchanged.
+- **Left: the Q3 switch removal** (delete `ALLOW_SSH_PASSWORD_FALLBACK` from `.env.prod.secret` and
+  `ALLOW_TELEMETRY_SSH_PASSWORD_FALLBACK` from `.env.telemetry.secret`) — needs the owner's OK; not given yet.
