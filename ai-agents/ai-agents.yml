@@ -42,7 +42,7 @@ routing:
 # Which skills compile to which side. Usually derived from the kit dirs
 # (shared/ claude-only/ codex-only/); listed here to make placement explicit
 # and overridable per project. Project-specific skills (the producer role
-# instance, update-announcements) are authored in-repo as origin:project —
+# instance, geoconflict-update-announcements) are authored in-repo as origin:project —
 # they are NOT compiled from the kit, so they are not listed here.
 skills:
   shared:      [process-review, plan-task, wiki-query]

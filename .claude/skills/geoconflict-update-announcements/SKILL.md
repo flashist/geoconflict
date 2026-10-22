@@ -1,5 +1,5 @@
 ---
-name: update-announcements
+name: geoconflict-update-announcements
 description: Draft a new player-facing entry for resources/announcements.json from all commits since the last announcement update. Reads commit subjects + descriptions (not diffs), filters out non-player-facing churn, clusters related commits into one-sentence bilingual bullets (en + ru), shows the draft for approval, then prepends it. Use before releasing a game update.
 user-invocable: true
 ---
