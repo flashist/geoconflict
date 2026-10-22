@@ -13,7 +13,7 @@
 |---|---|---|---|
 | **Backlog** | `🔲 Backlog` | Scoped and filed, not picked up. The default on creation. | Producer |
 | **In progress** | `🔄 In progress` | A session owns it and work has started. | Anyone — freely |
-| **Blocked** | `🚧 Blocked — <reason>` | Started, cannot proceed. **A reason is mandatory.** | Anyone — freely |
+| **Blocked** | `🚧 Blocked — <reason>` | Cannot proceed — **started or not**. **A reason is mandatory.** | Anyone — freely |
 | **Done** | `✅ Done` | Reviewed, verified, complete — **closed by the owner**. | Owner, via `/fkit-task-done` |
 | **Done (agent-closed)** | `✅ Done (agent-closed — not owner-verified)` | Closed by an agent. Complete **on the agent's own judgment**; no human checked it. | A **spawned producer**, via `/fkit-task-done` |
 | **Cancelled** | `⛔ Cancelled (YYYY-MM-DD) — <reason>` | Dropped, will not be done. **A reason is mandatory.** | Owner, via `/fkit-task-cancelled` |
@@ -26,104 +26,25 @@ or `4c`. `Sprint 4` and `Sprint 4c` are different sprints.
 **No other value is valid.** Not "Not started", not "WIP", not "Todo", not "Complete". If a status you
 need isn't here, the fix is to amend this doc — not to invent a value inline.
 
-> # 🔴 SCOPE WIDENED 2026-09-08 — both exceptions below are now valid on **two** boards
->
-> **Owner ruling, given live in session 2026-09-08 and relayed through a spawning session:**
-> `⬜ No sprint` and `⏸ Parked` are valid on **`sprints/sprint-backlog.md` AND `sprints/backlog.md`**.
->
-> 🚨 **This WIDENS a scope limit ruled the same day. It is a deliberate re-scoping, and it is not what
-> was originally meant.** Both exceptions were ratified earlier on 2026-09-08 as valid on
-> `sprint-backlog.md` **only** — that narrower wording is kept below, struck where it is now wrong,
-> **superseded rather than deleted.** Read the sequence, not a single clean story.
->
-> **Why it was widened.** Task
-> [`0001`](../../tasks/backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md)
-> consolidates `sprint-backlog.md` into `backlog.md` and retires the first board. Under the narrow
-> wording those rows could only arrive on `backlog.md` by being flattened to `🔲 Backlog` — destroying
-> the distinction the same day's ruling had just found worth keeping. Both values describe
-> **unscheduled work**, and after `0001` `backlog.md` becomes the only board that holds it. The owner
-> took the re-scoping over the flattening.
->
-> ## What did NOT change
->
-> - ❌ **Still invalid in a task brief's `## Status` field.** Briefs keep `🔲 Backlog` and record the
->   no-sprint / parked fact in `## Sprint` (or, for a park, its condition in the board row's prose).
-> - ❌ **Still invalid on `plan-sprint-N.md`.** A row on a sprint plan has a home by definition.
-> - ❌ **Still not rendered by `/fkit-status`.** The dashboard knows the canonical set only. Widening
->   the boards did **not** make these values visible to it — after `0001`, that blind spot follows the
->   rows onto `backlog.md`. See
->   [ADR-108](../decisions/adr-108-owner-set-active-sprint-pointer.md).
-> - ❌ **Still not a general-purpose status.** Two named boards, not "wherever unscheduled work lives".
+## A SPRINT has its own status, and it is not one of these
 
-## Board-level exception — `⬜ No sprint`, on ~~`sprint-backlog.md` only~~ `sprint-backlog.md` and `backlog.md`
+⛔ **This page is about TASK status. A sprint board's own status is a different carrier and lives
+elsewhere** — [`sprint-status-vocabulary.md`](sprint-status-vocabulary.md), its sibling. The two share
+their glyphs deliberately, so
+one eye reads both boards, which is exactly why the boundary has to be stated:
 
-| Status | Marker | Meaning | Set by | Valid where |
-|---|---|---|---|---|
-| **No sprint** | `⬜ No sprint` | Defined, worth doing, **no sprint home**. Not scheduled, not blocked, not dropped. | Producer | [`sprints/sprint-backlog.md`](../../sprints/sprint-backlog.md) and [`sprints/backlog.md`](../../sprints/backlog.md) — **those two only** *(widened 2026-09-08 from `sprint-backlog.md` alone)* |
+| Reading | Where it lives |
+|---|---|
+| a **task** status | a brief's `## Status` field, or the **leading cell** of a board row |
+| a **sprint** status | a **blockquoted H2 on line 3 of the board**, and nowhere else |
 
-**Ratified 2026-09-08 by owner ruling, given live in session and relayed through a spawning session.**
-It was found in use on **21 rows** of `sprint-backlog.md` during a board-visibility sweep. The choice put
-to the owner was *reconcile those 21 rows to `🔲 Backlog`* versus *ratify and document*; **ratify won,
-and the existing rows were deliberately left as they are.** ⚠️ **The board now carries 23 such rows, not
-21** — the same 2026-09-08 session appended `0026` and `0029` under a separate ruling in the same batch.
-The "21" is the count at the moment of the ruling, kept because it is what the owner ruled on.
+**Tell them apart by POSITION, never by the glyph.** `🔲 Backlog` on line 3 of `sprint-9.md` says the
+*sprint* is scoped but not started; the same glyph in a row's leading cell says that *task* is. And
+`🚧 Blocked` / `➡️ Moved` are **task-only** — a sprint is never blocked (its tasks are), and `Moved` is
+a row disposition, not a board state.
 
-**Why it is not just `🔲 Backlog`.** `🔲 Backlog` means *scoped and filed, not picked up* — it says
-nothing about scheduling. `⬜ No sprint` carries the extra fact that the task **has no sprint home and
-needs one before implementation begins**, which is the entire purpose of that board and is stated in its
-own header. None of the canonical statuses above can express it, and per the **Report reality, not the
-template** rule below, the answer to a distinction the vocabulary cannot express is to fix the
-vocabulary — not to flatten the row into a value that quietly drops the fact.
-
-⚠️ **This is a board-level exception, not a general-purpose status.** It is valid **only** in the Status
-columns of `sprint-backlog.md` **and `backlog.md`**. It is **not** valid in a task brief's `## Status`
-field — briefs on those boards keep `🔲 Backlog` and record the no-sprint fact in their `## Sprint`
-field instead — and it is not valid on `plan-sprint-N.md`, where a row by definition already has a home.
-
-> ~~It is valid **only** in `sprint-backlog.md`'s Status column. … and it is not valid on
-> `plan-sprint-N.md` or `backlog.md`, where a row by definition already has a home.~~
-> — **original wording, ratified earlier on 2026-09-08, superseded the same day by the scope widening
-> at the top of this section. Kept, not deleted.**
-
-⚠️ **`/fkit-status` does not render this value.** The dashboard knows the canonical set only, so
-`sprint-backlog.md` rows are not counted by it. Read that board directly.
-
-## Board-level exception — `⏸ Parked`, on ~~`sprint-backlog.md` only~~ `sprint-backlog.md` and `backlog.md`
-
-| Status | Marker | Meaning | Set by | Valid where |
-|---|---|---|---|---|
-| **Parked** | `⏸ Parked` | Deliberately not scheduled **until a named external condition is met**. Blocked on a *signal*, not on work. | Producer | [`sprints/sprint-backlog.md`](../../sprints/sprint-backlog.md) and [`sprints/backlog.md`](../../sprints/backlog.md) — **those two only** *(widened 2026-09-08 from `sprint-backlog.md` alone)* |
-
-**Ratified 2026-09-08 by owner ruling, given live in session and relayed through a spawning session** —
-the same sweep and the same batch as `⬜ No sprint` above, but a **separate ruling**. Found in use on
-**2 rows**; those rows were deliberately left as they are.
-
-🚨 **A `⏸ Parked` row MUST state its unpark condition.** This is mandatory, not stylistic: a park with
-no named condition is **indistinguishable from an abandoned task**, and an unconditioned park will sit
-on the board forever with nobody able to say what would ever move it. Write the condition as a
-falsifiable signal someone could check — the two existing rows do (*"mobile DAU crosses 1,500 in
-analytics"*, *"mobile performance baseline confirmed stable in Sentry/analytics"*). If you cannot name
-the condition, the task is not parked; it is either `⬜ No sprint` or a cancellation.
-
-**Why none of the canonical six can carry this.** `🚧 Blocked` is the near miss and it is wrong:
-Blocked means *started, cannot proceed*, and a parked task has not started and is not being attempted.
-`🔲 Backlog` and `⬜ No sprint` both lose the fact that an **external signal**, not a scheduling
-decision, governs when the work becomes eligible. `⛔ Cancelled` is false — the work is still wanted.
-
-⚠️ **Board-level exception, not a general-purpose status.** Valid **only** in the Status columns of
-`sprint-backlog.md` **and `backlog.md`** — not in a task brief's `## Status` field, and not on
-`plan-sprint-N.md`.
-
-> ~~Valid **only** in `sprint-backlog.md`'s Status column — not in a task brief's `## Status` field,
-> and not on `plan-sprint-N.md` or `backlog.md`.~~ — **original wording, ratified earlier on
-> 2026-09-08, superseded the same day by the scope widening at the top of the `⬜ No sprint` section.
-> Kept, not deleted.**
-
-🚨 **The unpark-condition rule above survives the widening unchanged.** A `⏸ Parked` row on
-`backlog.md` must state its condition exactly as one on `sprint-backlog.md` must.
-
-⚠️ **`/fkit-status` does not render this value** either. The dashboard knows the canonical set only, so
-parked rows are not counted by it. Read that board directly.
+The **sprint** movers are `/fkit-sprint-done` and `/fkit-sprint-cancelled`, and they are the
+producer's alone on the same rule as the task pair below.
 
 ## The authority split — this is the point
 
@@ -135,6 +56,11 @@ the `/fkit-task-done` and `/fkit-task-cancelled` skills — never by hand-editin
 producer may invoke those skills.** That one is enforced rather than asked: a `PreToolUse` hook denies
 a mover call from any non-producer identity, at any spawn depth. Every other role routes its closes
 through the producer and closes nothing itself.
+
+⭐ **The sprint vocabulary mirrors this split exactly.** A sprint's `🔲 Backlog → 🔄 In progress` is free
+for the producer to set by hand — a planning act, like `➡️ Moved`. Its two **terminal** states are
+mover-gated, to `/fkit-sprint-done` and `/fkit-sprint-cancelled`, and producer-only under the same hook.
+**Four movers, one rule.**
 
 ⚠️ **A close performed without the owner present must write the `(agent-closed — not owner-verified)`
 variant — including a producer that was SPAWNED to close.** A spawned agent has no channel to you, so
@@ -151,7 +77,8 @@ agent-closed row is counted and filtered as an ordinary closed row. To tell the 
 the sprint plan or the brief.
 
 **If your team wants a stronger guarantee than this**, the fix is a further precondition in
-`claude/skill-ownership-hook.sh` — closes only from an owner-present session, say — not stricter prose.
+fkit's own `claude/skill-ownership-hook.sh` (in the fkit install, not your project's `.claude/`) —
+closes only from an owner-present session, say — not stricter prose.
 Prose does not stop an agent that has already decided its work is done.
 
 `Moved` is producer-set, because relocating work across sprints is a planning act.
@@ -163,10 +90,15 @@ Prose does not stop an agent that has already decided its work is done.
   set it; if you put it down, unset it.
 - **`Blocked` and `Cancelled` require a reason, inline, in the status itself.** A blocker with no
   stated cause cannot be acted on by anyone but the person who wrote it.
+- **⭐ The `Blocked` test is *"can the work proceed?"*, NOT *"has it started?"*** A task nobody may
+  pick up yet — held pending a decision, an outside event, or conflicting work that may delete its
+  subject — is `🚧 Blocked`, even though no one has touched it. ⚠️ **But a decision gate INSIDE the
+  task is not a blocker.** If a session could pick the task up today and its *first act* would be to
+  settle that gate, the work can proceed and the row stays `🔲 Backlog`. **Ask whether some session
+  could start this today.** No → `Blocked`. Yes, and it would begin by resolving something → not
+  `Blocked`.
 - **The brief and the sprint plan must agree.** Both carry the status; both get updated together. The
-  mover skills already do this — do the same by hand. ⚠️ Those two are the task's *own* records;
-  **other** files also describe its status in prose, and those copies are swept per
-  [`task-attribute-cross-reference-sweep.md`](task-attribute-cross-reference-sweep.md).
+  mover skills already do this — do the same by hand.
 - **Report reality, not the template.** If a dashboard shows a distinction this vocabulary can't
   express, the dashboard is lying — fix the vocabulary, don't fake the row.
 
@@ -175,6 +107,8 @@ Prose does not stop an agent that has already decided its work is done.
 - `/fkit-task-done` — sets `✅ Done`
 - `/fkit-task-cancelled` — sets `⛔ Cancelled`
 - `/fkit-task-brief` — sets `🔲 Backlog` on creation
+- `/fkit-sprint-done` / `/fkit-sprint-cancelled` — the **sprint** board's terminal states, in its
+  line-3 banner. Not this page's values; named here so the enforcement list is complete
 - `/fkit-status` — the dashboard renders these values and no others
 - The producer reports against these values and no others
 

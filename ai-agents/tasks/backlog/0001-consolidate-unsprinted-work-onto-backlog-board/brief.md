@@ -17,6 +17,16 @@ fkit-producer
 
 ---
 
+> # 📌 UPDATE 2026-10-22 — `⬜ No sprint` and `⏸ Parked` are RETIRED; step 2 and its verification are spent
+>
+> OWNER RULING given live in a `fkit producer` session on 2026-10-22 (verbatim *"Do the exact copy"*, then *"Go ahead"*): `conventions/task-status-vocabulary.md` is now fkit's shipped copy, which defines neither value,
+> and all 22 open rows on `sprint-backlog.md` that carried one (20 `⬜ No sprint`, 2 `⏸ Parked`) were
+> set to `🔲 Backlog` that day. **So there is nothing left to carry across verbatim:** move every row as
+> `🔲 Backlog`. The two formerly parked rows (Task 5, Task 2i) keep their wait condition in the
+> **Depends On** column and their Items section — carry that text across with them. Wherever this
+> brief below says to keep `⬜`/`⏸`, or that they should appear on `backlog.md`, read it as superseded
+> by this update; the rest of the brief (merge Task 9/9a, links, the stub decision) is unchanged.
+
 > # 🔴 UPDATE 2026-09-08 — this task is the OWNER'S CHOSEN ROUTE for the `/fkit-status` blind spot
 >
 > **Owner ruling, given live in session 2026-09-08 and relayed through the spawning session:**
@@ -184,7 +194,7 @@ once, already pointing at its final `<NNNN>-<slug>/brief.md` path.
    `dashboard.sh` and both movers locate rows by exactly that shape; it is load-bearing, not
    cosmetic.
 
-2. ✅ **UNBLOCKED 2026-09-08 by owner ruling — carry both markers across unchanged.** `⬜ No sprint`
+2. ⚠️ **SPENT 2026-10-22 — see the update at the top: both markers are retired, every row is already `🔲 Backlog`.** ~~✅ **UNBLOCKED 2026-09-08 by owner ruling — carry both markers across unchanged.**~~ `⬜ No sprint`
    and `⏸ Parked` were ratified that day and their scope was then **widened to `backlog.md`** by the
    same owner, precisely so this step would not have to flatten them. **Do not normalise them away.**
    Move each row's Status cell **verbatim**. 🚨 **Every `⏸ Parked` row must still carry its unpark

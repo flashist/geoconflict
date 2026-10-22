@@ -171,7 +171,9 @@ Three things look like dead code or half-finished config and are **deliberate**.
 - **Task status vocabulary is fixed** — see
   [`conventions/task-status-vocabulary.md`](conventions/task-status-vocabulary.md). Legacy sprint
   plans still carry non-canonical markers (`⬜`, `⚠️ Urgent`, `⏸ Parked`, `No sprint`); these are
-  historical drift, not a licence to invent new ones.
+  historical drift, not a licence to invent new ones. `⬜ No sprint` and `⏸ Parked` were never more
+  than board-level exceptions, and they are **retired as of 2026-10-22** (owner ruling): the vocabulary
+  file is now fkit's shipped copy, and every `sprint-backlog.md` row that carried one reads `🔲 Backlog`.
 - **Task files move only via `/fkit-task-done` and `/fkit-task-cancelled`, and only the producer may
   invoke them.** Owner ruling 2026-08-08: the producer runs the mover and stamps every close it
   performs without the owner present with `(agent-closed — not owner-verified)`. This supersedes the

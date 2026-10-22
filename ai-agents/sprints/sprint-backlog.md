@@ -2,29 +2,15 @@
 
 > Tasks that are defined and worth doing but not assigned to any currently planned sprint (Sprint 4, 5, or 6). Items here need a sprint home before implementation begins. Brief a task before picking it up — most have no implementation brief yet.
 
-> ℹ️ **This board's `⬜ No sprint` status is a ratified board-level exception to the canonical status
-> vocabulary — owner ruling 2026-09-08, given live in session.** It means *defined, worth doing, no
-> sprint home*, which none of the canonical six can express. It is valid **here and nowhere else**:
-> not in a task brief's `## Status` field (briefs on this board keep `🔲 Backlog` and record the
-> no-sprint fact in their `## Sprint` field), and not on `plan-sprint-N.md` or `backlog.md`. Defined in
-> [`task-status-vocabulary.md`](../knowledge-base/conventions/task-status-vocabulary.md), which is the
-> single source of truth for status values.
->
-> ⚠️ **`/fkit-status` does not render `⬜ No sprint`** — the dashboard knows the canonical set only, so
-> **rows on this board are invisible to it.** Read this file directly.
->
-> ℹ️ **`⏸ Parked` is the second ratified board-level exception — owner ruling 2026-09-08, given live in
-> session** (same sweep, separate ruling). It means *deliberately not scheduled until a named external
-> condition is met* — blocked on a **signal**, not on work, which is why `🚧 Blocked` (*started, cannot
-> proceed*) is wrong for it. Same scope limit: valid **here and nowhere else**. 🚨 **A `⏸ Parked` row
-> MUST state its unpark condition** — a park with no named condition cannot be told apart from an
-> abandoned task. Also defined in
-> [`task-status-vocabulary.md`](../knowledge-base/conventions/task-status-vocabulary.md).
->
-> ⚠️ **Neither exception is rendered by `/fkit-status`**, so **every row on this board — ~~all 25,
-> including 23 open tasks~~ all 25, of which ~~21~~ 20 are still open here (`0026` and `0029` moved to
-> [`backlog.md`](backlog.md) 2026-09-26, owner ruling; `0035` moved to [Sprint 7](done/plan-sprint-7.md) 2026-09-29, owner ruling — their rows stay as `➡️ Moved` pointers) — is invisible to the dashboard.** Read this file directly. (Referred to the
-> architect 2026-09-08 as a tooling question; no change made here.)
+> 📌 **2026-10-22 — the `⬜ No sprint` and `⏸ Parked` statuses are RETIRED.** OWNER RULING given live in a
+> `fkit producer` session on 2026-10-22: `conventions/task-status-vocabulary.md` was replaced with fkit's
+> shipped copy (verbatim *"Do the exact copy"*), which defines neither value, and every row on this board
+> that carried one was set to `🔲 Backlog` (verbatim *"Go ahead"*, after the owner's own proposal *"I think
+> their status should be BACKLOG"*). Being on this board already says *"no sprint home yet"*, so nothing
+> was lost; the two formerly parked rows keep their wait condition in the **Depends On** column and in
+> their section below. Side effect: `/fkit-status` can now see these rows (it could not read the old
+> two values). The two exceptions had been ratified 2026-09-08; that history lives in git and in
+> ADR-108, which is not edited.
 
 ---
 
@@ -32,29 +18,29 @@
 
 | Status | Task | Brief | Depends On |
 |---|---|---|---|
-| ⬜ No sprint | Task 6 — Rewarded Ads: Minimal Version | None — see plan-index | Citizenship benefits (Sprint 4) |
-| ⬜ No sprint | Task 7 — Leaderboard: Core System *(**briefed 2026-09-08 on an owner ruling** given live in session and relayed through the spawning session — the one unbriefed row on this board with a known downstream dependency. ⚠️ **Briefed as an INVESTIGATION, not implementation**: the source material is two lines in `plan-index.md` plus this board's own Items section, and six decisions that change what gets built are unmade. Not a duplicate of `0161` (done — player count in a label) or `0210` (Singleplayer platform-reporting policy) — both read and verified. **Status and priority unchanged; this schedules nothing.**)* | [`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md) | — |
-| ⬜ No sprint | Task 8b — Private Lobbies (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
-| ⬜ No sprint | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
-| ⬜ No sprint | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
-| ⬜ No sprint | Task 9a — Re-enable Territory Patterns | None — see plan-index | Payment infrastructure (Sprint 4) |
-| ⬜ No sprint | Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core) | [`0033-monitoring-alert-bot-phase1`](../tasks/backlog/0033-monitoring-alert-bot-phase1/brief.md) | — (recommend near-term, weekend deploy) |
-| ⬜ No sprint | Monitoring & Alert Bot — Phase 2 (Depth & Hygiene) | [`0034-monitoring-alert-bot-phase2`](../tasks/backlog/0034-monitoring-alert-bot-phase2/brief.md) | Phase 1 deployed |
-| ⬜ No sprint | Mobile Memory and WebGL Rendering Failures | [`0031-mobile-webgl-rendering`](../tasks/backlog/0031-mobile-webgl-rendering/brief.md) | Clearer mobile crash/perf data |
-| ⬜ No sprint | sec10 — Remove Password Deploy Fallbacks | [`0015-remove-password-deploy-fallbacks`](../tasks/backlog/0015-remove-password-deploy-fallbacks/brief.md) | — |
-| ⬜ No sprint | sec11 — Secret Management Beyond Env Files | [`0016-secret-management-beyond-env-files`](../tasks/backlog/0016-secret-management-beyond-env-files/brief.md) | — |
-| ⬜ No sprint | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | [`0045-vps-registry-credential-hygiene`](../tasks/backlog/0045-vps-registry-credential-hygiene/brief.md) | Release-adjacent (live profile box); pairs with sec13 |
-| ⬜ No sprint | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | [`0047-deploy-transport-secret-hygiene`](../tasks/backlog/0047-deploy-transport-secret-hygiene/brief.md) | — *(gate **satisfied**; corrected 2026-09-02)* |
-| ⬜ No sprint | 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow *(deferred from Sprint 4 2026-06-28, risk accepted)* | [`0048-compliance-152fz-notification-consent`](../tasks/backlog/0048-compliance-152fz-notification-consent/brief.md) | Legal/lawyer-led; resolve before scaling |
+| 🔲 Backlog | Task 6 — Rewarded Ads: Minimal Version | None — see plan-index | Citizenship benefits (Sprint 4) |
+| 🔲 Backlog | Task 7 — Leaderboard: Core System *(**briefed 2026-09-08 on an owner ruling** given live in session and relayed through the spawning session — the one unbriefed row on this board with a known downstream dependency. ⚠️ **Briefed as an INVESTIGATION, not implementation**: the source material is two lines in `plan-index.md` plus this board's own Items section, and six decisions that change what gets built are unmade. Not a duplicate of `0161` (done — player count in a label) or `0210` (Singleplayer platform-reporting policy) — both read and verified. **Status and priority unchanged; this schedules nothing.**)* | [`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md) | — |
+| 🔲 Backlog | Task 8b — Private Lobbies (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
+| 🔲 Backlog | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
+| 🔲 Backlog | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
+| 🔲 Backlog | Task 9a — Re-enable Territory Patterns | None — see plan-index | Payment infrastructure (Sprint 4) |
+| 🔲 Backlog | Monitoring & Alert Bot — Phase 1 (Incident-Preventing Core) | [`0033-monitoring-alert-bot-phase1`](../tasks/backlog/0033-monitoring-alert-bot-phase1/brief.md) | — (recommend near-term, weekend deploy) |
+| 🔲 Backlog | Monitoring & Alert Bot — Phase 2 (Depth & Hygiene) | [`0034-monitoring-alert-bot-phase2`](../tasks/backlog/0034-monitoring-alert-bot-phase2/brief.md) | Phase 1 deployed |
+| 🔲 Backlog | Mobile Memory and WebGL Rendering Failures | [`0031-mobile-webgl-rendering`](../tasks/backlog/0031-mobile-webgl-rendering/brief.md) | Clearer mobile crash/perf data |
+| 🔲 Backlog | sec10 — Remove Password Deploy Fallbacks | [`0015-remove-password-deploy-fallbacks`](../tasks/backlog/0015-remove-password-deploy-fallbacks/brief.md) | — |
+| 🔲 Backlog | sec11 — Secret Management Beyond Env Files | [`0016-secret-management-beyond-env-files`](../tasks/backlog/0016-secret-management-beyond-env-files/brief.md) | — |
+| 🔲 Backlog | sec12 — VPS Registry Credential Hygiene (scoped pull-only token, no persisted creds) | [`0045-vps-registry-credential-hygiene`](../tasks/backlog/0045-vps-registry-credential-hygiene/brief.md) | Release-adjacent (live profile box); pairs with sec13 |
+| 🔲 Backlog | sec13 — Deploy Transport Secret Hygiene (telemetry EXIT-trap parity + remote env 0600) | [`0047-deploy-transport-secret-hygiene`](../tasks/backlog/0047-deploy-transport-secret-hygiene/brief.md) | — *(gate **satisfied**; corrected 2026-09-02)* |
+| 🔲 Backlog | 152-ФЗ Personal-Data Compliance — Roskomnadzor Notification + Consent Flow *(deferred from Sprint 4 2026-06-28, risk accepted)* | [`0048-compliance-152fz-notification-consent`](../tasks/backlog/0048-compliance-152fz-notification-consent/brief.md) | Legal/lawyer-led; resolve before scaling |
 | ➡️ Moved to [Sprint 7](done/plan-sprint-7.md) — priority 24 | Worker Init Timeout — Redundant Map Re-fetch on Join *(➡️ **MOVED 2026-09-29 to [Sprint 7](done/plan-sprint-7.md) on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent:** *"Rejoin + fix the timeout (Recommended)"* — *"…Also fix 0035 (give the worker the map the page already loaded, and/or a longer limit)…"*. Part of the owner-ruled top-of-Sprint-7 reconnect work, after `0347` and `0348`. Scope narrowed to Option A (map hand-over); Option B + the leak fix moved to `0348` — see the brief's 2026-09-29 addendum. Row **kept as a pointer, not deleted** (ADR-035); its Status cell read ~~`⬜ No sprint`~~ until today. Original row text otherwise unchanged.)* | [`0035-worker-init-timeout-map-refetch`](../tasks/done/0035-worker-init-timeout-map-refetch/brief.md) | — |
-| ⬜ No sprint | Bots: Stop Building SAM Launchers When Nukes Are Disabled | [`0036-bots-skip-sam-when-nukes-disabled`](../tasks/backlog/0036-bots-skip-sam-when-nukes-disabled/brief.md) | — |
-| ⬜ No sprint | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | [`0039-bots-hydrogen-bomb-sam-penetration-investigation`](../tasks/backlog/0039-bots-hydrogen-bomb-sam-penetration-investigation/brief.md) | — |
-| ⬜ No sprint | Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos — investigation + impl | [`0040-bots-nuke-saturation-sam-overwhelm`](../tasks/backlog/0040-bots-nuke-saturation-sam-overwhelm/brief.md) | Offset-targeting task (above) |
-| ⬜ No sprint | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | [`0044-infinite-gold-force-no-nukes-public-rotation`](../tasks/backlog/0044-infinite-gold-force-no-nukes-public-rotation/brief.md) | — |
-| ⬜ No sprint | Remove Dead `initializeFuseTag` Polling Loop | [`0037-fix-fusetag-dead-polling-loop`](../tasks/backlog/0037-fix-fusetag-dead-polling-loop/brief.md) | — |
-| ⬜ No sprint | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | [`0038-fix-gutterads-usermeresponse-unsubscribe`](../tasks/backlog/0038-fix-gutterads-usermeresponse-unsubscribe/brief.md) | — |
-| ⏸ Parked | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
-| ⏸ Parked | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
+| 🔲 Backlog | Bots: Stop Building SAM Launchers When Nukes Are Disabled | [`0036-bots-skip-sam-when-nukes-disabled`](../tasks/backlog/0036-bots-skip-sam-when-nukes-disabled/brief.md) | — |
+| 🔲 Backlog | Bots/Nations: Effective Hydrogen-Bomb Use vs SAM Defenses (offset targeting) — investigation | [`0039-bots-hydrogen-bomb-sam-penetration-investigation`](../tasks/backlog/0039-bots-hydrogen-bomb-sam-penetration-investigation/brief.md) | — |
+| 🔲 Backlog | Bots/Nations: Saturate SAM Defenses with Multi-Nuke Salvos — investigation + impl | [`0040-bots-nuke-saturation-sam-overwhelm`](../tasks/backlog/0040-bots-nuke-saturation-sam-overwhelm/brief.md) | Offset-targeting task (above) |
+| 🔲 Backlog | Force "No Nukes" When the Infinite-Gold Weird Mode Is Applied (Public Rotation) | [`0044-infinite-gold-force-no-nukes-public-rotation`](../tasks/backlog/0044-infinite-gold-force-no-nukes-public-rotation/brief.md) | — |
+| 🔲 Backlog | Remove Dead `initializeFuseTag` Polling Loop | [`0037-fix-fusetag-dead-polling-loop`](../tasks/backlog/0037-fix-fusetag-dead-polling-loop/brief.md) | — |
+| 🔲 Backlog | Fix GutterAds Unsubscribing from `userMeResponse` After First `hide()` | [`0038-fix-gutterads-usermeresponse-unsubscribe`](../tasks/backlog/0038-fix-gutterads-usermeresponse-unsubscribe/brief.md) | — |
+| 🔲 Backlog *(was `⏸ Parked` until 2026-10-22 — still waits on the Depends On condition)* | Task 5 — Deep Mobile Rendering Optimization | None — see plan-index | Mobile DAU > 1,500 |
+| 🔲 Backlog *(was `⏸ Parked` until 2026-10-22 — still waits on the Depends On condition)* | Task 2i — Microsoft Clarity Session Recordings | None — see plan-index | Mobile perf confirmed stable |
 | ➡️ Moved to [Backlog](backlog.md) | Fix Compact Map Shore Generation (Map Generator) *(➡️ **MOVED 2026-09-26 to [`backlog.md`](backlog.md) on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037):** *"Move those tasks to the backlog task"*. Tracked there from here on; this row is **kept as a pointer, not deleted** (ADR-035) — its Status cell read ~~`⬜ No sprint`~~ until today. ⚠️ **It lands there as `🔲 Backlog`, not `⬜ No sprint`** — a second owner ruling the same day (*"Use '🔲 Backlog'"*), a **narrow exception for `0026` and `0029` only** to the 2026-09-08 "carry the markers across, never flatten" ruling, which **still stands** for the rest of `0001`'s bulk move. Original row text follows, unchanged.)* *(**row added 2026-09-08 on an owner ruling given live in session and relayed through the spawning session.** 🚨 **This ruling SUPERSEDES a recorded 2026-08-14 reconciliation decision that deliberately did NOT add this row** — see [`plan-sprint-5.md`](done/plan-sprint-5.md) line 31, whose note is **deliberately kept** as the record of why the task was parked, now superseded rather than deleted. The brief was **board-invisible**: it appeared in no sprint file's table at all, so nothing rendered it and no status run could see it — the same class as `0022`, `0020` and `0028`. Its own `## Sprint` field reads `Sprint 5 — Backlog (high effort, requires full map regeneration)`, but `plan-sprint-5.md` carries no brief-linked rows and its scope statement excludes this task, so **this** board — "defined and worth doing but not assigned to any currently planned sprint" — is the accurate home. Handled the same way `0027` was for Sprint 6. ⚠️ **The brief's `Low` priority does NOT appear on this board**, which carries no Priority column; the rank lives in the brief. **Status, priority and dependencies are untouched — this is visibility only.** **Row appended, not inserted** (ADR-035); appending places it below the two `⏸ Parked` rows, which is position-by-append, not a grouping judgement)* | [`0026-fix-compact-map-shore-generation`](../tasks/backlog/0026-fix-compact-map-shore-generation/brief.md) | — *(the brief names nothing it waits on; its relationship to `0162-disable-compact-public-maps` is a **Blocks** fact, not a Depends on fact)* |
 | ➡️ Moved to [Backlog](backlog.md) | In-Game Hint Display on Match-Start and Win Screens *(➡️ **MOVED 2026-09-26 to [`backlog.md`](backlog.md) on an OWNER RULING given live in the `fkit lead` session via `AskUserQuestion`, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037):** *"Move those tasks to the backlog task"*. Tracked there from here on; this row is **kept as a pointer, not deleted** (ADR-035) — its Status cell read ~~`⬜ No sprint`~~ until today. ⚠️ **It lands there as `🔲 Backlog`, not `⬜ No sprint`** — a second owner ruling the same day (*"Use '🔲 Backlog'"*), a **narrow exception for `0026` and `0029` only** to the 2026-09-08 "carry the markers across, never flatten" ruling, which **still stands** for the rest of `0001`'s bulk move. Original row text follows, unchanged.)* *(**row added 2026-09-08 on the same owner ruling, given live in session and relayed through the spawning session.** 🚨 **Same supersession:** the 2026-08-14 reconciliation deliberately did not add this row; that decision is overturned and [`plan-sprint-5.md`](done/plan-sprint-5.md) line 31 is **kept** as the superseded record. The brief was **board-invisible** — in no sprint file's table. Its `## Sprint` field reads `Sprint 5 — Backlog`, but `plan-sprint-5.md` has no brief-linked rows and excludes it from scope, so it is homed here. ⚠️ **The brief's `Medium` priority does NOT appear on this board** (no Priority column); the rank lives in the brief. **Status, priority and dependencies are untouched — visibility only.** **Row appended, not inserted** (ADR-035))* | [`0029-hint-videos-in-game`](../tasks/backlog/0029-hint-videos-in-game/brief.md) | `0028-content-hint-videos-production` having produced at least 3–4 clean hint assets before engineering begins |
 
@@ -345,7 +331,7 @@ bootstrap task lands.
 
 ---
 
-### Task 5 — Deep Mobile Rendering Optimization ⏸ Parked
+### Task 5 — Deep Mobile Rendering Optimization *(waits on a signal — see the condition below)*
 
 **From plan-index:** Parked until mobile DAU > 1,500. Desktop is the core audience.
 
@@ -353,7 +339,7 @@ bootstrap task lands.
 
 ---
 
-### Task 2i — Microsoft Clarity Session Recordings ⏸ Parked
+### Task 2i — Microsoft Clarity Session Recordings *(waits on a signal — see the condition below)*
 
 **From plan-index:** Deferred after Sprint 3 — only useful once mobile performance is confirmed stable.
 

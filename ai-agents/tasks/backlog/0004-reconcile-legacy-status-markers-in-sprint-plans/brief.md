@@ -17,6 +17,13 @@ fkit-producer
 
 ## Context
 
+> 📌 **UPDATE 2026-10-22 — `⬜ No sprint` and `⏸ Parked` are decided.** OWNER RULING given live in a `fkit producer` session on 2026-10-22 (verbatim *"Do the exact copy"*, then *"Go ahead"*): both map to
+> `🔲 Backlog`, the vocabulary file is now fkit's shipped copy, and all 22 such rows on
+> `sprint-backlog.md` were flipped that day (the parked rows keep their condition in the Depends On
+> column). **The `⏸ Parked` question below is answered — do not put it to the owner again.** Still
+> open for this task: `plan-index.md` (its `⏸ Deferred` / `⏸ Parked` cells on Task 2i and Task 5),
+> the older plans, `⬜ Backlog`, `🔄 In Progress` casing, `⚠️ Urgent`, undated `⛔ Cancelled`.
+
 The sprint plans predate `conventions/task-status-vocabulary.md` and use a status vocabulary that
 does not match it. Observed in `plan-sprint-4.md`, `plan-sprint-6.md`, `sprint-backlog.md`, and
 `plan-index.md`:
