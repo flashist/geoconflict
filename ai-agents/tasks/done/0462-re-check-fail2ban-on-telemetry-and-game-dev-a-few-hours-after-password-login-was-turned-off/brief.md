@@ -57,7 +57,7 @@ telemetry. It is not an extra check. When it passes, `0452`'s worklog records V5
 | Telemetry | 25430 |
 | Game dev | 160736 |
 
-**Source:** [`0452`](../../backlog/0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)
+**Source:** [`0452`](../0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)
 — its brief (verification step 6, V5) and `worklog.md` (P4 table; telemetry and game dev sections, each ending
 *"V5 — pending"*). The change itself was built by
 [`0442`](../../done/0442-game-boxes-turn-off-password-login-over-ssh-after-key-login-is-proven/brief.md).

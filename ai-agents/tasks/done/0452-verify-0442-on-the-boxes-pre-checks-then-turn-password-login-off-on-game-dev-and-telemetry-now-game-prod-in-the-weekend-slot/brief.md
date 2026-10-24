@@ -40,7 +40,7 @@ pre-checks must come first. ADR-035 forbids inserting a new row above closed row
 (45, `0451`).
 
 ## Status
-🔄 In progress — 2026-10-15, OWNER RULING (live `AskUserQuestion` in the main session, relayed by the main session to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent); verbatim *"Both (Recommended)"* to *"Mark 0452 and 0426 as 'In progress' on the board, since work on both has started?"*. Pre-checks P1–P4 passed 2026-10-15; password login is off on telemetry and game dev (V2–V4 passed on both). Left: V5 on those two boxes (`0462`), game prod in the weekend slot, and the Q3 switch removal (verification step 7). Details: `worklog.md`.
+✅ Done (agent-closed — not owner-verified)
 
 *(Status until 2026-10-15, kept as history:)* ~~🔲 Backlog~~
 
@@ -86,7 +86,7 @@ for another task.** Game boxes: `deploy.sh`'s root step runs `setup-game-host.sh
 Telemetry: `setup-telemetry.sh`'s sshd section (checked 2026-10-13, `setup-telemetry.sh:1311-1337`) runs on every key
 deploy. ⇒ **Pre-checks P1–P4 must be done before the first game or telemetry deploy after the commit** — whichever task
 that deploy is for. This touches:
-- [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md) —
+- [`0449`](../../backlog/0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md) —
   deploys profile → telemetry → game dev → game prod;
 - [`0450`](../../done/0450-verify-0447-on-the-boxes-list-the-leftover-deploy-env-files-owner-deletes-them-on-game-dev-and-confirm-a-dev-deploy-leaves-no-file/brief.md)
   — deploys game dev.

@@ -74,7 +74,7 @@ Facts checked by the relaying session (2026-10-16) and re-checked by the produce
   and changing it shows the "new" badge again to everyone who has already read these entries. *Cost of keeping:* the
   id's date part stays one day off, which only matters to someone reading the file.
 - **Related:** [`0426`](../../done/0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md)
-  (wrote the entries); [`0469`](../../backlog/0469-verify-0426-live-the-2026-10-17-news-entries-show-in-yandex-russian-after-the-weekend-deploy/brief.md)
+  (wrote the entries); [`0469`](../0469-verify-0426-live-the-2026-10-17-news-entries-show-in-yandex-russian-after-the-weekend-deploy/brief.md)
   (Sprint 9, the live news check; its title says 2026-10-17 and "after the weekend deploy", but the deploy happened on
   2026-10-16, so it may want to note the date this task fixes);
   [`0468`](../../backlog/0468-rename-the-custom-game-window-title-to-match-the-start-screen-button/brief.md) (Backlog board,

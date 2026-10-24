@@ -125,7 +125,7 @@ rules on it.
 ## Notes
 - **Depends on:** 0445, 0447, 0452 (its pre-checks P1–P4 only — not its close)
 - **Why `0452` (added 2026-10-13):** once `0442`'s code is committed, any key deploy of a game box or the telemetry
-  box turns SSH password login off — this task's deploys included. So this task waits for [`0452`](../../backlog/0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)'s
+  box turns SSH password login off — this task's deploys included. So this task waits for [`0452`](../0452-verify-0442-on-the-boxes-pre-checks-then-turn-password-login-off-on-game-dev-and-telemetry-now-game-prod-in-the-weekend-slot/brief.md)'s
   **pre-checks P1–P4** (web-console root login proven on all three boxes; keys + passphrases and root passwords in the
   password manager; the read-only sshd/fail2ban check). It does **not** wait for `0452` to close — `0452`'s game prod
   half waits for the weekend slot, and this task must not be stuck behind it. Once P1–P4 have passed and `0452`'s

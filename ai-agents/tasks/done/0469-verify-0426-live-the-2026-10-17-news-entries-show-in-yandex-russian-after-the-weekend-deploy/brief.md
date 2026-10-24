@@ -35,7 +35,9 @@ Sprint 9
 > 📌 **2026-10-16, later — was 1, now 6.** Moved down five on the [Sprint 9 board](../../../sprints/plan-sprint-9.md) by the OWNER-RULED order *"At the top (Recommended)"*, which put the five rows relocated from Sprint 8 above it. Not a merit change for this task. The note(s) below are kept as written (ADR-035).
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+*(Status until 2026-10-24, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer — ⚠️ **EXECUTED BY THE OWNER (human)**, inside the Yandex Games iframe, after the deploy. A producer
@@ -66,7 +68,7 @@ before running `build-deploy.sh prod`.
   dot. The dot is per device (`0304`, known).
 - The window's own heading for custom games still says «Одиночная игра» / "Single Player" while news entry B says it is
   now "Custom Game" — a known, owner-accepted residual from `0426`'s review (R1); the fix is
-  [`0468`](../0468-rename-the-custom-game-window-title-to-match-the-start-screen-button/brief.md). Do not fail this
+  [`0468`](../../backlog/0468-rename-the-custom-game-window-title-to-match-the-start-screen-button/brief.md). Do not fail this
   check for it.
 
 **Deploy timing.** Planned for the Saturday 2026-10-17 game prod deploy slot (with `0449` / `0452`). **If the deploy
@@ -105,7 +107,7 @@ each item; for any fail, what was seen and where.
 - **Blocks:** nothing
 - Build task: [`0426`](../../done/0426-update-the-news-window-tell-players-everything-shipped-since-2026-06-06/brief.md)
   (closed 2026-10-16, agent-closed — not owner-verified). Its plan (§4 V5, §5), worklog and review are in its folder.
-- Related: [`0468`](../0468-rename-the-custom-game-window-title-to-match-the-start-screen-button/brief.md) (window title
+- Related: [`0468`](../../backlog/0468-rename-the-custom-game-window-title-to-match-the-start-screen-button/brief.md) (window title
   fix — the accepted residual above).
 - Deploy: weekend slot (owner rule 2026-09-29) unless the owner says otherwise. Committed is not deployed.
 - No ids, hosts, URLs or secrets belong in this brief or its worklog.
