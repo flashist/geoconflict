@@ -86,7 +86,7 @@ for another task.** Game boxes: `deploy.sh`'s root step runs `setup-game-host.sh
 Telemetry: `setup-telemetry.sh`'s sshd section (checked 2026-10-13, `setup-telemetry.sh:1311-1337`) runs on every key
 deploy. ⇒ **Pre-checks P1–P4 must be done before the first game or telemetry deploy after the commit** — whichever task
 that deploy is for. This touches:
-- [`0449`](../../backlog/0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md) —
+- [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md) —
   deploys profile → telemetry → game dev → game prod;
 - [`0450`](../../done/0450-verify-0447-on-the-boxes-list-the-leftover-deploy-env-files-owner-deletes-them-on-game-dev-and-confirm-a-dev-deploy-leaves-no-file/brief.md)
   — deploys game dev.

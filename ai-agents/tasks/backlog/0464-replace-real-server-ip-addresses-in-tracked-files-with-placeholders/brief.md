@@ -35,7 +35,7 @@ address for a named placeholder such as `<game-prod-ip>`. Nothing the game or th
 **How it was found.** On 2026-10-15, during `0449`'s step 10 (tracked-file check), `fkit-lead` ran `git grep -lF` for
 the game dev, game prod, telemetry and profile addresses held in the gitignored env files. 12 tracked files matched.
 All of them predate `0443`; `0443`'s own commit added none. See
-[`0449`'s worklog](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/worklog.md).
+[`0449`'s worklog](../../done/0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/worklog.md).
 
 **The 12 files (as found 2026-10-15 — re-check, do not trust this list alone):**
 

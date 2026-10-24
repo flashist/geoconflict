@@ -133,7 +133,7 @@ did not run the searches itself.
 - **Telegram chat id (`FEEDBACK_TELEGRAM_CHAT_ID`)'s value:** in **0** tracked files (`fkit-lead`, `git grep -lF`).
 - **SSH alert token (`PROFILE_SSH_ALERT_TOKEN`)'s value:** in **0** tracked files (as recorded above).
 - **The 12 older tracked files with box addresses** are now covered by a new cleanup task,
-  [`0464`](../0464-replace-real-server-ip-addresses-in-tracked-files-with-placeholders/brief.md) (Backlog board,
+  [`0464`](../../backlog/0464-replace-real-server-ip-addresses-in-tracked-files-with-placeholders/brief.md) (Backlog board,
   `🔲 Backlog`, owner `fkit-coder`).
   - 📌 **OWNER RULING 2026-10-15**, live `AskUserQuestion` in the main session, relayed by `fkit-lead` to a spawned
     `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Question: *"12 older files
@@ -260,3 +260,68 @@ Read-only SSH by key from the Claude Code session, owner OK given live 2026-10-2
 - **Login alerts still work 4 days after the deploy:** this session's three key logins (profile ×2, game prod ×1,
   2026-10-20 07:49Z) each produced the expected `🔑` message, the second profile login as `+1 more … within 2 min`
   (grouping, owner ruling Q3). Owner screenshot.
+
+## 2026-10-24 — digests 2026-10-22 and 2026-10-23, the per-box report-window check, and the close
+
+Recorded by a spawned `fkit-producer` (no owner channel, ADR-021/037) from results relayed by `fkit-lead`; ⛔ **not
+producer precedent.** The producer did not see the screenshots or the boxes itself. Append-only; nothing above is
+touched. No host, address, user, key, chat id or URL recorded.
+
+### (a) Step 8 — two consecutive daily digests (owner's Telegram screenshots)
+
+Shown by the owner to `fkit-lead` on 2026-10-24. Both are `🛡 SSH security · daily`, arrived **11:10 MSK (08:10 UTC)**,
+list **all four boxes**, show **fail2ban up on every box**, and carry **no** `could not be sent` line and **no**
+`OLD numbers` line.
+
+| Box | 2026-10-22 (failed / unknown-user / bans) | 2026-10-23 (failed / unknown-user / bans) |
+|---|---|---|
+| game-prod | 0 / 890 / 53 | 0 / 1034 / 71 |
+| game-dev | 0 / 371 / 38 | 0 / 297 / 31 |
+| profile | 0 / 341 / 40 | 0 / 257 / 31 |
+| telemetry | 0 / 522 / 57 | 0 / 531 / 62 |
+
+- The owner looked at both himself. **The pass/fail reading against step 8 is `fkit-lead`'s**, not the owner's.
+- **`0 failed` on every box is a real count, not a silent 0** (producer's reading of the code, not checked on a box):
+  the agent counts `Failed …` journal lines and sends `null` / `UNREADABLE` when the journal cannot be read
+  (`ssh-alerts.sh:466-480`). Zero is consistent with password login being off on all four boxes (`0442`/`0452`;
+  the profile box already read 0 on 2026-10-16).
+
+### (b) Step 8 — per-box report-window check: PASS on all four boxes
+
+Run by a spawned `fkit-coder`, read-only over SSH with key-only login, 2026-10-24 ~12:32 UTC, on the owner's read
+approval (live `AskUserQuestion`, verbatim **"Coder tries over SSH (Recommended)"**).
+
+- Time zones: game prod, game dev and telemetry on Europe/Moscow; profile on UTC. All clocks synced.
+- All four run cron `*/5` on `geoconflict-ssh-alerts tick`. The installed agent's sha256 **matches the repo's
+  `ssh-alerts.sh`** on all four.
+- `daily_if_due` picks the hour in **UTC** (`DAILY_UTC_HOUR=8`, `ssh-alerts.sh:80`, `:517-523`). The window is
+  [tick − 86400 s, tick] (`:470-473`); journalctl gets epoch `--since`/`--until`. Bans come from fail2ban.log with
+  local-time cutoffs (`:487-488`); the fail2ban log clock matches the box clock.
+- `daily.last` = 2026-10-24 on all four, stamped 08:00:01–08:00:02 UTC. Stored reports' `at` =
+  2026-10-24T08:00:01Z / 02Z. Digest marker: finished 08:10:06Z, 0 failed sends.
+- ⚠️ **Limit:** only the latest report is kept on a box, so this proves the **2026-10-24** window directly. The
+  2026-10-22 and 2026-10-23 windows rest on the code (same agent, byte-identical to the repo) plus the digest log.
+
+### Verification steps — final tally (producer's reading of this worklog)
+
+| # | Step | State | Where recorded |
+|---|---|---|---|
+| 1 | Step 1 (names only) + commit id | **Met** | 2026-10-15, Steps 1–2 (`779ddc2`) |
+| 2 | Four deploys; agent installed; game deploys `GAME HOST SETUP OK` + exit 0 | **Met** | 2026-10-15 Step 3 (profile, telemetry, game dev); 2026-10-16 (game prod `0.0.165`). Game prod's exit code was not printed: exit 0 is read from `deploy.sh`, where the OK banner prints only after the `exit 3` branch is passed and nothing after it can exit non-zero (`deploy.sh:532-556`) |
+| 3 | Step 4 per box | **Met, 4 of 4** | 2026-10-15 (3 boxes); 2026-10-16 (game prod) |
+| 4 | `🔑` within a minute, masked, per box | **Met, 4 of 4** | 2026-10-15 (3 boxes); 2026-10-16 (game prod) |
+| 5 | Game dev "Telegram unreachable" | **Met** | 2026-10-15 Step 6 (0.69 s vs 0.73 s; held alerts arrived 12:50/12:51 UTC) |
+| 6 | fail2ban `DOWN` then `back` | **Met** — game dev | 2026-10-15 Step 7 |
+| 7 | Two consecutive digests, all four boxes, Moscow-time window correct, failed-sends/OLD explained | **Met** | This entry, (a) and (b) — with the limit stated in (b) |
+| 8 | 24 h with zero per-guess messages | **Met** | 2026-10-20: no SSH-alert error/reject line in the profile-api log since the game prod deploy (2026-10-16T12:20Z, over 3 days); the owner's Telegram showed only `🔑` messages. Backed by design: the agent never makes an event from a `Failed …` / `Invalid user …` line (`ssh-alerts.sh:30-31`), and (b) confirms the installed agent is byte-identical to the repo |
+| 9 | Step 10 grep clean | **Met for this task's scope** | 2026-10-15 (later): token and chat id in 0 tracked files; 12 older files with addresses handed to `0464` |
+
+### Close
+
+📌 **OWNER RULING 2026-10-24**, live `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned
+`fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Question: *"0449's checks are all
+covered now. Record and close it?"* Verbatim selection: **"Record and close (Recommended)"** — option text: *"A producer
+records the two digests and the server check, confirms every step passed, then closes it as agent-closed."*
+
+Every verification step above is recorded as passed, so the task is closed via `/fkit-task-done` —
+**(agent-closed — not owner-verified)**.

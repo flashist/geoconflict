@@ -58,7 +58,7 @@ task.
 weekend slots).
 
 > 🚀 **2026-10-15 — `0350` IS NOW DEPLOYED** to the profile box: `npm run deploy:profile` → **`0.0.164-profile.1`**,
-> exit 0, `/health` ok — the profile deploy made for [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/worklog.md).
+> exit 0, `/health` ok — the profile deploy made for [`0449`](../../done/0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/worklog.md).
 > 📌 **OWNER RULING 2026-10-15**, live `AskUserQuestion` in the main session, relayed by `fkit-lead` to a spawned
 > `fkit-producer` with no owner channel (ADR-021/037); ⛔ **not producer precedent.** Verbatim selection: **"Deploy now,
 > ship both (Recommended)"** — ship `0350` early in that deploy instead of its own weekend profile deploy (this

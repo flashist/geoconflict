@@ -109,9 +109,9 @@ is what makes the non-paid part shippable while payments and `0009` are still bl
 ## Notes
 
 - **Depends on:** 0009 (entitlement origin), Sprint 4 payment infrastructure, and an owner decision
-  on the flag design set
-- **Blocks:** Sprint 5 Task 8a (nickname styling), Sprint 5 Task 15 (custom uploaded flags), and the
-  Sprint 6 paid map-pack purchase surface
+  on the flag design set — and 0484 (the shared purchase-flow design; OWNER RULING 2026-10-24, verbatim **"Sprint 9, builds wait (Recommended)"**, live `AskUserQuestion` in the lead session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent)
+- **Blocks:** 0481 (custom uploaded flags — the Sprint 5 Task 15 talk), Sprint 5 Task 8a (nickname styling), and the
+  Sprint 6 paid map-pack purchase surface — and 0481 (the custom-uploads talk, which waits on this task by OWNER RULING 2026-10-24, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent: *"Should be taken into work only after flags/patterns are re-enabled and in-apps for them are built/enabled properly."*)
 
 - **Consider splitting further when scoping.** If the non-country flag set can ship as a *free*
   cosmetic first, it becomes independently shippable while payments and `0009` are still blocked —

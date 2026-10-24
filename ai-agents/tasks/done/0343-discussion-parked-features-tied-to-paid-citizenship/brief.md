@@ -44,7 +44,11 @@ Sprint 9
 > created 2026-09-29 to receive it. Not a merit judgement against anything else; the owner ranks Sprint 8.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+*(2026-10-24, later — closed by a spawned `fkit-producer` (no owner channel, ADR-021/037) via `/fkit-task-done`, routed by `fkit-lead` driving `/fkit-sprint-ship-loop`, on the OWNER RULING **"Close once tasks filed (Recommended)"**, relayed; ⛔ not producer precedent. Outcomes and verification steps 1–7: [worklog](worklog.md), "Batch 2". Earlier value, kept as history:)* ~~🔄 In progress~~ — 2026-10-24, OWNER RULING, live `AskUserQuestion` in the lead session 2026-10-24, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop` on Sprint 9) to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner picked verbatim **"Run the 0343 talk (Recommended)"** (option text: *"A producer runs the agenda; I put the questions to you a few at a time. It's long and may take several sittings."*). The talk runs producer-led, with `fkit-lead` holding the owner channel. Status edit only: no move, no rank change.
+
+*(Status until 2026-10-24, kept as history:)* ~~🔲 Backlog~~
 
 ## Owner
 fkit-producer
@@ -58,7 +62,7 @@ into separate briefs, and *"each brief should have a list of the things that sho
 implemented, but discussed)"*. The split test, delegated to the producer by the owner: *"is the task related to
 the paid citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog."* End state: exactly
 two briefs. **This is the "yes" brief.** The "no" brief is
-[`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) on the
+[`0342`](../../backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) on the
 [Backlog board](../../../sprints/backlog.md).
 
 📌 **2026-09-29, later — three more items moved IN, from `0342`.** **OWNER RULING given live in the `fkit lead` session on 2026-09-29 (ruling C)**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Leaderboard Rewards, Coin Economy, Clans → Backlog — move that to the Sprint 8."* It overrules the producer's borderline "no" calls on those three. Leaderboard — Rewards Layer, Coin Economy + Rewarded Ads, and Clans are now items F, G, H below, with their dependencies, questions and verbatim prose (Appendices F–H). So this brief is **no longer citizenship-only**: items A–E are paid-citizenship perks; F–H are "more" by owner ruling. Nothing was duplicated: each item lives in exactly one brief. ⚠️ The folder name (`…-tied-to-paid-citizenship`) is now only partly accurate; it was **not** renamed, because the folder name carries the task's identity and inbound links (ADR-029).
@@ -123,7 +127,7 @@ using the agenda below. For each item, record one outcome in `worklog.md` in thi
 
 ### Item A — Paid Campaign Map Packs
 
-⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. New-maps content is on hold with no restart date (the same day's ruling *"We wil postpone the new maps, don't know for how long …"*, which moved [`0027`](../0027-new-maps-community-demand/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item A is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. New-maps content is on hold with no restart date (the same day's ruling *"We wil postpone the new maps, don't know for how long …"*, which moved [`0027`](../../backlog/0027-new-maps-community-demand/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item A is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
 
 **In plain words.** Themed map packs to buy (WW2 first). 1–2 maps per pack free, the rest unlocked by buying.
 These are campaign maps (can be unfair / scripted on purpose), single-player or co-op — **not** part of normal
@@ -133,9 +137,9 @@ multiplayer.
 [`plan-sprint-6.md`](../../../sprints/done/plan-sprint-6.md) § *Task 2 — Paid Campaign Map Packs*, plus § *Notes*.
 
 **Known dependencies / related work.** Meant to ship **after** free historical maps —
-[`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (Backlog board). Needs
+[`0342`](../../backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (Backlog board). Needs
 the Yandex catalog (`0014`, done) and purchase flow (`0019`, done; `0303`, done). The demand tracker
-[`0027`](../0027-new-maps-community-demand/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — new-maps content postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item A moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item A is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item A). The cosmetics chain on the
+[`0027`](../../backlog/0027-new-maps-community-demand/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — new-maps content postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item A moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item A is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item A). The cosmetics chain on the
 [Backlog board](../../../sprints/backlog.md) § *The cosmetics monetization chain* lists paid map packs at its end.
 
 **To discuss:**
@@ -206,7 +210,7 @@ lobbies and their maps are scheduled by the server master process.
 
 ### Item D — Replay Access as a Premium Feature
 
-⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. Match archiving is on hold with no restart date (the same day's ruling *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, which moved [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item D is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
+⛔ **POSTPONED INDEFINITELY by OWNER RULING (2026-10-03).** OWNER RULING given live on 2026-10-03 via `AskUserQuestion` in the `fkit lead` session, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner's choice, verbatim: *"Keep it, mark A and D on hold"*. Match archiving is on hold with no restart date (the same day's ruling *"we will pospone the Archive Matches tasks, move the tasks related to it to the backlog."*, which moved [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) to the Backlog board). This item stays in this brief and `0343` ~~stays on Sprint 8 — row, rank and status unchanged~~ *(spent 2026-10-16: moved to Sprint 9 by owner ruling; the hold is unaffected)* — but item D is **not to be discussed or scoped** until the owner lifts the hold. The text below is kept as written.
 
 **In plain words.** Free players keep their last 3 match replays; premium players keep 20+ and can share replay
 links.
@@ -215,7 +219,7 @@ links.
 [`done/plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md) § *13. Replay Access as Premium Feature*.
 
 **Known dependencies / related work.** Closely tied to S3 match archival, already citizen-gated:
-[`0030`](../0030-archive-s3-backed-citizen-gated/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — match archiving postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item D moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item D is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item D), and
+[`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md) (~~Sprint 7~~ ➡️ Backlog board since 2026-10-03 — match archiving postponed indefinitely by OWNER RULING, relayed by `fkit-lead`; ⛔ not producer precedent. ~~Whether this item D moves too is an open owner question~~ ✅ answered 2026-10-03: it does **not** move — item D is **POSTPONED INDEFINITELY by OWNER RULING** inside this brief; see the ⛔ banner at the top of item D), and
 [`0292`](../../cancelled/0292-client-archive-read-bypasses-archive-enabled-flag/brief.md). The prose makes it wait on "Task 11's
 premium tier" — Task 11 is the coin economy, **item G of this brief** (moved here from `0342` by owner ruling C).
 
@@ -239,9 +243,9 @@ premium tier" — Task 11 is the coin economy, **item G of this brief** (moved h
 [`done/plan-sprint-5.md`](../../../sprints/done/plan-sprint-5.md) § *15. Custom Uploaded Flags & Patterns — Paid
 Citizens Only*.
 
-**Known dependencies / related work.** Needs flags [`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md)
-and patterns [`0011`](../0011-re-enable-territory-patterns/brief.md) live first — both **blocked** — and behind
-them [`0009`](../0009-self-host-upstream-openfront-api-dependency/brief.md). The personal inbox (8d) exists and the
+**Known dependencies / related work.** Needs flags [`0010`](../../backlog/0010-re-enable-flags-paid-non-country-cosmetic/brief.md)
+and patterns [`0011`](../../backlog/0011-re-enable-territory-patterns/brief.md) live first — both **blocked** — and behind
+them [`0009`](../../backlog/0009-self-host-upstream-openfront-api-dependency/brief.md). The personal inbox (8d) exists and the
 name-change review flow (`0067`, `0283`, `0312`–`0315`) is a working model for a review queue.
 
 **To discuss:**
@@ -270,8 +274,8 @@ permanent "Month — Top 3" badge collectors keep forever.
 
 **Known dependencies / related work.** 🚨 **Needs the core leaderboard (Task 7) first, and that does not exist
 yet** — only a definition investigation is filed:
-[`0234`](../0234-leaderboard-core-system-definition/brief.md) (Backlog). Also
-[`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) (Backlog). Badge display must go
+[`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md) (Backlog). Also
+[`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) (Backlog). Badge display must go
 through the one shared name-rendering path (the prose's "Task 8" component; the citizen ★ icon, `0068`, is the
 nearest thing today).
 
@@ -298,9 +302,9 @@ Version*.
 
 **Known dependencies / related work.** The minimal rewarded-ads step (Task 6) has no brief and sits on the older
 board [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) § *Task 6*. The cosmetics it would sell are flags
-[`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md) and patterns
-[`0011`](../0011-re-enable-territory-patterns/brief.md) — both **blocked**, and behind them
-[`0009`](../0009-self-host-upstream-openfront-api-dependency/brief.md) (cosmetic entitlements come from the
+[`0010`](../../backlog/0010-re-enable-flags-paid-non-country-cosmetic/brief.md) and patterns
+[`0011`](../../backlog/0011-re-enable-territory-patterns/brief.md) — both **blocked**, and behind them
+[`0009`](../../backlog/0009-self-host-upstream-openfront-api-dependency/brief.md) (cosmetic entitlements come from the
 upstream OpenFront API today). ⚠️ Item D of this brief (premium replays) says it needs "Task 11's tier" — see question 4.
 
 **To discuss:**
@@ -360,17 +364,17 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
 
 - **Depends on:** nothing (it is a discussion). Individual items have their own prerequisites — see each item.
 - **Blocks:** nothing directly. ⚠️ Cross-board ordering: item A (paid map packs) is meant to ship **after**
-  [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (free historical maps).
-- **Related:** [`0342`](../0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (the twin),
+  [`0342`](../../backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) item C (free historical maps).
+- **Related:** [`0342`](../../backlog/0342-discussion-parked-features-not-tied-to-paid-citizenship/brief.md) (the twin),
   [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md) (what the popup promises),
   [`0340`](../../done/0340-0325-s3a-enforce-mint-verified-sessions/brief.md),
   [`0332`](../../done/0332-join-token-game-server-has-the-profile-server-vouch-for-a-verified-session/brief.md),
-  [`0030`](../0030-archive-s3-backed-citizen-gated/brief.md),
-  [`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md),
-  [`0011`](../0011-re-enable-territory-patterns/brief.md),
-  [`0009`](../0009-self-host-upstream-openfront-api-dependency/brief.md),
-  [`0234`](../0234-leaderboard-core-system-definition/brief.md),
-  [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md),
+  [`0030`](../../backlog/0030-archive-s3-backed-citizen-gated/brief.md),
+  [`0010`](../../backlog/0010-re-enable-flags-paid-non-country-cosmetic/brief.md),
+  [`0011`](../../backlog/0011-re-enable-territory-patterns/brief.md),
+  [`0009`](../../backlog/0009-self-host-upstream-openfront-api-dependency/brief.md),
+  [`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md),
+  [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md),
   [`0152`](../../done/0152-investigate-clans-system/brief.md).
 - **Why one brief and not eight:** by owner ruling (exactly two briefs). Each item is expected to split into its own
   briefs if and when it is filed.

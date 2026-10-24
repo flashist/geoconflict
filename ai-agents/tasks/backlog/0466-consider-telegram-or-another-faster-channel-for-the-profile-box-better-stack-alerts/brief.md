@@ -112,7 +112,7 @@ already open (the 2026-10-07 muting trap).
 - **Related:** [`0219`](../../done/0219-profile-p4-operability-log-rotation-prune-uptime-backup-freshness/brief.md) (parent;
   B2/B3 Telegram part waived there by the 2026-10-15 ruling), [`0033`](../0033-monitoring-alert-bot-phase1/brief.md),
   [`0034`](../0034-monitoring-alert-bot-phase2/brief.md), [`0443`](../../done/0443-ssh-security-alerts-to-telegram-on-all-three-boxes-logins-fail2ban-down-daily-counts/brief.md)
-  / [`0449`](../0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md)
+  / [`0449`](../../done/0449-verify-0443-on-the-boxes-deploy-the-ssh-security-alerts-and-watch-them-for-two-days/brief.md)
   (the relay path to the Alerts topic), [`0465`](../0465-stop-the-profile-deploy-smoke-backup-breaking-the-daily-backup-object-check/brief.md)
   (the false failure that kept an incident open).
 - **Wiki gap:** the wiki has no page on how alerts reach the operator (Better Stack, email, the Alerts topic). Worth a

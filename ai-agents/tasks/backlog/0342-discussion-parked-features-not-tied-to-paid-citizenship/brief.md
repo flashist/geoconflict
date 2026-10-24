@@ -24,10 +24,10 @@ into separate briefs, and *"each brief should have a list of the things that sho
 implemented, but discussed)"*. The split test, delegated to the producer by the owner: *"is the task related to
 the paid citizenship? If yes, put this brief into Sprint 8. If no — put it into Backlog."* End state: exactly
 two briefs. **This is the "no" brief.** The "yes" brief is
-[`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on
+[`0343`](../../done/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) on
 ~~[Sprint 8](../../../sprints/done/plan-sprint-8.md)~~ [Sprint 9](../../../sprints/plan-sprint-9.md) *(moved 2026-10-16, owner ruling)*.
 
-📌 **2026-09-29, later — three items moved OUT of this brief to `0343`.** **OWNER RULING given live in the `fkit lead` session on 2026-09-29 (ruling C)**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Leaderboard Rewards, Coin Economy, Clans → Backlog — move that to the Sprint 8."* Leaderboard — Rewards Layer, Coin Economy + Rewarded Ads, and Clans — with their agenda entries, dependencies, questions and verbatim prose — now live in [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (items F, G, H). This brief keeps 5b, 5c and the free historical maps. Nothing was duplicated: each item lives in exactly one brief.
+📌 **2026-09-29, later — three items moved OUT of this brief to `0343`.** **OWNER RULING given live in the `fkit lead` session on 2026-09-29 (ruling C)**, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Owner, verbatim: *"Leaderboard Rewards, Coin Economy, Clans → Backlog — move that to the Sprint 8."* Leaderboard — Rewards Layer, Coin Economy + Rewarded Ads, and Clans — with their agenda entries, dependencies, questions and verbatim prose — now live in [`0343`](../../done/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (items F, G, H). This brief keeps 5b, 5c and the free historical maps. Nothing was duplicated: each item lives in exactly one brief.
 
 **What this brief is.** A **discussion agenda**, not an implementation plan. Nothing here is to be built from
 this brief. Its job is to get an owner decision on each item — *file real briefs for it*, *keep it parked
@@ -170,7 +170,7 @@ one** — a cross-board ordering.
 - **Depends on:** nothing (it is a discussion). Individual items have their own prerequisites — see each item.
 - **Blocks:** nothing directly. ⚠️ Cross-board ordering: `0343` item A (paid map packs) is meant to ship **after**
   item C here (free historical maps).
-- **Related:** [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (the ~~Sprint 8~~ Sprint 9 twin *(moved 2026-10-16, owner ruling)* —
+- **Related:** [`0343`](../../done/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) (the ~~Sprint 8~~ Sprint 9 twin *(moved 2026-10-16, owner ruling)* —
   and, since owner ruling C, home of leaderboard rewards, coin economy and clans),
   [`0027`](../0027-new-maps-community-demand/brief.md), [`0026`](../0026-fix-compact-map-shore-generation/brief.md).
 - **Why one brief and not three:** by owner ruling (exactly two briefs). Each item is expected to split into its own

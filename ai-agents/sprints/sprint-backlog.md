@@ -19,7 +19,7 @@
 | Status | Task | Brief | Depends On |
 |---|---|---|---|
 | 🔲 Backlog | Task 6 — Rewarded Ads: Minimal Version | None — see plan-index | Citizenship benefits (Sprint 4) |
-| 🔲 Backlog | Task 7 — Leaderboard: Core System *(**briefed 2026-09-08 on an owner ruling** given live in session and relayed through the spawning session — the one unbriefed row on this board with a known downstream dependency. ⚠️ **Briefed as an INVESTIGATION, not implementation**: the source material is two lines in `plan-index.md` plus this board's own Items section, and six decisions that change what gets built are unmade. Not a duplicate of `0161` (done — player count in a label) or `0210` (Singleplayer platform-reporting policy) — both read and verified. **Status and priority unchanged; this schedules nothing.**)* | [`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md) | — |
+| ➡️ Moved to [Sprint 9](plan-sprint-9.md) — priority 19 | Task 7 — Leaderboard: Core System *(➡️ **MOVED 2026-10-24 to [Sprint 9](plan-sprint-9.md) on an OWNER RULING typed live in the lead's Claude Code session via `AskUserQuestion`, relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop`) to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent:** *"#3, also bring the leaderboard-related task to the current sprint."* (in the `0482` badges talk). Tracked there from here on, at rank 19 (append rank); this row is **kept as a pointer, not deleted** (ADR-035) — its Status cell read ~~`🔲 Backlog`~~ until today.)* *(**briefed 2026-09-08 on an owner ruling** given live in session and relayed through the spawning session — the one unbriefed row on this board with a known downstream dependency. ⚠️ **Briefed as an INVESTIGATION, not implementation**: the source material is two lines in `plan-index.md` plus this board's own Items section, and six decisions that change what gets built are unmade. Not a duplicate of `0161` (done — player count in a label) or `0210` (Singleplayer platform-reporting policy) — both read and verified. **Status and priority unchanged; this schedules nothing.**)* | [`0234-leaderboard-core-system-definition`](../tasks/backlog/0234-leaderboard-core-system-definition/brief.md) | — |
 | 🔲 Backlog | Task 8b — Private Lobbies (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | 🔲 Backlog | Task 8c — Spectating (Citizens Only) | None — see plan-index | Citizenship (Sprint 4) |
 | 🔲 Backlog | Task 9 — Re-enable Flags | None — see plan-index | Payment infrastructure (Sprint 4) |
@@ -75,6 +75,9 @@ for the investigation, and it predates every open question. Unvalidated.
 Only" label) or `0210-singleplayer-platform-leaderboard-reporting-policy` (a policy decision about the
 existing **Yandex platform** leaderboard). Both were read and verified 2026-09-08; recorded so it is not
 re-derived.
+
+➡️ **Moved 2026-10-24 to [Sprint 9](plan-sprint-9.md)** at rank 19, on the owner ruling recorded in
+this task's table row (now `➡️ Moved`). This section is kept as history; the live row is on `plan-sprint-9.md`.
 
 > ℹ️ **The other five live-but-unbriefed rows on this board — Task 6, Task 8b, Task 8c, Task 5, Task 2i
 > — remain visible-but-unbriefed by the owner's explicit choice, 2026-09-08.** Only Task 7 was briefed,

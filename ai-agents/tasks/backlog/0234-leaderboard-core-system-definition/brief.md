@@ -4,13 +4,27 @@
 0234
 
 ## Sprint
-Sprint backlog — no sprint home yet. Filed on [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
+Sprint 9
+
+> ➡️ **2026-10-24 — moved into [Sprint 9](../../../sprints/plan-sprint-9.md) from the Sprint Backlog board.** OWNER
+> RULING typed live in the lead's Claude Code session via `AskUserQuestion`, in the `0482` (leaderboard badges) talk,
+> relayed by `fkit-lead` (driving `/fkit-sprint-ship-loop` on Sprint 9) to a spawned `fkit-producer` with no owner
+> channel (ADR-021/037); ⛔ not producer precedent. Verbatim: *"#3, also bring the leaderboard-related task to the
+> current sprint."* "The leaderboard-related task" read as `0234` — `0210` and `0209` fix the existing Yandex platform
+> board and are not what badges wait on. The old row on [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) is
+> now `➡️ Moved to [Sprint 9](plan-sprint-9.md) — priority 19`, kept as a pointer. The struck text below is history.
+
+~~Sprint backlog — no sprint home yet. Filed on [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
 where the `Task 7 — Leaderboard: Core System` row already lives; this brief fills that row's
 previously-empty `None — see plan-index` Brief cell. **The row was not moved to another board** — task
-[`0001`](../0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) owns board consolidation.
+[`0001`](../0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) owns board consolidation.~~
 
 ## Priority
-Unscheduled
+19
+
+> Rank 19 = **append rank on Sprint 9, NOT a merit ranking** — flagged for owner confirmation. Appended after the
+> board's highest (18), never inserted (ADR-035); no row renumbered. The owner named the sprint, not a rank. Was
+> ~~Unscheduled~~ until 2026-10-24.
 
 ## Status
 🔲 Backlog
@@ -159,10 +173,23 @@ Also determine, and state plainly:
   platform-reporting policy). Verified 2026-09-08 by reading both; recorded so it is not re-derived.
 - **Related, not superseded:** `0209` and `0210` fix defects in the **existing Yandex platform**
   leaderboard. This task decides whether we build **our own**. Neither closes the other.
-- ⚠️ **Sprint placement is unresolved and is an owner decision.** `plan-index.md:90` assigns Task 7 to
+- 📌 **2026-10-24 — sprint placement RESOLVED by the owner: Sprint 9** (*"#3, also bring the leaderboard-related task to
+  the current sprint."*, relayed; see `## Sprint`). The struck bullet below is history. Same day, the `0482` badges talk
+  ruled that badges are **earned only, never sold**, and that any badge build waits until the leaderboard is **live
+  and used** ([`0482` worklog](../../done/0482-discussion-leaderboard-rewards-badges-earned-only-or-sold-and-outcome/worklog.md)).
+  The "Rewards Layer" this task blocks is that future badge build; no build brief is filed yet.
+- 📥 **2026-10-24 — input from the `0482` badges talk (read this when answering questions 2 and 3).** Which badge
+  system gets built is now decided **after this task's findings** (`fkit-lead`'s reading of the owner's typed answer
+  *"It depends on an answers from the producer."*, relayed; see the
+  [`0482` worklog](../../done/0482-discussion-leaderboard-rewards-badges-earned-only-or-sold-and-outcome/worklog.md), batch 3).
+  The choice needs two facts from here: **is there a monthly reset?** (question 3) and **is there one board, or both
+  an all-time and a monthly board?** (question 2). The two candidates: *two badges* ("Top 10 now" + a "Month Top 3"
+  trophy kept forever — needs a monthly reset) or *the original three tiers* (needs both an all-time and a monthly
+  board). State both facts plainly in the findings. An input to read, not a new question and not a dependency.
+- ~~⚠️ **Sprint placement is unresolved and is an owner decision.** `plan-index.md:90` assigns Task 7 to
   **Sprint 4**, but it was never added to `plan-sprint-4.md`, and Sprint 4 is the active, heavily
   committed sprint. This brief is filed **unscheduled** and takes no position. Raised for the owner —
-  do not resolve it by filing the task into a sprint.
+  do not resolve it by filing the task into a sprint.~~
 - ⚠️ **The `✅ Test` experiments flag in plan-index is carried over, not endorsed.** Whether a
   leaderboard is a sensible A/B candidate is a question for the investigation, not a settled input.
 - **Effort:** `1–2 weeks` is plan-index's estimate for the **whole** Task 7 implementation, **not** for
