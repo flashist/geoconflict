@@ -3,6 +3,28 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 📌 **2026-10-26 sync (`4e9160a`) — newest of all.** Counted by me by each row's leading status glyph.
+> - **`backlog.md`: 183 rows — 124 `🔲 Backlog` · 44 `➡️ Moved` · 8 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled`; 127
+>   OPEN** (was 167 / 114). **Closed here** (agent-closed — not owner-verified): `0458` (GameAnalytics spike check 1 —
+>   [[tasks/gameanalytics-event-limit-recurring-spikes]]), `0460` ([[tasks/profile-deploy-key-only]]), `0461`
+>   ([[tasks/private-lobby-wrong-code-not-found]]). ⚠️ `0463` (verify `0350` on the box) is **still here, open**.
+> - **16 rows added**, all `🔲 Backlog`: `0471` (late-match lag / freezes on weaker devices), `0472` (status check to follow
+>   a chain of `➡️ Moved` rows), `0473` (spike check 2, due ~2026-11-20), `0474` (why ~2–3 % of logged-in loads get no
+>   profile), `0476` (a Team game lost at start to a bot team), `0478` map-voting talk (**on hold**; the owner is thinking
+>   of cancelling it, not decided), `0480` coin-economy talk (**on hold**, *"Park it indefinitely"*), `0481` uploaded
+>   flags/patterns talk (**waits on `0010`/`0011`**), `0483` style-pack offer talk, `0485` / `0486` nickname styles
+>   (investigation / build — [[tasks/nickname-styling-talk]]), `0487` (does a `[ABC]` tag group players today? —
+>   [[tasks/clans-talk]]), `0489` badge art, `0490` citizen ★ art ideas ([[tasks/leaderboard-badges-talk]]), `0500` (the
+>   intermittent `MasterFeedbackRoutes` test failure — the known supertest flake or not?), `0501` (a logged-in Buy
+>   re-checks for an earlier paid-but-not-granted purchase — [[systems/shared-purchase-flow]]).
+> - **`sprint-backlog.md`: 25 rows — 21 `🔲 Backlog` · 4 `➡️ Moved`** (was 20 `⬜ No sprint` · 2 `⏸ Parked` · 3 `➡️
+>   Moved`). **`⬜ No sprint` and `⏸ Parked` are RETIRED** (owner rulings 2026-10-22: the vocabulary is now fkit's shipped
+>   copy; the rows became `🔲 Backlog`, the two formerly parked ones keep their condition in Depends On) —
+>   [[systems/agent-conventions]]. **Task 7 — Leaderboard: Core System (`0234`) moved to Sprint 9, rank 19** (owner,
+>   2026-10-24). ⚠️ The unbriefed row **"Task 6 — Rewarded Ads: Minimal Version"** is still `🔲 Backlog` although `0488`
+>   built that step — `0488`'s brief left it as a producer follow-up ([[tasks/rewarded-video-double-match-xp]]).
+> - The rows of this page's older notes that call those two values valid are history.
+
 > 📌 **2026-10-16 sync, third run (newest of all, `29811f0`): board unchanged in rows and statuses — 167 rows, 114 open**
 > (re-counted by me). Link repoints only (`plan-sprint-8.md` → `done/plan-sprint-8.md` after the Sprint 8 close) plus
 > small notes that `0343` now sits on Sprint 9. ⚠️ `0460`, `0461`, `0463` are **still here** — the Sprint 8 close moved only
@@ -1091,3 +1113,9 @@ The sec12/sec13 deploy-security items came from profile-deploy hardening reviews
 - [[tasks/name-change-review-walkthrough]] — task `0350`, moved from this board; its verify `0463` is parked here
 - [[tasks/news-catch-up-2026-10-17]] — task `0426` (Sprint 8); its fix task `0468` is filed here, its verify `0469` moved to Sprint 9
 - [[decisions/sprint-9]] — created 2026-10-16 to receive `0469` from this board
+- [[tasks/nickname-styling-talk]] — task `0477`: filed `0483`, `0485`, `0486` here (2026-10-24)
+- [[tasks/clans-talk]] — task `0479`: filed check `0487` here
+- [[tasks/leaderboard-badges-talk]] — task `0482`: filed `0489`, `0490` here; moved `0234` to Sprint 9
+- [[tasks/rewarded-video-double-match-xp]] — task `0488`: built the step the old *Task 6* row describes; the row is not updated
+- [[systems/shared-purchase-flow]] — follow-up `0501` filed here
+- [[tasks/parked-paid-features-discussion]] — task `0343`: the talks `0478`, `0480`, `0481` that ended up on this board

@@ -107,3 +107,7 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[decisions/adr-116-verified-login]] — one key serves payments and identity (a wider blast radius, accepted)
 - [[tasks/hmac-construction-log-label]] — task `0309` (2026-09-30): logs which of the two constructions matched; result still owed in `0297`
 - [[tasks/paid-citizenship-test-buy]] — task `0297`, the owner-run live checks of this flow (closed 2026-10-05)
+- [[decisions/paid-items-purchase-rules]] — 2026-10-24: the R2 guard means each new product needs its own grant branch
+- [[systems/shared-purchase-flow]] — 2026-10-26: this pipeline generalised to every product (not deployed)
+- [[tasks/purchase-grant-registry]] — task `0492` (B1): the grant registry that keeps R2
+- [[tasks/shared-purchase-flow-design]] — task `0484`: the design built on this pipeline

@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 48 (ADR-035 append rank; on merit directly below `0451`) / task `0454`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — the live check `0461` is CLOSED** (agent-closed — not owner-verified). Agent-run in
+> the owner's Chrome 2026-10-20, game `0.0.165`, made-up codes only: inside Yandex the Russian message reads *«Лобби не
+> найдено…»* (not the generic error); on the game's own site the English *"Lobby not found…"*; the network showed only
+> the lobby-exists check — **no** archive request and **no** `/commit.txt`. The optional real-lobby join was not run.
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED:** `2d2ab4a` (client, `JoinPrivateLobbyModal.ts`) is in game prod **`0.0.165`** (2026-10-16
 > ~12:17Z, mid-week), checked by me with `git tag --contains`. The "NOT deployed / production still shows the generic
 > error" line below is history as of that deploy. ⚠️ **Not checked live** — live check `0461` is still `🔲 Backlog` on the

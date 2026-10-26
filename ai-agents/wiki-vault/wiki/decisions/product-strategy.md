@@ -3,6 +3,13 @@
 **Date**: 2026-04-16
 **Status**: accepted
 
+> 📌 **2026-10-26 sync (`4e9160a`) — `plan-index.md`: the Leaderboard row (item 7) now points to Sprint 9.** Its sprint
+> cell reads ~~4~~ *(never added to the Sprint 4 plan; sat on `sprint-backlog.md`)* → **9**, with the investigation brief
+> `0234` — owner ruling 2026-10-24, *"#3, also bring the leaderboard-related task to the current sprint."* (given in the
+> badges talk, [[tasks/leaderboard-badges-talk]]). `0234` is `🔲 Backlog` at Sprint 9 rank 19. The rest of the parked
+> paid ideas from the index were decided item by item — see [[tasks/parked-paid-features-discussion]] and
+> [[decisions/paid-items-purchase-rules]].
+
 ## Context
 
 Geoconflict's primary revenue is ad impressions. The strategic sequence is:
@@ -143,3 +150,6 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - [[decisions/licensing-compliance]] — AGPL/source access and asset-license constraints that affect monetization strategy
 - [[tasks/mobile-quick-wins]] — Task 3 mobile optimizations; Task 5 gate conditions documented here
 - [[tasks/citizenship-go-live]] — task `0065`, the 2026-09-26 citizenship launch that Sprint 5 was re-scoped around
+- [[tasks/parked-paid-features-discussion]] — task `0343` (2026-10-24): the parked paid ideas, one outcome each
+- [[decisions/paid-items-purchase-rules]] — 2026-10-24: the rules every paid item follows
+- [[tasks/leaderboard-badges-talk]] — task `0482`: moved the leaderboard investigation `0234` to Sprint 9

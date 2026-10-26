@@ -142,3 +142,5 @@ unverified.
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): deployed together (R3); found the flags-timeout load (`0411`)
 - [[tasks/paid-citizen-thank-you-line]] — task `0407`, which rewrote the verified-paid line (2026-10-08)
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409`, which reuses the verified signal for the popup's Buy guard
+- [[decisions/adr-125-log-in-and-buy-skips-reload]] — 2026-10-24: `profile_unavailable` keeps this task's Restart game button; no automatic reload
+- [[tasks/guest-log-in-and-buy]] — task `0495` (B3): shows Restart game on `profile_unavailable`

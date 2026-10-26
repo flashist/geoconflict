@@ -123,3 +123,7 @@ in the doc, code unchanged; second opinion reasoning-only (Codex could not run j
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (closed 2026-10-08): the `citizen_buy` offer, verified sessions only
 - [[tasks/explainer-popup-wider]] — task `0417` (closed 2026-10-08): 600 px cap, dark scrollbar
 - [[tasks/start-screen-private-tab]] — task `0412`: the locked Create tap now lives in the Private tab
+- [[systems/shared-purchase-flow]] — 2026-10-26: the popup's Buy and Log in now go through the shared purchase coordinator (not deployed)
+- [[tasks/shared-purchase-flow-design]] — task `0484`: fact-check (b) traced what this popup does after a guest logs in
+- [[tasks/purchase-core-client]] — task `0494` (B2): Buy goes through the coordinator
+- [[tasks/guest-log-in-and-buy]] — task `0495` (B3): adds "Log in and buy — {price}" to this popup

@@ -115,3 +115,4 @@ handshake. The second boundary — **an expiry date is not a renewal test** — 
 - [[decisions/sprint-backlog]] — the board it was filed on, then pulled off by an owner ruling that set **both** board and rank
 - [[systems/weekend-deploy-window]] — records both boxes' live cert readings of 2026-09-22 and the refused date swap
 - [[tasks/client-null-id-errors]] — task `0032`, whose Step 5 this outage blocked; its 2026-10-04 re-check proved ingest live with data
+- [[tasks/profile-p4-operability]] — task `0219` (closed 2026-10-20): the profile box's renewal-log reader, drilled

@@ -108,3 +108,4 @@ record** — naming the residual is the point, exposing it is not.
 - [[tasks/profile-durability-restore-drill]] — task `0218`, the new `age` keypair and the proven restore
 - [[tasks/profile-box-adopt-and-reprovision]] — task `0215`, which created the new key and bucket
 - [[decisions/sprint-4]] — the sprint board this task sat on
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20

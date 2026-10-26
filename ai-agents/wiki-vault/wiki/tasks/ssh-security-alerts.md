@@ -4,6 +4,15 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 40 (ADR-035 append rank; real place right after `0441`/`0442` by owner ruling) / task `0443`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — the live check `0449` is CLOSED 2026-10-24** (agent-closed — not owner-verified;
+> owner ruling *"Record and close (Recommended)"*). From its worklog (agent read-only SSH and owner screenshots, relayed
+> — **not re-verified by me**): the daily digest was sent every day at 08:10 UTC; two consecutive digests
+> (2026-10-22, 2026-10-23) listed all four boxes, fail2ban up everywhere, `0` failed password logins on every box, no
+> `could not be sent` or `OLD numbers` line; the per-box report window **passed on all four** (the hour is chosen in
+> UTC; profile box on UTC, the others on Moscow time; the installed agent is byte-identical to the repo's
+> `ssh-alerts.sh`). ⚠️ Limit: a box keeps only its latest report, so only the 2026-10-24 window was proved directly. No
+> per-guess message in over three days. The pass/fail reading of the digests is `fkit-lead`'s, not the owner's.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-12 by a spawned `fkit-producer` on the owner ruling
 > *"Close; verify task in Sprint 8 (Recommended)"* (relayed by `fkit-lead`; ⛔ not producer precedent).
 >

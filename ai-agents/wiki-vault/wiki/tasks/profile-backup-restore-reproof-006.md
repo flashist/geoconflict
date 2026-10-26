@@ -4,6 +4,14 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 4 / task `0275`
 
+> 📌 **2026-10-26 sync (`4e9160a`) — the drill now covers 13 tables, and must not run early.** The runbook
+> (`profile-backup-restore-runbook.md`) and `verify.sql` add `player_rewarded_match_xp` (migration `009`, task `0491`)
+> and `player_entitlements` (migration `010`, task `0496`) — the seed writes no rows to either. ⚠️ **Run a live drill only
+> after both are deployed to the box**: on a box without them, P5's `schema_migrations` list will not match — **STOP
+> there, before seeding**, or step 2 fails after step 1 has already seeded the live DB. The 30 constraints / 17 indexes
+> line is a `006` measurement, **not re-measured since `007`–`010`**, and is not a pass criterion. Both migrations are
+> committed, not deployed (2026-10-26).
+
 > 📌 *2026-10-15 sync (`930048b`): the runbook drill's throwaway `restore-test` container and both dry-run Postgres
 > images now use the **same digest-pinned reference** as the box (`postgres:16.15-alpine@sha256:…`), and `npm test` fails
 > if they drift — `0384`, [[tasks/profile-postgres-digest-lock]]. Before that the drill pulled the moving `16-alpine` label
@@ -110,3 +118,6 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[decisions/adr-120-third-party-images-digest-pinned]] — ADR-120 (proposed): every deliberate Postgres upgrade reuses this restore drill against the new image before the live switch
 - [[systems/profile-tester-roles]] — migration `008`'s `tester_role_snapshots`, the drill's 11th table
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the dry-run harness green on 11 tables
+- [[tasks/rewarded-match-xp-grant-route]] — task `0491`: migration `009`, a 12th drill table
+- [[tasks/durable-items-entitlements]] — task `0496`: migration `010`, the 13th drill table
+- [[systems/shared-purchase-flow]] — the deploy order `009` → `010` the drill now depends on

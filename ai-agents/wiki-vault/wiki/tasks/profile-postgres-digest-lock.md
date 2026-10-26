@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 54 (ADR-035 append rank; merit order `0219` → `0384` → `0385` owner-confirmed 2026-10-15) / task `0384`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — `0385` CLOSED 2026-10-20** (agent-closed — not owner-verified; owner ruling *"Yes,
+> close all 5 (Recommended)"*). Its last step passed 2026-10-20, read by an agent over read-only SSH with the owner's
+> OK (not re-verified by me): the nightly backup marker 2026-10-20T02:30Z with exit status 0, and Postgres still on the
+> locked image, `healthy`, no restart or image change since the 2026-10-16 deploy. Every pass/fail step (1, 2, 3, 5, 6)
+> passed; 8 owner-skipped. That met `0219`'s item (4), which closed the same day ([[tasks/profile-p4-operability]]).
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED in profile `0.0.164-profile.2`** (mid-week, 2026-10-16 ~12:10–12:15Z, owner-run; `git tag
 > --contains d6458d9` → yes, checked by me). From `0385`'s worklog (owner-run read-only batches, relayed — **not
 > re-verified by me**): before — the box already ran image ID `721873c3…` (same as the lock's digest prefix), version
@@ -127,3 +133,4 @@ Backlog board); `0388` (quarterly minor bump, depends on `0384` + `0386`; three 
 - [[decisions/sprint-8]] — rank 54; `0385` at 55
 - [[decisions/sprint-backlog]] — where `0384`–`0388` were filed; `0386`–`0388` still there
 - [[decisions/sprint-9]] — verify task `0385` moved there at the Sprint 8 close (rank 1)
+- [[tasks/profile-p4-operability]] — task `0219`, closed 2026-10-20 once `0385` passed

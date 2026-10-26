@@ -231,3 +231,4 @@ exactly why a deploy cannot prove anything until launch flips layer 1.
 - [[tasks/private-lobby-citizen-perk]] — task `0302` (2026-09-27): private lobbies become a citizen perk, locked for others; server start gate
 - [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): the popup, card link and Instructions section all obey this kill switch; the popup fails closed if the check throws
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (2026-10-08): kill switch passed live; a flags-fetch timeout fails open for ads (`0411`)
+- [[systems/shared-purchase-flow]] — 2026-10-24: with this switch off, no product can be bought or reconciled (owner-confirmed)

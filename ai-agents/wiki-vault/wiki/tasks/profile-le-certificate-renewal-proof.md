@@ -110,3 +110,4 @@ See [[systems/weekend-deploy-window]].
 - [[systems/architecture-overview]] — the profile-tier section carrying the renewal fuse this task's residual names
 - [[tasks/telemetry-cert-expired-renewal-cron]] — task `0257`: the telemetry box had the failure this page warns about — **its certificate expired, unnoticed, for ten days** — and its fix **mirrors the pre/post-hook pattern proven here**
 - [[systems/weekend-deploy-window]] — the deploy window whose deferral of automated cert watching rests on this date
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20

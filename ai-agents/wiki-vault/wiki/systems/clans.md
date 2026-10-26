@@ -3,6 +3,14 @@
 **Layer**: core
 **Key files**: `src/core/Util.ts`, `src/core/game/Game.ts`, `src/core/game/TeamAssignment.ts`, `src/core/game/GameImpl.ts`, `src/core/Schemas.ts`
 
+> 📌 **2026-10-26 sync (`4e9160a`) — the clans talk `0479` ended PARK (2026-10-24); back *"Only when I say so"*.** The
+> owner's direction for when clans return (*"probably"* / *"maybe"* — a direction, not a design): founding and joining
+> are **for citizens only**, founding is **free** for all citizens (one clan per citizen owner), extras (a bigger member
+> limit, decorations) may be sold; **tags will belong to the clan system and only a clan owner may change one** — the
+> typed `[TAG]` is not part of that plan. Whether today's `[ABC]` tag really groups players in live team matches is
+> **unverified** → check task `0487` (Backlog board); the owner decides after it, and the grouping logic below may be
+> reused. See [[tasks/clans-talk]].
+
 ## Summary
 
 The clans system lets players self-identify as a group by embedding a short tag in their display name (e.g. `[ABC]MyName`). In team modes (Duos/Trios/Quads), the engine reads these tags and keeps clan members on the same team wherever possible. There is no backend registration, no UI, and no in-game visibility — clan membership is derived entirely from the display name at join time.
@@ -87,3 +95,4 @@ Zero instances of clan tag rendering exist anywhere in `src/client/`. Players ca
 - [[decisions/sprint-5]] — Clans is a planned Sprint 5 feature (Task 12): free tag + auto-team placement; paid: banner, stats, match history
 - [[systems/execution-pipeline]] — Intent → Execution flow for context on how player actions are processed
 - [[systems/player-infrastructure]] — pre-S4 identity/customization audit that classifies clans as stateless name-tag infrastructure
+- [[tasks/clans-talk]] — task `0479` (2026-10-24): outcome Park; the owner's direction for clans; check `0487`

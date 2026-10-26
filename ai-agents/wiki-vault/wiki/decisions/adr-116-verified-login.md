@@ -204,3 +204,6 @@ to the client — ADR-103 already says do not re-propose it).
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409` (2026-10-08): the popup's earned-citizen Buy shows only on a verified, not-paid read (Decision 4)
 - [[systems/profile-tester-roles]] — an unverified login hides a role-set paid flag and pins citizen XP at 100
 - [[tasks/join-token-identity-vouch-live]] — task `0405`: login verified share 97.55 % compared with match start
+- [[decisions/adr-125-log-in-and-buy-skips-reload]] — 2026-10-24: leaves Decision 4 unchanged; item ownership ruled private too (OD-2)
+- [[systems/shared-purchase-flow]] — 2026-10-26: item ownership gets the same privacy as paid status (owner view only)
+- [[tasks/durable-items-entitlements]] — task `0496`: `entitlements` only on the verified owner view; `/intent` 409 only for a verified caller

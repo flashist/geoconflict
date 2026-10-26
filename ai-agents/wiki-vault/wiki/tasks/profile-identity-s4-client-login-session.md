@@ -94,3 +94,4 @@ accepted; S2's own box proof showed that). The **client** stayed undeployed unti
 - [[decisions/sprint-5]] — the board that tracked its close
 - [[tasks/verified-login-shadow-mode]] — task `0325`: the client login now also sends Yandex's player signature when it has one
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): widens ruling D3 by exactly one player-pressed **Restart game** button; folded in and cancelled `0278`
+- [[decisions/adr-125-log-in-and-buy-skips-reload]] — 2026-10-24: amends D3 — "Log in and buy" skips the reload

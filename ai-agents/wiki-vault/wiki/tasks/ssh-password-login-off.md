@@ -4,6 +4,13 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 39 (ADR-035 append rank; 🚨 top priority by owner ruling 2026-10-12, second after `0441`) / task `0442`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — the live check `0452` is CLOSED 2026-10-24** (agent-closed — not owner-verified;
+> owner ruling *"Close it now (Recommended)"*). Its last two items, from the worklog (not re-verified by me): **V5 passed
+> on game prod** 2026-10-20 (fail2ban jail up, still counting failed attempts with password login off; `sshd -T` still
+> `passwordauthentication no`), and **the Q3 switches are removed** (owner *"Yes, remove them (Recommended)"*,
+> 2026-10-20): the two `ALLOW_*PASSWORD_FALLBACK` variable **names** were deleted from the owner's git-ignored local env
+> files; the VPS password variables stay, for the reg.ru-console emergency path. Nothing tracked changed.
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`) — password login is now OFF on GAME PROD too** (`0452`'s worklog, owner-run, relayed — **not
 > re-verified by me**): game prod `0.0.165` deployed mid-week 2026-10-16 ~12:17Z (owner ruling *"Now, I'll run them"*),
 > a root key session kept open as the safety net. V4 ✅ (`OK  sshd — password login off, root key-only`, `GAME HOST SETUP

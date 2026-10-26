@@ -3,6 +3,23 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🏗️ **2026-10-26 sync (`4e9160a`) — the clean-slate epic is CLOSED, and new profile-box code is COMMITTED, NOT
+> DEPLOYED.**
+> - **Closed 2026-10-20** (agent-closed — not owner-verified, owner ruling *"Yes, close all 5 (Recommended)"*): `0385`
+>   (the Postgres digest lock proven on the box — [[tasks/profile-postgres-digest-lock]]), `0219` (P4 operability —
+>   [[tasks/profile-p4-operability]]) and epic **`0213`** ([[tasks/profile-clean-slate-rebuild-epic]]). The "still
+>   open" notes about them below are history.
+> - **Committed, not deployed** (`a3c32b4`; newest profile tag still `0.0.164-profile.2`): migration
+>   **`009_player_rewarded_match_xp.sql`** + `POST /v1/profile/rewarded-match-xp` (`0491`,
+>   [[tasks/rewarded-match-xp-grant-route]]); the **`PRODUCT_GRANTS`** grant registry, `becamePaidCitizen` on
+>   `/complete` and per-entry `/reconcile` isolation (`0492`, [[tasks/purchase-grant-registry]]); migration
+>   **`010_player_entitlements.sql`**, private item ownership and the `/intent` 409 (`0496`,
+>   [[tasks/durable-items-entitlements]]). ⚠️ Deploy order: `009` before `010`. See [[systems/shared-purchase-flow]].
+> - **Restore drill:** `verify.sql` and the runbook now cover **13 tables**; ⚠️ a live drill must **STOP** before seeding
+>   on a box missing `009` or `010` ([[tasks/profile-backup-restore-reproof-006]]).
+> - **ADR-112 amended 2026-10-24:** the rewarded-ad bonus lives in its own ledger; `xp = Σ match credits + Σ grants +
+>   Σ rewarded match bonus` — not checked in code ([[decisions/adr-112-free-xp-grants]]).
+
 > 📌 *2026-10-16 sync, third run (`29811f0`):* profile **`0.0.164-profile.2`** deployed mid-week 2026-10-16 (owner-run; deploy backup + smoke OK,
 > `/health` and `/ready` 200 — from `0385`'s worklog, not re-verified by me). Postgres now runs the **digest-locked**
 > image (recreated once, data intact, 7 migrations) — [[tasks/profile-postgres-digest-lock]]. `0385`, `0219`, `0213`
@@ -658,3 +675,9 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the backup dry-run green on the 11-table schema
 - [[tasks/name-change-review-walkthrough]] — task `0350`, the operator walk-through command in the profile image
 - [[decisions/sprint-9]] — `0385`, `0219`, `0213` at ranks 1–3 since the 2026-10-16 Sprint 8 close
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20
+- [[tasks/profile-p4-operability]] — task `0219`, closed 2026-10-20
+- [[systems/shared-purchase-flow]] — 2026-10-26: the grant registry, entitlements and private item ownership on this box
+- [[tasks/rewarded-match-xp-grant-route]] — task `0491`: migration `009` and the rewarded-ad XP route (not deployed)
+- [[tasks/purchase-grant-registry]] — task `0492` (B1): grant registry, per-entry reconcile (not deployed)
+- [[tasks/durable-items-entitlements]] — task `0496` (B4): migration `010`, entitlements (not deployed)

@@ -4,6 +4,18 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 23 (ADR-035 append rank; on merit last on the board, which is where it sits) / task `0426`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — the live check `0469` is CLOSED (2026-10-24, agent-closed — not owner-verified);
+> the date fix `0470` is COMMITTED, NOT DEPLOYED.** `0469` (from its worklog, relayed): steps 1–3 and 5 passed,
+> **agent-run** in the owner's Chrome inside Yandex (game `0.0.165`; the release contains `8c448a9`); step 4 (the Russian
+> reads naturally) passed **lead-run at the owner's request** (*"Read it yourself and check it yourself"*) — not by the
+> owner; entry B was read from the file only, not seen live. The bell dot that stayed after closing the news window came
+> from an **unread personal message**, not the news — not a bug. Wording nits recorded; no task filed. Live, both
+> entries still showed **2026-10-17**. `0470` (closed 2026-10-22) changed only the two `date` fields to `2026-10-16` and
+> kept both ids (owner *"Keep the ids"*); it is in commit `e3950e6`, and `git tag --contains e3950e6` → **none**
+> (checked by me) ⇒ players still see 17 Oct until the next game deploy. `0470`'s V6 live check is the owner's, not
+> done. Side note from `0469`: on one first load the citizenship card briefly showed "couldn't load your profile", fine a
+> minute later — not investigated.
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`) — LIVE in game prod `0.0.165`, deployed MID-WEEK 2026-10-16 ~12:17Z, a day early** (owner ruling *"Now,
 > I'll run them"*). `git tag --contains 8c448a9` → `0.0.165` (and `0.0.164-profile.2`), checked by me. The "NOT
 > deployed" and "Saturday 2026-10-17" lines below are history. ⚠️ **So both entries show 17 Oct on news live since
@@ -73,3 +85,4 @@ ahead of its release. See [[features/announcements]] for how the window works.
 - [[tasks/start-screen-redesign-implementation]] — task `0166`, the button rename behind R1
 - [[tasks/remove-game-name-from-player-texts]] — task `0311`, the no-game-name test that reads the news file
 - [[systems/weekend-deploy-window]] — the 2026-10-17 slot it ships in
+- [[tasks/update-announcements-skill-rename]] — task `0475` (2026-10-22): the news-drafting skill is now `/geoconflict-update-announcements`

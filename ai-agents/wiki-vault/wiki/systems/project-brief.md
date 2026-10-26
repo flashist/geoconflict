@@ -3,6 +3,14 @@
 **Layer**: shared
 **Key files**: `ai-agents/knowledge-base/PROJECT.md`, `ai-agents/knowledge-base/architecture.md`
 
+> 📌 **2026-10-26 sync (`4e9160a`) — two `PROJECT.md` changes.** (1) The profile clean-slate epic `0213` is recorded as
+> *"✅ done, closed 2026-10-20 (agent-closed — not owner-verified)"* ([[tasks/profile-clean-slate-rebuild-epic]]); the
+> same line was added to `architecture.md`. (2) `⬜ No sprint` and `⏸ Parked` are **retired as of 2026-10-22** (owner
+> ruling): the status vocabulary is now fkit's shipped copy, and every `sprint-backlog.md` row that carried one reads
+> `🔲 Backlog` ([[systems/agent-conventions]]). Also new since the last sync, not yet in `PROJECT.md`'s wording: one
+> rule for every paid item ([[decisions/paid-items-purchase-rules]]) and the shared purchase flow
+> ([[systems/shared-purchase-flow]]) — built, not deployed.
+
 > 🆕 **2026-09-26 — CITIZENSHIP IS LIVE** (earned and paid), release `0.0.154` ([[tasks/citizenship-go-live]]).
 > The owner-ruled tradeoff (*launch before any real purchase is proven*) went live, and the first real
 > purchases the same day succeeded ([[tasks/citizenship-paid]]); the remaining proof items are in `0297`.
@@ -158,3 +166,6 @@ Sprint 4 — *In-App Monetization & Citizenship*. The player profile store epic 
 - [[tasks/paid-citizen-ad-free]] — task `0248` (2026-10-06): builds the *"no interstitial ads for paid citizens"* benefit `PROJECT.md` promises — committed, NOT deployed; the store-copy condition stands until it is — 📌 *2026-10-08 lint: deployed since — game `0.0.157`, 2026-10-08 (✔️ `036a5c8` is an ancestor of tag `0.0.157`; `0396` worklog).*
 - [[systems/yandex-games-platform-rules]] — the five Yandex Games platform rules, each with its repo source; this page keeps the technical platform constraints
 - [[tasks/paid-citizen-ad-free-live]] — task `0398` (closed 2026-10-08): the paid-citizen no-ads benefit verified live, as `PROJECT.md` now records
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, recorded as closed 2026-10-20
+- [[decisions/paid-items-purchase-rules]] — 2026-10-24: every purchase grants full paid citizenship, priced above 249 Yan
+- [[systems/shared-purchase-flow]] — 2026-10-26: the one purchase flow for every paid item (not deployed)

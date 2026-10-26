@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 47 (ADR-035 append rank; on merit directly below `0452`) / task `0453`
 
+> ✅ **2026-10-26 sync (`4e9160a`) — the live check `0460` is CLOSED** (agent-closed — not owner-verified). The
+> 2026-10-16 profile deploy (`0.0.164-profile.2`, owner-run) ran to completion over the key; the owner confirmed live on
+> 2026-10-20: *"No password prompt"*. ⚠️ The guard's own `PROFILE_DEPLOY_SSH_AUTH=key` line was not in the pasted
+> output — the completed deploy is the evidence. The optional negative check was not run.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-14. Filed 2026-10-13 on the owner ruling *"File it in
 > Sprint 8"*. **Repo work only, no live step**; code committed in `2d2ab4a` (2026-10-14), `git tag --contains` →
 > **none** ⇒ not used for a real profile deploy yet. Live check: **`0460`** (Backlog board; owner ruling *"Verify task,

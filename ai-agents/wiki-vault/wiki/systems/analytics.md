@@ -3,6 +3,27 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🏗️ **2026-10-26 sync (`4e9160a`) — new events, all COMMITTED, NOT DEPLOYED** (`git tag --contains` → none for
+> `a3c32b4` and `4e9160a`), so none has fired in production:
+> - **Rewarded video (task `0488`)** — `Ad:Rewarded:{OfferShown,Pressed,Opened,Watched,ClosedEarly,Error,Unavailable}`,
+>   `Ad:Rewarded:Reward:{Granted,Duplicate,NotCredited,Failed}` (`Granted` value = XP), `Ad:RewardedSuppressed:Citizen`,
+>   guest `Ad:Rewarded:{LoginOfferShown,LoginPressed,LoginCompleted}`, and `Ad:InterstitialSuppressed:AfterRewarded`
+>   (an interstitial skipped within 60 s of a rewarded video). New Yandex flag **`rewarded_video`** (fails closed — the
+>   offer is off until the owner sets it). Kept outside `Ad:Interstitial:*`, which `0299` reserves.
+>   [[tasks/rewarded-video-double-match-xp]].
+> - **Guest "Log in and buy" (task `0495`)** — `UI:Tap:PurchaseLoginCitizenshipExplainer`,
+>   `Purchase:Login:{Requested,Succeeded,Cancelled,ProfileFailed}:Citizenship`,
+>   `Purchase:Continue:{Ready,NeedsTap}:Citizenship` (`Ready` value = ms from the login dialog closing),
+>   `Purchase:Blocked:{AlreadyOwned,EarlierPurchasePending}:Citizenship`. `Purchase:Started/Completed/Abandoned:Citizenship`
+>   unchanged; deliberately **no** `Purchase:Blocked:CannotVerify:Citizenship`. `Profile:Login:Restart:Requested` now
+>   fires at the hand-off on that path, and `…:Suppressed:InMatch` also covers a join being set up.
+>   [[systems/shared-purchase-flow]].
+> - `Citizenship:RestartPrompt:Shown` is now dispatched by `runProductPurchase()` (task `0494`); the string is unchanged.
+>
+> 📊 **GameAnalytics spike monitoring (`0458`, closed):** monthly check, spike = `Platform` ÷ sessions ≥ 1.5, log at
+> `ai-agents/knowledge-base/reports/gameanalytics-spike-log.md`; check 1 found one small spike (18 Oct, 3 users in
+> Ireland, build `0.0.165`) — [[tasks/gameanalytics-event-limit-recurring-spikes]]; next check `0473`.
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`): `0451`'s 16 `PrivateLobby:*` events are DEPLOYED** — `daa1bcc` is in game
 > prod `0.0.165` (2026-10-16 ~12:17Z), checked by me with `git tag --contains`. Arrival in GameAnalytics **not checked** —
 > that is `0455` (Sprint 9), after several full days of data. See [[tasks/private-lobby-funnel-events]].
@@ -811,3 +832,6 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[tasks/gameanalytics-event-limit-recurring-spikes]] — task `0456`: the 12 Oct breach, weekly spikes, SDK re-send lead (not proven)
 - [[tasks/gameanalytics-game-id-removed]] — task `0459`: game ID removed from tracked task files
 - [[tasks/citizenship-status-events-recheck]] — task `0418`: the `Citizenship:Status:*` re-read, 2026-10-08..15
+- [[systems/shared-purchase-flow]] — 2026-10-26: the `Purchase:Login:*` / `Continue:*` / `Blocked:*` guest-funnel events
+- [[tasks/rewarded-video-double-match-xp]] — task `0488`: the `Ad:Rewarded:*` events and the `rewarded_video` flag
+- [[tasks/guest-log-in-and-buy]] — task `0495`: the guest purchase funnel events

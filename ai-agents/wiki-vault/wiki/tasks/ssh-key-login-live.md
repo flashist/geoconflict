@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 41 (ADR-035 append rank; 🚨 first open work on the board by owner ruling 2026-10-12) / task `0445`
 
+> 📌 **2026-10-26 sync (`4e9160a`) — the "dev password fallback still works" line below is history.** Since `0452`
+> (closed 2026-10-24) password login is off on game dev, telemetry and game prod, and the two `ALLOW_*PASSWORD_FALLBACK`
+> switches were deleted from the owner's local env files on 2026-10-20 — see [[tasks/ssh-password-login-off]]. (This was
+> flagged in the 2026-10-14 log and left as written until now.)
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-13 by a spawned `fkit-producer` on the owner ruling
 > *"Yes, mark it finished (Recommended)"* (relayed by `fkit-lead`; ⛔ not producer precedent). **Every box step was run by
 > the owner in their own terminal and confirmed in session**; the close itself was made by an agent with no owner

@@ -3,6 +3,14 @@
 **Date**: 2026-09-29
 **Status**: accepted *(✅ **closed 2026-10-16** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-10-12~~ (started by owner ruling *"Mark it started (Recommended)"*); ~~`🔲 Backlog — 2026-09-29` — created, NOT started~~; was `proposed` while open)*
 
+> 📝 **2026-10-26 sync (`4e9160a`) — a Sprint 8 retro report exists:**
+> `ai-agents/knowledge-base/reports/2026-10-16-sprint-8-retro-fkit-feedback.md` (owner-led, 2026-10-16; **proposals only
+> for the fkit framework — nothing in this project was changed because of it**). Owner's picks: board rows too long and
+> stale (1,872 lines at close, 1,500 of them notes; a stale status cell misled an agent about `0219`); a long tail of
+> time-gated verify tasks (25 of 55 rows); no sprint goal. Proposals P1–P4: short rows, one home for status (the brief),
+> a sprint goal before starting, an "earliest finish" time on time-gated tasks. Of the seven Sprint 8 rows now on Sprint 9
+> (`0385`, `0219`, `0213`, `0452`, `0449`, `0343`, `0455`), all are closed except `0455` ([[decisions/sprint-9]]).
+
 > Source: `ai-agents/sprints/done/plan-sprint-8.md` *(moved there at the close, 2026-10-16; was ~~`ai-agents/sprints/plan-sprint-8.md`~~ — that path no longer exists)*.
 >
 > # 🆕 2026-10-16 (latest, `29811f0`) — ✅ SPRINT 8 CLOSED 2026-10-16: 55 ROWS, 39 DONE, 15 MOVED, 1 CANCELLED, 0 OPEN
@@ -622,3 +630,5 @@ historical maps), sits on the Backlog board — see [[decisions/sprint-backlog]]
 - [[tasks/citizenship-status-events-recheck]] — task `0418` (17), the GameAnalytics re-read for `0400` check 8, closed 2026-10-16
 - [[tasks/news-catch-up-2026-10-17]] — task `0426` (23), the news catch-up, closed 2026-10-16; verify `0469` on Sprint 9
 - [[decisions/sprint-9]] — the next board, created 2026-10-16 (not started) to hold `0469`
+- [[tasks/parked-paid-features-discussion]] — task `0343`, carried from this board to Sprint 9 and closed there 2026-10-24
+- [[tasks/profile-p4-operability]] — task `0219` (rank 24 here), closed on Sprint 9 2026-10-20

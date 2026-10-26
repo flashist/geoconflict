@@ -461,3 +461,4 @@ only; idle-period delivery is still `0289`'s *(closed 2026-10-01, bounded to 4 h
 - [[tasks/alert-channel-sql-reenable-runbook]] — task `0368` (2026-10-02): the runbook's SQL fallback for re-enabling a disabled channel, and the idle-result update
 - [[tasks/alert-channel-ui-reenable-runbook]] — task `0369` (2026-10-02): the UI re-enable control named (`Unpause channel` ▶), and the *Test channel* liveness warning
 - [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): the SSH alert route on the same relay box and Alerts topic; built, not deployed
+- [[tasks/profile-p4-operability]] — task `0219` (closed 2026-10-20): the profile box's Better Stack alarms, email-only by owner ruling

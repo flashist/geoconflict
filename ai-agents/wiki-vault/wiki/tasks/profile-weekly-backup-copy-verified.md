@@ -59,3 +59,4 @@ to the scheduled run**, and the script log shows the **Sunday branch firing with
 - [[systems/player-profile-store]] — the store being backed up
 - [[decisions/sprint-backlog]] — the board this row sits on
 - [[systems/weekend-deploy-window]] — the W0 pre-window snapshot reuses the `copyto` this task verified live
+- [[tasks/profile-p4-operability]] — task `0219`, closed 2026-10-20

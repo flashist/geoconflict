@@ -79,3 +79,4 @@ to a deploy or stop.
 - [[tasks/ssh-security-alerts]] — task `0443` (2026-10-12): login / fail2ban-down / daily-count alerts on this box and the other three
 - [[tasks/ssh-password-login-off]] — task `0442`: copies this sshd section into `sshd-hardening.sh` for game + telemetry
 - [[tasks/profile-deploy-key-only]] — task `0453`: the profile deploy's key path refuses a password prompt
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20

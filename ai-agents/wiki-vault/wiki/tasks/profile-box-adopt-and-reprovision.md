@@ -275,3 +275,4 @@ spike's subject. `0216` was later **narrowed and closed separately on 2026-09-10
 - [[systems/project-brief]] — the product ground truth, whose standing "the profile host is unverified" caveat this close resolves
 - [[decisions/sprint-backlog]] — where `0235` sits, whose owner-ruled *"after `0215`"* dependency this close discharges
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, phase P2: the game server wired to this box, real credits landed 2026-09-26
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20

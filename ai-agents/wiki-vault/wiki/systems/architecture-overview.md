@@ -3,6 +3,10 @@
 **Layer**: shared
 **Key files**: `ai-agents/knowledge-base/architecture.md`, `src/core/`, `src/client/`, `src/server/`, `src/profile-server/`
 
+> 📌 **2026-10-26 sync (`4e9160a`):** `architecture.md`'s profile-backend line now marks epic `0213` *"✅ done, closed
+> 2026-10-20 (agent-closed — not owner-verified)"* — [[tasks/profile-clean-slate-rebuild-epic]]. No other change to the
+> source this run.
+
 ## Summary
 
 The evidence-first architecture survey of the whole codebase, written by the architect on **2026-08-08** against branch `dev` at `c8a2041`. Every claim in the source is grounded in a `path:line` reference or an observed command result; where an existing document disagreed with the code, **the code won** and the disagreement was recorded rather than smoothed over. This page is the technical authority for the wiki: where an older page disagrees on a technical fact, this one wins.
@@ -290,3 +294,4 @@ The remainder stay open. See [[decisions/sprint-backlog]] for all eleven briefs 
 - [[tasks/worker-reuses-page-map]] — task `0035` (2026-09-30): the worker reuses the page's map
 - [[tasks/public-lobby-one-minute]] — task `0367` (2026-10-02): the public lobby window cut 120 s → 60 s
 - [[tasks/public-lobby-one-minute-live]] — task `0370`: the 60,000 ms public lobby window kept by owner ruling 2026-10-10
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213`, closed 2026-10-20

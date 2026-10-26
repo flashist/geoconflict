@@ -55,3 +55,4 @@ The investigation task file referenced `PlayerInfoSchema` — the correct schema
 - [[systems/clans]] — Full system page for the clans mechanism
 - [[tasks/sprint4b-duos-trios-quads]] — The team modes that exercise the clan assignment logic
 - [[decisions/sprint-5]] — Clans is Task 12 in Sprint 5 (3–4 weeks; free tag + auto-team; paid: banner, stats, history)
+- [[tasks/clans-talk]] — task `0479` (2026-10-24): the clans talk ended Park; check `0487` on today's tag grouping

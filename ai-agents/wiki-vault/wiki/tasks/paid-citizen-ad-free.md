@@ -120,3 +120,6 @@ everybody the moment the profile server had a bad minute.
 - [[tasks/paid-citizen-thank-you-line]] — task `0407`: the card's paid thank-you, same single paid source
 - [[tasks/explainer-paid-only-subheading]] — task `0408`: this perk now sits under its own *paid citizenship only* sub-heading in the popup
 - [[tasks/explainer-buy-for-earned-citizens]] — task `0409`: an earned citizen can now buy this perk from the popup
+- [[decisions/paid-items-purchase-rules]] — 2026-10-24: every future purchase includes this perk (full paid citizen)
+- [[systems/shared-purchase-flow]] — the grant step that makes every buyer a paid citizen
+- [[tasks/rewarded-video-double-match-xp]] — task `0488`: the rewarded ad does not use this task's gate; every citizen is hidden instead

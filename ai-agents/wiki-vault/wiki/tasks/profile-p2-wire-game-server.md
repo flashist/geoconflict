@@ -100,3 +100,6 @@ awards, which is **lost XP**. The watch stays in the runbook. See [[systems/week
 - [[tasks/profile-backup-restore-reproof-006]] — task `0275`, a precondition before the token was set
 - [[decisions/adr-111-xp-economy-rescale]] — the 1 XP per credit recorded at W14
 - [[tasks/after-deploy-production-checks]] — task `0296`, the production checks moved out of `0062`/`0017`/`0012` — all passed 2026-09-26
+- [[tasks/profile-clean-slate-rebuild-epic]] — epic `0213` (this was P2), closed 2026-10-20
+- [[tasks/rewarded-match-xp-grant-route]] — task `0491`: the rewarded-ad bonus reads the base credit rows this task switched on
+- [[tasks/rewarded-video-double-match-xp]] — task `0488`: doubles the match XP credited here

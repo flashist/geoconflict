@@ -1,7 +1,17 @@
 # ADR-112 — Free XP grants are capped, server-clamped, recorded once per account, and marked claimed only after a server ack — the tenure grant is the first
 
-**Date**: 2026-09-14 (recorded) · **amended 2026-09-15** (tenure-grant redesign)
+**Date**: 2026-09-14 (recorded) · **amended 2026-09-15** (tenure-grant redesign) · **amended 2026-10-24** (rewarded-ad match bonus — own ledger)
 **Status**: accepted
+
+> 📌 **2026-10-26 sync (`4e9160a`) — AMENDED 2026-10-24: the rewarded-ad match bonus has its own ledger** (owner
+> rulings via `AskUserQuestion`, relayed by `fkit-lead`; written by the architect; trigger: review R2 of task `0491`).
+> **Ruling 1** — *"Write a short ADR update (Recommended)"*: the bonus is a **per-match** award in
+> `player_rewarded_match_xp` (PK `(game_id, player_id)`, migration `009`), not a Part 2 grant — `player_xp_grants` is keyed
+> once per player per kind, and the amount is the server-held base credit for that match, not client evidence. Part 2
+> rule 1 is narrowed (non-match grants still go in `player_xp_grants`). **The invariant now reads `xp = Σ match credits +
+> Σ grants + Σ rewarded match bonus`** — ⚠️ nothing checks it in code. **Ruling 2** — *"Accept, no follow-up"*: the route
+> is **not** gated on a verified login; harm is bounded to the base XP of a match really credited to the caller, once.
+> The owner chose an amendment over a new ADR. Built in [[tasks/rewarded-match-xp-grant-route]]; committed, not deployed.
 
 > 🆕 **2026-09-26, later — the tenure popup went live with the citizenship flip** (release `0.0.154`,
 > [[tasks/citizenship-go-live]]); **`0268`'s ~60-day removal clock started 2026-09-26.** The re-raise
@@ -102,3 +112,6 @@ login reply, **never from local storage**, and shows a notice only after the ser
 - [[systems/weekend-deploy-window]] — W3, 2026-09-26: the tenure-grant route went live and the claim-on-behalf risk opened
 - [[decisions/adr-116-verified-login]] — verified login; the tenure claim a verified caller could later gate
 - [[tasks/authenticated-profile-read]] — task `0250`: the tenure-grant reply shows XP 100 to unverified callers (S1), true XP to a verified owner (S3b)
+- [[tasks/rewarded-match-xp-grant-route]] — task `0491`: the ledger and route this ADR's 2026-10-24 amendment covers
+- [[tasks/rewarded-video-double-match-xp]] — task `0488`: the rewarded ad whose bonus the amendment records
+- [[decisions/sprint-9]] — the board on which the 2026-10-24 amendment was ruled (task `0491`)

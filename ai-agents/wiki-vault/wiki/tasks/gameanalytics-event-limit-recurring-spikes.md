@@ -4,6 +4,15 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 50 (ADR-035 append rank; "our next task in the Sprint 8" by owner ruling) / task `0456`
 
+> 📊 **2026-10-26 sync (`4e9160a`) — the monitoring task `0458` is CLOSED** (agent-closed — not owner-verified). Owner
+> rulings 2026-10-20: **"Accept all three (Recommended)"** — check about once a month; a day is a spike when `Platform` ÷
+> sessions **≥ 1.5** (absolute ratio, confirmed by a second ruling, *"Ratio 1.5 or more"*); one running log,
+> `ai-agents/knowledge-base/reports/gameanalytics-spike-log.md`. **Check 1** (window 2026-10-13 … 19, read in the
+> owner's Chrome): one spike, **18 Oct**, ratio 1.55 — almost all on the **current** build `0.0.165` (unlike the earlier
+> old-build spikes) and almost all from **Ireland, 3 unique users** (~4,400 `Platform` events each); events per active
+> user ≈ 140, far under 500; no limit banner. What those 3 sources are was not determined (monitoring only). Next
+> instance: `0473` (Backlog board, due ~2026-11-20). ⚠️ The dashboard time zone was assumed UTC, not checked.
+
 > ✅ Done (agent-closed — not owner-verified), closed 2026-10-14. **Investigation only — no code changed.** The plan's
 > fix gate ended in **"no code fix"** by owner ruling, so there is no fix task and no verify task. An ephemeral
 > `@fkit-reviewer` pass (coverage: reasoning-only second opinion) raised R1–R10, all applied in the report's revision —

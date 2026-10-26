@@ -3,6 +3,36 @@
 **Layer**: shared
 **Key files**: `ai-agents/knowledge-base/conventions/`
 
+> 🔁 **2026-10-26 sync (`4e9160a`) — the conventions changed on 2026-10-22 (commits `c8193a0`, `cdf17ef`, "fkit
+> heal"), and two board statuses were retired.** From the files themselves:
+> - **`⬜ No sprint` and `⏸ Parked` are RETIRED (2026-10-22).** Owner rulings in a `fkit producer` session:
+>   `task-status-vocabulary.md` was replaced with **fkit's shipped copy** (*"Do the exact copy"*), which defines neither,
+>   and every `sprint-backlog.md` row that carried one is now `🔲 Backlog` (*"Go ahead"*, after the owner's own *"I think
+>   their status should be BACKLOG"*). The two formerly parked rows keep their wait condition in their Depends On cell.
+>   Side effect: `/fkit-status` can now see those rows. The 2026-09-08 block below is **history**.
+> - **`🚧 Blocked` now means "cannot proceed — started or not"**; the test is *"could some session start this today?"* A
+>   decision gate **inside** the task is not a blocker.
+> - **Task vs sprint status is told by position**, never by glyph: a sprint's status is the blockquoted H2 on line 3 of
+>   its board. Four movers, one rule: `/fkit-task-done`, `/fkit-task-cancelled`, `/fkit-sprint-done`,
+>   `/fkit-sprint-cancelled`, producer-only.
+> - **Three new conventions:** `asking-the-owner.md` (explain first; the standing *"Explain more, then ask again"*
+>   option; a reply that is not a choice is answered in chat with no new dialog that turn), `code-comments.md` (say why,
+>   never what; 1–2 lines; no history; fix or delete a comment your change makes wrong), and
+>   `placement-questions-state-the-knock-on.md` (an option that places a task or re-points a `Depends on:` names which
+>   open tasks would then wait on which sprint — always, the same sprint included).
+> - **Amended:** `priority-is-rank-not-identity.md` adds the **merit statement** (`- **On merit:** immediately above
+>   <ID> — <reason>` or `- **On merit:** as ranked`, required on every brief on a ranked board, advisory only; a guard is
+>   specified, not built); `dependency-declaration-form.md` explains how the board reads task IDs on the line (exact
+>   4-digit IDs; `— soft, not hard` marks a soft one); `status-report-format.md`: the `N` in `Moved to [Sprint N]` is the
+>   sprint's identity (`4` and `4c` differ).
+> - ⚠️ **The README catalog no longer lists three files that are still in the folder** — `task-id-allocation.md`,
+>   `task-attribute-cross-reference-sweep.md`, `file-line-citations.md` (it now says *"Twelve conventions ship with the
+>   scaffold"* and lists 12). Folder: 15 conventions + README. Not resolved here.
+> - ⚠️ **Task numbers inside the new conventions are fkit-upstream numbers, a different namespace** — e.g.
+>   `placement-questions-state-the-knock-on.md` cites *"task 0495"* (2026-10-05/08), which is **not** this project's
+>   `0495` (B3, filed 2026-10-24); `asking-the-owner.md` cites `0504`, `code-comments.md` `0506`, neither a task here.
+>   (`0492`'s brief records the same clash for `.claude/`.)
+
 ## Summary
 
 The project's **standing law** for how agents work — the rules in force *right now*, which an agent that contradicts is simply wrong. **Twelve** conventions *(ten until 2026-09-23 — see the note under *Source*)* plus a README that defines the folder's purpose: the scaffold's seven, and **three** added by this project — task-ID allocation, and, both on 2026-09-07, the task-attribute cross-reference sweep and file:line citations. *(📌 2026-09-25: now **eight** from the scaffold and **four** from this project, per the `README.md` catalog — `sprint-status-vocabulary.md` and `durable-citation-anchors.md` respectively; see conventions 11 and 12.)*
@@ -150,3 +180,4 @@ Naming is `<subject>.md`, **never dated** — a dated filename means "a record o
 - [[decisions/codex-second-opinion-mandatory]] — the 2026-09-10 owner confirmation that a review carries a Codex second opinion, and the corrected evidence behind it
 - [[tasks/postgres-backup-routine]] — the true claim that convention 10's wrong-FILE recurrence nearly got deleted, and the owner retraction that was ruled, refused and withdrawn
 - [[tasks/profile-server-bring-up-runbook]] — task `0182`, the most-cited document in the profile line of work and the file every 2026-09-10 citation defect landed in
+- [[systems/project-brief]] — `PROJECT.md` records the 2026-10-22 retirement of `⬜ No sprint` / `⏸ Parked`

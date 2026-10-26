@@ -60,3 +60,6 @@ Inventory what does not update after a purchase, then choose live update vs a re
 - [[tasks/session-verified-status-line]] — task `0397` (2026-10-06): its *couldn't load profile* **Restart game** helper is a separate sibling of this task's player-tapped reload, with its own event
 - [[tasks/citizenship-explainer-popup]] — task `0301` (2026-10-06): a purchase from the explainer popup goes through the card, so it follows the same restart path
 - [[tasks/citizenship-explainer-popup-live]] — task `0401` (2026-10-08): the post-purchase restart dialog shown after a purchase from the popup
+- [[decisions/adr-125-log-in-and-buy-skips-reload]] — 2026-10-24: this popup now follows **every** completed purchase; "Later" kept (RP-1)
+- [[systems/shared-purchase-flow]] — the flow that shows this popup after every grant
+- [[tasks/purchase-core-client]] — task `0494` (B2): per-product text and events; one dispatch site
