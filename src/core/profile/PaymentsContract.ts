@@ -25,6 +25,23 @@ export type PaymentProductId = z.infer<typeof PaymentProductIdSchema>;
 
 export type ProductKind = "citizenship" | "durable_item";
 
+/**
+ * Permanent products are never consumed (ADR-126): a consumed purchase is gone from
+ * Yandex for good, and the unconsumed one is the buyer's proof if our record is lost.
+ * The `never` default makes a new kind fail to compile until it is classified.
+ */
+export function isPermanentProductKind(kind: ProductKind): boolean {
+  switch (kind) {
+    case "citizenship":
+    case "durable_item":
+      return true;
+    default: {
+      const unclassified: never = kind;
+      throw new Error(`unclassified product kind: ${String(unclassified)}`);
+    }
+  }
+}
+
 /** Keyed by the id union, so a product added above without a definition fails to compile. */
 export const PRODUCT_DEFINITIONS: Record<
   PaymentProductId,
@@ -75,6 +92,9 @@ export const PurchaseCompleteResponseSchema = z.object({
   // Present only on a fresh grant: a replay cannot know whether that earlier
   // grant is what made the buyer paid. false = they were already paid.
   becamePaidCitizen: z.boolean().optional(),
+  // Task 0506 (ADR-126): whether the client may consume purchaseToken. Absent =
+  // a box from before 0506, so a new client consumes nothing.
+  consume: z.boolean().optional(),
 });
 export type PurchaseCompleteResponse = z.infer<
   typeof PurchaseCompleteResponseSchema
@@ -92,14 +112,26 @@ export type PurchaseReconcileRequest = z.infer<
 >;
 
 /**
- * Every token now safe to consume — including ones that were ALREADY processed
- * server-side, so the client can consume strays from interrupted sessions.
+ * `processedTokens` keeps its pre-0506 meaning for clients that predate it: every
+ * token granted now or already in the ledger, which those clients consume. A client
+ * built for 0506 (ADR-126) reads the three optional lists instead; each is absent
+ * from a box older than 0506.
  */
 export const PurchaseReconcileResponseSchema = z.object({
   processedTokens: z.array(z.string().min(1)),
   // Entries that threw and were skipped: a 200 with fewer tokens must not read
   // as "nothing pending", or the client could open a second payment window.
   failedCount: z.number().int().nonnegative().optional(),
+  /** Fresh grants in THIS call only — the one "something was granted" signal. */
+  grantedTokens: z.array(z.string().min(1)).optional(),
+  /** The only tokens a new client may consume. */
+  consumeTokens: z.array(z.string().min(1)).optional(),
+  /**
+   * Products held by a different profile than the VERIFIED caller. Product ids only,
+   * never a token or a player id; an unknown id fails the whole parse, so the box
+   * only ever sends catalogue ids.
+   */
+  heldElsewhere: z.array(PaymentProductIdSchema).optional(),
 });
 export type PurchaseReconcileResponse = z.infer<
   typeof PurchaseReconcileResponseSchema

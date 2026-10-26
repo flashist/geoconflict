@@ -130,6 +130,10 @@ function build(
     alertRelay: (result, keyed) => {
       metricCalls.push([result, keyed]);
     },
+    paymentsReconcileEntry: () => {},
+    paymentsReconcileCaller: () => {},
+    paymentsPayloadIssuedAt: () => {},
+    paymentsEntryStatus: () => {},
   };
 
   const send = (config: TelegramConfig, text: string) => {

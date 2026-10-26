@@ -118,6 +118,14 @@ Applies to every product through the shared coordinator (citizenship today; item
 - **Sequencing note, not a dependency:** this edits `src/client/PurchaseCoordinator.ts`, which `0495` (B3, in
   progress) and the item builds (`0486`, `0010`, `0011`) also touch. Build it **after `0495` has landed**, and not in the
   same uncommitted working tree as another task editing that file, so tests and review scopes do not mix.
+- 📝 **2026-10-26 — note for the plan, from the approved `0505` design (not a decision, not a dependency).** The owner
+  approved the `0505` spec and ADR-126 (**"Approve (Recommended)"**, relayed by `fkit-lead`; ⛔ not producer
+  precedent). That design adds a new reconcile answer and offer state, **`held_elsewhere`** (a permanent purchase this
+  verified login's Yandex account already holds on **another** profile), built in `0510` (S2). Spec §4.6, §8 and
+  residual R3: a logged-in tap **before** the boot reconcile answers is not covered there — **this task should treat
+  `held_elsewhere` like `pending_ungranted`, as a block** (no payment window). The plan decides how; the owner approves
+  the plan. `0510` also edits `PurchaseCoordinator.ts` — same working-tree rule as above. The owner's *"Nothing waits
+  on it"* stands: no `Depends on:` line was added either way.
 - **Ships by:** a game deploy — weekend slot unless urgent (owner rule); committed is not deployed. Split a live verify
   task out at close, per the build-vs-verify rule.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

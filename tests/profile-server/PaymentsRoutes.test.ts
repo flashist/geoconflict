@@ -35,11 +35,17 @@ import type {
   PurchaseIntent,
 } from "../../src/profile-server/PaymentsRepository";
 import {
+  classifyHeld,
   createApp,
   intentRefusal,
+  mayConsume,
   type PaymentsRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
+import {
+  noopProfileMetrics,
+  type ProfileMetrics,
+} from "../../src/profile-server/Telemetry";
 import { TEST_SESSION_CONFIG, bearerFor } from "./support/sessionToken";
 
 const SECRET = "payments-test-secret";
@@ -72,6 +78,7 @@ function mockPaymentsRepo(overrides: Partial<PaymentsRepo> = {}): PaymentsRepo {
       .fn()
       .mockResolvedValue({ status: "granted", becamePaidCitizen: true }),
     listEntitlements: jest.fn().mockResolvedValue([]),
+    recordHolderSighting: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -130,6 +137,14 @@ function openIntent(overrides: Partial<PurchaseIntent> = {}): PurchaseIntent {
     ...overrides,
   };
 }
+
+/** A /reconcile answer with nothing in any list (task 0506 adds three of them). */
+const NOTHING_RECONCILED = {
+  processedTokens: [],
+  grantedTokens: [],
+  consumeTokens: [],
+  heldElsewhere: [],
+};
 
 const processedReceipt: ProcessedPurchase = {
   purchaseToken: "tok-1",
@@ -302,6 +317,7 @@ describe("payments routes", () => {
         success: true,
         purchaseToken: "tok-1",
         becamePaidCitizen: true,
+        consume: false,
       });
       expect(repo.grantPaidPurchase).toHaveBeenCalledWith(
         expect.objectContaining<Partial<PaidPurchaseGrant>>({
@@ -329,6 +345,7 @@ describe("payments routes", () => {
         success: true,
         purchaseToken: "tok-1",
         becamePaidCitizen: false,
+        consume: false,
       });
     });
 
@@ -345,7 +362,11 @@ describe("payments routes", () => {
         .post("/v1/payments/yandex/complete")
         .send({ signature: sign(purchasePayload()) });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ success: true, purchaseToken: "tok-1" });
+      expect(res.body).toEqual({
+        success: true,
+        purchaseToken: "tok-1",
+        consume: false,
+      });
     });
 
     it("is 400 for an invalid signature and never touches the repo", async () => {
@@ -378,7 +399,11 @@ describe("payments routes", () => {
         .post("/v1/payments/yandex/complete")
         .send({ signature: sign(purchasePayload()) });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ success: true, purchaseToken: "tok-1" });
+      expect(res.body).toEqual({
+        success: true,
+        purchaseToken: "tok-1",
+        consume: false,
+      });
       expect(repo.grantPaidPurchase).not.toHaveBeenCalled();
       expect(repo.findIntent).not.toHaveBeenCalled();
     });
@@ -462,7 +487,12 @@ describe("payments routes", () => {
           }),
         });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ processedTokens: ["tok-done", "tok-new"] });
+      expect(res.body).toEqual({
+        processedTokens: ["tok-done", "tok-new"],
+        grantedTokens: ["tok-new"],
+        consumeTokens: [],
+        heldElsewhere: [],
+      });
       expect(repo.grantPaidPurchase).toHaveBeenCalledTimes(1);
       expect(repo.grantPaidPurchase).toHaveBeenCalledWith(
         expect.objectContaining({ purchaseToken: "tok-new" }),
@@ -482,7 +512,7 @@ describe("payments routes", () => {
           }),
         });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ processedTokens: [] });
+      expect(res.body).toEqual(NOTHING_RECONCILED);
       expect(repo.grantPaidPurchase).not.toHaveBeenCalled();
     });
 
@@ -491,7 +521,7 @@ describe("payments routes", () => {
         .post("/v1/payments/yandex/reconcile")
         .send({ signature: sign({ data: [] }) });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ processedTokens: [] });
+      expect(res.body).toEqual(NOTHING_RECONCILED);
     });
 
     it("is 400 for an invalid signature", async () => {
@@ -540,6 +570,9 @@ describe("payments routes", () => {
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
           processedTokens: ["tok-a", "tok-c"],
+          grantedTokens: ["tok-a", "tok-c"],
+          consumeTokens: [],
+          heldElsewhere: [],
           failedCount: 1,
         });
         expect(repo.grantPaidPurchase).toHaveBeenCalledTimes(3);
@@ -577,6 +610,9 @@ describe("payments routes", () => {
         expect(res.status).toBe(200);
         expect(res.body).toEqual({
           processedTokens: ["tok-done", "tok-new"],
+          grantedTokens: ["tok-new"],
+          consumeTokens: [],
+          heldElsewhere: [],
           failedCount: 1,
         });
         expect(repo.grantPaidPurchase).toHaveBeenCalledTimes(1);
@@ -601,7 +637,7 @@ describe("payments routes", () => {
             }),
           });
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ processedTokens: [], failedCount: 2 });
+        expect(res.body).toEqual({ ...NOTHING_RECONCILED, failedCount: 2 });
         expect(failureLines()).toHaveLength(2);
       });
 
@@ -613,7 +649,12 @@ describe("payments routes", () => {
           .post("/v1/payments/yandex/reconcile")
           .send({ signature: sign({ data: [purchasePayload()] }) });
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ processedTokens: ["tok-1"] });
+        expect(res.body).toEqual({
+          processedTokens: ["tok-1"],
+          grantedTokens: ["tok-1"],
+          consumeTokens: [],
+          heldElsewhere: [],
+        });
         expect(failureLines()).toEqual([]);
       });
     });
@@ -682,7 +723,12 @@ describe("payments routes", () => {
             }),
           });
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ processedTokens: [LONG_TOKEN] });
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [LONG_TOKEN],
+          consumeTokens: [],
+          heldElsewhere: [],
+        });
         expect(signatureLines()).toEqual([
           `yandex purchase signature verified (reconcile): construction=${label}`,
         ]);
@@ -769,7 +815,10 @@ describe("payments routes", () => {
         .post("/v1/payments/yandex/reconcile")
         .send({ signature: failing });
       expect(failingRes.status).toBe(200);
-      expect(failingRes.body).toEqual({ processedTokens: [], failedCount: 1 });
+      expect(failingRes.body).toEqual({
+        ...NOTHING_RECONCILED,
+        failedCount: 1,
+      });
       expect(
         logLines.filter((line) => line.includes("reconcile entry failed")),
       ).toHaveLength(1);
@@ -786,6 +835,583 @@ describe("payments routes", () => {
           expect(line).not.toContain(value);
         }
       }
+    });
+  });
+
+  // Task 0506 (S1 of the 0505 design, ADR-126): the server-owned consume policy,
+  // the optional verified caller on /reconcile, held-elsewhere detection and the
+  // sightings evidence, and the labels-only shadow measurement.
+  describe("stop consuming permanent purchases (task 0506)", () => {
+    // Synthetic ids, long enough that a leak would be visible in a log line.
+    const OTHER_PLAYER_ID = "7d1e2c3b-4a59-4687-8a9b-0c1d2e3f4a5b";
+    const LONG_TOKEN = "synthetic-purchase-token-0506-not-a-real-token-cccc";
+    const OTHER_TOKEN = "synthetic-purchase-token-0506-not-a-real-token-dddd";
+    const NOW_SECONDS = Math.floor(Date.now() / 1000);
+
+    function capturingMetrics() {
+      const metrics = {
+        ...noopProfileMetrics,
+        sessionRejected: jest.fn(),
+        paymentsReconcileEntry: jest.fn(),
+        paymentsReconcileCaller: jest.fn(),
+        paymentsPayloadIssuedAt: jest.fn(),
+        paymentsEntryStatus: jest.fn(),
+      };
+      return metrics satisfies ProfileMetrics;
+    }
+
+    function app0506(
+      paymentsRepo: PaymentsRepo,
+      options: {
+        consumePermanent?: boolean;
+        metrics?: ProfileMetrics;
+        session?: typeof TEST_SESSION_CONFIG;
+      } = {},
+    ) {
+      return createApp(
+        mockProfileRepo(),
+        {
+          paymentsRepo,
+          yandexPaymentsSecret: SECRET,
+          consumePermanent: options.consumePermanent,
+        },
+        undefined,
+        undefined,
+        options.session ?? TEST_SESSION_CONFIG,
+        { metrics: options.metrics ?? noopProfileMetrics },
+      );
+    }
+
+    /** The docs' envelope: issuedAt in seconds, each entry with `status`. */
+    function reconcileSignature(
+      tokens: string[],
+      issuedAt: number | undefined = NOW_SECONDS,
+    ): string {
+      return sign({
+        ...(issuedAt === undefined ? {} : { issuedAt }),
+        data: tokens.map((purchaseToken) =>
+          purchasePayload({ purchaseToken, status: "waiting" }),
+        ),
+      });
+    }
+
+    /** Every token is already in the ledger, held by `holder`. */
+    function heldRepo(
+      holder: string = PLAYER_ID,
+      productId: string = "citizenship",
+      overrides: Partial<PaymentsRepo> = {},
+    ): PaymentsRepo {
+      return mockPaymentsRepo({
+        getProcessedPurchase: jest
+          .fn()
+          .mockImplementation(async (purchaseToken: string) => ({
+            purchaseToken,
+            playerId: holder,
+            productId,
+          })),
+        ...overrides,
+      });
+    }
+
+    async function reconcile(
+      app: ReturnType<typeof app0506>,
+      signature: string,
+      authorization?: string,
+    ) {
+      const call = request(app).post("/v1/payments/yandex/reconcile");
+      if (authorization !== undefined) {
+        call.set("Authorization", authorization);
+      }
+      return call.send({ signature });
+    }
+
+    function expectNoWrites(repo: PaymentsRepo) {
+      expect(repo.grantPaidPurchase).not.toHaveBeenCalled();
+      expect(repo.createIntent).not.toHaveBeenCalled();
+      expect(repo.recordHolderSighting).not.toHaveBeenCalled();
+    }
+
+    describe("pure helpers", () => {
+      it.each([
+        ["citizenship", false, false],
+        ["citizenship", true, true],
+        ["not_a_product", false, false],
+        ["not_a_product", true, false],
+        ["constructor", true, false],
+        ["__proto__", true, false],
+      ] as const)(
+        "mayConsume(%s, consumePermanent=%s) → %s",
+        (productId, consumePermanent, expected) => {
+          expect(mayConsume(productId, consumePermanent)).toBe(expected);
+        },
+      );
+
+      it.each([
+        [null, "held_no_caller"],
+        [{ status: "ok", playerId: PLAYER_ID, verified: true }, "held"],
+        [{ status: "ok", playerId: PLAYER_ID, verified: false }, "held"],
+        [
+          { status: "ok", playerId: OTHER_PLAYER_ID, verified: true },
+          "held_elsewhere_verified",
+        ],
+        [
+          { status: "ok", playerId: OTHER_PLAYER_ID, verified: false },
+          "held_elsewhere_unverified",
+        ],
+      ] as const)("classifyHeld(holder, %p) → %s", (caller, expected) => {
+        expect(classifyHeld(PLAYER_ID, caller)).toBe(expected);
+      });
+    });
+
+    describe("/reconcile with a held purchase", () => {
+      it("same verified caller ⇒ quiet: no heldElsewhere, no sighting", async () => {
+        const repo = heldRepo();
+        const metrics = capturingMetrics();
+        const res = await reconcile(
+          app0506(repo, { metrics }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [],
+          consumeTokens: [],
+          heldElsewhere: [],
+        });
+        expectNoWrites(repo);
+        expect(metrics.paymentsReconcileEntry).toHaveBeenCalledWith("held");
+        expect(metrics.paymentsReconcileCaller).toHaveBeenCalledWith(
+          "verified",
+        );
+      });
+
+      it("a different VERIFIED caller ⇒ heldElsewhere + sighting; nothing granted or moved", async () => {
+        const repo = heldRepo();
+        const metrics = capturingMetrics();
+        const res = await reconcile(
+          app0506(repo, { metrics }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [],
+          consumeTokens: [],
+          heldElsewhere: ["citizenship"],
+        });
+        expect(repo.recordHolderSighting).toHaveBeenCalledTimes(1);
+        expect(repo.recordHolderSighting).toHaveBeenCalledWith({
+          purchaseToken: LONG_TOKEN,
+          holderPlayerId: PLAYER_ID,
+          seenPlayerId: OTHER_PLAYER_ID,
+          payloadIssuedAt: new Date(NOW_SECONDS * 1000),
+        });
+        expect(repo.grantPaidPurchase).not.toHaveBeenCalled();
+        expect(repo.createIntent).not.toHaveBeenCalled();
+        expect(repo.findIntent).not.toHaveBeenCalled();
+        expect(metrics.paymentsReconcileEntry).toHaveBeenCalledWith(
+          "held_elsewhere_verified",
+        );
+      });
+
+      it("an implausible issuedAt is stored as null, the sighting still written", async () => {
+        const repo = heldRepo();
+        await reconcile(
+          app0506(repo),
+          reconcileSignature([LONG_TOKEN], Date.now()), // milliseconds
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(repo.recordHolderSighting).toHaveBeenCalledWith(
+          expect.objectContaining({ payloadIssuedAt: null }),
+        );
+      });
+
+      it("a different UNVERIFIED caller ⇒ quiet, no sighting, counted only", async () => {
+        const repo = heldRepo();
+        const metrics = capturingMetrics();
+        const res = await reconcile(
+          app0506(repo, { metrics }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: false }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body.heldElsewhere).toEqual([]);
+        expectNoWrites(repo);
+        expect(metrics.paymentsReconcileEntry).toHaveBeenCalledWith(
+          "held_elsewhere_unverified",
+        );
+        expect(metrics.paymentsReconcileCaller).toHaveBeenCalledWith(
+          "unverified",
+        );
+      });
+
+      it("two tokens for one product ⇒ heldElsewhere once, a sighting per token", async () => {
+        const repo = heldRepo();
+        const res = await reconcile(
+          app0506(repo),
+          reconcileSignature([LONG_TOKEN, OTHER_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.body.heldElsewhere).toEqual(["citizenship"]);
+        expect(repo.recordHolderSighting).toHaveBeenCalledTimes(2);
+      });
+
+      it("a ledger product no longer in the catalogue is never in heldElsewhere nor consumable", async () => {
+        const repo = heldRepo(PLAYER_ID, "retired_item");
+        const res = await reconcile(
+          app0506(repo, { consumePermanent: true }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [],
+          consumeTokens: [],
+          heldElsewhere: [],
+        });
+        expect(repo.recordHolderSighting).not.toHaveBeenCalled();
+      });
+
+      it("a sighting write that throws ⇒ still 200 with the right fields, no failedCount", async () => {
+        logLines.length = 0;
+        const repo = heldRepo(PLAYER_ID, "citizenship", {
+          recordHolderSighting: jest
+            .fn()
+            .mockRejectedValue(
+              Object.assign(new Error(`fk ${OTHER_PLAYER_ID}`), {
+                name: "DatabaseError",
+              }),
+            ),
+        });
+        const res = await reconcile(
+          app0506(repo),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [],
+          consumeTokens: [],
+          heldElsewhere: ["citizenship"],
+        });
+        expect(
+          logLines.filter((line) => line.includes("holder sighting failed")),
+        ).toEqual(["reconcile holder sighting failed: DatabaseError"]);
+      });
+    });
+
+    describe("/reconcile caller is optional and never refused", () => {
+      const expired = bearerFor(OTHER_PLAYER_ID, {
+        verified: true,
+        nowMs: Date.now() - 48 * 3_600_000,
+      });
+      const callers: Array<[string, string | undefined, string]> = [
+        ["no header", undefined, "none"],
+        ["a non-Bearer header", "Basic abc", "invalid"],
+        ["an invalid token", "Bearer not.a.token", "invalid"],
+        ["an expired token", expired, "expired"],
+        ["a vfy:false token", bearerFor(OTHER_PLAYER_ID), "unverified"],
+        [
+          "a vfy:true token",
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+          "verified",
+        ],
+      ];
+
+      it.each(callers)(
+        "%s ⇒ 200, processedTokens as before 0506, no session.rejected",
+        async (_label, authorization, state) => {
+          const repo = mockPaymentsRepo({
+            getProcessedPurchase: jest
+              .fn()
+              .mockImplementation(async (token: string) =>
+                token === LONG_TOKEN
+                  ? { ...processedReceipt, purchaseToken: LONG_TOKEN }
+                  : null,
+              ),
+            findIntent: jest.fn().mockResolvedValue(openIntent()),
+          });
+          const metrics = capturingMetrics();
+          const res = await reconcile(
+            app0506(repo, { metrics }),
+            reconcileSignature([LONG_TOKEN, OTHER_TOKEN]),
+            authorization,
+          );
+          expect(res.status).toBe(200);
+          // Byte for byte what a client older than 0506 reads.
+          expect(res.body.processedTokens).toEqual([LONG_TOKEN, OTHER_TOKEN]);
+          expect(res.body.grantedTokens).toEqual([OTHER_TOKEN]);
+          expect(metrics.sessionRejected).not.toHaveBeenCalled();
+          expect(metrics.paymentsReconcileCaller).toHaveBeenCalledWith(state);
+          if (state !== "verified") {
+            expect(res.body.heldElsewhere).toEqual([]);
+            expect(repo.recordHolderSighting).not.toHaveBeenCalled();
+          }
+        },
+      );
+
+      it("sessions not configured + a header ⇒ 200, counted session_unavailable", async () => {
+        const metrics = capturingMetrics();
+        const res = await reconcile(
+          app0506(heldRepo(), { metrics, session: { secret: "" } }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body.heldElsewhere).toEqual([]);
+        expect(metrics.paymentsReconcileCaller).toHaveBeenCalledWith(
+          "session_unavailable",
+        );
+      });
+    });
+
+    describe("/reconcile fresh grants", () => {
+      it("granted to the profile that started it while ANOTHER verified profile calls ⇒ heldElsewhere now (deviation 3)", async () => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await reconcile(
+          app0506(repo),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [LONG_TOKEN],
+          consumeTokens: [],
+          heldElsewhere: ["citizenship"],
+        });
+        expect(repo.grantPaidPurchase).toHaveBeenCalledWith(
+          expect.objectContaining({ playerId: PLAYER_ID }),
+        );
+        expect(repo.recordHolderSighting).toHaveBeenCalledWith(
+          expect.objectContaining({
+            purchaseToken: LONG_TOKEN,
+            holderPlayerId: PLAYER_ID,
+            seenPlayerId: OTHER_PLAYER_ID,
+          }),
+        );
+      });
+
+      it.each([
+        ["the buyer's own verified session", bearerFor(PLAYER_ID, { verified: true })],
+        ["another profile's UNVERIFIED session", bearerFor(OTHER_PLAYER_ID)],
+        ["no session", undefined],
+      ])("granted while %s calls ⇒ no heldElsewhere", async (_label, auth) => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await reconcile(
+          app0506(repo),
+          reconcileSignature([LONG_TOKEN]),
+          auth,
+        );
+        expect(res.body.grantedTokens).toEqual([LONG_TOKEN]);
+        expect(res.body.heldElsewhere).toEqual([]);
+        expect(repo.recordHolderSighting).not.toHaveBeenCalled();
+      });
+
+      it("a parallel request won the grant race ⇒ processedTokens only, not grantedTokens", async () => {
+        const metrics = capturingMetrics();
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+          grantPaidPurchase: jest
+            .fn()
+            .mockResolvedValue({ status: "already_processed" }),
+        });
+        const res = await reconcile(
+          app0506(repo, { metrics }),
+          reconcileSignature([LONG_TOKEN]),
+        );
+        expect(res.body).toEqual({
+          processedTokens: [LONG_TOKEN],
+          grantedTokens: [],
+          consumeTokens: [],
+          heldElsewhere: [],
+        });
+        expect(metrics.paymentsReconcileEntry).toHaveBeenCalledWith(
+          "already_processed_race",
+        );
+      });
+    });
+
+    describe("never revoke on absence (G4)", () => {
+      it.each([
+        ["an empty list", [] as string[]],
+        ["a list without the held token", [OTHER_TOKEN]],
+      ])("%s writes nothing for the paid player", async (_label, tokens) => {
+        const repo = mockPaymentsRepo(); // OTHER_TOKEN: no ledger row, no intent
+        const res = await reconcile(
+          app0506(repo),
+          reconcileSignature(tokens),
+          bearerFor(PLAYER_ID, { verified: true }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body.processedTokens).toEqual([]);
+        expectNoWrites(repo);
+      });
+    });
+
+    describe("the consume-permanent setting", () => {
+      it("ON ⇒ consumeTokens equals processedTokens, held-elsewhere included", async () => {
+        const repo = mockPaymentsRepo({
+          getProcessedPurchase: jest
+            .fn()
+            .mockImplementation(async (token: string) =>
+              token === LONG_TOKEN
+                ? {
+                    purchaseToken: LONG_TOKEN,
+                    playerId: PLAYER_ID,
+                    productId: "citizenship",
+                  }
+                : null,
+            ),
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await reconcile(
+          app0506(repo, { consumePermanent: true }),
+          reconcileSignature([LONG_TOKEN, OTHER_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(res.body.processedTokens).toEqual([LONG_TOKEN, OTHER_TOKEN]);
+        expect(res.body.consumeTokens).toEqual([LONG_TOKEN, OTHER_TOKEN]);
+        expect(res.body.heldElsewhere).toEqual(["citizenship"]);
+      });
+
+      it.each([
+        ["fresh grant", openIntent(), null],
+        ["replay", openIntent(), processedReceipt],
+      ])("ON ⇒ /complete says consume:true (%s)", async (_label, intent, receipt) => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(intent),
+          getProcessedPurchase: jest.fn().mockResolvedValue(receipt),
+        });
+        const res = await request(app0506(repo, { consumePermanent: true }))
+          .post("/v1/payments/yandex/complete")
+          .send({ signature: sign(purchasePayload()) });
+        expect(res.status).toBe(200);
+        expect(res.body.consume).toBe(true);
+      });
+
+      it("OFF is the default when the config leaves it out", async () => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/complete")
+          .send({ signature: sign(purchasePayload()) });
+        expect(res.body.consume).toBe(false);
+      });
+
+      it("/complete error answers carry no consume field", async () => {
+        const res = await request(app0506(mockPaymentsRepo()))
+          .post("/v1/payments/yandex/complete")
+          .send({ signature: sign(purchasePayload()) });
+        expect(res.status).toBe(409);
+        expect(res.body).toEqual({ error: "unknown_intent" });
+      });
+    });
+
+    describe("shadow measurement, labels only", () => {
+      beforeEach(() => {
+        logLines.length = 0;
+        logCalls.length = 0;
+      });
+
+      const shadowLines = () =>
+        logLines.filter((line) => line.includes("payload shadow"));
+
+      it("/reconcile: one labels-only line and the counters", async () => {
+        const metrics = capturingMetrics();
+        await reconcile(
+          app0506(heldRepo(), { metrics }),
+          reconcileSignature([LONG_TOKEN]),
+          bearerFor(OTHER_PLAYER_ID, { verified: true }),
+        );
+        expect(shadowLines()).toEqual([
+          "yandex purchase payload shadow (reconcile): caller=verified issued_at=under_1m statuses=waiting:1 outcomes=held_elsewhere_verified:1",
+        ]);
+        expect(metrics.paymentsPayloadIssuedAt).toHaveBeenCalledWith(
+          "reconcile",
+          "under_1m",
+        );
+        expect(metrics.paymentsEntryStatus).toHaveBeenCalledWith(
+          "reconcile",
+          "waiting",
+        );
+      });
+
+      it("/complete: one labels-only line; an envelope-less payload is `absent`", async () => {
+        const metrics = capturingMetrics();
+        await request(
+          app0506(
+            mockPaymentsRepo({
+              findIntent: jest.fn().mockResolvedValue(openIntent()),
+            }),
+            { metrics },
+          ),
+        )
+          .post("/v1/payments/yandex/complete")
+          .send({ signature: sign(purchasePayload()) });
+        expect(shadowLines()).toEqual([
+          "yandex purchase payload shadow (complete): issued_at=absent statuses=absent:1",
+        ]);
+        expect(metrics.paymentsPayloadIssuedAt).toHaveBeenCalledWith(
+          "complete",
+          "absent",
+        );
+      });
+
+      it("an empty list logs statuses=none outcomes=none", async () => {
+        await reconcile(app0506(mockPaymentsRepo()), reconcileSignature([]));
+        expect(shadowLines()).toEqual([
+          "yandex purchase payload shadow (reconcile): caller=none issued_at=under_1m statuses=none outcomes=none",
+        ]);
+      });
+
+      it("leak guard: no token, player id, intent id, payload or signature in any line", async () => {
+        const verifiedOther = bearerFor(OTHER_PLAYER_ID, { verified: true });
+        const signed = reconcileSignature([LONG_TOKEN, OTHER_TOKEN]);
+        const failingSighting = heldRepo(PLAYER_ID, "citizenship", {
+          recordHolderSighting: jest.fn().mockRejectedValue(new Error("x")),
+        });
+        await reconcile(app0506(heldRepo()), signed, verifiedOther);
+        await reconcile(app0506(failingSighting), signed, verifiedOther);
+        await reconcile(
+          app0506(
+            mockPaymentsRepo({
+              findIntent: jest.fn().mockResolvedValue(openIntent()),
+            }),
+          ),
+          signed,
+          verifiedOther,
+        );
+        expect(shadowLines()).toHaveLength(3);
+        const forbidden = [
+          LONG_TOKEN,
+          OTHER_TOKEN,
+          PLAYER_ID,
+          OTHER_PLAYER_ID,
+          INTENT_ID,
+          signed,
+          verifiedOther.slice("Bearer ".length),
+          SECRET,
+        ];
+        for (const args of logCalls) {
+          expect(args).toHaveLength(1);
+          expect(typeof args[0]).toBe("string");
+        }
+        for (const line of logLines) {
+          for (const value of forbidden) {
+            expect(line).not.toContain(value);
+          }
+        }
+      });
     });
   });
 });

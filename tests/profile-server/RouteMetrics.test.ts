@@ -54,6 +54,10 @@ function recorder() {
     rewardedMatchXpGrant: () => {},
     resolveVouch: () => {},
     alertRelay: () => {},
+    paymentsReconcileEntry: () => {},
+    paymentsReconcileCaller: () => {},
+    paymentsPayloadIssuedAt: () => {},
+    paymentsEntryStatus: () => {},
   };
   return { metrics, logins, created, http, sessions, tenure };
 }

@@ -7,6 +7,7 @@ import type { Pool } from "pg";
 import { PAYMENT_PRODUCT_IDS } from "../../src/core/profile/PaymentsContract";
 import {
   durableItemGrant,
+  plausibleIssuedAt,
   PRODUCT_GRANTS,
   PaymentsRepository,
   welcomeTemplatesFor,
@@ -555,6 +556,69 @@ describe("PaymentsRepository", () => {
       const repo = new PaymentsRepository(pool);
       await expect(repo.findIntent("nope")).resolves.toBeNull();
       await expect(repo.getProcessedPurchase("nope")).resolves.toBeNull();
+    });
+  });
+
+  // Task 0506 (spec §6.2): evidence for the manual merge; never a move.
+  describe("recordHolderSighting", () => {
+    it("issues one upsert with the four values, outside any transaction", async () => {
+      const client: MockClient = { query: jest.fn(), release: jest.fn() };
+      const { pool, poolQuery } = makePool(client);
+      poolQuery.mockResolvedValue({ rows: [] });
+      const issuedAt = new Date("2026-10-26T00:00:00.000Z");
+      await new PaymentsRepository(pool).recordHolderSighting({
+        purchaseToken: "tok-1",
+        holderPlayerId: "holder-id",
+        seenPlayerId: PLAYER_ID,
+        payloadIssuedAt: issuedAt,
+      });
+      expect(poolQuery).toHaveBeenCalledTimes(1);
+      const [sql, params] = poolQuery.mock.calls[0];
+      expect(sql).toContain("INSERT INTO purchase_holder_sightings");
+      expect(sql).toContain(
+        "ON CONFLICT (purchase_token, seen_player_id) DO UPDATE",
+      );
+      expect(sql).toContain("seen_count = purchase_holder_sightings.seen_count + 1");
+      expect(params).toEqual(["tok-1", "holder-id", PLAYER_ID, issuedAt]);
+      expect(client.query).not.toHaveBeenCalled();
+    });
+
+    it("propagates a failure (the route owns the best-effort catch)", async () => {
+      const client: MockClient = { query: jest.fn(), release: jest.fn() };
+      const { pool, poolQuery } = makePool(client);
+      poolQuery.mockRejectedValue(new Error("fk"));
+      await expect(
+        new PaymentsRepository(pool).recordHolderSighting({
+          purchaseToken: "tok-1",
+          holderPlayerId: "holder-id",
+          seenPlayerId: PLAYER_ID,
+          payloadIssuedAt: null,
+        }),
+      ).rejects.toThrow("fk");
+    });
+  });
+
+  describe("plausibleIssuedAt", () => {
+    const NOW_MS = Date.parse("2026-10-26T12:00:00.000Z");
+
+    it("keeps a plausible seconds value as a Date", () => {
+      expect(plausibleIssuedAt(1_571_233_371, NOW_MS)?.toISOString()).toBe(
+        "2019-10-16T13:42:51.000Z",
+      );
+    });
+
+    it.each([
+      [null],
+      [1_000],
+      [NOW_MS], // milliseconds by mistake
+      [1e15],
+      [NOW_MS / 1000 + 86_401],
+    ])("%p ⇒ null", (issuedAt) => {
+      expect(plausibleIssuedAt(issuedAt, NOW_MS)).toBeNull();
+    });
+
+    it("accepts up to one day ahead", () => {
+      expect(plausibleIssuedAt(NOW_MS / 1000 + 86_400, NOW_MS)).not.toBeNull();
     });
   });
 });

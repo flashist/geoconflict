@@ -83,6 +83,7 @@ function mocks(): Mocks {
       getProcessedPurchase: jest.fn(),
       grantPaidPurchase: jest.fn(),
       listEntitlements: jest.fn().mockResolvedValue([]),
+      recordHolderSighting: jest.fn().mockResolvedValue(undefined),
     },
   };
 }

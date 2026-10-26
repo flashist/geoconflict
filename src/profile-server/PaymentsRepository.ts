@@ -44,6 +44,40 @@ export interface PaidPurchaseGrant {
 }
 
 /**
+ * One verified sighting of a purchase held by another profile (task 0506, spec
+ * §6.2): evidence for the owner's manual merge, never a move.
+ */
+export interface HolderSighting {
+  purchaseToken: string;
+  holderPlayerId: string;
+  seenPlayerId: string;
+  payloadIssuedAt: Date | null;
+}
+
+// 2019-01-01T00:00:00Z: older than any Geoconflict purchase.
+const EARLIEST_PLAUSIBLE_ISSUED_AT_SECONDS = 1_546_300_800;
+const ISSUED_AT_FUTURE_SLACK_SECONDS = 86_400;
+
+/**
+ * A payload's `issuedAt` (seconds) as a timestamp worth storing, or null. An
+ * implausible value (milliseconds, 1e15) would otherwise be a Postgres range
+ * error and lose the sighting.
+ */
+export function plausibleIssuedAt(
+  issuedAt: number | null,
+  nowMs: number,
+): Date | null {
+  if (
+    issuedAt === null ||
+    issuedAt < EARLIEST_PLAUSIBLE_ISSUED_AT_SECONDS ||
+    issuedAt > nowMs / 1000 + ISSUED_AT_FUTURE_SLACK_SECONDS
+  ) {
+    return null;
+  }
+  return new Date(issuedAt * 1000);
+}
+
+/**
  * granted = fresh grant; already_processed = token seen before (idempotent no-op).
  * becamePaidCitizen exists only on a fresh grant: a replay cannot know it.
  */
@@ -227,6 +261,29 @@ export class PaymentsRepository {
       playerId: row.player_id,
       productId: row.product_id,
     };
+  }
+
+  /**
+   * Upsert one sighting (task 0506). The holder and `issuedAt` take the latest
+   * value seen. The route calls it best-effort: a failure never fails a reconcile.
+   */
+  async recordHolderSighting(sighting: HolderSighting): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO purchase_holder_sightings
+         (purchase_token, holder_player_id, seen_player_id, payload_issued_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (purchase_token, seen_player_id) DO UPDATE
+       SET last_seen_at = now(),
+           seen_count = purchase_holder_sightings.seen_count + 1,
+           holder_player_id = EXCLUDED.holder_player_id,
+           payload_issued_at = EXCLUDED.payload_issued_at`,
+      [
+        sighting.purchaseToken,
+        sighting.holderPlayerId,
+        sighting.seenPlayerId,
+        sighting.payloadIssuedAt,
+      ],
+    );
   }
 
   /**

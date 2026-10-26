@@ -1911,3 +1911,115 @@ describe("FlashistFacade portal link and invite payload (task 0382)", () => {
     });
   });
 });
+
+// Task 0507: the player_message_targets flag holds player names. Its raw value
+// is read by the popup, and it is never sent as an Experiment:* event.
+describe("FlashistFacade player_message_targets flag (task 0507)", () => {
+  function makeFlagsFacade(fields: {
+    yandexGamesSDK?: unknown;
+    yandexExperimentFlags?: unknown;
+  }): FlashistFacade {
+    return Object.assign(Object.create(FlashistFacade.prototype), {
+      yandexInitPromise: Promise.resolve(),
+      yandexInitExperimentsPromise: fields.yandexGamesSDK
+        ? Promise.resolve()
+        : undefined,
+      hasLoggedExperimentEvents: true,
+      ...fields,
+    }) as FlashistFacade;
+  }
+
+  let originalGameEnv: string | undefined;
+
+  beforeEach(() => {
+    originalGameEnv = process.env.GAME_ENV;
+  });
+
+  afterEach(() => {
+    if (originalGameEnv === undefined) {
+      delete process.env.GAME_ENV;
+    } else {
+      process.env.GAME_ENV = originalGameEnv;
+    }
+  });
+
+  it("returns the raw string value", async () => {
+    const facade = makeFlagsFacade({
+      yandexGamesSDK: {},
+      yandexExperimentFlags: { player_message_targets: "Name One, Name Two" },
+    });
+    await expect(facade.getPlayerMessageTargetsFlagValue()).resolves.toBe(
+      "Name One, Name Two",
+    );
+  });
+
+  it("returns undefined when the flag is unset", async () => {
+    const facade = makeFlagsFacade({
+      yandexGamesSDK: {},
+      yandexExperimentFlags: { citizenship_ui: "enabled" },
+    });
+    await expect(
+      facade.getPlayerMessageTargetsFlagValue(),
+    ).resolves.toBeUndefined();
+  });
+
+  it("returns undefined for a non-string value", async () => {
+    const facade = makeFlagsFacade({
+      yandexGamesSDK: {},
+      yandexExperimentFlags: { player_message_targets: 7 },
+    });
+    await expect(
+      facade.getPlayerMessageTargetsFlagValue(),
+    ).resolves.toBeUndefined();
+  });
+
+  it("returns undefined with no SDK (local dev), even in the dev env", async () => {
+    process.env.GAME_ENV = "dev";
+    const facade = makeFlagsFacade({});
+    await expect(
+      facade.getPlayerMessageTargetsFlagValue(),
+    ).resolves.toBeUndefined();
+  });
+
+  it("returns undefined when the flag fetch produced no flags", async () => {
+    const facade = makeFlagsFacade({
+      yandexGamesSDK: {},
+      yandexExperimentFlags: undefined,
+    });
+    await expect(
+      facade.getPlayerMessageTargetsFlagValue(),
+    ).resolves.toBeUndefined();
+  });
+
+  it("logExperimentEvents skips it and logs the other flags", () => {
+    const logExperimentEvent = jest.fn();
+    const facade = Object.assign(Object.create(FlashistFacade.prototype), {
+      yandexExperimentFlags: {
+        player_message_targets: "SecretName",
+        citizenship_ui: "enabled",
+      },
+      hasLoggedExperimentEvents: false,
+      logExperimentEvent,
+    }) as FlashistFacade;
+
+    (
+      facade as unknown as { logExperimentEvents(): void }
+    ).logExperimentEvents();
+
+    expect(logExperimentEvent.mock.calls).toEqual([
+      ["citizenship_ui", "enabled"],
+    ]);
+    expect(JSON.stringify(logExperimentEvent.mock.calls)).not.toContain(
+      "SecretName",
+    );
+    expect(JSON.stringify(logExperimentEvent.mock.calls)).not.toContain(
+      "player_message_targets",
+    );
+  });
+
+  it("the flag name constant is the console key", () => {
+    expect(flashistConstants.experiments.PLAYER_MESSAGE_TARGETS_FLAG_NAME).toBe(
+      "player_message_targets",
+    );
+  });
+});

@@ -10,6 +10,7 @@
 // PLAYER-facing call here carries a real signed session token — the legacy
 // Yandex-id request shapes are gone, and the suite proves that over real Postgres.
 
+import { createHmac } from "crypto";
 import { Pool } from "pg";
 import request from "supertest";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
@@ -491,6 +492,114 @@ RUN("profile API over real Postgres (integration)", () => {
       "SELECT count(*)::int AS n FROM purchase_intents",
     );
     expect(intents.rows[0].n).toBe(0);
+  });
+
+  // Task 0506 (ADR-126), over real Postgres: a verified other profile presenting a
+  // held purchase is told and recorded; nothing is granted, moved or revoked.
+  describe("reconcile with a held purchase (task 0506)", () => {
+    function signForIt(payload: unknown): string {
+      const encoded = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const signature = createHmac("sha256", "it-secret")
+        .update(encoded)
+        .digest("base64");
+      return `${signature}.${encoded}`;
+    }
+
+    async function paidFlags(playerId: string) {
+      const res = await pool.query(
+        "SELECT is_citizen, is_paid_citizen FROM players WHERE id = $1",
+        [playerId],
+      );
+      return res.rows[0];
+    }
+
+    async function ledger() {
+      const res = await pool.query(
+        "SELECT purchase_token, player_id, product_id FROM processed_purchases ORDER BY purchase_token",
+      );
+      return res.rows;
+    }
+
+    test("a verified other profile gets heldElsewhere and a sighting; both profiles unchanged", async () => {
+      const holder = await createYandexPlayer(pool, "yandex-held-o");
+      const caller = await createYandexPlayer(pool, "yandex-held-n");
+      const intentId = await payments.createIntent(holder, "citizenship");
+      await payments.grantPaidPurchase({
+        purchaseToken: "tok-held-1",
+        productId: "citizenship",
+        playerId: holder,
+        intentId,
+        rawPayload: '{"test":true}',
+      });
+      const ledgerBefore = await ledger();
+      const issuedAt = Math.floor(Date.now() / 1000);
+
+      const res = await request(app)
+        .post("/v1/payments/yandex/reconcile")
+        .set("Authorization", bearerFor(caller, { verified: true }))
+        .send({
+          signature: signForIt({
+            issuedAt,
+            data: [
+              {
+                productID: "citizenship",
+                purchaseToken: "tok-held-1",
+                developerPayload: intentId,
+                status: "waiting",
+              },
+            ],
+          }),
+        });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        processedTokens: ["tok-held-1"],
+        grantedTokens: [],
+        consumeTokens: [],
+        heldElsewhere: ["citizenship"],
+      });
+
+      const sightings = await pool.query(
+        "SELECT holder_player_id, seen_player_id, payload_issued_at, seen_count FROM purchase_holder_sightings",
+      );
+      expect(sightings.rows).toHaveLength(1);
+      expect(sightings.rows[0]).toMatchObject({
+        holder_player_id: holder,
+        seen_player_id: caller,
+        seen_count: 1,
+      });
+      expect(sightings.rows[0].payload_issued_at.getTime()).toBe(
+        issuedAt * 1000,
+      );
+      expect(await ledger()).toEqual(ledgerBefore);
+      expect(await paidFlags(holder)).toEqual({
+        is_citizen: true,
+        is_paid_citizen: true,
+      });
+      expect(await paidFlags(caller)).toMatchObject({ is_paid_citizen: false });
+    });
+
+    test("a paid player stays paid after a reconcile that lists nothing (G4)", async () => {
+      const holder = await createYandexPlayer(pool, "yandex-held-o");
+      const intentId = await payments.createIntent(holder, "citizenship");
+      await payments.grantPaidPurchase({
+        purchaseToken: "tok-held-1",
+        productId: "citizenship",
+        playerId: holder,
+        intentId,
+        rawPayload: '{"test":true}',
+      });
+      const res = await request(app)
+        .post("/v1/payments/yandex/reconcile")
+        .set("Authorization", bearerFor(holder, { verified: true }))
+        .send({ signature: signForIt({ data: [] }) });
+      expect(res.status).toBe(200);
+      expect(res.body.processedTokens).toEqual([]);
+      expect(await paidFlags(holder)).toEqual({
+        is_citizen: true,
+        is_paid_citizen: true,
+      });
+      expect(await ledger()).toHaveLength(1);
+    });
   });
 
   test("payments intent for a known player binds the intent to its internal id", async () => {

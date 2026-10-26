@@ -1,4 +1,5 @@
 import {
+  isPermanentProductKind,
   PAYMENT_PRODUCT_IDS,
   PRODUCT_DEFINITIONS,
   PurchaseCompleteRequestSchema,
@@ -56,6 +57,26 @@ describe("PaymentsContract schemas", () => {
     it("citizenship is of kind citizenship", () => {
       expect(PRODUCT_DEFINITIONS.citizenship).toEqual({ kind: "citizenship" });
     });
+  });
+
+  // Task 0506 (ADR-126). The compile-time half is the `never` default: a new kind
+  // fails `tsc` until it is classified (jest/SWC does not type-check).
+  describe("isPermanentProductKind", () => {
+    it.each(["citizenship", "durable_item"] as const)(
+      "%s is permanent",
+      (kind) => {
+        expect(isPermanentProductKind(kind)).toBe(true);
+      },
+    );
+
+    it.each([...PAYMENT_PRODUCT_IDS])(
+      "sellable product %s is classified, and permanent",
+      (productId) => {
+        expect(isPermanentProductKind(PRODUCT_DEFINITIONS[productId].kind)).toBe(
+          true,
+        );
+      },
+    );
   });
 
   describe("intent response", () => {
@@ -123,6 +144,37 @@ describe("PaymentsContract schemas", () => {
       expect(parsed.data).not.toHaveProperty("becamePaidCitizen");
     });
 
+    // Task 0506: optional, so an old box (no field) parses, and a new client then
+    // consumes nothing.
+    it.each([true, false])("keeps consume: %s", (value) => {
+      const parsed = PurchaseCompleteResponseSchema.safeParse({
+        success: true,
+        purchaseToken: "tok-1",
+        consume: value,
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data?.consume).toBe(value);
+    });
+
+    it("accepts a body without consume (a box older than 0506)", () => {
+      const parsed = PurchaseCompleteResponseSchema.safeParse({
+        success: true,
+        purchaseToken: "tok-1",
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).not.toHaveProperty("consume");
+    });
+
+    it("rejects a non-boolean consume", () => {
+      expect(
+        PurchaseCompleteResponseSchema.safeParse({
+          success: true,
+          purchaseToken: "tok-1",
+          consume: "false",
+        }).success,
+      ).toBe(false);
+    });
+
     it("rejects a non-boolean becamePaidCitizen", () => {
       expect(
         PurchaseCompleteResponseSchema.safeParse({
@@ -177,6 +229,48 @@ describe("PaymentsContract schemas", () => {
         PurchaseReconcileResponseSchema.safeParse({
           processedTokens: [],
           failedCount: value,
+        }).success,
+      ).toBe(false);
+    });
+
+    // Task 0506: the three new lists are optional, so a box older than 0506 parses.
+    it("accepts the old shape with none of the 0506 lists", () => {
+      const parsed = PurchaseReconcileResponseSchema.safeParse({
+        processedTokens: ["tok-1"],
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).not.toHaveProperty("grantedTokens");
+      expect(parsed.data).not.toHaveProperty("consumeTokens");
+      expect(parsed.data).not.toHaveProperty("heldElsewhere");
+    });
+
+    it("keeps grantedTokens, consumeTokens and heldElsewhere when present", () => {
+      const parsed = PurchaseReconcileResponseSchema.safeParse({
+        processedTokens: ["tok-1", "tok-2"],
+        grantedTokens: ["tok-2"],
+        consumeTokens: [],
+        heldElsewhere: ["citizenship"],
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).toEqual({
+        processedTokens: ["tok-1", "tok-2"],
+        grantedTokens: ["tok-2"],
+        consumeTokens: [],
+        heldElsewhere: ["citizenship"],
+      });
+    });
+
+    it.each([
+      ["grantedTokens", [""]],
+      ["consumeTokens", [""]],
+      ["grantedTokens", "tok-1"],
+      ["heldElsewhere", ["not_a_product"]],
+      ["heldElsewhere", "citizenship"],
+    ])("rejects %s = %p", (field, value) => {
+      expect(
+        PurchaseReconcileResponseSchema.safeParse({
+          processedTokens: [],
+          [field]: value,
         }).success,
       ).toBe(false);
     });

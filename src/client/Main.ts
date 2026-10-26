@@ -29,6 +29,8 @@ import {
   type CitizenshipRestartOffer,
 } from "./CitizenshipRestartOffer";
 import "./TenureGrantModal";
+import "./PlayerMessageModal";
+import { startPlayerMessage } from "./PlayerMessage";
 import {
   CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
   type CitizenshipCard,
@@ -1270,6 +1272,10 @@ export async function startClient(): Promise<void> {
   // The forced "please refresh" popup after 23 h, start screen only (task
   // 0404). After initialize(), which registers the start-screen source.
   startLongSessionRefreshChecker();
+
+  // The one-player message popup (task 0507). After initialize(), for the
+  // same start-screen source; off unless the Yandex flag names this player.
+  void startPlayerMessage();
 
   // Tutorial: auto-launch for first-time players — not when an invite opened
   // the Join window on this load (task 0382), or its join would replace the

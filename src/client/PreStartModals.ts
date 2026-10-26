@@ -21,6 +21,8 @@ export const PRE_START_MODAL_TAGS: readonly string[] = [
   "tenure-grant-modal",
   // Task 0301: nor does the citizenship explainer.
   "citizenship-explainer-modal",
+  // Task 0507: nor does the one-player message popup.
+  "player-message-modal",
 ];
 
 export function closePreStartModals(): void {

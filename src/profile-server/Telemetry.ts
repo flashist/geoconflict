@@ -199,6 +199,108 @@ export type RewardedMatchXpGrantOutcome =
   | "unavailable"
   | "error";
 
+/**
+ * One `/v1/payments/yandex/reconcile` entry's outcome (task 0506, spec §4.7):
+ *  - `granted` — a fresh grant in this call.
+ *  - `held` — already in the ledger, held by the caller's own profile.
+ *  - `held_no_caller` — already in the ledger; the request carried no usable session.
+ *  - `held_elsewhere_verified` — held by another profile than the `vfy:true` caller:
+ *    answered in `heldElsewhere` with a best-effort sighting, but only for a known
+ *    permanent product; otherwise (today: a product gone from the catalogue) a count only.
+ *  - `held_elsewhere_unverified` — held by another profile than a `vfy:false`
+ *    caller: a count only, never answered (privacy, G8).
+ *  - `already_processed_race` — a parallel request granted it first.
+ *  - `skip_*` — not granted: no intent behind it, as before 0506.
+ *  - `failed` — the entry threw (counted in `failedCount`).
+ */
+export type ReconcileEntryOutcome =
+  | "granted"
+  | "held"
+  | "held_no_caller"
+  | "held_elsewhere_verified"
+  | "held_elsewhere_unverified"
+  | "already_processed_race"
+  | "skip_unmapped_payload"
+  | "skip_unknown_intent"
+  | "skip_product_mismatch"
+  | "failed";
+
+/**
+ * Who called `/reconcile` (task 0506). The Bearer there is optional and never
+ * refused, so this is its own counter: `session.rejected` would read every
+ * logged-out page as a refusal.
+ */
+export type ReconcileCallerState =
+  | "none"
+  | "invalid"
+  | "expired"
+  | "unverified"
+  | "verified"
+  | "session_unavailable";
+
+/** The payment route a shadow count came from (task 0506). */
+export type PaymentsShadowRoute = "complete" | "reconcile";
+
+/**
+ * How old a signed purchase payload's `issuedAt` was (task 0506, owner-approved
+ * deviation 1). Finer than the login brackets, which start at 24 h: the question
+ * here is "seconds old, or cached for hours". Each range is closed below.
+ */
+export type PayloadIssuedAtBracket =
+  | "absent"
+  | "not_numeric"
+  | "future_over_5m"
+  | "under_1m"
+  | "1m_10m"
+  | "10m_1h"
+  | "1h_24h"
+  | "over_24h";
+
+const PAYLOAD_FUTURE_TOLERANCE_SECONDS = 300;
+
+/**
+ * `issuedAt` (seconds) → its bracket. A millisecond value lands in
+ * `future_over_5m`, which is how a unit mix-up would show. Pure; never throws.
+ */
+export function payloadIssuedAtBracket(
+  issuedAt: number | null,
+  issuedAtPresent: boolean,
+  nowMs: number,
+): PayloadIssuedAtBracket {
+  if (issuedAt === null) {
+    return issuedAtPresent ? "not_numeric" : "absent";
+  }
+  const ageSeconds = nowMs / 1000 - issuedAt;
+  if (ageSeconds < -PAYLOAD_FUTURE_TOLERANCE_SECONDS) {
+    return "future_over_5m";
+  }
+  if (ageSeconds < 60) {
+    return "under_1m";
+  }
+  if (ageSeconds < 600) {
+    return "1m_10m";
+  }
+  if (ageSeconds < 3600) {
+    return "10m_1h";
+  }
+  if (ageSeconds < 86_400) {
+    return "1h_24h";
+  }
+  return "over_24h";
+}
+
+// HMAC-signed Yandex data; the only documented value is `waiting`. The pattern
+// keeps anything unexpected from becoming a free-text label.
+const ENTRY_STATUS_LABEL = /^[a-z_]{1,20}$/;
+
+/** A purchase entry's `status` → a label: the value if it is a plain word, else `other`/`absent`. */
+export function entryStatusLabel(status: string | null): string {
+  if (status === null) {
+    return "absent";
+  }
+  return ENTRY_STATUS_LABEL.test(status) ? status : "other";
+}
+
 /** What the routes and repositories record. Nothing here ever throws or awaits. */
 export interface ProfileMetrics {
   loginRequest(platform: MetricPlatform, outcome: LoginOutcome): void;
@@ -236,6 +338,17 @@ export interface ProfileMetrics {
    * is task 0283's daily digest. Do not read this counter as proving delivery.
    */
   alertRelay(result: AlertRelayResult, keyed: AlertRelayKeyed): void;
+  /** Once per signed `/reconcile` entry (task 0506). */
+  paymentsReconcileEntry(outcome: ReconcileEntryOutcome): void;
+  /** Once per verified `/reconcile` request (task 0506). */
+  paymentsReconcileCaller(state: ReconcileCallerState): void;
+  /** Once per verified payment payload (task 0506, shadow). */
+  paymentsPayloadIssuedAt(
+    route: PaymentsShadowRoute,
+    bracket: PayloadIssuedAtBracket,
+  ): void;
+  /** Once per purchase entry in a verified payload; `status` is an `entryStatusLabel` (task 0506, shadow). */
+  paymentsEntryStatus(route: PaymentsShadowRoute, status: string): void;
 }
 
 /** The pg Pool surface the gauges need — structural, so tests need no real pool. */
@@ -277,6 +390,10 @@ export const noopProfileMetrics: ProfileMetrics = {
   rewardedMatchXpGrant: () => {},
   resolveVouch: () => {},
   alertRelay: () => {},
+  paymentsReconcileEntry: () => {},
+  paymentsReconcileCaller: () => {},
+  paymentsPayloadIssuedAt: () => {},
+  paymentsEntryStatus: () => {},
 };
 
 /** The one logging call this module makes. */
@@ -387,6 +504,28 @@ export function createProfileMetrics(
     {
       description:
         "Alert webhook calls relayed to the operator topic, by result and keying",
+    },
+  );
+  const reconcileEntries = meter.createCounter(
+    "geoconflict.profile.payments.reconcile.entries",
+    { description: "Signed /reconcile purchase entries, by outcome" },
+  );
+  const reconcileCallers = meter.createCounter(
+    "geoconflict.profile.payments.reconcile.caller",
+    { description: "/reconcile requests, by optional-caller state" },
+  );
+  const payloadIssuedAt = meter.createCounter(
+    "geoconflict.profile.payments.payload.issued_at",
+    {
+      description:
+        "Verified payment payloads, by route and issuedAt age bracket (shadow)",
+    },
+  );
+  const entryStatuses = meter.createCounter(
+    "geoconflict.profile.payments.entry.status",
+    {
+      description:
+        "Purchase entries in verified payloads, by route and status label (shadow)",
     },
   );
 
@@ -516,6 +655,18 @@ export function createProfileMetrics(
     },
     alertRelay: (result, keyed) => {
       alertRelayCalls.add(1, { result, keyed });
+    },
+    paymentsReconcileEntry: (outcome) => {
+      reconcileEntries.add(1, { outcome });
+    },
+    paymentsReconcileCaller: (state) => {
+      reconcileCallers.add(1, { state });
+    },
+    paymentsPayloadIssuedAt: (route, bracket) => {
+      payloadIssuedAt.add(1, { route, bracket });
+    },
+    paymentsEntryStatus: (route, status) => {
+      entryStatuses.add(1, { route, status });
     },
   };
 

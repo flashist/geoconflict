@@ -18,9 +18,11 @@ import {
 } from "@opentelemetry/sdk-metrics";
 import {
   createProfileMetrics,
+  entryStatusLabel,
   metricPlatform,
   metricsExportUrl,
   noopProfileMetrics,
+  payloadIssuedAtBracket,
   profileResourceAttributes,
   startProfileTelemetry,
   type LoginVerificationOutcome,
@@ -44,6 +46,10 @@ const ALLOWED_ATTRIBUTE_KEYS: Record<string, readonly string[]> = {
   "geoconflict.profile.rewarded_match_xp.grants": ["outcome"],
   "geoconflict.profile.alert.relay": ["result", "keyed"],
   "geoconflict.profile.resolve.vouch": ["outcome"],
+  "geoconflict.profile.payments.reconcile.entries": ["outcome"],
+  "geoconflict.profile.payments.reconcile.caller": ["state"],
+  "geoconflict.profile.payments.payload.issued_at": ["route", "bracket"],
+  "geoconflict.profile.payments.entry.status": ["route", "status"],
   "geoconflict.profile.db.pool.waiting": [],
   "geoconflict.profile.players.total": [],
   "geoconflict.profile.process.cpu.usage": [],
@@ -425,6 +431,36 @@ describe("createProfileMetrics", () => {
     ).toBe("bytes");
   });
 
+  // Task 0506 (spec §4.7): the payments shadow counters, labels only.
+  test("payments counters record their bounded labels", async () => {
+    handle = makeHandle(harness);
+    handle.metrics.paymentsReconcileEntry("held_elsewhere_verified");
+    handle.metrics.paymentsReconcileEntry("granted");
+    handle.metrics.paymentsReconcileCaller("verified");
+    handle.metrics.paymentsReconcileCaller("none");
+    handle.metrics.paymentsPayloadIssuedAt("reconcile", "under_1m");
+    handle.metrics.paymentsEntryStatus("complete", "waiting");
+    const collected = await harness.collect();
+    expect(
+      find(collected, "geoconflict.profile.payments.reconcile.entries")
+        .dataPoints.map((point) => point.attributes.outcome)
+        .sort(),
+    ).toEqual(["granted", "held_elsewhere_verified"]);
+    expect(
+      find(collected, "geoconflict.profile.payments.reconcile.caller")
+        .dataPoints.map((point) => point.attributes.state)
+        .sort(),
+    ).toEqual(["none", "verified"]);
+    expect(
+      find(collected, "geoconflict.profile.payments.payload.issued_at")
+        .dataPoints[0].attributes,
+    ).toEqual({ route: "reconcile", bracket: "under_1m" });
+    expect(
+      find(collected, "geoconflict.profile.payments.entry.status").dataPoints[0]
+        .attributes,
+    ).toEqual({ route: "complete", status: "waiting" });
+  });
+
   test("no canary id reaches any collected metric (ADR-113)", async () => {
     handle = makeHandle(harness);
     handle.metrics.loginRequest(metricPlatform(CANARY_ID), "created");
@@ -449,6 +485,45 @@ describe("metricPlatform", () => {
       expect(metricPlatform(raw)).toBe("unknown");
     },
   );
+});
+
+describe("payloadIssuedAtBracket (task 0506)", () => {
+  const NOW_MS = 1_800_000_000_000;
+  const nowSeconds = NOW_MS / 1000;
+
+  test.each([
+    [null, false, "absent"],
+    [null, true, "not_numeric"],
+    [nowSeconds + 301, true, "future_over_5m"],
+    [NOW_MS, true, "future_over_5m"], // milliseconds by mistake
+    [nowSeconds + 300, true, "under_1m"],
+    [nowSeconds, true, "under_1m"],
+    [nowSeconds - 59, true, "under_1m"],
+    [nowSeconds - 60, true, "1m_10m"],
+    [nowSeconds - 599, true, "1m_10m"],
+    [nowSeconds - 600, true, "10m_1h"],
+    [nowSeconds - 3600, true, "1h_24h"],
+    [nowSeconds - 86_399, true, "1h_24h"],
+    [nowSeconds - 86_400, true, "over_24h"],
+    [0, true, "over_24h"],
+  ] as const)("issuedAt %p (present=%p) → %s", (issuedAt, present, bracket) => {
+    expect(payloadIssuedAtBracket(issuedAt, present, NOW_MS)).toBe(bracket);
+  });
+});
+
+describe("entryStatusLabel (task 0506)", () => {
+  test.each([
+    [null, "absent"],
+    ["waiting", "waiting"],
+    ["some_status", "some_status"],
+    ["Waiting", "other"],
+    ["", "other"],
+    ["a".repeat(21), "other"],
+    [CANARY_ID, "other"],
+    ["waiting\n", "other"],
+  ] as const)("%p → %s", (status, label) => {
+    expect(entryStatusLabel(status)).toBe(label);
+  });
 });
 
 describe("metricsExportUrl", () => {

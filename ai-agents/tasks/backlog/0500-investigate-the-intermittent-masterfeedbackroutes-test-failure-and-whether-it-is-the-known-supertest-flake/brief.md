@@ -108,6 +108,14 @@ worklog, both green on re-run, neither traced. Facts below are the producer's re
 | A | `tests/profile-server/InternalPathCase.test.ts` › *"/Internal is 404 and never runs the handler"* | `0495` review-round-2 fix, full `npm test` run 1 (1 failed / 5165 passed, 237/238 suites) | expected **404**, got **401** | full re-run green (238/238, 5166/5166); suite alone 5/5 green (27/27) | `0495` worklog, round-2 entry |
 | B | `tests/profile-server/SshAlerts.test.ts` › *"a PASSWORD login never hides inside a KEY group: it gets its own immediate message"* | `0495` build (B3), full `npm test` run 1 (1 failed / 5151 passed, 238 suites, 101 s) | **expected 2 messages, got 1** (`h.sent` length) | full re-run green (5152/5152); suite alone 5/5 green (46/46) | `0495` worklog, build entry; `0495` review.md ("Disproven or not raised") |
 
+> ➕ **2026-10-26, later — B seen once more** (relayed by `fkit-lead` to a spawned `fkit-producer`; the lead's words,
+> not yet checked against `0506`'s worklog, which did not mention it when this was added). `tests/profile-server/SshAlerts.test.ts`
+> failed once during `0506`'s build, in a **targeted** run (not a full `npm test`); **failure message not captured**;
+> it passed alone (46/46) and on re-run. Untraced. Which case failed, and whether the `0197` check was made, are **not
+> recorded**. A failure in a targeted run, not only under full-suite load, bears on the `settle()` lead below. Note
+> that `0506` **did** change files under `src/profile-server/` and `tests/profile-server/` (unlike `0495`), so the
+> "no file changed" point below does not carry over to this sighting.
+
 - **Both:** no file under `src/profile-server/` or `tests/profile-server/` was changed by `0495`. For A the worklog
   records **no `SIGSEGV` and no `node-*.ips` report**; for B it records neither way — the `0197` check is **not
   recorded** for B.

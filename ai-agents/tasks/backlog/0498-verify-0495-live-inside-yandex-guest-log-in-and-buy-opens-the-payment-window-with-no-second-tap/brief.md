@@ -65,7 +65,15 @@ Nothing. A live check of the §11 row B5 points, recorded in this folder's `work
 
 ## Notes
 
-- **Depends on:** 0495 (and its game deploy)
+- **Depends on:** 0495, 0506, 0510 (and its game deploy, held for 0510; the profile box with 0506 goes first)
+- 📌 **2026-10-26, later — `0510` added; the deploy hold carried over at the split.** OWNER RULING **"Approve
+  (Recommended)"** (relayed; ⛔ not producer precedent) — option text: *"ADR-126 becomes accepted; producer splits 0506
+  into profile-server and game build tasks, then planning starts."* `0506` is now S1 (profile box); the held **game**
+  code (`0494`/`0495`) ships with `0510` (S2), so this game check waits on `0510`. `0506` stays because the guest's
+  purchase lands on the profile box, which deploys first (spec §9). The game deploy also waits for `0512` part (a)
+  (T3 is the release blocker). With S2 shipped, step 4's purchase is **not** consumed (ADR-126) — expected, not a
+  failure.
+- 📌 **2026-10-26 — `0506` added to Depends on, OWNER RULING** given via `AskUserQuestion` in the `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Asked whether to hold the pending purchase-flow deploy for the no-consume change, the owner picked **"Hold it"** — option text: *"0493, 0497, 0498, 0499 then also wait on 0506 (design + ADR + build first). All Sprint 9."* The deploy this task checks (`0491`/`0492`/`0494`/`0495`/`0496`) does not go out until `0506` is built; this check follows it.
 - **Blocks:** nothing
 - **Spec:** [`2026-10-24-design-shared-purchase-flow.md`](../../../knowledge-base/reports/2026-10-24-design-shared-purchase-flow.md)
   §1(a), §11 (B5), §15.2.

@@ -1077,6 +1077,7 @@ describe("GET /v1/profile — owned durable items (task 0496)", () => {
       getProcessedPurchase: jest.fn(),
       grantPaidPurchase: jest.fn(),
       listEntitlements,
+      recordHolderSighting: jest.fn(),
     };
   }
 

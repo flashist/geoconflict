@@ -109,6 +109,11 @@ export const flashistConstants = {
       "Session:LongSessionRefresh:DeferredByDialog",
     LONG_SESSION_REFRESH_PREEMPTED_BY_STALE_BUILD:
       "Session:LongSessionRefresh:PreemptedByStaleBuild",
+    // One-player message popup (task 0507). Never carries the player's name.
+    PLAYER_MESSAGE_SHOWN: "PlayerMessage:Shown",
+    PLAYER_MESSAGE_CLOSED: "PlayerMessage:Closed",
+    PLAYER_MESSAGE_CLICK_TELEGRAM: "PlayerMessage:ClickTelegram",
+    PLAYER_MESSAGE_CLICK_VK: "PlayerMessage:ClickVk",
     MATCH_SPAWN_CHOSEN: "Match:SpawnChosen",
     MATCH_SPAWN_AUTO: "Match:SpawnAuto",
     MATCH_SPAWNED_CONFIRMED: "Match:Spawned",
@@ -531,6 +536,9 @@ export const flashistConstants = {
     // the offer stays dark until the owner turns it on in the console.
     REWARDED_VIDEO_FLAG_NAME: "rewarded_video",
     REWARDED_VIDEO_ENABLED_VALUE: "enabled",
+    // Comma-separated player names for the one-player message popup (task
+    // 0507). Its value is names, so it is never sent as an Experiment:* event.
+    PLAYER_MESSAGE_TARGETS_FLAG_NAME: "player_message_targets",
   },
 
   // Tester marker (task 0302). When this localStorage key equals "1", getFlags()
@@ -563,6 +571,11 @@ export const flashistConstants = {
     },
   },
 };
+
+// Flags whose values must never reach analytics (task 0507: player names).
+const EXPERIMENT_FLAGS_NOT_LOGGED: ReadonlySet<string> = new Set([
+  flashistConstants.experiments.PLAYER_MESSAGE_TARGETS_FLAG_NAME,
+]);
 
 /** Only what reloadWithoutHash touches, so a test can pass plain objects. */
 export interface ReloadWithoutHashTarget {
@@ -1706,6 +1719,7 @@ export class FlashistFacade {
     }
     this.hasLoggedExperimentEvents = true;
     for (const [name, value] of Object.entries(this.yandexExperimentFlags)) {
+      if (EXPERIMENT_FLAGS_NOT_LOGGED.has(name)) continue;
       this.logExperimentEvent(name, String(value));
     }
   }
@@ -1775,6 +1789,20 @@ export class FlashistFacade {
       flashistConstants.experiments.REWARDED_VIDEO_FLAG_NAME,
       flashistConstants.experiments.REWARDED_VIDEO_ENABLED_VALUE,
     );
+  }
+
+  /**
+   * The raw `player_message_targets` value, or undefined when unset, not a
+   * string, or flags are unavailable. Skips checkExperimentFlag: its dev-mode
+   * `true` has no meaning for a list.
+   */
+  public async getPlayerMessageTargetsFlagValue(): Promise<string | undefined> {
+    await this.initExperimentFlags();
+    const value =
+      this.yandexExperimentFlags?.[
+        flashistConstants.experiments.PLAYER_MESSAGE_TARGETS_FLAG_NAME
+      ];
+    return typeof value === "string" ? value : undefined;
   }
 
   public async isCitizenshipUiEnabled(): Promise<boolean> {

@@ -13,6 +13,10 @@
 import * as dotenv from "dotenv";
 import http from "http";
 import { buildInfo } from "./BuildInfo";
+import {
+  CONSUME_PERMANENT_PURCHASES,
+  consumePermanentBootLine,
+} from "./ConsumePermanentSetting";
 import { createPool } from "./Db";
 import { InboxRepository } from "./InboxRepository";
 import { logger } from "./Logger";
@@ -129,6 +133,12 @@ if (yandexPaymentsSecret.length === 0) {
     "YANDEX_PAYMENTS_SECRET is not set — payments endpoints disabled (503)",
   );
 }
+// Task 0506: a lever nobody can see the position of is not a lever.
+if (CONSUME_PERMANENT_PURCHASES) {
+  log.warn(consumePermanentBootLine(true));
+} else {
+  log.info(consumePermanentBootLine(false));
+}
 // Operator Telegram notifications for pending name-change requests (task 0067).
 // SAME bot, SAME chat, SAME proxy and SAME env var names as the game server's
 // feedback/subscribe sends (owner ruling (a): reuse the existing pipeline).
@@ -191,6 +201,7 @@ const app = createApp(
   {
     paymentsRepo: new PaymentsRepository(pool, inbox),
     yandexPaymentsSecret,
+    consumePermanent: CONSUME_PERMANENT_PURCHASES,
   },
   inbox,
   nameChange,

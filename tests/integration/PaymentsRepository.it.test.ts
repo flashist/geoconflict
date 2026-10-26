@@ -532,3 +532,110 @@ RUN("PaymentsRepository — durable items (task 0496, integration)", () => {
     expect(await entitlementRows(P)).toHaveLength(0);
   });
 });
+
+// Task 0506 (spec §6.2): the sightings table is evidence for the manual merge. It
+// never touches the ledger or either profile.
+RUN("PaymentsRepository — holder sightings (task 0506, integration)", () => {
+  let pool: Pool;
+  let payments: PaymentsRepository;
+  let holder: string;
+  let seen: string;
+
+  beforeAll(() => {
+    pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    payments = new PaymentsRepository(pool);
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  beforeEach(async () => {
+    await truncateProfileTables(pool);
+    holder = await createYandexPlayer(pool, "yandex-holder-0506");
+    seen = await createYandexPlayer(pool, "yandex-seen-0506");
+  });
+
+  async function sightingRows() {
+    const res = await pool.query(
+      `SELECT purchase_token, holder_player_id, seen_player_id, payload_issued_at,
+              first_seen_at, last_seen_at, seen_count
+       FROM purchase_holder_sightings ORDER BY purchase_token, seen_player_id`,
+    );
+    return res.rows;
+  }
+
+  test("migration 011 was applied by the runner", async () => {
+    const res = await pool.query(
+      "SELECT 1 FROM schema_migrations WHERE filename = '011_purchase_holder_sightings.sql'",
+    );
+    expect(res.rows).toHaveLength(1);
+  });
+
+  test("the upsert counts repeats, moves last_seen_at, and keeps the latest holder and issuedAt", async () => {
+    const firstIssuedAt = new Date("2026-10-26T10:00:00.000Z");
+    await payments.recordHolderSighting({
+      purchaseToken: "tok-s1",
+      holderPlayerId: holder,
+      seenPlayerId: seen,
+      payloadIssuedAt: firstIssuedAt,
+    });
+    const [first] = await sightingRows();
+    expect(first.seen_count).toBe(1);
+    expect(first.payload_issued_at.toISOString()).toBe(
+      firstIssuedAt.toISOString(),
+    );
+    expect(first.first_seen_at.getTime()).toBe(first.last_seen_at.getTime());
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    await payments.recordHolderSighting({
+      purchaseToken: "tok-s1",
+      holderPlayerId: holder,
+      seenPlayerId: seen,
+      payloadIssuedAt: null,
+    });
+    const rows = await sightingRows();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].seen_count).toBe(2);
+    expect(rows[0].payload_issued_at).toBeNull();
+    expect(rows[0].first_seen_at.getTime()).toBe(first.first_seen_at.getTime());
+    expect(rows[0].last_seen_at.getTime()).toBeGreaterThan(
+      first.last_seen_at.getTime(),
+    );
+  });
+
+  test("deleting the seen player cascades its sightings; the ledger row is untouched", async () => {
+    const intentId = await payments.createIntent(holder, "citizenship");
+    await payments.grantPaidPurchase({
+      purchaseToken: "tok-s1",
+      productId: "citizenship",
+      playerId: holder,
+      intentId,
+      rawPayload: '{"test":true}',
+    });
+    await payments.recordHolderSighting({
+      purchaseToken: "tok-s1",
+      holderPlayerId: holder,
+      seenPlayerId: seen,
+      payloadIssuedAt: null,
+    });
+    await pool.query("DELETE FROM players WHERE id = $1", [seen]);
+    expect(await sightingRows()).toHaveLength(0);
+    await expect(payments.getProcessedPurchase("tok-s1")).resolves.toEqual({
+      purchaseToken: "tok-s1",
+      playerId: holder,
+      productId: "citizenship",
+    });
+  });
+
+  test("a sighting for a seen player that does not exist is refused by the FK", async () => {
+    await expect(
+      payments.recordHolderSighting({
+        purchaseToken: "tok-s1",
+        holderPlayerId: holder,
+        seenPlayerId: GHOST,
+        payloadIssuedAt: null,
+      }),
+    ).rejects.toMatchObject({ code: "23503" });
+  });
+});

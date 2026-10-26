@@ -177,6 +177,10 @@ function build(): { app: ReturnType<typeof createApp>; deps: Deps } {
     rewardedMatchXpGrant: () => {},
     resolveVouch: () => {},
     alertRelay: (result, keyed) => alertRelayMetric(result, keyed),
+    paymentsReconcileEntry: () => {},
+    paymentsReconcileCaller: () => {},
+    paymentsPayloadIssuedAt: () => {},
+    paymentsEntryStatus: () => {},
   };
   const app = createApp(
     deps.repo,

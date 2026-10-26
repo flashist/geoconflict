@@ -321,6 +321,18 @@ would trade a rare mislabelled error for a permanently silent one.
 | `SUBSCRIBE_BUTTON_OPENED` | `Subscribe:Opened`      | Player opens the email subscribe modal |
 | `SUBSCRIBE_SUBMITTED`     | `Subscribe:Submitted`   | Player submits email subscription      |
 
+### Player Message Events
+
+The one-player message popup (task `0507`, `<player-message-modal>`): shown only to a player whose current name is
+listed in the Yandex flag `player_message_targets`. **No event ever carries the player's name or the flag value.**
+
+| Enum Key | Event String | When Fired |
+| --- | --- | --- |
+| `PLAYER_MESSAGE_SHOWN` | `PlayerMessage:Shown` | At most **once per page load**: the popup appeared, on the start screen and not over a Yandex payment or login dialog. No value |
+| `PLAYER_MESSAGE_CLOSED` | `PlayerMessage:Closed` | The player pressed the popup's Close button. Not fired when a match start closes it. No value |
+| `PLAYER_MESSAGE_CLICK_TELEGRAM` | `PlayerMessage:ClickTelegram` | The player tapped the Telegram link (opens in a new tab; the popup stays open). No value |
+| `PLAYER_MESSAGE_CLICK_VK` | `PlayerMessage:ClickVk` | The player tapped the VK link (opens in a new tab; the popup stays open). No value |
+
 ### UI Events
 
 | Enum Key                       | Event String                | When Fired                                                                                                                                                                                                                                                                                                                                                                |
@@ -840,6 +852,10 @@ flag. `private_lobbies_all` is meant to be set with no condition, so once the ow
 everyone. The page still sends the Yandex **client feature** `tester=1` to `getFlags()` when the marker is set, so a
 console condition on another flag can still be tester-only. 0302's old `private_lobbies` flag is no longer read (task
 `0354`); a leftover value still produces an `Experiment:private_lobbies:*` event, which now gates nothing.
+
+**Excluded flag:** `player_message_targets` (task `0507`) produces **no** `Experiment:*` event. Its value is a list of
+player names, so `logExperimentEvents()` skips it (`EXPERIMENT_FLAGS_NOT_LOGGED` in `FlashistFacade.ts`). Its popup has
+its own events — see Player Message Events.
 
 **Example funnels enabled by experiment events:**
 

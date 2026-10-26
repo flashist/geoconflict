@@ -35,10 +35,12 @@ import {
   type NameChangeState,
 } from "../core/profile/NameChangeContract";
 import {
+  isPermanentProductKind,
   PRODUCT_DEFINITIONS,
   PurchaseCompleteRequestSchema,
   PurchaseIntentRequestSchema,
   PurchaseReconcileRequestSchema,
+  type PaymentProductId,
   type ProductKind,
 } from "../core/profile/PaymentsContract";
 import type { PlayerProfile } from "../core/profile/PlayerProfile";
@@ -74,11 +76,13 @@ import type {
   DismissOutcome,
   RequestOutcome,
 } from "./NameChangeRepository";
-import type {
-  GrantOutcome,
-  PaidPurchaseGrant,
-  ProcessedPurchase,
-  PurchaseIntent,
+import {
+  plausibleIssuedAt,
+  type GrantOutcome,
+  type HolderSighting,
+  type PaidPurchaseGrant,
+  type ProcessedPurchase,
+  type PurchaseIntent,
 } from "./PaymentsRepository";
 import {
   type Platform,
@@ -110,17 +114,26 @@ import {
   type SshAlertsConfig,
 } from "./SshAlerts";
 import {
+  entryStatusLabel,
   metricPlatform,
   noopProfileMetrics,
+  payloadIssuedAtBracket,
   statusClassOf,
   type LoginOutcome,
   type LoginVerificationOutcome,
   type MetricPlatform,
+  type PaymentsShadowRoute,
   type ProfileMetrics,
+  type ReconcileCallerState,
+  type ReconcileEntryOutcome,
   type SessionRejectedReason,
   type StaleSignatureAgeBracket,
 } from "./Telemetry";
-import { verifySignedPayload, type VerifiedPurchase } from "./YandexSignature";
+import {
+  verifySignedPayload,
+  type VerifiedPayload,
+  type VerifiedPurchase,
+} from "./YandexSignature";
 
 const log = logger.child({ comp: "routes" });
 
@@ -177,12 +190,19 @@ export interface PaymentsRepo {
   grantPaidPurchase(grant: PaidPurchaseGrant): Promise<GrantOutcome>;
   /** Owned durable product ids (task 0496). */
   listEntitlements(playerId: string): Promise<string[]>;
+  /** Evidence for the manual merge (task 0506); the route treats it as best-effort. */
+  recordHolderSighting(sighting: HolderSighting): Promise<void>;
 }
 
 /** Payments wiring for createApp. Omitted (or an empty secret) ⇒ payments routes fail closed with 503. */
 export interface PaymentsConfig {
   paymentsRepo: PaymentsRepo;
   yandexPaymentsSecret: string;
+  /**
+   * Task 0506: let clients consume permanent purchases again. Server.ts passes
+   * ConsumePermanentSetting.ts (a one-way door per purchase; see there). Absent ⇒ false.
+   */
+  consumePermanent?: boolean;
 }
 
 /** The inbox-repository surface the routes depend on (structural — eases mocking). */
@@ -375,6 +395,69 @@ export function intentRefusal(
   return kind === "durable_item" && callerVerified && isOwned
     ? "already_owned"
     : null;
+}
+
+/**
+ * Whether the client may consume a purchase of `productId` (task 0506, ADR-126).
+ * An unknown product is never consumable: the safe default is to consume nothing.
+ */
+export function mayConsume(
+  productId: string,
+  consumePermanent: boolean,
+): boolean {
+  if (!Object.prototype.hasOwnProperty.call(PRODUCT_DEFINITIONS, productId)) {
+    return false;
+  }
+  const kind = PRODUCT_DEFINITIONS[productId as PaymentProductId].kind;
+  return !isPermanentProductKind(kind) || consumePermanent;
+}
+
+/** A reconcile entry already in the ledger, against the optional caller (task 0506). */
+export type HeldOutcome = Extract<
+  ReconcileEntryOutcome,
+  | "held"
+  | "held_no_caller"
+  | "held_elsewhere_verified"
+  | "held_elsewhere_unverified"
+>;
+
+/**
+ * Only `held_elsewhere_verified` may reach the answer: an unverified caller's id is
+ * merely claimed, so answering it would tell anyone whose a purchase is (G8).
+ */
+export function classifyHeld(
+  holderPlayerId: string,
+  caller: SessionCaller | null,
+): HeldOutcome {
+  if (caller === null) {
+    return "held_no_caller";
+  }
+  if (caller.playerId === holderPlayerId) {
+    return "held";
+  }
+  return caller.verified
+    ? "held_elsewhere_verified"
+    : "held_elsewhere_unverified";
+}
+
+/** Status labels as `label:count`, sorted, for the shadow log line. */
+function statusCounts(purchases: readonly VerifiedPurchase[]): string {
+  const counts = new Map<string, number>();
+  for (const purchase of purchases) {
+    const label = entryStatusLabel(purchase.status);
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return formatCounts(counts);
+}
+
+function formatCounts(counts: ReadonlyMap<string, number>): string {
+  if (counts.size === 0) {
+    return "none";
+  }
+  return [...counts.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([label, count]) => `${label}:${count}`)
+    .join(",");
 }
 
 type CallerFailure =
@@ -581,6 +664,37 @@ export function createApp(
     return verification.status === "expired"
       ? rejectCaller("session_expired", "expired")
       : rejectCaller("session_invalid", "invalid");
+  };
+
+  /**
+   * `/reconcile`'s caller (task 0506, spec §4.5): optional, so it never refuses and
+   * never counts a `session.rejected` — a logged-out page is not a rejection.
+   */
+  const resolveOptionalCaller = (
+    req: Request,
+  ): { caller: SessionCaller | null; state: ReconcileCallerState } => {
+    const authorization = req.get("authorization");
+    if (authorization === undefined) {
+      return { caller: null, state: "none" };
+    }
+    if (!sessionEnabled) {
+      return { caller: null, state: "session_unavailable" };
+    }
+    if (!authorization.startsWith(BEARER_PREFIX)) {
+      return { caller: null, state: "invalid" };
+    }
+    const verification = verifySessionToken(
+      sessionSecret,
+      authorization.slice(BEARER_PREFIX.length),
+    );
+    if (verification.status !== "ok") {
+      return {
+        caller: null,
+        state: verification.status === "expired" ? "expired" : "invalid",
+      };
+    }
+    const caller = callerFromSession(verification.claims);
+    return { caller, state: caller.verified ? "verified" : "unverified" };
   };
 
   const app = express();
@@ -1047,6 +1161,24 @@ export function createApp(
   // Fail CLOSED: without a configured secret nothing can be verified, so every
   // payments route (including /intent, which creates DB rows) is disabled.
   const paymentsSecret = payments?.yandexPaymentsSecret ?? "";
+  const consumePermanent = payments?.consumePermanent ?? false;
+  // Task 0506 (spec §4.7): shadow measurement, labels only. Returns the bracket for
+  // the route's one log line.
+  const recordPayloadShadow = (
+    route: PaymentsShadowRoute,
+    verified: VerifiedPayload,
+  ): string => {
+    const bracket = payloadIssuedAtBracket(
+      verified.issuedAt,
+      verified.issuedAtPresent,
+      Date.now(),
+    );
+    metrics.paymentsPayloadIssuedAt(route, bracket);
+    for (const purchase of verified.purchases) {
+      metrics.paymentsEntryStatus(route, entryStatusLabel(purchase.status));
+    }
+    return bracket;
+  };
   // Captured once so the handlers below stay free of non-null assertions; the
   // paymentsEnabled middleware guarantees they never run without a config.
   const paymentsRepo = payments?.paymentsRepo;
@@ -1137,6 +1269,10 @@ export function createApp(
       log.info(
         `yandex purchase signature verified (complete): construction=${verified.construction}`,
       );
+      const issuedAtBracket = recordPayloadShadow("complete", verified);
+      log.info(
+        `yandex purchase payload shadow (complete): issued_at=${issuedAtBracket} statuses=${statusCounts(verified.purchases)}`,
+      );
       if (verified.purchases.length !== 1) {
         res.status(400).json({ error: "invalid_signature" });
         return;
@@ -1147,9 +1283,11 @@ export function createApp(
           purchase.purchaseToken,
         );
         if (processed !== null) {
-          res
-            .status(200)
-            .json({ success: true, purchaseToken: purchase.purchaseToken });
+          res.status(200).json({
+            success: true,
+            purchaseToken: purchase.purchaseToken,
+            consume: mayConsume(processed.productId, consumePermanent),
+          });
           return;
         }
         const intentId = purchase.developerPayload;
@@ -1191,6 +1329,7 @@ export function createApp(
           ...(outcome.status === "granted"
             ? { becamePaidCitizen: outcome.becamePaidCitizen }
             : {}),
+          consume: mayConsume(purchase.productId, consumePermanent),
         });
       } catch (error) {
         log.error(
@@ -1201,11 +1340,14 @@ export function createApp(
     });
 
     // Session-start reconciliation: verify the signed getPurchases() output and
-    // grant anything still unprocessed, idempotently. Returns EVERY token that is
-    // now safe to consume — including already-processed strays. Entries whose
+    // grant anything still unprocessed, idempotently. `processedTokens` is every
+    // token granted or already held, unchanged for clients older than 0506; the
+    // 0506 lists say what was granted now, what may be consumed, and which products
+    // a different profile than the VERIFIED caller holds (ADR-126). Entries whose
     // developerPayload maps to no known intent are logged (token prefix only) and
     // skipped: nothing is ever granted off an unmapped payload. An entry that
     // throws is logged and skipped too, so one bad entry cannot strand the rest.
+    // Nothing here moves or revokes a purchase, and an absent one changes nothing.
     app.post("/v1/payments/yandex/reconcile", async (req, res) => {
       const parsed = PurchaseReconcileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1225,11 +1367,61 @@ export function createApp(
       log.info(
         `yandex purchase signature verified (reconcile): construction=${verified.construction}`,
       );
+      const issuedAtBracket = recordPayloadShadow("reconcile", verified);
+      const { caller, state: callerState } = resolveOptionalCaller(req);
+      metrics.paymentsReconcileCaller(callerState);
+
       const processedTokens: string[] = [];
-      const skip = (purchase: VerifiedPurchase, reason: string) => {
+      const grantedTokens: string[] = [];
+      const productOfToken = new Map<string, string>();
+      const heldElsewhere = new Set<PaymentProductId>();
+      const outcomeCounts = new Map<ReconcileEntryOutcome, number>();
+      const countOutcome = (outcome: ReconcileEntryOutcome) => {
+        metrics.paymentsReconcileEntry(outcome);
+        outcomeCounts.set(outcome, (outcomeCounts.get(outcome) ?? 0) + 1);
+      };
+      const markProcessed = (purchaseToken: string, productId: string) => {
+        processedTokens.push(purchaseToken);
+        productOfToken.set(purchaseToken, productId);
+      };
+      const skip = (
+        purchase: VerifiedPurchase,
+        reason: "unmapped_payload" | "unknown_intent" | "product_mismatch",
+      ) => {
+        countOutcome(`skip_${reason}`);
         log.warn(
           `reconcile skip (${reason}): token=${purchase.purchaseToken.slice(0, 8)}…`,
         );
+      };
+      // Evidence only (spec §6.2): never moves anything, and its own catch keeps a
+      // failed write out of failedCount and the answer.
+      const noteHeldElsewhere = async (
+        purchase: VerifiedPurchase,
+        productId: string,
+        holderPlayerId: string,
+        verifiedCaller: SessionCaller,
+      ) => {
+        if (
+          !Object.prototype.hasOwnProperty.call(PRODUCT_DEFINITIONS, productId)
+        ) {
+          return;
+        }
+        const knownProductId = productId as PaymentProductId;
+        if (!isPermanentProductKind(PRODUCT_DEFINITIONS[knownProductId].kind)) {
+          return;
+        }
+        heldElsewhere.add(knownProductId);
+        try {
+          await paymentsRepo.recordHolderSighting({
+            purchaseToken: purchase.purchaseToken,
+            holderPlayerId,
+            seenPlayerId: verifiedCaller.playerId,
+            payloadIssuedAt: plausibleIssuedAt(verified.issuedAt, Date.now()),
+          });
+        } catch (error) {
+          const name = error instanceof Error ? error.name : typeof error;
+          log.error(`reconcile holder sighting failed: ${name}`);
+        }
       };
       let failedCount = 0;
       for (const purchase of verified.purchases) {
@@ -1238,7 +1430,17 @@ export function createApp(
             purchase.purchaseToken,
           );
           if (processed !== null) {
-            processedTokens.push(purchase.purchaseToken);
+            markProcessed(purchase.purchaseToken, processed.productId);
+            const held = classifyHeld(processed.playerId, caller);
+            countOutcome(held);
+            if (held === "held_elsewhere_verified" && caller !== null) {
+              await noteHeldElsewhere(
+                purchase,
+                processed.productId,
+                processed.playerId,
+                caller,
+              );
+            }
             continue;
           }
           const intentId = purchase.developerPayload;
@@ -1257,28 +1459,57 @@ export function createApp(
           }
           // Any intent state: reconcile exists precisely to land purchases whose
           // /complete never arrived — grantPaidPurchase is idempotent by token.
-          await paymentsRepo.grantPaidPurchase({
+          const outcome = await paymentsRepo.grantPaidPurchase({
             purchaseToken: purchase.purchaseToken,
             productId: purchase.productId,
             playerId: intent.playerId,
             intentId: intent.id,
             rawPayload: verified.rawPayload,
           });
-          processedTokens.push(purchase.purchaseToken);
+          markProcessed(purchase.purchaseToken, purchase.productId);
+          if (outcome.status !== "granted") {
+            countOutcome("already_processed_race");
+            continue;
+          }
+          grantedTokens.push(purchase.purchaseToken);
+          countOutcome("granted");
+          // Owner-approved deviation 3: granted to the profile that started the
+          // purchase while another verified profile is calling — tell it now, or
+          // its page keeps offering Buy and it could pay twice.
+          if (
+            caller !== null &&
+            caller.verified &&
+            caller.playerId !== intent.playerId
+          ) {
+            await noteHeldElsewhere(
+              purchase,
+              purchase.productId,
+              intent.playerId,
+              caller,
+            );
+          }
         } catch (error) {
           failedCount += 1;
+          countOutcome("failed");
           log.error(
             `reconcile entry failed: token=${purchase.purchaseToken.slice(0, 8)}… ${formatError(error)}`,
           );
         }
       }
-      res
-        .status(200)
-        .json(
-          failedCount > 0
-            ? { processedTokens, failedCount }
-            : { processedTokens },
-        );
+      const consumeTokens = processedTokens.filter((token) =>
+        mayConsume(productOfToken.get(token) ?? "", consumePermanent),
+      );
+      // Labels and counts only — never a token, payload, id or signature.
+      log.info(
+        `yandex purchase payload shadow (reconcile): caller=${callerState} issued_at=${issuedAtBracket} statuses=${statusCounts(verified.purchases)} outcomes=${formatCounts(outcomeCounts)}`,
+      );
+      res.status(200).json({
+        processedTokens,
+        grantedTokens,
+        consumeTokens,
+        heldElsewhere: [...heldElsewhere],
+        ...(failedCount > 0 ? { failedCount } : {}),
+      });
     });
   }
 

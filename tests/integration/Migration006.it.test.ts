@@ -156,6 +156,7 @@ RUN("migration 006 — player identity (integration)", () => {
       "008_tester_role_snapshots.sql",
       "009_player_rewarded_match_xp.sql",
       "010_player_entitlements.sql",
+      "011_purchase_holder_sightings.sql",
     ]);
 
     const leftovers = await pool.query(

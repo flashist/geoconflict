@@ -50,6 +50,7 @@ describe("verifySignedPayload", () => {
         purchaseToken: "tok-1",
         productId: "citizenship",
         developerPayload: "intent-uuid-1",
+        status: null,
       },
     ]);
     expect(result?.rawPayload).toBe(JSON.stringify(FLAT_PURCHASE));
@@ -62,6 +63,7 @@ describe("verifySignedPayload", () => {
         purchaseToken: "tok-envelope",
         productId: "citizenship",
         developerPayload: "intent-uuid-2",
+        status: "waiting",
       },
     ]);
   });
@@ -114,13 +116,74 @@ describe("verifySignedPayload", () => {
         purchaseToken: "tok-a",
         productId: "citizenship",
         developerPayload: null,
+        status: null,
       },
       {
         purchaseToken: "tok-b",
         productId: "citizenship",
         developerPayload: "d",
+        status: null,
       },
     ]);
+  });
+
+  // Task 0506 (spec §4.7): shadow-measured fields; the verifier still never throws.
+  describe("issuedAt and entry status", () => {
+    it("exposes the envelope's numeric issuedAt", () => {
+      const result = verifySignedPayload(sign(ENVELOPE_PURCHASE), SECRET);
+      expect(result?.issuedAt).toBe(1_571_233_371);
+      expect(result?.issuedAtPresent).toBe(true);
+    });
+
+    it("issuedAt absent from the envelope ⇒ null, not present", () => {
+      const result = verifySignedPayload(
+        sign({ data: [{ token: "t", productID: "citizenship" }] }),
+        SECRET,
+      );
+      expect(result?.issuedAt).toBeNull();
+      expect(result?.issuedAtPresent).toBe(false);
+    });
+
+    it.each([["1571233371"], [{ s: 1 }], [true]])(
+      "a non-numeric issuedAt %p ⇒ null, but present",
+      (issuedAt) => {
+        const result = verifySignedPayload(
+          sign({ ...ENVELOPE_PURCHASE, issuedAt }),
+          SECRET,
+        );
+        expect(result).not.toBeNull();
+        expect(result?.issuedAt).toBeNull();
+        expect(result?.issuedAtPresent).toBe(true);
+      },
+    );
+
+    it("a flat (non-envelope) payload has no issuedAt, even if it carries one", () => {
+      const result = verifySignedPayload(
+        sign({ ...FLAT_PURCHASE, issuedAt: 1_571_233_371 }),
+        SECRET,
+      );
+      expect(result?.issuedAt).toBeNull();
+      expect(result?.issuedAtPresent).toBe(false);
+    });
+
+    it("passes each entry's status through, null when absent or not a string", () => {
+      const result = verifySignedPayload(
+        sign({
+          issuedAt: 1,
+          data: [
+            { token: "a", productID: "citizenship", status: "waiting" },
+            { token: "b", productID: "citizenship" },
+            { token: "c", productID: "citizenship", status: 3 },
+          ],
+        }),
+        SECRET,
+      );
+      expect(result?.purchases.map((p) => p.status)).toEqual([
+        "waiting",
+        null,
+        null,
+      ]);
+    });
   });
 
   it("returns an empty purchase list for a verified empty array", () => {

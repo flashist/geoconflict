@@ -157,17 +157,22 @@ Run this against a **throwaway** Postgres container, never prod. Record the wall
 > On a box without `010`, P5's `schema_migrations` list has no `010_…` entry — **STOP there**, before
 > seeding, for the same reason.
 
-**`006` inventory the drill must preserve** — 13 base tables: `players`, `player_identities`,
+> ⚠️ **The same holds for migration `011` (task `0506`).** `verify.sql` also reads
+> `purchase_holder_sightings`. On a box without `011`, P5's `schema_migrations` list has no `011_…` entry —
+> **STOP there**, before seeding, for the same reason.
+
+**`006` inventory the drill must preserve** — 14 base tables: `players`, `player_identities`,
 `player_match_xp_credits`, `player_name_history`, `player_cosmetic_ownership`, `purchase_intents`,
 `processed_purchases`, `player_messages`, `player_xp_grants`, `schema_migrations`,
 `tester_role_snapshots` (migration `008`, task `0425`; the seed writes no rows to it), and
 `player_rewarded_match_xp` (migration `009`, task `0491`; the seed writes no rows to it), and
-`player_entitlements` (migration `010`, task `0496`; the seed writes no rows to it). Two sequences
+`player_entitlements` (migration `010`, task `0496`; the seed writes no rows to it), and
+`purchase_holder_sightings` (migration `011`, task `0506`; the seed writes no rows to it). Two sequences
 (`player_name_history_id_seq`, `player_messages_id_seq`). Three partial indexes
 (`players_display_name_uq`, `player_name_history_one_pending_uq`, `player_messages_unread_idx`).
 `processed_purchases.player_id` has **no** foreign key (a receipt outlives a deleted player), so cleanup
 deletes receipts explicitly. Measured **locally** on a runner-built `006` DB (2026-09-15, not yet on the
-box): **30** public constraints, **17** public indexes. **Not re-measured since `007`–`010`** (`009` alone
+box): **30** public constraints, **17** public indexes. **Not re-measured since `007`–`011`** (`009` alone
 adds a primary key, a foreign key and a check, plus the primary-key index), so do not expect these totals
 on a current box. They are not a pass criterion: step 5 compares source against restored.
 
@@ -229,7 +234,7 @@ select format('sequences: player_messages_id_seq=%s/%s player_name_history_id_se
   | tee /root/drill0275/before.txt; echo "exit=${PIPESTATUS[0]}"
 #    Expect exit=0, every count 0, and schema_migrations: 001_…,002_…,003_…,004_…,006_player_identity.sql,
 #    007_name_change_dismiss_and_clear.sql,008_tester_role_snapshots.sql,009_player_rewarded_match_xp.sql,
-#    010_player_entitlements.sql.
+#    010_player_entitlements.sql,011_purchase_holder_sightings.sql.
 #    A table missing (psql ERROR) or an extra migration is a schema-drift finding → STOP.
 ```
 
@@ -259,7 +264,7 @@ tail -1 /root/drill0275/source.txt                                     # must be
 #      player_cosmetic_ownership 4 · player_entitlements 0 · player_identities 9 ·
 #      player_match_xp_credits 24 · player_messages 6 · player_name_history 6 ·
 #      player_rewarded_match_xp 0 · player_xp_grants 3 · players 8 · processed_purchases 3 ·
-#      purchase_intents 5 · schema_migrations 9 · tester_role_snapshots 0
+#      purchase_holder_sightings 0 · purchase_intents 5 · schema_migrations 10 · tester_role_snapshots 0
 #    Non-zero exit, a missing sentinel or a wrong count → STOP → abort path.
 /opt/profile/backup.sh 2>&1 | tail -20; echo "exit=${PIPESTATUS[0]}"   # PIPESTATUS, not $? (0218)
 cat /opt/profile/backups/last-backup.json
@@ -329,7 +334,7 @@ fi
 #    SRC_EXIT was lost with the shell, re-run step 2's verify command (not the backup) and repeat step 5.
 #    A diff → STOP → abort path (interpret it as 0218 C5: count, digest, sequence or shape line).
 #    verify.sql fingerprints: a coverage line (`uncovered_tables: none` — a table added by a future
-#    migration shows up here by name); per-table row count + md5 content digest for all 13 tables;
+#    migration shows up here by name); per-table row count + md5 content digest for all 14 tables;
 #    `last_value` + `is_called` of both sequences; constraint count + digest of every constraint
 #    DEFINITION (catches a lost `on delete cascade`, not just a lost name); index count + digest of
 #    every index DEFINITION (catches a lost partial `where`); spot checks — bigint xp above int4,
@@ -526,3 +531,32 @@ and redeploy afterwards.
 - No credentials/keys in git, the Docker image, logs, or the marker file.
 - The dump is age-encrypted at rest off-box; the private identity never touches the box except
   transiently during a deliberate restore (and is shredded after).
+
+---
+
+## Payments safety setting — consume permanent purchases (task 0506, ADR-127)
+
+Not a backup topic. It is here because this is the profile box's runbook and no other runbook names it.
+
+- **Where it lives:** `CONSUME_PERMANENT_PURCHASES` in `src/profile-server/ConsumePermanentSetting.ts`, a
+  committed constant (no env var, nothing stored on the box). **It ships `false` (OFF):** the box tells game
+  clients not to consume citizenship and durable items, so Yandex keeps them as proof of ownership.
+- ⚠️ **No effect until the `0510` (S2) game deploy.** Only game clients from `0510` on read the box's answer.
+  Until that game deploy, every client (live and old builds) still consumes every purchase whatever this
+  setting says, so OFF protects nothing yet and a flip changes nothing yet.
+- **See what is in force** (the box prints it once, at boot):
+  `docker compose -f /opt/profile/docker-compose.yml logs profile-api | grep 'consume-permanent'` →
+  expect `payments consume-permanent: OFF (ConsumePermanentSetting.ts)`.
+- ⚠️ **ONE-WAY DOOR, per purchase.** ON makes clients consume permanent purchases again, and Yandex deletes a
+  consumed purchase for good. Turning it back OFF brings none of them back. It is an emergency lever the owner
+  pulls deliberately (a defect in the held-elsewhere path, or purchase lists turning out to be per device).
+  **Never flip it to test something on the live box.**
+- **To turn it ON (owner decision):** edit the constant **and** its pinning test
+  (`tests/profile-server/ConsumePermanentSetting.test.ts`, *"ships OFF"*) in one commit, then redeploy the
+  **profile box** (`npm run deploy:profile`). No game deploy is needed: open pages running an `0510`+ client
+  pick it up on their next reconcile. Outside a weekend slot this is an urgent deploy, the owner's call. After
+  the deploy the boot log must read `payments consume-permanent: ON — … ONE-WAY per purchase` (logged as a warning).
+- ⚠️ **It turns back OFF without saying so** whenever the box runs a commit that does not carry the flip:
+  deploying an older commit or another branch, rolling the image back by hand, or the deploy's own health-gate
+  rollback to the previous image. Keep the flip on `dev` until the emergency is closed, and re-read the boot
+  line after every profile deploy while it is ON.

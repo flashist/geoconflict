@@ -27,6 +27,8 @@ export interface VerifiedPurchase {
   purchaseToken: string;
   productId: string;
   developerPayload: string | null;
+  /** The entry's documented `status` (task 0506), as sent; shadow-logged as a label only. */
+  status: string | null;
 }
 
 /**
@@ -42,6 +44,13 @@ export interface VerifiedPayload {
   rawPayload: string;
   /** Which construction the signature matched (task 0309). */
   construction: HmacConstruction;
+  /**
+   * The envelope's `issuedAt` (task 0506; seconds in Yandex's docs), or null when
+   * it is absent or not a finite number. Shadow-measured only (spec §4.7).
+   */
+  issuedAt: number | null;
+  /** The envelope carried an `issuedAt` at all, so the shadow count can tell "absent" from "not a number". */
+  issuedAtPresent: boolean;
 }
 
 function asNonEmptyString(value: unknown): string | null {
@@ -69,6 +78,7 @@ function normalizePurchase(value: unknown): VerifiedPurchase | null {
     purchaseToken,
     productId,
     developerPayload: asNonEmptyString(record.developerPayload),
+    status: asNonEmptyString(record.status),
   };
 }
 
@@ -104,6 +114,26 @@ function normalizePurchases(parsed: unknown): VerifiedPurchase[] | null {
 
   const single = normalizePurchase(body);
   return single === null ? null : [single];
+}
+
+/** The documented envelope's `issuedAt`; a flat (non-envelope) payload has none. */
+function envelopeIssuedAt(parsed: unknown): {
+  issuedAt: number | null;
+  issuedAtPresent: boolean;
+} {
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    Array.isArray(parsed) ||
+    !("data" in parsed)
+  ) {
+    return { issuedAt: null, issuedAtPresent: false };
+  }
+  const raw = (parsed as Record<string, unknown>).issuedAt;
+  return {
+    issuedAt: typeof raw === "number" && Number.isFinite(raw) ? raw : null,
+    issuedAtPresent: raw !== undefined && raw !== null,
+  };
 }
 
 /**
@@ -191,5 +221,6 @@ export function verifySignedPayload(
     purchases,
     rawPayload: decodedPayload,
     construction: envelope.construction,
+    ...envelopeIssuedAt(parsed),
   };
 }

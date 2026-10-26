@@ -56,7 +56,13 @@ Nothing. A live check of the four points in §11 row B4v, recorded in this folde
 
 ## Notes
 
-- **Depends on:** 0496 (and its profile-box and game deploys)
+- **Depends on:** 0496, 0506, 0510 (and its profile-box and game deploys, held for 0506 and 0510)
+- 📌 **2026-10-26, later — `0510` added; the deploy hold carried over at the split.** OWNER RULING **"Approve
+  (Recommended)"** (relayed; ⛔ not producer precedent) — option text: *"ADR-126 becomes accepted; producer splits 0506
+  into profile-server and game build tasks, then planning starts."* `0506` is now S1 (profile box), and the held
+  **game** code ships with `0510` (S2). This check reads both deploys (box migration + game client parse), so it waits
+  on both. Same sprint; the hold itself is unchanged.
+- 📌 **2026-10-26 — `0506` added to Depends on, OWNER RULING** given via `AskUserQuestion` in the `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Asked whether to hold the pending purchase-flow deploy for the no-consume change, the owner picked **"Hold it"** — option text: *"0493, 0497, 0498, 0499 then also wait on 0506 (design + ADR + build first). All Sprint 9."* The deploy this task checks (`0491`/`0492`/`0494`/`0495`/`0496`) does not go out until `0506` is built; this check follows it.
 - **Blocks:** nothing
 - **Spec:** [`2026-10-24-design-shared-purchase-flow.md`](../../../knowledge-base/reports/2026-10-24-design-shared-purchase-flow.md)
   §11 (B4v).

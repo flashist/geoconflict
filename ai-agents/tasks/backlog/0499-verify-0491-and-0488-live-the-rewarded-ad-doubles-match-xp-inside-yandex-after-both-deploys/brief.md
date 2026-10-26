@@ -117,7 +117,14 @@ live drill only after migration `009` is deployed to the box (task `0491`)"*). T
 
 ## Notes
 
-- **Depends on:** 0491, 0488 (and both deploys — profile box first, then the game client)
+- **Depends on:** 0491, 0488, 0506, 0510 (and both deploys — profile box first, then the game client; held for 0506
+  and 0510)
+- 📌 **2026-10-26, later — `0510` added; the deploy hold carried over at the split.** OWNER RULING **"Approve
+  (Recommended)"** (relayed; ⛔ not producer precedent) — option text: *"ADR-126 becomes accepted; producer splits 0506
+  into profile-server and game build tasks, then planning starts."* `0506` is now S1 (profile box, carries `0491`);
+  the held **game** code (`0488`) ships with `0510` (S2). This check needs both deploys, so it waits on both. The game
+  deploy also waits for `0512` part (a).
+- 📌 **2026-10-26 — `0506` added to Depends on, OWNER RULING** given via `AskUserQuestion` in the `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Asked whether to hold the pending purchase-flow deploy for the no-consume change, the owner picked **"Hold it"** — option text: *"0493, 0497, 0498, 0499 then also wait on 0506 (design + ADR + build first). All Sprint 9."* The deploy this task checks (`0491`/`0492`/`0494`/`0495`/`0496`) does not go out until `0506` is built; this check follows it.
 - **Blocks:** nothing
 - **Owner ruling, placement:** see `## Sprint` above (*"Sprint 9 (Recommended)"*, 2026-10-24).
 - **Deploys** in weekend slots unless urgent (owner rule); committed is not deployed. Nothing is committed or pushed

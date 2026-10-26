@@ -459,6 +459,11 @@
   "vk_link": {
     "cta_text": "Join our VK"
   },
+  "player_message": {
+    "contact_us_text": "Hi! We'd like to get in touch about your recent message. Please write to us on Telegram or VK — links below.",
+    "telegram_button": "Write to us on Telegram",
+    "vk_button": "Write to us on VK"
+  },
   "stale_build_modal": {
     "message": "The version of the game you're playing is outdated. Please refresh the page. If this popup keeps appearing, try clearing your browser cache and refreshing again, or contact us.",
     "refresh_button": "REFRESH",
