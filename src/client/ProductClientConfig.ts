@@ -11,12 +11,25 @@ export interface ProductAnalytics {
   completed: string;
   abandoned: string;
   restartPrompt: { shown: string; restart: string; later: string };
+  // A guest's "Log in and buy" (task 0495).
+  loginRequested: string;
+  loginSucceeded: string;
+  loginCancelled: string;
+  loginProfileFailed: string;
+  continueReady: string;
+  continueNeedsTap: string;
+  blockedAlreadyOwned: string;
+  blockedEarlierPurchasePending: string;
+  /** null for a kind that never answers `cannot_verify` (citizenship). */
+  blockedCannotVerify: string | null;
 }
 
 export interface ProductClientConfig {
   analytics: ProductAnalytics;
   restartPromptTitleKey: string;
   restartPromptBodyKey: string;
+  /** The line a surface shows when the purchase flow ends `already_owned`. */
+  alreadyOwnedLineKey: string;
   /** Per-product UI switch (hides UI only); null = none. */
   isUiEnabled: (() => Promise<boolean>) | null;
 }
@@ -39,9 +52,20 @@ const PRODUCT_CLIENT_CONFIG: Record<
           restart: events.CITIZENSHIP_RESTART_PROMPT_RESTART,
           later: events.CITIZENSHIP_RESTART_PROMPT_LATER,
         },
+        loginRequested: events.PURCHASE_LOGIN_REQUESTED_CITIZENSHIP,
+        loginSucceeded: events.PURCHASE_LOGIN_SUCCEEDED_CITIZENSHIP,
+        loginCancelled: events.PURCHASE_LOGIN_CANCELLED_CITIZENSHIP,
+        loginProfileFailed: events.PURCHASE_LOGIN_PROFILE_FAILED_CITIZENSHIP,
+        continueReady: events.PURCHASE_CONTINUE_READY_CITIZENSHIP,
+        continueNeedsTap: events.PURCHASE_CONTINUE_NEEDS_TAP_CITIZENSHIP,
+        blockedAlreadyOwned: events.PURCHASE_BLOCKED_ALREADY_OWNED_CITIZENSHIP,
+        blockedEarlierPurchasePending:
+          events.PURCHASE_BLOCKED_EARLIER_PURCHASE_PENDING_CITIZENSHIP,
+        blockedCannotVerify: null,
       },
       restartPromptTitleKey: "citizenship_restart_modal.title",
       restartPromptBodyKey: "citizenship_restart_modal.body",
+      alreadyOwnedLineKey: "citizenship_explainer.already_citizen",
       isUiEnabled: null,
     };
   },

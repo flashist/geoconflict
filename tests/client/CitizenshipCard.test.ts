@@ -102,6 +102,7 @@ import {
 } from "../../src/client/NameChangeRequest";
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
+import type { ProductAnalytics } from "../../src/client/ProductClientConfig";
 import {
   createPurchaseCoordinator,
   setPurchaseCoordinator,
@@ -141,6 +142,22 @@ const submitNameChange = submitNameChangeRequest as jest.Mock;
 const cancelNameChange = cancelNameChangeRequest as jest.Mock;
 const dismissRejection = dismissNameChangeRejection as jest.Mock;
 const claimTenureGrant = maybeClaimTenureGrant as jest.Mock;
+
+const GUEST_FLOW_ANALYTICS: ProductAnalytics = {
+  started: "Started",
+  completed: "Completed",
+  abandoned: "Abandoned",
+  restartPrompt: { shown: "Shown", restart: "Restart", later: "Later" },
+  loginRequested: "LoginRequested",
+  loginSucceeded: "LoginSucceeded",
+  loginCancelled: "LoginCancelled",
+  loginProfileFailed: "LoginProfileFailed",
+  continueReady: "ContinueReady",
+  continueNeedsTap: "ContinueNeedsTap",
+  blockedAlreadyOwned: "BlockedAlreadyOwned",
+  blockedEarlierPurchasePending: "BlockedEarlierPurchasePending",
+  blockedCannotVerify: null,
+};
 
 const CITIZENSHIP_PRODUCT = {
   id: "citizenship",
@@ -201,6 +218,21 @@ describe("CitizenshipCard", () => {
           FlashistFacade.instance.getCatalogProduct(productId)?.price ?? null,
         logUiTap: (tapElementId) =>
           FlashistFacade.instance.logUiTapEvent(tapElementId),
+        // Task 0495's guest path: inert here — the card never starts it.
+        openAuthDialog: () => FlashistFacade.instance.openYandexAuthDialog(),
+        refreshPaymentsAfterLogin: async () => true,
+        ensureSession: async () => null,
+        reconcileNow: async () => "none",
+        requestLoginRestart: () => {},
+        now: () => Date.now(),
+        setTimer: (callback, delayMs) => {
+          const timer = setTimeout(callback, delayMs);
+          return () => clearTimeout(timer);
+        },
+        autoContinueDeadlineMs: 15_000,
+        handOffDelayMs: 5_000,
+        productAnalytics: () => GUEST_FLOW_ANALYTICS,
+        logEvent: (event, value) => flashist_logEventAnalytics(event, value),
       }),
     );
     submitNameChange.mockResolvedValue({ status: "ok" });
@@ -3375,6 +3407,7 @@ describe("CitizenshipCard", () => {
         expect(card.getCitizenshipOffer()).toEqual({
           kind: "guest",
           canLogIn: true,
+          price: null,
         });
       });
 
@@ -3385,6 +3418,7 @@ describe("CitizenshipCard", () => {
         expect(card.getCitizenshipOffer()).toEqual({
           kind: "guest",
           canLogIn: false,
+          price: null,
         });
       });
 
@@ -3742,6 +3776,72 @@ describe("CitizenshipCard", () => {
 
       expect(loadProfile.mock.calls.length).toBe(readsBefore + 1);
       expect(card.snapshot().profile?.xp).toBe(60);
+    });
+
+    // Task 0495: the guest flow's read after its login shows "checking".
+    it("reread({ showChecking: true }) shows checking during the read, then the real state", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(card.querySelector("#citizenship-status-checking")).toBeNull();
+      let resolveRead: (value: unknown) => void = () => {};
+      loadProfile.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveRead = resolve;
+        }),
+      );
+
+      const read = card.reread({ showChecking: true });
+      await settle(card);
+      expect(card.querySelector("#citizenship-status-checking")).not.toBeNull();
+      expect(card.snapshot().isChecking).toBe(true);
+
+      resolveRead({ ...NON_CITIZEN_PROFILE, xp: 60 });
+      await read;
+      await settle(card);
+      expect(card.querySelector("#citizenship-status-checking")).toBeNull();
+      expect(card.snapshot().profile?.xp).toBe(60);
+    });
+
+    it("reread() without the option never shows checking (task 0494)", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      loadProfile.mockReturnValueOnce(new Promise(() => {}));
+
+      void card.reread();
+      await settle(card);
+
+      expect(card.querySelector("#citizenship-status-checking")).toBeNull();
+      expect(card.snapshot().isChecking).toBe(false);
+    });
+
+    // Task 0495: the purchase flow's hand-off (ADR-125) asks through this.
+    it("requestLoginRestart() logs Restart:Requested and asks for the restart with a re-reading fallback", async () => {
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      const requests: CustomEvent<CitizenshipLoginSucceededDetail>[] = [];
+      const onRequest = (event: Event) => {
+        requests.push(event as CustomEvent<CitizenshipLoginSucceededDetail>);
+      };
+      document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, onRequest);
+      const readsBefore = loadProfile.mock.calls.length;
+
+      card.requestLoginRestart();
+
+      expect(requests).toHaveLength(1);
+      expect(requests[0].bubbles).toBe(true);
+      expect(requests[0].composed).toBe(true);
+      expect(logEventAnalytics).toHaveBeenCalledWith(
+        "Profile:Login:Restart:Requested",
+      );
+      expect(loadProfile.mock.calls.length).toBe(readsBefore);
+      requests[0].detail.fallback();
+      expect(loadProfile.mock.calls.length).toBe(readsBefore + 1);
+      document.removeEventListener(
+        CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
+        onRequest,
+      );
     });
 
     it("buyCitizenship with no coordinator registered: error line, no purchase", async () => {

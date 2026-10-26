@@ -37,6 +37,18 @@ const REQUIRED_KEYS: Array<[string, string]> = [
   ["citizenship_card", "login_cta"],
   ["citizenship_status", "checking"],
   ["citizenship_status", "read_failed"],
+  ["citizenship_status", "restart"],
+  // Task 0495: a guest's "Log in and buy" and its progress lines.
+  ["citizenship_paid", "login_and_buy_cta"],
+  ["purchase_flow", "logging_in"],
+  ["purchase_flow", "preparing"],
+  ["purchase_flow", "paying"],
+  ["purchase_flow", "login_cancelled"],
+  ["purchase_flow", "needs_tap"],
+  ["purchase_flow", "already_owned"],
+  ["purchase_flow", "cannot_verify"],
+  ["purchase_flow", "error"],
+  ["purchase_flow", "earlier_purchase_pending"],
 ];
 
 const placeholders = (text: string): string[] =>

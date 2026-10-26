@@ -86,7 +86,7 @@ after the 6 talks. Future item builds (styles first, plus 0010/0011, already blo
 waits today."*
 
 ⇒ **Filed** as
-[`0484`](../../backlog/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md)
+[`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md)
 on [Sprint 9](../../../sprints/plan-sprint-9.md), rank 17 (append), owner `fkit-architect`, `Depends on:`
 nothing. Its work starts after the six talks (`0477`–`0482`), per the option text — an ordering note in
 the brief, not a `Depends on:` line.

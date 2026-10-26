@@ -28,7 +28,8 @@
 // [D3, owner ruling 2026-09-16] A login that FAILS is final for this page load:
 // `ensureSession()` latches and returns null from then on, and never starts a
 // second login. The player-visible recovery is a full restart, only ever from
-// the player's own press: of the card's login button (GameRestart.ts), or —
+// the player's own press: of the card's login button (GameRestart.ts; also the
+// hand-off after a "Log in and buy" that ended without a grant, ADR-125), or —
 // widened by owner ruling Q3, 2026-10-06 (task 0397), by exactly this one
 // button — of the card's "couldn't load your profile" Restart game button
 // (ProfileReadRestart.ts). Neither ever fires on its own.

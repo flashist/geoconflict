@@ -18,6 +18,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       purchaseCitizenshipExplainer: "PurchaseCitizenshipExplainer",
       purchasePaidCitizenshipExplainer: "PurchasePaidCitizenshipExplainer",
       citizenshipLoginExplainer: "CitizenshipLoginExplainer",
+      purchaseLoginCitizenshipExplainer: "PurchaseLoginCitizenshipExplainer",
     },
     citizenshipExplainerSources: {
       cardLink: "CardLink",
@@ -30,6 +31,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       isCitizenshipSurfacesEnabled: jest.fn(),
       logCitizenshipExplainerOpenedEvent: jest.fn(),
+      getCatalogProduct: jest.fn(),
+      reloadApp: jest.fn(),
     },
   },
 }));
@@ -46,7 +49,19 @@ import {
 } from "../../src/client/CitizenshipOffer";
 import { dispatchCitizenshipGrantedMidSession } from "../../src/client/CitizenshipRestartOffer";
 import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
+import { closePreStartModals } from "../../src/client/PreStartModals";
 import { isPrivateLobbyRowEnabled } from "../../src/client/PrivateLobbyAccess";
+import {
+  PURCHASE_FLOW_STATE_EVENT,
+  PURCHASE_GRANTED_EVENT,
+  type PurchaseCoordinator,
+  type PurchaseFlowState,
+  setPurchaseCoordinator,
+} from "../../src/client/PurchaseCoordinator";
+import {
+  resetStartScreenPresenceForTests,
+  setStartScreenPresenceSource,
+} from "../../src/client/StartScreenPresence";
 import { translateText } from "../../src/client/Utils";
 
 const isSurfacesEnabled = FlashistFacade.instance
@@ -54,6 +69,9 @@ const isSurfacesEnabled = FlashistFacade.instance
 const logOpened = FlashistFacade.instance
   .logCitizenshipExplainerOpenedEvent as jest.Mock;
 const isRowEnabled = isPrivateLobbyRowEnabled as jest.Mock;
+const getCatalogProduct = FlashistFacade.instance
+  .getCatalogProduct as jest.Mock;
+const reloadApp = FlashistFacade.instance.reloadApp as jest.Mock;
 const translate = translateText as jest.Mock;
 
 interface CardStandIn {
@@ -115,6 +133,9 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
     jest.clearAllMocks();
     isSurfacesEnabled.mockResolvedValue(true);
     isRowEnabled.mockResolvedValue(true);
+    getCatalogProduct.mockReturnValue({ price: "99 ₽" });
+    setPurchaseCoordinator(null);
+    resetStartScreenPresenceForTests();
   });
 
   it("is registered as <citizenship-explainer-modal>", () => {
@@ -476,7 +497,7 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
     });
 
     it("guest who can log in: hint plus a login button that logs in through the card", async () => {
-      const card = appendCard({ kind: "guest", canLogIn: true });
+      const card = appendCard({ kind: "guest", canLogIn: true, price: null });
       const modal = await mount();
       await showFrom(modal);
 
@@ -489,12 +510,13 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
     });
 
     it("guest who cannot log in: the hint only, no dead button", async () => {
-      appendCard({ kind: "guest", canLogIn: false });
+      appendCard({ kind: "guest", canLogIn: false, price: "99 ₽" });
       const modal = await mount();
       await showFrom(modal);
 
       expect(text(modal)).toContain("citizenship_explainer.login_hint");
       expect(byId(modal, "citizenship-explainer-login")).toBeNull();
+      expect(byId(modal, "citizenship-explainer-login-and-buy")).toBeNull();
     });
 
     it("citizen: the already-a-citizen line, no buy", async () => {
@@ -753,5 +775,259 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
         openCitizenshipExplainer({ source: "CardLink" }),
       ).not.toThrow();
     });
+  });
+});
+
+// Task 0495 (ADR-125, OP-1a): a guest's "Log in and buy".
+describe("CitizenshipExplainerModal guest Log in and buy (task 0495)", () => {
+  const GUEST_WITH_PRICE: CitizenshipOffer = {
+    kind: "guest",
+    canLogIn: true,
+    price: "99 ₽",
+  };
+
+  let flowState: PurchaseFlowState;
+  let coordinator: {
+    requestPurchase: jest.Mock;
+    currentState: jest.Mock;
+    surfaceClosed: jest.Mock;
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    jest.clearAllMocks();
+    isSurfacesEnabled.mockResolvedValue(true);
+    isRowEnabled.mockResolvedValue(true);
+    getCatalogProduct.mockReturnValue({ price: "99 ₽" });
+    resetStartScreenPresenceForTests();
+    flowState = "idle";
+    coordinator = {
+      requestPurchase: jest.fn(() => new Promise(() => {})),
+      currentState: jest.fn(() => flowState),
+      surfaceClosed: jest.fn(),
+    };
+    setPurchaseCoordinator(coordinator as unknown as PurchaseCoordinator);
+  });
+
+  afterEach(() => {
+    setPurchaseCoordinator(null);
+  });
+
+  async function moveTo(
+    modal: CitizenshipExplainerModal,
+    state: PurchaseFlowState,
+  ): Promise<void> {
+    flowState = state;
+    window.dispatchEvent(
+      new CustomEvent(PURCHASE_FLOW_STATE_EVENT, {
+        detail: { productId: "citizenship", state },
+      }),
+    );
+    await flush(modal);
+  }
+
+  async function openAndTapLoginAndBuy(): Promise<{
+    modal: CitizenshipExplainerModal;
+    card: CardStandIn;
+  }> {
+    const card = appendCard(GUEST_WITH_PRICE);
+    const modal = await mount();
+    await showFrom(modal);
+    byId(modal, "citizenship-explainer-login-and-buy")!.click();
+    await flush(modal);
+    return { modal, card };
+  }
+
+  it("shows Log in and buy with the price, and the plain login underneath", async () => {
+    const card = appendCard(GUEST_WITH_PRICE);
+    const modal = await mount();
+    await showFrom(modal);
+
+    const loginAndBuy = byId(modal, "citizenship-explainer-login-and-buy")!;
+    expect(loginAndBuy.textContent).toContain(
+      "citizenship_paid.login_and_buy_cta",
+    );
+    expect(loginAndBuy.textContent).toContain("99 ₽");
+    expect(loginAndBuy.className).toBe("primary-btn");
+    const login = byId(modal, "citizenship-explainer-login")!;
+    expect(login.className).toBe("secondary-btn");
+    expect(
+      loginAndBuy.compareDocumentPosition(login) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    login.click();
+    expect(card.logIn).toHaveBeenCalledWith("CitizenshipLoginExplainer");
+    expect(coordinator.requestPurchase).not.toHaveBeenCalled();
+  });
+
+  it("Log in and buy asks the coordinator, inside the tap, with its own tap id", async () => {
+    const { card } = await openAndTapLoginAndBuy();
+
+    expect(coordinator.requestPurchase).toHaveBeenCalledWith({
+      productId: "citizenship",
+      tapElementId: "PurchaseLoginCitizenshipExplainer",
+    });
+    expect(card.logIn).not.toHaveBeenCalled();
+    expect(card.buyCitizenship).not.toHaveBeenCalled();
+  });
+
+  it("no catalog price: today's guest area exactly (deviation 6)", async () => {
+    appendCard({ kind: "guest", canLogIn: true, price: null });
+    const modal = await mount();
+    await showFrom(modal);
+
+    expect(byId(modal, "citizenship-explainer-login-and-buy")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-login")!.className).toBe(
+      "primary-btn",
+    );
+  });
+
+  it.each<[PurchaseFlowState, string]>([
+    ["logging_in", "purchase_flow.logging_in"],
+    ["preparing", "purchase_flow.preparing"],
+    ["paying", "purchase_flow.paying"],
+    ["cannot_verify", "purchase_flow.cannot_verify"],
+    ["earlier_purchase_pending", "purchase_flow.earlier_purchase_pending"],
+    ["already_owned", "citizenship_explainer.already_citizen"],
+  ])("%s: its line, no button", async (state, line) => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    await moveTo(modal, state);
+
+    expect(
+      byId(modal, "citizenship-explainer-flow-status")!.textContent,
+    ).toContain(line);
+    expect(byId(modal, "citizenship-explainer-login-and-buy")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-login")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-flow-buy")).toBeNull();
+  });
+
+  it("login_cancelled: its line and Log in and buy again", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    await moveTo(modal, "login_cancelled");
+
+    expect(text(modal)).toContain("purchase_flow.login_cancelled");
+    byId(modal, "citizenship-explainer-login-and-buy")!.click();
+    expect(coordinator.requestPurchase).toHaveBeenCalledTimes(2);
+    expect(coordinator.requestPurchase).toHaveBeenLastCalledWith({
+      productId: "citizenship",
+      tapElementId: "PurchaseLoginCitizenshipExplainer",
+    });
+  });
+
+  it.each<PurchaseFlowState>(["needs_tap", "error"])(
+    "%s: its line and a Buy with the price that continues through the coordinator",
+    async (state) => {
+      const { modal, card } = await openAndTapLoginAndBuy();
+
+      await moveTo(modal, state);
+
+      expect(text(modal)).toContain(`purchase_flow.${state}`);
+      const buy = byId(modal, "citizenship-explainer-flow-buy")!;
+      expect(buy.textContent).toContain("citizenship_paid.buy_cta");
+      expect(buy.textContent).toContain("99 ₽");
+      buy.click();
+      expect(coordinator.requestPurchase).toHaveBeenLastCalledWith({
+        productId: "citizenship",
+        tapElementId: "PurchaseCitizenshipExplainer",
+      });
+      expect(card.buyCitizenship).not.toHaveBeenCalled();
+    },
+  );
+
+  it("profile_unavailable: the couldn't-load line and a Restart game button that reloads on the start screen", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    await moveTo(modal, "profile_unavailable");
+
+    expect(text(modal)).toContain("citizenship_status.read_failed");
+    byId(modal, "citizenship-explainer-flow-restart")!.click();
+    expect(reloadApp).toHaveBeenCalledTimes(1);
+  });
+
+  it("profile_unavailable: Restart game is refused away from the start screen", async () => {
+    setStartScreenPresenceSource(() => true);
+    const { modal } = await openAndTapLoginAndBuy();
+    await moveTo(modal, "profile_unavailable");
+
+    byId(modal, "citizenship-explainer-flow-restart")!.click();
+
+    expect(reloadApp).not.toHaveBeenCalled();
+  });
+
+  it("idle again (after the hand-off): back to the offer's own area", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+    await moveTo(modal, "error");
+
+    await moveTo(modal, "idle");
+
+    expect(byId(modal, "citizenship-explainer-flow-status")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-login-and-buy")).not.toBeNull();
+  });
+
+  it("show() resets the flow view: a non-idle state from before is not drawn", async () => {
+    const card = appendCard(GUEST_WITH_PRICE);
+    const modal = await mount();
+    flowState = "needs_tap";
+    await showFrom(modal);
+
+    expect(byId(modal, "citizenship-explainer-flow-status")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-login-and-buy")).not.toBeNull();
+    expect(card.logIn).not.toHaveBeenCalled();
+  });
+
+  it("the Close tap tells the coordinator the surface closed", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    byId(modal, "citizenship-explainer-close")!.click();
+
+    expect(coordinator.surfaceClosed).toHaveBeenCalledWith("citizenship");
+  });
+
+  it("the pre-start close (a match starting) tells the coordinator too", async () => {
+    await openAndTapLoginAndBuy();
+
+    closePreStartModals();
+
+    expect(coordinator.surfaceClosed).toHaveBeenCalledWith("citizenship");
+  });
+
+  it("closes on PURCHASE_GRANTED for citizenship, not for another product", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    window.dispatchEvent(
+      new CustomEvent(PURCHASE_GRANTED_EVENT, {
+        detail: { productId: "other_product" },
+      }),
+    );
+    await flush(modal);
+    expect(isOpen(modal)).toBe(true);
+
+    window.dispatchEvent(
+      new CustomEvent(PURCHASE_GRANTED_EVENT, {
+        detail: { productId: "citizenship" },
+      }),
+    );
+    await flush(modal);
+    expect(isOpen(modal)).toBe(false);
+  });
+
+  it("the mid-session grant ignores another product's purchase, but still closes for tenure", async () => {
+    appendCard(GUEST_WITH_PRICE);
+    const modal = await mount();
+    await showFrom(modal);
+
+    dispatchCitizenshipGrantedMidSession("purchase", {
+      productId: "other_product" as never,
+      becamePaidCitizen: null,
+    });
+    await flush(modal);
+    expect(isOpen(modal)).toBe(true);
+
+    dispatchCitizenshipGrantedMidSession("tenure");
+    await flush(modal);
+    expect(isOpen(modal)).toBe(false);
   });
 });

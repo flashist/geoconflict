@@ -40,8 +40,15 @@ describe("deriveCitizenshipOffer (task 0301)", () => {
 
   it.each([true, false])("guest carries canLogIn=%s", (canLogIn) => {
     expect(deriveCitizenshipOffer(inputs({ profile: null, canLogIn }))).toEqual(
-      { kind: "guest", canLogIn },
+      { kind: "guest", canLogIn, price: "99 ₽" },
     );
+  });
+
+  // Task 0495: "Log in and buy" needs the price, and none without a product.
+  it("guest carries a null price when the catalog has no product", () => {
+    expect(
+      deriveCitizenshipOffer(inputs({ profile: null, productPrice: null })),
+    ).toEqual({ kind: "guest", canLogIn: true, price: null });
   });
 
   it("citizen for a citizen profile", () => {
@@ -203,7 +210,7 @@ describe("deriveCitizenshipOffer (task 0301)", () => {
         ).toEqual({ kind: "read_failed" });
         expect(
           deriveCitizenshipOffer(inputs({ ...flags, profile: null })),
-        ).toEqual({ kind: "guest", canLogIn: true });
+        ).toEqual({ kind: "guest", canLogIn: true, price: "99 ₽" });
       },
     );
   });

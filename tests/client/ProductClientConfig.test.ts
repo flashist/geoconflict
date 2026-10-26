@@ -43,9 +43,21 @@ describe("PRODUCT_CLIENT_CONFIG", () => {
           restart: "Citizenship:RestartPrompt:Restart",
           later: "Citizenship:RestartPrompt:Later",
         },
+        loginRequested: "Purchase:Login:Requested:Citizenship",
+        loginSucceeded: "Purchase:Login:Succeeded:Citizenship",
+        loginCancelled: "Purchase:Login:Cancelled:Citizenship",
+        loginProfileFailed: "Purchase:Login:ProfileFailed:Citizenship",
+        continueReady: "Purchase:Continue:Ready:Citizenship",
+        continueNeedsTap: "Purchase:Continue:NeedsTap:Citizenship",
+        blockedAlreadyOwned: "Purchase:Blocked:AlreadyOwned:Citizenship",
+        blockedEarlierPurchasePending:
+          "Purchase:Blocked:EarlierPurchasePending:Citizenship",
+        // The citizenship kind never answers cannot_verify (task 0495).
+        blockedCannotVerify: null,
       },
       restartPromptTitleKey: "citizenship_restart_modal.title",
       restartPromptBodyKey: "citizenship_restart_modal.body",
+      alreadyOwnedLineKey: "citizenship_explainer.already_citizen",
       isUiEnabled: null,
     });
   });
@@ -61,6 +73,17 @@ describe("PRODUCT_CLIENT_CONFIG", () => {
         analytics.restartPrompt.shown,
         analytics.restartPrompt.restart,
         analytics.restartPrompt.later,
+        analytics.loginRequested,
+        analytics.loginSucceeded,
+        analytics.loginCancelled,
+        analytics.loginProfileFailed,
+        analytics.continueReady,
+        analytics.continueNeedsTap,
+        analytics.blockedAlreadyOwned,
+        analytics.blockedEarlierPurchasePending,
+        ...(analytics.blockedCannotVerify === null
+          ? []
+          : [analytics.blockedCannotVerify]),
       ];
       for (const event of events) {
         expect(enumValues.has(event)).toBe(true);
@@ -75,6 +98,7 @@ describe("PRODUCT_CLIENT_CONFIG", () => {
       for (const key of [
         config.restartPromptTitleKey,
         config.restartPromptBodyKey,
+        config.alreadyOwnedLineKey,
       ]) {
         for (const file of ["en.json", "ru.json"]) {
           const value = lookUp(file, key);

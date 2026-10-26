@@ -25,6 +25,10 @@ import {
   PROFILE_LOGIN_RESTART_LATCH_KEY,
   requestGameRestart,
 } from "../../src/client/GameRestart";
+import {
+  beginJoiningLobby,
+  resetStartScreenPresenceForTests,
+} from "../../src/client/StartScreenPresence";
 
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 
@@ -41,6 +45,7 @@ function memoryStorage(initial: Record<string, string> = {}) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  resetStartScreenPresenceForTests();
 });
 
 describe("requestGameRestart", () => {
@@ -90,6 +95,30 @@ describe("requestGameRestart", () => {
     expect(logEventAnalytics).toHaveBeenCalledWith(
       "Profile:Login:Restart:Suppressed:InMatch",
     );
+  });
+
+  // Task 0495 review R3: gameStop is still null while a join is set up, and the
+  // purchase hand-off's 5 s timer can fire then. Mutation: drop the
+  // isOnStartScreen check → red.
+  it("NEVER reloads while a join is being set up, and can restart once it has ended", () => {
+    const reload = jest.fn();
+    const fallback = jest.fn();
+    const storage = memoryStorage();
+    const endJoining = beginJoiningLobby();
+
+    requestGameRestart({ matchActive: false, reload, storage, fallback });
+
+    expect(reload).not.toHaveBeenCalled();
+    expect(fallback).toHaveBeenCalledTimes(1);
+    expect(storage.data.size).toBe(0);
+    expect(logEventAnalytics).toHaveBeenCalledWith(
+      "Profile:Login:Restart:Suppressed:InMatch",
+    );
+
+    endJoining();
+    requestGameRestart({ matchActive: false, reload, storage, fallback });
+
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 
   it("checks the match guard BEFORE the latch, so a suppressed match tap can still restart later", () => {

@@ -102,7 +102,7 @@ log in** · ideally a seamless continue into the purchase after login. Also from
 prices, verbatim: *"All prices should be bigger, than the price of the pure paid-citizenship."* The shared
 login-then-purchase flow is to be designed once with producer, architect and coder; that design task is **not
 filed yet** (owner placement pending, 2026-10-24). *(📌 Update 2026-10-24: now filed as
-[`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md) on Sprint 9, owner
+[`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md) on Sprint 9, owner
 ruling **"Sprint 9, builds wait (Recommended)"** — future item builds wait on it.)*
 
 **What this settles here.** **S1 — "to whom":** if voting (or a right to vote) is sold, anyone may buy it,

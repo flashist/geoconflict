@@ -31,6 +31,7 @@ import {
 import "./TenureGrantModal";
 import {
   CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
+  type CitizenshipCard,
   type CitizenshipLoginSucceededDetail,
 } from "./CitizenshipCard";
 import "./StaleBuildModal";
@@ -68,8 +69,12 @@ import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
 import { PrivateLobbyAccess } from "./PrivateLobbyAccess";
+import { reconcilePurchasesNow } from "./PaymentsReconciliation";
+import { getProductClientConfig } from "./ProductClientConfig";
 import { runProductPurchase } from "./ProductPurchase";
 import {
+  AUTO_CONTINUE_DEADLINE_MS,
+  HANDOFF_DELAY_MS,
   createPurchaseCoordinator,
   type PurchaseCoordinator,
   type PurchaseProfileSource,
@@ -77,7 +82,7 @@ import {
 } from "./PurchaseCoordinator";
 import { lobbyIdFromJoinHash } from "./PrivateLobbyInvite";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
-import { startProfileSession } from "./ProfileSession";
+import { ensureSession, startProfileSession } from "./ProfileSession";
 import { closePreStartModals } from "./PreStartModals";
 import "./PublicLobby";
 import { PublicLobby } from "./PublicLobby";
@@ -230,6 +235,27 @@ class Client {
         FlashistFacade.instance.getCatalogProduct(productId)?.price ?? null,
       logUiTap: (tapElementId) =>
         FlashistFacade.instance.logUiTapEvent(tapElementId),
+      openAuthDialog: () => FlashistFacade.instance.openYandexAuthDialog(),
+      refreshPaymentsAfterLogin: (timeoutMs) =>
+        FlashistFacade.instance.refreshPaymentsAfterLogin(timeoutMs),
+      ensureSession,
+      reconcileNow: reconcilePurchasesNow,
+      requestLoginRestart: () => {
+        const card = document.querySelector("citizenship-card");
+        if (card !== null && "requestLoginRestart" in card) {
+          (card as CitizenshipCard).requestLoginRestart();
+        }
+      },
+      now: () => Date.now(),
+      setTimer: (callback, delayMs) => {
+        const timer = setTimeout(callback, delayMs);
+        return () => clearTimeout(timer);
+      },
+      autoContinueDeadlineMs: AUTO_CONTINUE_DEADLINE_MS,
+      handOffDelayMs: HANDOFF_DELAY_MS,
+      productAnalytics: (productId) =>
+        getProductClientConfig(productId).analytics,
+      logEvent: flashist_logEventAnalytics,
     });
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
@@ -379,9 +405,10 @@ class Client {
     // Start-screen UI that must not interrupt a lobby or match asks here
     // (task 0329, review R1: the citizenship card's late reveal).
     setStartScreenPresenceSource(() => this.gameStop !== null);
-    // A mid-load login (the citizenship card's guest CTA) leaves the page with no
-    // session token, so restart it and run the whole start sequence logged in
-    // (task 0273, owner ruling D3). Never out of a live match.
+    // A mid-load login (the citizenship card's guest CTA, or the purchase
+    // hand-off, ADR-125) leaves the page with no session token, so restart it
+    // and run the whole start sequence logged in (task 0273, owner ruling D3).
+    // Never out of a lobby, a join being set up or a match.
     document.addEventListener(CITIZENSHIP_LOGIN_SUCCEEDED_EVENT, (event) => {
       // The requester supplies its own "no restart" behavior (the card re-reads
       // its profile, which is exactly what it did before this task).

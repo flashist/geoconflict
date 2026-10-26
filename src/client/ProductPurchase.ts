@@ -23,19 +23,30 @@ import { getProductClientConfig } from "./ProductClientConfig";
  * invites a second real charge. "already_owned" == /intent refused it. "error"
  * covers every other failure; all are retryable (an interrupted-but-paid
  * purchase is re-granted idempotently, and next session's reconciliation
- * recovers the stray token).
+ * recovers the stray token). "not_opened" == `mayOpenPaymentWindow` said no
+ * after the intent: no frame, no Started (task 0495).
  */
-export type ProductPurchaseResult = "granted" | "already_owned" | "error";
+export type ProductPurchaseResult =
+  | "granted"
+  | "already_owned"
+  | "not_opened"
+  | "error";
+
+export interface ProductPurchaseOptions {
+  /** Asked right before the payment frame opens (task 0495's deadline). */
+  mayOpenPaymentWindow?: () => boolean;
+}
 
 export async function runProductPurchase(
   productId: PaymentProductId,
+  options: ProductPurchaseOptions = {},
 ): Promise<ProductPurchaseResult> {
   // Task 0404: the whole flow counts as a platform dialog, intent through the
   // server's /complete, so the forced "please refresh" popup can never cut off
   // the server-confirm step after the player has paid.
   const endPlatformDialog = beginPlatformDialog();
   try {
-    return await purchaseProduct(productId);
+    return await purchaseProduct(productId, options);
   } finally {
     endPlatformDialog();
   }
@@ -43,6 +54,7 @@ export async function runProductPurchase(
 
 async function purchaseProduct(
   productId: PaymentProductId,
+  options: ProductPurchaseOptions,
 ): Promise<ProductPurchaseResult> {
   const facade = FlashistFacade.instance;
   const analytics = getProductClientConfig(productId).analytics;
@@ -58,6 +70,13 @@ async function purchaseProduct(
   if (intent.kind !== "ok") {
     // The payment frame never opened — deliberately no Started/Abandoned.
     return "error";
+  }
+  if (
+    options.mayOpenPaymentWindow !== undefined &&
+    !options.mayOpenPaymentWindow()
+  ) {
+    // The unused intent row is harmless: nothing is ever bound to it.
+    return "not_opened";
   }
 
   flashist_logEventAnalytics(analytics.started);

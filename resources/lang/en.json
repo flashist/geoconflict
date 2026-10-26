@@ -66,7 +66,8 @@
   },
   "citizenship_paid": {
     "buy_cta": "Buy Citizenship",
-    "purchase_error": "Something went wrong. Please try again."
+    "purchase_error": "Something went wrong. Please try again.",
+    "login_and_buy_cta": "Log in and buy"
   },
   "citizenship_name_change": {
     "cta": "Change name",
@@ -123,6 +124,17 @@
     "read_failed": "We couldn't load your profile right now. Nothing is lost — a restart usually helps.",
     "restart": "Restart game",
     "still_failing": "Still not working. Please try again a bit later — nothing is lost."
+  },
+  "purchase_flow": {
+    "logging_in": "Logging in…",
+    "preparing": "Getting your purchase ready…",
+    "paying": "Waiting for the payment…",
+    "login_cancelled": "Login didn't finish — try again.",
+    "needs_tap": "Tap the button below to continue your purchase.",
+    "already_owned": "You already own this.",
+    "cannot_verify": "We couldn't confirm your account this time. Closing and reopening the game usually helps.",
+    "error": "Purchase not completed — try again.",
+    "earlier_purchase_pending": "Your earlier purchase is still being processed — restart the game later."
   },
   "inbox": {
     "empty": "No personal messages yet.",

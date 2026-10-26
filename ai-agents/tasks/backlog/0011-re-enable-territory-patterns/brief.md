@@ -106,7 +106,7 @@ source, so accidentally handing it out with a cosmetic is a real revenue questio
 ## Notes
 
 - **Depends on:** 0009 (entitlement origin), Sprint 4 payment infrastructure, an owner decision on
-  the pattern set, and an owner ruling on the ad-suppression coupling — and 0484 (the shared purchase-flow design; OWNER RULING 2026-10-24, verbatim **"Sprint 9, builds wait (Recommended)"**, live `AskUserQuestion` in the lead session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent)
+  the pattern set, and an owner ruling on the ad-suppression coupling — and 0495 + 0496 (B3 and B4 of the shared purchase flow) (OD-3, OWNER RULING 2026-10-24, verbatim **"Full flow, B3 + B4 (Recommended)"**, live `AskUserQuestion` in the lead session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Replaces the earlier wait on the design task, whose spec is now approved; quoted in the shared purchase-flow spec §9.1)
 - **Blocks:** 0481 (custom uploaded patterns — the Sprint 5 Task 15 talk) — and 0481 (the custom-uploads talk, which waits on this task by OWNER RULING 2026-10-24, relayed by `fkit-lead` to a spawned `fkit-producer`; ⛔ not producer precedent: *"Should be taken into work only after flags/patterns are re-enabled and in-apps for them are built/enabled properly."*)
 
 - Sibling of `0010` (flags). They share the entitlement plumbing and the purchase surface — **scope

@@ -107,7 +107,7 @@ not.
 - **From:** [`0477`](../../done/0477-discussion-nickname-styling-who-may-buy-it-price-and-outcome/brief.md) (outcome
   File, 2026-10-24) — its to-discuss 2 (shared name-drawing path), 3 (custom fonts, note only) and the condition of 4
   (readability / approval) are carried here.
-- **Related:** [`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md)
+- **Related:** [`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md)
   (the shared purchase flow, Sprint 9), [`0483`](../0483-discussion-nickname-style-pack-offer-whether-to-sell-one-and-at-what-price/brief.md)
   (pack talk), [`0010`](../0010-re-enable-flags-paid-non-country-cosmetic/brief.md),
   [`0011`](../0011-re-enable-territory-patterns/brief.md), [`0008`](../0008-privilege-refresher-fail-closed-migration/brief.md),

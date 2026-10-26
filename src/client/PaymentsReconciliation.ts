@@ -85,3 +85,80 @@ async function runPaymentsReconciliation(): Promise<void> {
     }
   }
 }
+
+/**
+ * - `processed`: the server granted ≥1 pending purchase (the profile is stale).
+ * - `none`: verifiably nothing pending.
+ * - `pending_ungranted`: the server reported a pending purchase it failed to
+ *   grant (task 0492's `failedCount`) — no purchase may go on (OQ-1).
+ * - `failed`: could not tell — an automatic purchase must not go on (spec F5).
+ * - `timeout`: no answer in time; a late finish still signals and consumes.
+ */
+export type ReconcileNowResult =
+  | "processed"
+  | "none"
+  | "pending_ungranted"
+  | "failed"
+  | "timeout";
+
+/**
+ * Task 0495: reconcile right now, for a guest who just logged in to buy — so a
+ * paid-but-ungranted purchase is granted before a second payment window opens.
+ * Ignores the once-per-session latch; never waits on the init gate (a player
+ * tapping is long past it). Never throws.
+ */
+export async function reconcilePurchasesNow(
+  timeoutMs: number,
+): Promise<ReconcileNowResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), timeoutMs);
+  });
+  const reconciled = runReconcileNow().catch(
+    (): ReconcileNowResult => "failed",
+  );
+  try {
+    return await Promise.race([reconciled, timedOut]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function runReconcileNow(): Promise<ReconcileNowResult> {
+  const facade = FlashistFacade.instance;
+  // Fail closed: the popup that starts this flow does not open while off.
+  if (!(await facade.isCitizenshipSurfacesEnabled())) {
+    return "failed";
+  }
+  const signed = await facade.getSignedPurchasesResult();
+  if (signed.kind !== "signed") {
+    return signed.kind;
+  }
+  const reconciled = await reconcilePurchases(signed.signature);
+  if (reconciled.kind !== "ok") {
+    return "failed";
+  }
+  const tokens = reconciled.processedTokens;
+  if (tokens.length > 0) {
+    // Signal before consuming, as the boot pass does (review R3 there).
+    window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
+    void consumeAll(facade, tokens);
+  }
+  if (reconciled.failedCount > 0) {
+    return "pending_ungranted";
+  }
+  return tokens.length > 0 ? "processed" : "none";
+}
+
+async function consumeAll(
+  facade: FlashistFacade,
+  tokens: readonly string[],
+): Promise<void> {
+  for (const token of tokens) {
+    try {
+      await facade.consumePurchase(token);
+    } catch {
+      // A failed consume resurfaces in next session's getPurchases().
+    }
+  }
+}

@@ -170,6 +170,47 @@ describe("runProductPurchase", () => {
     expect(signals).toEqual([]);
   });
 
+  // Task 0495: the guest flow's deadline / closed popup, asked after /intent.
+  it("mayOpenPaymentWindow false → not_opened: intent made, no frame, no Started/Abandoned, no offer", async () => {
+    const mayOpenPaymentWindow = jest.fn(() => false);
+
+    await expect(
+      runProductPurchase(TEST_ITEM, { mayOpenPaymentWindow }),
+    ).resolves.toBe("not_opened");
+
+    expect(createIntent).toHaveBeenCalledTimes(1);
+    expect(mayOpenPaymentWindow).toHaveBeenCalledTimes(1);
+    expect(mayOpenPaymentWindow.mock.invocationCallOrder[0]).toBeGreaterThan(
+      createIntent.mock.invocationCallOrder[0],
+    );
+    expect(purchaseCatalogItem).not.toHaveBeenCalled();
+    expect(loggedEvents()).toEqual([]);
+    expect(signals).toEqual([]);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("mayOpenPaymentWindow true → the purchase as before", async () => {
+    await expect(
+      runProductPurchase(TEST_ITEM, { mayOpenPaymentWindow: () => true }),
+    ).resolves.toBe("granted");
+
+    expect(purchaseCatalogItem).toHaveBeenCalledTimes(1);
+    expect(loggedEvents()).toEqual([
+      "Purchase:Started:TestItem",
+      "Purchase:Completed:TestItem",
+    ]);
+  });
+
+  it("mayOpenPaymentWindow is not asked when /intent fails", async () => {
+    createIntent.mockResolvedValue({ kind: "failed" });
+    const mayOpenPaymentWindow = jest.fn(() => true);
+
+    await expect(
+      runProductPurchase(TEST_ITEM, { mayOpenPaymentWindow }),
+    ).resolves.toBe("error");
+    expect(mayOpenPaymentWindow).not.toHaveBeenCalled();
+  });
+
   it("a frame failure logs the product's Abandoned", async () => {
     purchaseCatalogItem.mockRejectedValue(new Error("closed"));
 

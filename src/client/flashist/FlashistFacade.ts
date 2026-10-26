@@ -231,6 +231,28 @@ export const flashistConstants = {
     PURCHASE_STARTED_CITIZENSHIP: "Purchase:Started:Citizenship",
     PURCHASE_COMPLETED_CITIZENSHIP: "Purchase:Completed:Citizenship",
     PURCHASE_ABANDONED_CITIZENSHIP: "Purchase:Abandoned:Citizenship",
+    // A guest's "Log in and buy" (task 0495, ADR-125): the login dialog asked,
+    // passed or closed; ProfileFailed = no profile session after the login.
+    // Continue:Ready = the flow went on to the payment frame by itself (value =
+    // ms since the dialog closed); NeedsTap = it stopped and asks for one more
+    // tap. Blocked:AlreadyOwned = the fresh read or /intent says owned.
+    // Blocked:EarlierPurchasePending = a tap's re-check found a paid purchase
+    // the server could not grant, so no payment window opened (review R1).
+    PURCHASE_LOGIN_REQUESTED_CITIZENSHIP:
+      "Purchase:Login:Requested:Citizenship",
+    PURCHASE_LOGIN_SUCCEEDED_CITIZENSHIP:
+      "Purchase:Login:Succeeded:Citizenship",
+    PURCHASE_LOGIN_CANCELLED_CITIZENSHIP:
+      "Purchase:Login:Cancelled:Citizenship",
+    PURCHASE_LOGIN_PROFILE_FAILED_CITIZENSHIP:
+      "Purchase:Login:ProfileFailed:Citizenship",
+    PURCHASE_CONTINUE_READY_CITIZENSHIP: "Purchase:Continue:Ready:Citizenship",
+    PURCHASE_CONTINUE_NEEDS_TAP_CITIZENSHIP:
+      "Purchase:Continue:NeedsTap:Citizenship",
+    PURCHASE_BLOCKED_ALREADY_OWNED_CITIZENSHIP:
+      "Purchase:Blocked:AlreadyOwned:Citizenship",
+    PURCHASE_BLOCKED_EARLIER_PURCHASE_PENDING_CITIZENSHIP:
+      "Purchase:Blocked:EarlierPurchasePending:Citizenship",
 
     // Ad impressions (task 0020). Fired on a real impression (onClose
     // wasShown === true), not per attempt; no tier dimension — the tiered
@@ -460,6 +482,8 @@ export const flashistConstants = {
     // upgrades apart from first purchases.
     purchasePaidCitizenshipExplainer: "PurchasePaidCitizenshipExplainer",
     citizenshipLoginExplainer: "CitizenshipLoginExplainer",
+    // The guest's "Log in and buy" in the explainer popup (task 0495).
+    purchaseLoginCitizenshipExplainer: "PurchaseLoginCitizenshipExplainer",
   },
 
   // Where the citizenship explainer popup was opened from (task 0301): the
@@ -843,6 +867,11 @@ export interface IProduct {
 }
 
 export type PaymentsCatalogStatus = "idle" | "ready" | "failed" | "unavailable";
+
+export type SignedPurchasesResult =
+  | { kind: "none" }
+  | { kind: "signed"; signature: string }
+  | { kind: "failed" };
 
 /** How one rewarded video ended. Only `onRewarded` grants; this never does. */
 export type RewardedVideoResult =
@@ -1953,12 +1982,7 @@ export class FlashistFacade {
       this.paymentsObject = await this.yandexGamesSDK.getPayments({
         signed: true,
       });
-      const catalog = await this.paymentsObject.getCatalog();
-      this.paymentsCatalog = Array.isArray(catalog) ? catalog : [];
-      this.paymentsCatalogById.clear();
-      this.paymentsCatalog.forEach((product: IProduct) => {
-        this.paymentsCatalogById.set(product.id, product);
-      });
+      this.applyPaymentsCatalog(await this.paymentsObject.getCatalog());
       this.setPaymentsCatalogStatus("ready");
       // Session-start reconciliation (Yandex moderation compliance): catch
       // purchases whose /complete never landed. Fire-and-forget, gated inside
@@ -1975,6 +1999,52 @@ export class FlashistFacade {
         `ERROR! FlashistFacade | initPayments __ error: ${error}`,
         flashist_logErrorTypes.DEBUG,
       );
+    }
+  }
+
+  private applyPaymentsCatalog(catalog: unknown): void {
+    this.paymentsCatalog = Array.isArray(catalog) ? catalog : [];
+    this.paymentsCatalogById.clear();
+    this.paymentsCatalog.forEach((product: IProduct) => {
+      this.paymentsCatalogById.set(product.id, product);
+    });
+  }
+
+  /**
+   * Task 0495: after a mid-page login, swap in a payments object made for the
+   * logged-in player. Best-effort and bounded: on a failure, a timeout or a
+   * late answer the old object stays. Never changes the catalog status and
+   * never schedules reconciliation — that stays fetchPaymentsCatalog's, once.
+   * Resolves true only when the new object is in place.
+   */
+  public async refreshPaymentsAfterLogin(timeoutMs: number): Promise<boolean> {
+    if (this.paymentsCatalogStatus !== "ready" || !this.yandexGamesSDK) {
+      return false;
+    }
+    const refreshed = (async () => {
+      const payments = await this.yandexGamesSDK.getPayments({ signed: true });
+      const catalog: unknown = await payments.getCatalog();
+      return { payments, catalog };
+    })();
+    // A rejection after the timeout has nobody waiting on it.
+    refreshed.catch(() => {});
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timedOut = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), timeoutMs);
+    });
+    try {
+      const result = await Promise.race([refreshed, timedOut]);
+      if (result === null) {
+        return false;
+      }
+      this.paymentsObject = result.payments;
+      this.applyPaymentsCatalog(result.catalog);
+      return true;
+    } catch {
+      // Keep the boot payments object.
+      return false;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -2014,20 +2084,29 @@ export class FlashistFacade {
    * verifiably empty (nothing to reconcile — skip the network round-trip).
    */
   public async getSignedPurchases(): Promise<{ signature: string } | null> {
+    const result = await this.getSignedPurchasesResult();
+    return result.kind === "signed" ? { signature: result.signature } : null;
+  }
+
+  /**
+   * The same read, keeping "nothing pending" apart from "could not tell"
+   * (task 0495): a purchase flow must not go on by itself after a failure.
+   */
+  public async getSignedPurchasesResult(): Promise<SignedPurchasesResult> {
     if (this.paymentsCatalogStatus !== "ready" || !this.paymentsObject) {
-      return null;
+      return { kind: "failed" };
     }
     try {
       const purchases = await this.paymentsObject.getPurchases();
       if (Array.isArray(purchases) && purchases.length === 0) {
-        return null;
+        return { kind: "none" };
       }
       const signature = purchases?.signature;
       return typeof signature === "string" && signature.length > 0
-        ? { signature }
-        : null;
+        ? { kind: "signed", signature }
+        : { kind: "failed" };
     } catch {
-      return null;
+      return { kind: "failed" };
     }
   }
 

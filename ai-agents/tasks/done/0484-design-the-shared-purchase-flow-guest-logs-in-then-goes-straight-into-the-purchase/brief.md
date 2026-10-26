@@ -27,7 +27,7 @@ Sprint 9
 > board's highest rank (16), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔄 In progress *(2026-10-24 — set by `fkit-lead` driving `/fkit-sprint-ship-loop`; OWNER RULING via `AskUserQuestion`: "0484 + 0488 in parallel (Recommended)".)*
+✅ Done (agent-closed — not owner-verified)
 
 > (Status until 2026-10-24) ~~🔲 Backlog~~
 
@@ -83,12 +83,12 @@ after the talks still on Sprint 9 — `0479`–`0482` (`0477` closed 2026-10-24)
   its own grant branch**, and under Q2 **that branch must also make the buyer a full paid citizen**. The design must
   say how a new product's branch is added (and tested) without loosening the guard for unknown products.
 - **Related login tasks — context, not dependencies** (all `🔲 Backlog`, Backlog board):
-  - [`0474`](../0474-investigate-why-about-2-3-percent-of-logged-in-loads-get-no-profile-login-timeouts/brief.md) —
+  - [`0474`](../../backlog/0474-investigate-why-about-2-3-percent-of-logged-in-loads-get-no-profile-login-timeouts/brief.md) —
     about 2–3 % of logged-in loads get no profile (login timeouts). A "logged in but no profile yet" state the flow
     must handle.
-  - [`0394`](../0394-re-login-when-a-player-switches-yandex-accounts/brief.md) — re-login when a player switches Yandex
+  - [`0394`](../../backlog/0394-re-login-when-a-player-switches-yandex-accounts/brief.md) — re-login when a player switches Yandex
     accounts. The flow must not grant to the wrong account.
-  - [`0070`](../0070-token-login-modal-silent-failure/brief.md) — the token login modal fails silently. A failed login
+  - [`0070`](../../backlog/0070-token-login-modal-silent-failure/brief.md) — the token login modal fails silently. A failed login
     must not leave the player stuck mid-purchase with no message.
 - **Guests are a large share of players**: 58.2 % of all match starts, 2026-10-08 → 2026-10-10 (`0405`). A login
   step that loses them costs real sales.
@@ -147,9 +147,13 @@ folder's `worklog.md`.
 ## Notes
 
 - **Depends on:** nothing
-- **Blocks:** 0010, 0011 (owner ruling 1, 2026-10-24: *"Future item builds … wait on it"*); and the nickname-style
-  build from `0477` — filed 2026-10-24 as [`0486`](../0486-build-nickname-styles-paid-name-looks-behind-a-feature-flag/brief.md)
-  (`0477` ended in File)
+- **Blocks:** 0492, 0494 *(📌 Updated 2026-10-24 at close by a spawned `fkit-producer`: B1 and B2 of the approved spec
+  wait on this task. The item builds were re-pointed by **OD-3**, OWNER RULING 2026-10-24, verbatim **"Full flow, B3 + B4
+  (Recommended)"**, relayed by `fkit-lead`; ⛔ not producer precedent: `0010`, `0011` and
+  [`0486`](../../backlog/0486-build-nickname-styles-paid-name-looks-behind-a-feature-flag/brief.md) now wait on
+  `0495` + `0496`, not on this task. See spec §9.1 and this folder's `worklog.md`.)*
+  (Until 2026-10-24) ~~0010, 0011 (owner ruling 1, 2026-10-24: *"Future item builds … wait on it"*); and the
+  nickname-style build from `0477` — filed 2026-10-24 as `0486` (`0477` ended in File)~~
 - **Ordering, not a dependency:** starts after the six talks `0477`–`0482` (owner option text *"after the 6 talks"*).
   *(📌 Updated 2026-10-24: now **after the talks still on Sprint 9** — `0479`–`0482`; `0477` is closed. The voting
   talk `0478` (Backlog board, ON HOLD) no longer gates it. Owner ruling, verbatim: **"Don't wait for voting
@@ -160,7 +164,7 @@ folder's `worklog.md`.
 - **Related:** [`0477`](../../done/0477-discussion-nickname-styling-who-may-buy-it-price-and-outcome/brief.md) (where the
   ruling came from), [`0301`](../../done/0301-citizenship-explainer-popup-and-purchase-funnel/brief.md),
   [`0019`](../../done/0019-yandex-payments-impl/brief.md), [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md),
-  `0474`, `0394`, `0070`, [`0483`](../0483-discussion-nickname-style-pack-offer-whether-to-sell-one-and-at-what-price/brief.md)
+  `0474`, `0394`, `0070`, [`0483`](../../backlog/0483-discussion-nickname-style-pack-offer-whether-to-sell-one-and-at-what-price/brief.md)
   (a pack is a purchase too).
 - **Split rationale:** one task, not two. The fact-check ships nothing on its own; it only shapes the spec, and the
   owner asked for one design task.

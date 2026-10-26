@@ -27,7 +27,7 @@ Backlog
 > - ⚠️ **Cancelling is UNDECIDED and is the owner's call.** Do **not** cancel this task, and do not pick it back up
 >   into a sprint, without an owner ruling.
 > - **The rewarded-ad part was split out** as build task
->   [`0488`](../0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md) (Sprint 9), on
+>   [`0488`](../../done/0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md) (Sprint 9), on
 >   the owner's answer *"Yandex's rewarded video work for us and it might improve our rating and income. It's worth
 >   planning and implementing now."* What stays on hold here is the **coin economy** only.
 > - **Pending:** *"Is citizenship the 'premium tier' the old plans mentioned?"* (To-discuss 4) — the owner asked for
@@ -106,7 +106,7 @@ log in** · ideally a seamless continue into the purchase after login. Also from
 prices, verbatim: *"All prices should be bigger, than the price of the pure paid-citizenship."* The shared
 login-then-purchase flow is to be designed once with producer, architect and coder; that design task is **not
 filed yet** (owner placement pending, 2026-10-24). *(📌 Update 2026-10-24: now filed as
-[`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md) on Sprint 9, owner
+[`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md) on Sprint 9, owner
 ruling **"Sprint 9, builds wait (Recommended)"** — future item builds wait on it.)*
 
 **What this settles here.** **S1 — "who may buy":** if anything here is sold for real money, anyone may
@@ -218,7 +218,7 @@ Record the answers and the outcome in this folder's `worklog.md`.
 - **Depends on:** nothing
 - **Blocks:** nothing
 - **Split out (2026-10-24):** the rewarded-ad part (To-discuss 2) →
-  [`0488`](../0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md) (build, Sprint 9).
+  [`0488`](../../done/0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md) (build, Sprint 9).
   Not a dependency either way: `0488` does not wait on this talk, and this talk does not wait on `0488`.
 - **Split from:** [`0343`](../../done/0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) item G, by owner
   ruling 1 (2026-10-24). The other five talks: `0477` (nickname styling), `0478` (map voting), `0479` (clans), `0481`

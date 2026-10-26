@@ -32,7 +32,7 @@ Owner typed, verbatim (not a listed option):
 
 ⇒ **To-discuss 2 answered:** the minimal rewarded ad is **its own step**, not folded into a coin economy.
 ⇒ **Split out** as build task
-[`0488`](../0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md), filed
+[`0488`](../../done/0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/brief.md), filed
 2026-10-24 on **Sprint 9**, rank 18 (append rank). ⚠️ Sprint 9 is `fkit-lead`'s reading of "now", not an
 owner placement; the owner may move it.
 ⇒ Carried into `0488` as **owner questions to settle before or at plan approval**: the reward (and its

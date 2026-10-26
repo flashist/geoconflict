@@ -11,7 +11,8 @@
 // StaleBuildModal's REFRESH, and the post-match navigation.
 //
 // This can only ever run from the player's OWN press of the card's login button,
-// after the Yandex auth dialog reported success. It never fires on its own.
+// after the Yandex auth dialog reported success, or from the hand-off after a
+// "Log in and buy" that ended without a grant (ADR-125). It never fires on its own.
 //
 // D3's one other sanctioned restart (owner ruling Q3, 2026-10-06, task 0397) is
 // the card's "couldn't load your profile" Restart game button. It is a separate
@@ -22,6 +23,7 @@ import {
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
+import { isOnStartScreen } from "./StartScreenPresence";
 
 /**
  * sessionStorage latch capping the automatic reload at ONE per page load —
@@ -35,7 +37,7 @@ export const PROFILE_LOGIN_RESTART_LATCH_KEY =
 type LatchStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface GameRestartRequest {
-  /** True while a match is running (`Client.gameStop !== null`). */
+  /** True in a lobby or a match (`Client.gameStop !== null`). */
   matchActive: boolean;
   reload: () => void;
   /**
@@ -49,7 +51,8 @@ export interface GameRestartRequest {
 
 /**
  * Restart the page so the whole start sequence re-runs with the player logged in —
- * unless a match is live or this page load already did it once.
+ * unless a lobby, a join being set up or a match is under way, or this page load
+ * already did it once.
  *
  * Order is load-bearing: the match guard runs FIRST, so a tap during a match costs
  * no latch and the player can still restart from the start screen afterwards.
@@ -60,7 +63,9 @@ export function requestGameRestart({
   storage,
   fallback,
 }: GameRestartRequest): void {
-  if (matchActive) {
+  // A join being set up has no gameStop yet (task 0336), and the purchase
+  // hand-off's timer (ADR-125) can fire during one.
+  if (matchActive || !isOnStartScreen()) {
     // A live match is never interrupted. The card is not reachable during one
     // (a fixed, full-viewport canvas covers it), but that rests on CSS stacking,
     // so this guard does not depend on it.

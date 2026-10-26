@@ -7,10 +7,24 @@ import {
   CITIZENSHIP_OFFER_CHANGED_EVENT,
   type CitizenshipOffer,
 } from "./CitizenshipOffer";
-import { CITIZENSHIP_GRANTED_MID_SESSION_EVENT } from "./CitizenshipRestartOffer";
+import {
+  CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+  type CitizenshipGrantedMidSessionDetail,
+} from "./CitizenshipRestartOffer";
 import { darkScrollbarStyles } from "./components/baseComponents/DarkScrollbarStyles";
 import { FlashistFacade, flashistConstants } from "./flashist/FlashistFacade";
 import { isPrivateLobbyRowEnabled } from "./PrivateLobbyAccess";
+import { getProductClientConfig } from "./ProductClientConfig";
+import { restartAfterProfileReadFailure } from "./ProfileReadRestart";
+import {
+  getPurchaseCoordinator,
+  PURCHASE_FLOW_STATE_EVENT,
+  PURCHASE_GRANTED_EVENT,
+  type PurchaseFlowState,
+  type PurchaseFlowStateDetail,
+  type PurchaseGrantedDetail,
+} from "./PurchaseCoordinator";
+import { isOnStartScreen } from "./StartScreenPresence";
 import { translateText } from "./Utils";
 
 /**
@@ -30,6 +44,10 @@ import { translateText } from "./Utils";
  *
  * An earned citizen whose verified read says "not paid" gets a Buy button at
  * the bottom, above Close (task 0409) — the card's `citizen_buy` offer.
+ *
+ * A guest gets "Log in and buy" (task 0495, ADR-125): the page's purchase
+ * coordinator logs them in and goes on to the purchase with no reload. While
+ * that flow runs, the action area shows the flow's state, not the offer.
  */
 @customElement("citizenship-explainer-modal")
 export class CitizenshipExplainerModal extends LitElement {
@@ -45,6 +63,10 @@ export class CitizenshipExplainerModal extends LitElement {
   // stale card error never shows in a freshly opened popup.
   @state()
   private purchaseError = false;
+
+  // A "Log in and buy" was tapped in this showing of the popup.
+  @state()
+  private isGuestFlowFromThisPopup = false;
 
   // Bumped by close(), so a show() still awaiting its checks does not open a
   // popup that was closed meanwhile (e.g. by a match start).
@@ -160,6 +182,15 @@ export class CitizenshipExplainerModal extends LitElement {
         background: #1d4ed8;
       }
 
+      .modal-box .secondary-btn {
+        margin-top: 8px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-box .secondary-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
       .modal-box .close-btn {
         margin-top: 16px;
         background: rgba(255, 255, 255, 0.1);
@@ -181,9 +212,13 @@ export class CitizenshipExplainerModal extends LitElement {
       CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
       this.onGrantedMidSession,
     );
+    window.addEventListener(PURCHASE_FLOW_STATE_EVENT, this.onFlowState);
+    window.addEventListener(PURCHASE_GRANTED_EVENT, this.onPurchaseGranted);
   }
 
   disconnectedCallback() {
+    window.removeEventListener(PURCHASE_FLOW_STATE_EVENT, this.onFlowState);
+    window.removeEventListener(PURCHASE_GRANTED_EVENT, this.onPurchaseGranted);
     window.removeEventListener(
       CITIZENSHIP_OFFER_CHANGED_EVENT,
       this.onOfferChanged,
@@ -203,10 +238,34 @@ export class CitizenshipExplainerModal extends LitElement {
   };
 
   // A confirmed purchase (or the tenure gift) made the player a citizen: get
-  // out of the way of 0303's "restart to apply" popup at once.
-  private readonly onGrantedMidSession = (): void => {
+  // out of the way of 0303's "restart to apply" popup at once. Another
+  // product's purchase leaves this popup alone.
+  private readonly onGrantedMidSession = (event: Event): void => {
+    const detail = (event as CustomEvent<CitizenshipGrantedMidSessionDetail>)
+      .detail;
+    if (
+      detail?.source === "purchase" &&
+      detail.productId !== undefined &&
+      detail.productId !== "citizenship"
+    ) {
+      return;
+    }
     if (this.isVisible) {
       this.close();
+    }
+  };
+
+  private readonly onPurchaseGranted = (event: Event): void => {
+    const detail = (event as CustomEvent<PurchaseGrantedDetail>).detail;
+    if (detail?.productId === "citizenship" && this.isVisible) {
+      this.close();
+    }
+  };
+
+  private readonly onFlowState = (event: Event): void => {
+    const detail = (event as CustomEvent<PurchaseFlowStateDetail>).detail;
+    if (detail?.productId === "citizenship" && this.isVisible) {
+      this.requestUpdate();
     }
   };
 
@@ -236,6 +295,7 @@ export class CitizenshipExplainerModal extends LitElement {
     }
     this.showPrivateLobbyLine = showPrivateLobbyLine;
     this.purchaseError = false;
+    this.isGuestFlowFromThisPopup = false;
     this.isVisible = true;
     this.requestUpdate();
     FlashistFacade.instance.logCitizenshipExplainerOpenedEvent(
@@ -243,11 +303,16 @@ export class CitizenshipExplainerModal extends LitElement {
     );
   }
 
-  /** Also Main.ts's pre-start close (PreStartModals.ts). */
+  /**
+   * Also Main.ts's pre-start close (PreStartModals.ts). Tells the purchase
+   * coordinator (spec §15.2 item 3): a guest flow from here then never opens
+   * the payment window, and hands off to the login restart.
+   */
   close() {
     this.showGeneration++;
     this.isVisible = false;
     this.requestUpdate();
+    getPurchaseCoordinator()?.surfaceClosed("citizenship");
   }
 
   private sourceSuffix(source: CitizenshipExplainerSource): string {
@@ -303,6 +368,45 @@ export class CitizenshipExplainerModal extends LitElement {
     void this.findCard()?.logIn(
       flashistConstants.uiElementIds.citizenshipLoginExplainer,
     );
+  };
+
+  private readonly onLoginAndBuyTap = (): void =>
+    this.purchaseThroughCoordinator(
+      flashistConstants.uiElementIds.purchaseLoginCitizenshipExplainer,
+    );
+
+  // The Buy after `needs_tap` or a failed purchase, inside a guest flow.
+  private readonly onFlowBuyTap = (): void =>
+    this.purchaseThroughCoordinator(
+      flashistConstants.uiElementIds.purchaseCitizenshipExplainer,
+    );
+
+  // Called inside the tap, so the login dialog opens from the player's gesture.
+  private purchaseThroughCoordinator(tapElementId: string): void {
+    const coordinator = getPurchaseCoordinator();
+    if (coordinator === null) {
+      return;
+    }
+    this.isGuestFlowFromThisPopup = true;
+    this.requestUpdate();
+    void coordinator.requestPurchase({
+      productId: "citizenship",
+      tapElementId,
+    });
+  }
+
+  // Set once the page is reloading, as the card's own Restart game button.
+  private isRestartInFlight = false;
+
+  private readonly onRestartTap = (): void => {
+    if (this.isRestartInFlight) {
+      return;
+    }
+    this.isRestartInFlight = restartAfterProfileReadFailure({
+      isOnStartScreen,
+      reload: () => FlashistFacade.instance.reloadApp(),
+      storage: sessionStorageOrNull(),
+    });
   };
 
   private readonly onCloseTap = (): void => {
@@ -375,9 +479,15 @@ export class CitizenshipExplainerModal extends LitElement {
     `;
   }
 
-  // Driven entirely by the card's offer — the same rule as the card's own
-  // buttons (CitizenshipOffer.ts).
+  // Driven by the card's offer — the same rule as the card's own buttons
+  // (CitizenshipOffer.ts) — except while this popup's guest flow runs.
   private renderAction(offer: CitizenshipOffer) {
+    const flowState = this.isGuestFlowFromThisPopup
+      ? (getPurchaseCoordinator()?.currentState("citizenship") ?? "idle")
+      : "idle";
+    if (flowState !== "idle" && flowState !== "granted") {
+      return this.renderGuestFlow(flowState);
+    }
     switch (offer.kind) {
       case "buy":
         return html`
@@ -395,10 +505,13 @@ export class CitizenshipExplainerModal extends LitElement {
           <p id="citizenship-explainer-login-hint" class="muted">
             ${translateText("citizenship_explainer.login_hint")}
           </p>
+          ${offer.canLogIn && offer.price !== null
+            ? this.renderLoginAndBuyButton(offer.price)
+            : nothing}
           ${offer.canLogIn
             ? html`<button
                 id="citizenship-explainer-login"
-                class="primary-btn"
+                class=${offer.price !== null ? "secondary-btn" : "primary-btn"}
                 @click=${this.onLoginTap}
               >
                 ${translateText("citizenship_card.login_cta")}
@@ -445,6 +558,65 @@ export class CitizenshipExplainerModal extends LitElement {
     }
   }
 
+  private renderLoginAndBuyButton(price: string) {
+    return html`<button
+      id="citizenship-explainer-login-and-buy"
+      class="primary-btn"
+      @click=${this.onLoginAndBuyTap}
+    >
+      ${translateText("citizenship_paid.login_and_buy_cta")} — ${price}
+    </button>`;
+  }
+
+  private renderGuestFlow(
+    state: Exclude<PurchaseFlowState, "idle" | "granted">,
+  ) {
+    const price =
+      FlashistFacade.instance.getCatalogProduct("citizenship")?.price ?? null;
+    switch (state) {
+      case "logging_in":
+      case "preparing":
+      case "paying":
+      case "cannot_verify":
+      case "earlier_purchase_pending":
+        return this.renderFlowLine(`purchase_flow.${state}`);
+      case "login_cancelled":
+        return html`${this.renderFlowLine("purchase_flow.login_cancelled")}
+        ${price !== null ? this.renderLoginAndBuyButton(price) : nothing}`;
+      case "needs_tap":
+      case "error":
+        return html`${this.renderFlowLine(`purchase_flow.${state}`)}
+          <button
+            id="citizenship-explainer-flow-buy"
+            class="primary-btn"
+            @click=${this.onFlowBuyTap}
+          >
+            ${translateText("citizenship_paid.buy_cta")}${price !== null
+              ? ` — ${price}`
+              : ""}
+          </button>`;
+      case "already_owned":
+        return this.renderFlowLine(
+          getProductClientConfig("citizenship").alreadyOwnedLineKey,
+        );
+      case "profile_unavailable":
+        return html`${this.renderFlowLine("citizenship_status.read_failed")}
+          <button
+            id="citizenship-explainer-flow-restart"
+            class="primary-btn"
+            @click=${this.onRestartTap}
+          >
+            ${translateText("citizenship_status.restart")}
+          </button>`;
+    }
+  }
+
+  private renderFlowLine(textKey: string) {
+    return html`<p id="citizenship-explainer-flow-status" class="muted">
+      ${translateText(textKey)}
+    </p>`;
+  }
+
   // Under either Buy button, for the popup's own tap only.
   private renderPurchaseError() {
     return this.purchaseError
@@ -452,5 +624,14 @@ export class CitizenshipExplainerModal extends LitElement {
           ${translateText("citizenship_paid.purchase_error")}
         </p>`
       : nothing;
+  }
+}
+
+// sessionStorage can throw on access inside an iframe with blocked storage.
+function sessionStorageOrNull(): Storage | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
   }
 }

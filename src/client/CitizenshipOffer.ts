@@ -36,8 +36,11 @@ export const CITIZENSHIP_OFFER_CHANGED_EVENT = PURCHASE_OFFER_CHANGED_EVENT;
 export type CitizenshipOffer =
   /** No read applied yet, a re-read in flight, or the card not yet revealed. */
   | { kind: "checking" }
-  /** Not logged in. `canLogIn` is false when a login button would be dead. */
-  | { kind: "guest"; canLogIn: boolean }
+  /**
+   * Not logged in. `canLogIn` is false when a login button would be dead;
+   * `price` is the catalog price ("Log in and buy" needs one, task 0495).
+   */
+  | { kind: "guest"; canLogIn: boolean; price: string | null }
   /** A citizen, or a server-confirmed paid grant whose re-read has not landed. */
   | { kind: "citizen" }
   /** An earned citizen whose verified read says "not paid" (task 0409). */
@@ -110,8 +113,6 @@ export function deriveCitizenshipOffer(
       return profile !== null && profile.isCitizen
         ? { kind: "citizen_buy", price: offer.price }
         : offer;
-    case "guest":
-      return { kind: "guest", canLogIn: offer.canLogIn };
     case "cannot_verify":
       // The citizenship kind never answers this; fail closed like a citizen.
       return { kind: "citizen" };

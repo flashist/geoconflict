@@ -13,8 +13,9 @@ import { runProductPurchase } from "./ProductPurchase";
 export type CitizenshipPurchaseResult = "granted" | "error";
 
 export async function runCitizenshipPurchase(): Promise<CitizenshipPurchaseResult> {
-  // The server never refuses citizenship as already owned (spec §5.3), so
-  // that answer cannot arrive here; folding it into "error" is fail-safe.
+  // The server never refuses citizenship as already owned (spec §5.3), and
+  // "not_opened" needs an option this call does not pass, so neither arrives
+  // here; folding them into "error" is fail-safe.
   const result = await runProductPurchase("citizenship");
   return result === "granted" ? "granted" : "error";
 }

@@ -52,7 +52,7 @@ original prose is `0477`'s appendix (from `done/plan-sprint-5.md` § *8a*).
 1. **Who may buy: any logged-in player.** Owner picked **"Everybody (Recommended)"** — *"Any logged-in player. Buying
    also makes them a full paid citizen, so it's a second way in."* (batch 1, answer 1). Not only players who already
    hold a citizen name: the old "styles are an upsell only" rule is replaced.
-2. **A guest logs in first**, through the shared purchase flow [`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
+2. **A guest logs in first**, through the shared purchase flow [`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
    Owner, verbatim: *"if it's a guest - we're asking to log in (ideally, after login we should make a seamless
    transition to the purchase flow without additional popups or steps, if possible)"* (batch 1, answer 2). No
    guest-only purchase.
@@ -128,7 +128,7 @@ original prose is `0477`'s appendix (from `done/plan-sprint-5.md` § *8a*).
 
 ## Notes
 
-- **Depends on:** 0485, 0484
+- **Depends on:** 0485, 0495, 0496 — `0495` (B3, guest "Log in and buy" flow) and `0496` (B4, durable items base) (OD-3, OWNER RULING 2026-10-24, verbatim **"Full flow, B3 + B4 (Recommended)"**, live `AskUserQuestion` in the lead session, relayed by `fkit-lead` to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Replaces the earlier wait on the design task, whose spec is now approved; quoted in the shared purchase-flow spec §9.1)
 - **Blocks:** nothing
 - **From:** [`0477`](../../done/0477-discussion-nickname-styling-who-may-buy-it-price-and-outcome/brief.md) (outcome
   File, 2026-10-24).

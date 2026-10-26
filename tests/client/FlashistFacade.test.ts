@@ -1,12 +1,19 @@
 /**
  * @jest-environment jsdom
  */
+// The catalog fetch schedules session reconciliation through a dynamic import;
+// a mock makes "scheduled or not" observable (task 0495).
+jest.mock("../../src/client/PaymentsReconciliation", () => ({
+  schedulePaymentsReconciliation: jest.fn(),
+}));
+
 import {
   FlashistFacade,
   flashistConstants,
   isTesterMarkerSet,
   reloadWithoutHash,
 } from "../../src/client/flashist/FlashistFacade";
+import { schedulePaymentsReconciliation } from "../../src/client/PaymentsReconciliation";
 import { AFTER_LONG_SESSION_REFRESH_KEY } from "../../src/client/PlatformDegradedAnalytics";
 import {
   isPlatformDialogOpen,
@@ -243,6 +250,166 @@ describe("FlashistFacade payments (task 0019)", () => {
 
     getPurchases.mockRejectedValue(new Error("sdk error"));
     await expect(facade.getSignedPurchases()).resolves.toBeNull();
+  });
+
+  // Task 0495: "nothing pending" kept apart from "could not tell".
+  it("getSignedPurchasesResult: signed, none, and failed for every unknown", async () => {
+    const getPurchases = jest.fn();
+    const facade = makePaymentsFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: {
+        getPayments: jest.fn().mockResolvedValue({
+          getCatalog: jest.fn().mockResolvedValue([]),
+          getPurchases,
+        }),
+      },
+    });
+    await expect(facade.getSignedPurchasesResult()).resolves.toEqual({
+      kind: "failed",
+    });
+    expect(getPurchases).not.toHaveBeenCalled();
+    await initPayments(facade);
+
+    getPurchases.mockResolvedValue(
+      Object.assign([{ productID: "citizenship" }], { signature: "sig.list" }),
+    );
+    await expect(facade.getSignedPurchasesResult()).resolves.toEqual({
+      kind: "signed",
+      signature: "sig.list",
+    });
+
+    getPurchases.mockResolvedValue(Object.assign([], { signature: "sig.e" }));
+    await expect(facade.getSignedPurchasesResult()).resolves.toEqual({
+      kind: "none",
+    });
+
+    getPurchases.mockResolvedValue([{ productID: "citizenship" }]);
+    await expect(facade.getSignedPurchasesResult()).resolves.toEqual({
+      kind: "failed",
+    });
+    await expect(facade.getSignedPurchases()).resolves.toBeNull();
+
+    getPurchases.mockRejectedValue(new Error("sdk error"));
+    await expect(facade.getSignedPurchasesResult()).resolves.toEqual({
+      kind: "failed",
+    });
+  });
+});
+
+describe("FlashistFacade.refreshPaymentsAfterLogin (task 0495)", () => {
+  const NEW_PRODUCT = { ...CITIZENSHIP_PRODUCT, price: "149 YAN" };
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  async function readyFacade(getPayments: jest.Mock) {
+    const bootPayments = {
+      getCatalog: jest.fn().mockResolvedValue([CITIZENSHIP_PRODUCT]),
+      purchase: jest.fn().mockResolvedValue({ signature: "boot" }),
+    };
+    getPayments.mockResolvedValueOnce(bootPayments);
+    const facade = makePaymentsFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { getPayments },
+    });
+    await initPayments(facade);
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+    return facade;
+  }
+
+  const initPromiseOf = (facade: FlashistFacade) =>
+    (facade as unknown as { paymentsInitPromise?: Promise<void> })
+      .paymentsInitPromise;
+
+  it("swaps in the new payments object and catalog and resolves true; status stays ready, no reconcile scheduled", async () => {
+    const getPayments = jest.fn();
+    const facade = await readyFacade(getPayments);
+    const scheduledBefore = (schedulePaymentsReconciliation as jest.Mock).mock
+      .calls.length;
+    expect(scheduledBefore).toBeGreaterThan(0);
+    const initPromise = initPromiseOf(facade);
+    getPayments.mockResolvedValueOnce({
+      getCatalog: jest.fn().mockResolvedValue([NEW_PRODUCT]),
+      purchase: jest.fn().mockResolvedValue({ signature: "new" }),
+    });
+
+    await expect(facade.refreshPaymentsAfterLogin(5_000)).resolves.toBe(true);
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+
+    expect(getPayments).toHaveBeenLastCalledWith({ signed: true });
+    expect(facade.getPaymentsCatalogStatus()).toBe("ready");
+    expect(facade.getCatalogProduct("citizenship")?.price).toBe("149 YAN");
+    await expect(
+      facade.purchaseCatalogItem("citizenship", "intent"),
+    ).resolves.toEqual({ signature: "new" });
+    expect(
+      (schedulePaymentsReconciliation as jest.Mock).mock.calls.length,
+    ).toBe(scheduledBefore);
+    expect(initPromiseOf(facade)).toBe(initPromise);
+  });
+
+  it("a failure resolves false and keeps the old object and 'ready' — never 'failed'", async () => {
+    const getPayments = jest.fn();
+    const facade = await readyFacade(getPayments);
+    getPayments.mockRejectedValueOnce(new Error("sdk down"));
+
+    await expect(facade.refreshPaymentsAfterLogin(5_000)).resolves.toBe(false);
+
+    expect(facade.getPaymentsCatalogStatus()).toBe("ready");
+    expect(facade.getCatalogProduct("citizenship")?.price).toBe("99 YAN");
+    await expect(
+      facade.purchaseCatalogItem("citizenship", "intent"),
+    ).resolves.toEqual({ signature: "boot" });
+  });
+
+  it("a timeout resolves false, keeps the old object, and the late answer is thrown away", async () => {
+    const getPayments = jest.fn();
+    const facade = await readyFacade(getPayments);
+    jest.useFakeTimers();
+    let answer: (value: unknown) => void = () => {};
+    getPayments.mockReturnValueOnce(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+
+    const refresh = facade.refreshPaymentsAfterLogin(5_000);
+    await jest.advanceTimersByTimeAsync(5_000);
+    await expect(refresh).resolves.toBe(false);
+    answer({
+      getCatalog: jest.fn().mockResolvedValue([NEW_PRODUCT]),
+      purchase: jest.fn().mockResolvedValue({ signature: "late" }),
+    });
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+
+    expect(facade.getPaymentsCatalogStatus()).toBe("ready");
+    expect(facade.getCatalogProduct("citizenship")?.price).toBe("99 YAN");
+    await expect(
+      facade.purchaseCatalogItem("citizenship", "intent"),
+    ).resolves.toEqual({ signature: "boot" });
+  });
+
+  it("does nothing and resolves false unless the catalog is ready and the SDK is present", async () => {
+    const getPayments = jest.fn();
+    const notReady = makePaymentsFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: { getPayments },
+    });
+    await expect(notReady.refreshPaymentsAfterLogin(5_000)).resolves.toBe(
+      false,
+    );
+    expect(getPayments).not.toHaveBeenCalled();
+
+    const noSdk = makePaymentsFacade({ yaGamesAvailable: false });
+    await expect(noSdk.refreshPaymentsAfterLogin(5_000)).resolves.toBe(false);
+    expect(noSdk.getPaymentsCatalogStatus()).toBe("idle");
   });
 });
 

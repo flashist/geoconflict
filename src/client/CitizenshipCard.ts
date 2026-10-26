@@ -72,8 +72,9 @@ export const CITIZENSHIP_LOGIN_REQUESTED_EVENT = "citizenship-login-requested";
 
 /**
  * Dispatched (bubbling, composed) only after the Yandex auth dialog reported
- * SUCCESS from a player's own tap on the guest card's login button. `Client` in
- * Main.ts listens and restarts the page so the whole start sequence re-runs with
+ * SUCCESS from a player's own tap on the guest card's login button, or by the
+ * purchase flow's hand-off after a "Log in and buy" that ended without a grant
+ * (ADR-125). `Client` in Main.ts listens and restarts the page so the whole start sequence re-runs with
  * the player logged in (task 0273, owner ruling D3). A cancelled dialog does not
  * dispatch it.
  */
@@ -532,8 +533,16 @@ export class CitizenshipCard
     };
   }
 
-  /** PurchaseProfileSource: no "checking" publish, so a buy looks as before. */
-  public reread(): Promise<void> {
+  /**
+   * PurchaseProfileSource. By default no "checking" publish, so a logged-in buy
+   * looks as before; the guest flow's read after its login asks for it (task
+   * 0495), the same way as the late-auth read.
+   */
+  public reread(options?: { showChecking?: boolean }): Promise<void> {
+    if (options?.showChecking === true) {
+      publishProfileVerificationStatus("unknown");
+      this.requestUpdate();
+    }
     return this.refreshProfile();
   }
 
@@ -607,25 +616,33 @@ export class CitizenshipCard
         return;
       }
       // The login happened mid-page-load, so nothing has a session token: the
-      // boot login either never ran (guest) or ran as a guest. Ask for a full
-      // restart; Main.ts decides whether it is safe, and falls back to a profile
-      // re-read when it is not (mid-match, or already restarted once).
-      flashist_logEventAnalytics(
-        flashistConstants.analyticEvents.PROFILE_LOGIN_RESTART_REQUESTED,
-      );
-      this.dispatchEvent(
-        new CustomEvent<CitizenshipLoginSucceededDetail>(
-          CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
-          {
-            bubbles: true,
-            composed: true,
-            detail: { fallback: () => void this.refreshProfile() },
-          },
-        ),
-      );
+      // boot login either never ran (guest) or ran as a guest.
+      this.requestLoginRestart();
     } finally {
       this.isAuthDialogOpen = false;
     }
+  }
+
+  /**
+   * Ask for the D3 login restart: after this card's own login, or as the
+   * purchase flow's hand-off (ADR-125). Main.ts decides whether it is safe, and
+   * falls back to a profile re-read when it is not (in a lobby, a join or a
+   * match, or already restarted once).
+   */
+  public requestLoginRestart(): void {
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.PROFILE_LOGIN_RESTART_REQUESTED,
+    );
+    this.dispatchEvent(
+      new CustomEvent<CitizenshipLoginSucceededDetail>(
+        CITIZENSHIP_LOGIN_SUCCEEDED_EVENT,
+        {
+          bubbles: true,
+          composed: true,
+          detail: { fallback: () => void this.refreshProfile() },
+        },
+      ),
+    );
   }
 
   render() {

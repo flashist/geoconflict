@@ -161,11 +161,22 @@ describe("PaymentsApiClient", () => {
     await expect(completePurchase("sig.payload")).resolves.toBeNull();
   });
 
-  it("reconcilePurchases returns the processed token list", async () => {
+  it("reconcilePurchases returns the processed token list; a missing failedCount reads as 0", async () => {
     stubFetch(200, { processedTokens: ["tok-1", "tok-2"] });
     await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
       kind: "ok",
       processedTokens: ["tok-1", "tok-2"],
+      failedCount: 0,
+    });
+  });
+
+  // Task 0495 (OQ-1): the guest flow stops when any pending entry failed.
+  it("reconcilePurchases passes failedCount through", async () => {
+    stubFetch(200, { processedTokens: ["tok-1"], failedCount: 2 });
+    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+      kind: "ok",
+      processedTokens: ["tok-1"],
+      failedCount: 2,
     });
   });
 

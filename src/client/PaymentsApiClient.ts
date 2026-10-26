@@ -63,7 +63,7 @@ export type CreateIntentResult =
   | { kind: "failed" };
 
 export type ReconcileResult =
-  | { kind: "ok"; processedTokens: string[] }
+  | { kind: "ok"; processedTokens: string[]; failedCount: number }
   | { kind: "failed" };
 
 const ALREADY_OWNED_STATUS = 409;
@@ -131,7 +131,8 @@ export async function completePurchase(
 
 /**
  * Post the signed getPurchases() output; `ok` carries every token now safe to
- * consume (including already-processed strays).
+ * consume (including already-processed strays). A box older than task 0492
+ * never sends `failedCount`, so it reads as 0.
  */
 export async function reconcilePurchases(
   signature: string,
@@ -139,6 +140,10 @@ export async function reconcilePurchases(
   const json = await postJson("/v1/payments/yandex/reconcile", { signature });
   const parsed = PurchaseReconcileResponseSchema.safeParse(json);
   return parsed.success
-    ? { kind: "ok", processedTokens: parsed.data.processedTokens }
+    ? {
+        kind: "ok",
+        processedTokens: parsed.data.processedTokens,
+        failedCount: parsed.data.failedCount ?? 0,
+      }
     : { kind: "failed" };
 }

@@ -11,6 +11,7 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     instance: {
       getPaymentsCatalogStatus: jest.fn(),
       getSignedPurchases: jest.fn(),
+      getSignedPurchasesResult: jest.fn(),
       consumePurchase: jest.fn(),
       // Task 0236 kill switch — enabled by default in beforeEach.
       isCitizenshipSurfacesEnabled: jest.fn(),
@@ -26,6 +27,7 @@ import { FlashistFacade } from "../../src/client/flashist/FlashistFacade";
 import { reconcilePurchases } from "../../src/client/PaymentsApiClient";
 import {
   PURCHASES_RECONCILED_EVENT,
+  reconcilePurchasesNow,
   resetPaymentsReconciliationForTests,
   schedulePaymentsReconciliation,
 } from "../../src/client/PaymentsReconciliation";
@@ -34,6 +36,8 @@ const getPaymentsCatalogStatus = FlashistFacade.instance
   .getPaymentsCatalogStatus as jest.Mock;
 const getSignedPurchases = FlashistFacade.instance
   .getSignedPurchases as jest.Mock;
+const getSignedPurchasesResult = FlashistFacade.instance
+  .getSignedPurchasesResult as jest.Mock;
 const consumePurchase = FlashistFacade.instance.consumePurchase as jest.Mock;
 const isCitizenshipSurfacesEnabled = FlashistFacade.instance
   .isCitizenshipSurfacesEnabled as jest.Mock;
@@ -185,5 +189,151 @@ describe("PaymentsReconciliation", () => {
 
     expect(reconcile).toHaveBeenCalledTimes(1);
     expect(reconciledEvents).toBe(1);
+  });
+});
+
+// Task 0495: reconcile right now, for a guest who just logged in to buy.
+describe("reconcilePurchasesNow", () => {
+  let reconciledEvents: number;
+  const onReconciled = () => {
+    reconciledEvents += 1;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetPaymentsReconciliationForTests();
+    reconciledEvents = 0;
+    window.addEventListener(PURCHASES_RECONCILED_EVENT, onReconciled);
+    getPaymentsCatalogStatus.mockReturnValue("ready");
+    isCitizenshipSurfacesEnabled.mockResolvedValue(true);
+    getSignedPurchases.mockResolvedValue({ signature: "sig.list" });
+    getSignedPurchasesResult.mockResolvedValue({
+      kind: "signed",
+      signature: "sig.list",
+    });
+    reconcile.mockResolvedValue({
+      kind: "ok",
+      processedTokens: ["tok-1", "tok-2"],
+      failedCount: 0,
+    });
+    consumePurchase.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    window.removeEventListener(PURCHASES_RECONCILED_EVENT, onReconciled);
+    jest.useRealTimers();
+  });
+
+  it("kill switch off → failed, with no POST", async () => {
+    isCitizenshipSurfacesEnabled.mockResolvedValue(false);
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("failed");
+    expect(getSignedPurchasesResult).not.toHaveBeenCalled();
+    expect(reconcile).not.toHaveBeenCalled();
+  });
+
+  it("catalog not ready or an SDK failure (the facade says failed) → failed, with no POST", async () => {
+    getSignedPurchasesResult.mockResolvedValue({ kind: "failed" });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("failed");
+    expect(reconcile).not.toHaveBeenCalled();
+  });
+
+  it("nothing pending → none, with no POST", async () => {
+    getSignedPurchasesResult.mockResolvedValue({ kind: "none" });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("none");
+    expect(reconcile).not.toHaveBeenCalled();
+    expect(reconciledEvents).toBe(0);
+  });
+
+  it("processed → processed: the event fires, and the consumes do not block it", async () => {
+    consumePurchase.mockReturnValue(new Promise(() => {}));
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("processed");
+    expect(reconcile).toHaveBeenCalledWith("sig.list");
+    expect(reconciledEvents).toBe(1);
+    expect(consumePurchase).toHaveBeenCalledWith("tok-1");
+  });
+
+  it("an empty answer → none, no event", async () => {
+    reconcile.mockResolvedValue({
+      kind: "ok",
+      processedTokens: [],
+      failedCount: 0,
+    });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("none");
+    expect(reconciledEvents).toBe(0);
+  });
+
+  it("failedCount > 0 → pending_ungranted; the processed tokens are still signalled and consumed (OQ-1)", async () => {
+    reconcile.mockResolvedValue({
+      kind: "ok",
+      processedTokens: ["tok-1"],
+      failedCount: 1,
+    });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe(
+      "pending_ungranted",
+    );
+    await flushAsync();
+    expect(reconciledEvents).toBe(1);
+    expect(consumePurchase).toHaveBeenCalledWith("tok-1");
+  });
+
+  it("failedCount > 0 with nothing processed → pending_ungranted, no event", async () => {
+    reconcile.mockResolvedValue({
+      kind: "ok",
+      processedTokens: [],
+      failedCount: 2,
+    });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe(
+      "pending_ungranted",
+    );
+    expect(reconciledEvents).toBe(0);
+  });
+
+  it("an HTTP failure → failed, never pending_ungranted (review R1)", async () => {
+    reconcile.mockResolvedValue({ kind: "failed" });
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("failed");
+  });
+
+  it("a throw anywhere → failed, never a rejection", async () => {
+    getSignedPurchasesResult.mockRejectedValue(new Error("boom"));
+
+    await expect(reconcilePurchasesNow(10_000)).resolves.toBe("failed");
+  });
+
+  it("no answer in time → timeout; a late finish still signals and consumes", async () => {
+    jest.useFakeTimers();
+    let answer: (value: unknown) => void = () => {};
+    reconcile.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+
+    const result = reconcilePurchasesNow(10_000);
+    await jest.advanceTimersByTimeAsync(10_000);
+    await expect(result).resolves.toBe("timeout");
+
+    answer({ kind: "ok", processedTokens: ["tok-1"], failedCount: 0 });
+    await flushAsync();
+    expect(reconciledEvents).toBe(1);
+    expect(consumePurchase).toHaveBeenCalledWith("tok-1");
+  });
+
+  it("ignores the once-per-session latch: runs after the boot pass, and twice", async () => {
+    schedulePaymentsReconciliation();
+    await flushAsync();
+    expect(reconcile).toHaveBeenCalledTimes(1);
+
+    await reconcilePurchasesNow(10_000);
+    await reconcilePurchasesNow(10_000);
+
+    expect(reconcile).toHaveBeenCalledTimes(3);
   });
 });
