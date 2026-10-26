@@ -25,6 +25,7 @@ import { CitizenshipRestartModal } from "./CitizenshipRestartModal";
 import {
   CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
   createCitizenshipRestartOffer,
+  type CitizenshipGrantedMidSessionDetail,
   type CitizenshipRestartOffer,
 } from "./CitizenshipRestartOffer";
 import "./TenureGrantModal";
@@ -67,6 +68,13 @@ import { MatchmakingModal } from "./Matchmaking";
 import { logMatchEndAnalytics } from "./MatchStartAnalytics";
 import { NewsModal } from "./NewsModal";
 import { PrivateLobbyAccess } from "./PrivateLobbyAccess";
+import { runProductPurchase } from "./ProductPurchase";
+import {
+  createPurchaseCoordinator,
+  type PurchaseCoordinator,
+  type PurchaseProfileSource,
+  setPurchaseCoordinator,
+} from "./PurchaseCoordinator";
 import { lobbyIdFromJoinHash } from "./PrivateLobbyInvite";
 import { startPerformanceMonitor } from "./PerformanceMonitor";
 import { startProfileSession } from "./ProfileSession";
@@ -200,13 +208,28 @@ class Client {
       isAwayFromStartScreen: () => this.gameStop !== null,
       isSurfacesEnabled: () =>
         FlashistFacade.instance.isCitizenshipSurfacesEnabled(),
-      showPrompt: () => {
+      showPrompt: (productId) => {
         const modal = document.querySelector("citizenship-restart-modal");
         if (modal instanceof CitizenshipRestartModal) {
-          modal.show(() => this.citizenshipRestartOffer.restart());
+          modal.show(() => this.citizenshipRestartOffer.restart(), productId);
         }
       },
       reload: () => FlashistFacade.instance.reloadApp(),
+    });
+  // The page's one purchase flow for every Buy surface (task 0494).
+  private readonly purchaseCoordinator: PurchaseCoordinator =
+    createPurchaseCoordinator({
+      profileSource: () => {
+        const card = document.querySelector("citizenship-card");
+        return card !== null && "snapshot" in card
+          ? (card as unknown as PurchaseProfileSource)
+          : null;
+      },
+      runProductPurchase,
+      catalogPrice: (productId) =>
+        FlashistFacade.instance.getCatalogProduct(productId)?.price ?? null,
+      logUiTap: (tapElementId) =>
+        FlashistFacade.instance.logUiTapEvent(tapElementId),
     });
   private eventBus: EventBus = new EventBus();
   private firstActionFired = false;
@@ -241,6 +264,7 @@ class Client {
   constructor() {}
 
   initialize(): void {
+    setPurchaseCoordinator(this.purchaseCoordinator);
     const gameVersion = document.getElementById(
       "game-version",
     ) as HTMLDivElement;
@@ -370,10 +394,15 @@ class Client {
         fallback: detail.fallback,
       });
     });
-    // A purchase (or the tenure gift) made the player a citizen mid-session:
-    // offer a restart so everything read at load catches up (task 0303).
-    window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, () => {
-      this.citizenshipRestartOffer.onGranted().catch((error) => {
+    // Any completed purchase (ADR-125), or the tenure gift that made the player
+    // a citizen: offer a restart so everything read at load catches up (task
+    // 0303), with that product's text and events.
+    window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, (event) => {
+      const detail = (event as CustomEvent<CitizenshipGrantedMidSessionDetail>)
+        .detail;
+      const productId =
+        detail?.source === "purchase" ? detail.productId : undefined;
+      this.citizenshipRestartOffer.onGranted(productId).catch((error) => {
         console.warn("Citizenship restart offer failed:", error);
       });
     });

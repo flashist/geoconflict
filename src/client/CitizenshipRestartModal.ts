@@ -1,9 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import {
-  flashist_logEventAnalytics,
-  flashistConstants,
-} from "./flashist/FlashistFacade";
+import type { PaymentProductId } from "../core/profile/PaymentsContract";
+import { flashist_logEventAnalytics } from "./flashist/FlashistFacade";
+import { getProductClientConfig } from "./ProductClientConfig";
 import { translateText } from "./Utils";
 
 /**
@@ -20,6 +19,9 @@ export class CitizenshipRestartModal extends LitElement {
   isVisible = false;
 
   private onRestart: (() => boolean) | null = null;
+  // The product this popup is about: its title, body and events (task 0494).
+  @state()
+  private productId: PaymentProductId = "citizenship";
   // `Shown` is logged once per page load: a refused Restart re-shows the same
   // offer later (CitizenshipRestartOffer), and that is not a second offer.
   private shownLogged = false;
@@ -108,11 +110,12 @@ export class CitizenshipRestartModal extends LitElement {
   `;
 
   render() {
+    const config = getProductClientConfig(this.productId);
     return html`
       <div class="modal-overlay ${this.isVisible ? "visible" : ""}">
         <div class="modal-box" role="dialog" aria-modal="true">
-          <h2>${translateText("citizenship_restart_modal.title")}</h2>
-          <p>${translateText("citizenship_restart_modal.body")}</p>
+          <h2>${translateText(config.restartPromptTitleKey)}</h2>
+          <p>${translateText(config.restartPromptBodyKey)}</p>
           <div class="button-container">
             <button
               id="citizenship-restart-modal-restart"
@@ -135,8 +138,9 @@ export class CitizenshipRestartModal extends LitElement {
   }
 
   /** `onRestart` returns true when the page is reloading. */
-  show(onRestart: () => boolean) {
+  show(onRestart: () => boolean, productId: PaymentProductId = "citizenship") {
     this.onRestart = onRestart;
+    this.productId = productId;
     this.isVisible = true;
     this.requestUpdate();
     if (this.shownLogged) {
@@ -144,7 +148,7 @@ export class CitizenshipRestartModal extends LitElement {
     }
     this.shownLogged = true;
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.CITIZENSHIP_RESTART_PROMPT_SHOWN,
+      getProductClientConfig(productId).analytics.restartPrompt.shown,
     );
   }
 
@@ -167,7 +171,7 @@ export class CitizenshipRestartModal extends LitElement {
 
   private readonly onLaterTap = (): void => {
     flashist_logEventAnalytics(
-      flashistConstants.analyticEvents.CITIZENSHIP_RESTART_PROMPT_LATER,
+      getProductClientConfig(this.productId).analytics.restartPrompt.later,
     );
     this.hide();
   };

@@ -41,6 +41,7 @@ const ALLOWED_ATTRIBUTE_KEYS: Record<string, readonly string[]> = {
   "geoconflict.profile.login.verification": ["outcome"],
   "geoconflict.profile.login.verification.stale_age": ["bracket"],
   "geoconflict.profile.tenure.claims": ["outcome"],
+  "geoconflict.profile.rewarded_match_xp.grants": ["outcome"],
   "geoconflict.profile.alert.relay": ["result", "keyed"],
   "geoconflict.profile.resolve.vouch": ["outcome"],
   "geoconflict.profile.db.pool.waiting": [],
@@ -149,6 +150,8 @@ describe("createProfileMetrics", () => {
     handle.metrics.sessionRejected("invalid");
     handle.metrics.sessionRejected("absent");
     handle.metrics.tenureClaim("granted");
+    handle.metrics.rewardedMatchXpGrant("granted");
+    handle.metrics.rewardedMatchXpGrant("not_credited");
     handle.metrics.alertRelay("sent", "keyed");
     handle.metrics.alertRelay("deduped", "keyed");
     handle.metrics.alertRelay("rejected", "unkeyed");
@@ -170,6 +173,13 @@ describe("createProfileMetrics", () => {
     ).toEqual(["absent", "expired", "invalid"]);
     expect(JSON.stringify(rejected)).not.toContain("legacy");
     find(collected, "geoconflict.profile.tenure.claims");
+    const rewarded = find(
+      collected,
+      "geoconflict.profile.rewarded_match_xp.grants",
+    );
+    expect(
+      rewarded.dataPoints.map((point) => point.attributes.outcome).sort(),
+    ).toEqual(["granted", "not_credited"]);
     // Task 0277. The label set is bounded by the AlertRelayResult/AlertRelayKeyed
     // types, never by anything in the request body — the body is written by whoever
     // can reach the route, so a free-text label would let a caller mint time series.
@@ -295,6 +305,7 @@ describe("createProfileMetrics", () => {
     handle.metrics.loginVerification("bad_signature");
     handle.metrics.loginStaleSignatureAge("past_over_7d");
     handle.metrics.tenureClaim("below_minimum");
+    handle.metrics.rewardedMatchXpGrant("duplicate");
     handle.metrics.alertRelay("malformed", "unkeyed");
     handle.metrics.resolveVouch("other_player");
     handle.metrics.httpRequest("/v1/profile", "GET", "4xx", 3);
@@ -501,6 +512,7 @@ describe("startProfileTelemetry", () => {
       noopProfileMetrics.loginVerification("ok");
       noopProfileMetrics.loginStaleSignatureAge("future_5m_15m");
       noopProfileMetrics.tenureClaim("granted");
+      noopProfileMetrics.rewardedMatchXpGrant("granted");
       noopProfileMetrics.resolveVouch("verified");
       noopProfileMetrics.alertRelay("failed", "unkeyed");
     }).not.toThrow();

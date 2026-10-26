@@ -27,6 +27,7 @@ function profile(over: Partial<PlayerProfileView> = {}): PlayerProfileView {
     approvedName: null,
     isPaidCitizen: false,
     isVerifiedRead: false,
+    entitlements: null,
     ...over,
   };
 }

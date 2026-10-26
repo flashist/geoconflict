@@ -29,10 +29,11 @@ select 'uncovered_tables: ' || coalesce(string_agg(table_name::text, ',' order b
    and table_name::text not in (
      'players', 'player_identities', 'player_match_xp_credits', 'player_name_history',
      'player_cosmetic_ownership', 'purchase_intents', 'processed_purchases', 'player_messages',
-     'player_xp_grants', 'schema_migrations', 'tester_role_snapshots'
+     'player_xp_grants', 'schema_migrations', 'tester_role_snapshots', 'player_rewarded_match_xp',
+     'player_entitlements'
    );
 
-\echo '=== row counts + content digests (11 tables) ==='
+\echo '=== row counts + content digests (13 tables) ==='
 select 'players' as tbl, count(*) as n,
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.id), '')) as digest from players t
 union all select 'player_identities', count(*),
@@ -55,6 +56,10 @@ union all select 'schema_migrations', count(*),
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.filename), '')) from schema_migrations t
 union all select 'tester_role_snapshots', count(*),
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.player_id), '')) from tester_role_snapshots t
+union all select 'player_rewarded_match_xp', count(*),
+       md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.game_id, t.player_id), '')) from player_rewarded_match_xp t
+union all select 'player_entitlements', count(*),
+       md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.player_id, t.product_id), '')) from player_entitlements t
 order by 1;
 
 \echo '=== sequences (a lost setval is the classic silent restore defect) ==='

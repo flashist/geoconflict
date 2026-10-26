@@ -36,6 +36,7 @@ import type {
 } from "../../src/profile-server/PaymentsRepository";
 import {
   createApp,
+  intentRefusal,
   type PaymentsRepo,
   type ProfileRepo,
 } from "../../src/profile-server/Routes";
@@ -67,7 +68,10 @@ function mockPaymentsRepo(overrides: Partial<PaymentsRepo> = {}): PaymentsRepo {
     createIntent: jest.fn().mockResolvedValue(INTENT_ID),
     findIntent: jest.fn().mockResolvedValue(null),
     getProcessedPurchase: jest.fn().mockResolvedValue(null),
-    grantPaidPurchase: jest.fn().mockResolvedValue("granted"),
+    grantPaidPurchase: jest
+      .fn()
+      .mockResolvedValue({ status: "granted", becamePaidCitizen: true }),
+    listEntitlements: jest.fn().mockResolvedValue([]),
     ...overrides,
   };
 }
@@ -251,6 +255,38 @@ describe("payments routes", () => {
         .send({ productId: "citizenship" });
       expect(res.status).toBe(500);
     });
+
+    // Task 0496 (spec §5.3): only an owned durable item, for a VERIFIED caller,
+    // is refused. No item id is sellable yet, so the rule is pinned on the kind.
+    it.each([
+      ["durable_item", true, true, "already_owned"],
+      ["durable_item", true, false, null],
+      ["durable_item", false, true, null],
+      ["durable_item", false, false, null],
+      ["citizenship", true, true, null],
+      ["citizenship", true, false, null],
+      ["citizenship", false, true, null],
+      ["citizenship", false, false, null],
+    ] as const)(
+      "intentRefusal(%s, owned=%s, verified=%s) → %s",
+      (kind, isOwned, verified, expected) => {
+        expect(intentRefusal(kind, isOwned, verified)).toBe(expected);
+      },
+    );
+
+    it.each([false, true])(
+      "citizenship never reads ownership (verified=%s) → 200",
+      async (verified) => {
+        const repo = mockPaymentsRepo();
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/intent")
+          .set("Authorization", bearerFor(PLAYER_ID, { verified }))
+          .send({ productId: "citizenship" });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ intentId: INTENT_ID });
+        expect(repo.listEntitlements).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe("POST /v1/payments/yandex/complete", () => {
@@ -262,7 +298,11 @@ describe("payments routes", () => {
         .post("/v1/payments/yandex/complete")
         .send({ signature: sign(purchasePayload()) });
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ success: true, purchaseToken: "tok-1" });
+      expect(res.body).toEqual({
+        success: true,
+        purchaseToken: "tok-1",
+        becamePaidCitizen: true,
+      });
       expect(repo.grantPaidPurchase).toHaveBeenCalledWith(
         expect.objectContaining<Partial<PaidPurchaseGrant>>({
           purchaseToken: "tok-1",
@@ -271,6 +311,41 @@ describe("payments routes", () => {
           intentId: INTENT_ID,
         }),
       );
+    });
+
+    // Task 0492: false = the buyer was already a paid citizen before this grant.
+    it("passes becamePaidCitizen: false through from the grant", async () => {
+      const repo = mockPaymentsRepo({
+        findIntent: jest.fn().mockResolvedValue(openIntent()),
+        grantPaidPurchase: jest
+          .fn()
+          .mockResolvedValue({ status: "granted", becamePaidCitizen: false }),
+      });
+      const res = await request(appWith(repo))
+        .post("/v1/payments/yandex/complete")
+        .send({ signature: sign(purchasePayload()) });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        purchaseToken: "tok-1",
+        becamePaidCitizen: false,
+      });
+    });
+
+    // A parallel /reconcile landed the token first: success, but the server
+    // cannot know whether that grant made the buyer paid, so the field is absent.
+    it("grant returning already_processed ⇒ success WITHOUT becamePaidCitizen", async () => {
+      const repo = mockPaymentsRepo({
+        findIntent: jest.fn().mockResolvedValue(openIntent()),
+        grantPaidPurchase: jest
+          .fn()
+          .mockResolvedValue({ status: "already_processed" }),
+      });
+      const res = await request(appWith(repo))
+        .post("/v1/payments/yandex/complete")
+        .send({ signature: sign(purchasePayload()) });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ success: true, purchaseToken: "tok-1" });
     });
 
     it("is 400 for an invalid signature and never touches the repo", async () => {
@@ -426,6 +501,122 @@ describe("payments routes", () => {
       expect(res.status).toBe(400);
       expect(res.body).toEqual({ error: "invalid_signature" });
     });
+
+    // Task 0492 (B1, spec §6): one throwing entry no longer strands the rest.
+    describe("per-entry isolation", () => {
+      const MIDDLE_TOKEN = "synthetic-reconcile-middle-token-0492-bbbb";
+
+      beforeEach(() => {
+        logLines.length = 0;
+        logCalls.length = 0;
+      });
+
+      const failureLines = () =>
+        logLines.filter((line) => line.includes("reconcile entry failed"));
+
+      it("a grant that throws for the middle entry still grants the other two", async () => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+          grantPaidPurchase: jest
+            .fn()
+            .mockImplementation(async (grant: PaidPurchaseGrant) => {
+              if (grant.purchaseToken === MIDDLE_TOKEN) {
+                throw new Error("grant boom");
+              }
+              return { status: "granted", becamePaidCitizen: true };
+            }),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/reconcile")
+          .send({
+            signature: sign({
+              data: [
+                purchasePayload({ purchaseToken: "tok-a" }),
+                purchasePayload({ purchaseToken: MIDDLE_TOKEN }),
+                purchasePayload({ purchaseToken: "tok-c" }),
+              ],
+            }),
+          });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: ["tok-a", "tok-c"],
+          failedCount: 1,
+        });
+        expect(repo.grantPaidPurchase).toHaveBeenCalledTimes(3);
+        expect(failureLines()).toHaveLength(1);
+        expect(failureLines()[0]).toContain(
+          `token=${MIDDLE_TOKEN.slice(0, 8)}…`,
+        );
+        expect(failureLines()[0]).toContain("grant boom");
+        expect(failureLines()[0]).not.toContain(MIDDLE_TOKEN);
+      });
+
+      it("a receipt lookup that throws for one entry still processes the others", async () => {
+        const repo = mockPaymentsRepo({
+          getProcessedPurchase: jest
+            .fn()
+            .mockImplementation(async (token: string) => {
+              if (token === MIDDLE_TOKEN) {
+                throw new Error("lookup boom");
+              }
+              return token === "tok-done" ? processedReceipt : null;
+            }),
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/reconcile")
+          .send({
+            signature: sign({
+              data: [
+                purchasePayload({ purchaseToken: "tok-done" }),
+                purchasePayload({ purchaseToken: MIDDLE_TOKEN }),
+                purchasePayload({ purchaseToken: "tok-new" }),
+              ],
+            }),
+          });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+          processedTokens: ["tok-done", "tok-new"],
+          failedCount: 1,
+        });
+        expect(repo.grantPaidPurchase).toHaveBeenCalledTimes(1);
+      });
+
+      // Documented change from 500: the database down for every entry is now a
+      // 200 with nothing to consume, and failedCount says why.
+      it("every entry failing ⇒ 200 with no tokens and the failure count", async () => {
+        const repo = mockPaymentsRepo({
+          getProcessedPurchase: jest
+            .fn()
+            .mockRejectedValue(new Error("db down")),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/reconcile")
+          .send({
+            signature: sign({
+              data: [
+                purchasePayload({ purchaseToken: "tok-a" }),
+                purchasePayload({ purchaseToken: "tok-b" }),
+              ],
+            }),
+          });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ processedTokens: [], failedCount: 2 });
+        expect(failureLines()).toHaveLength(2);
+      });
+
+      it("no failed entry ⇒ failedCount left out", async () => {
+        const repo = mockPaymentsRepo({
+          findIntent: jest.fn().mockResolvedValue(openIntent()),
+        });
+        const res = await request(appWith(repo))
+          .post("/v1/payments/yandex/reconcile")
+          .send({ signature: sign({ data: [purchasePayload()] }) });
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({ processedTokens: ["tok-1"] });
+        expect(failureLines()).toEqual([]);
+      });
+    });
   });
 
   // Task 0309: both payment routes log WHICH HMAC construction a real purchase
@@ -561,8 +752,29 @@ describe("payments routes", () => {
           expect(res.status).toBe(200);
         }
       }
-      // Four successful requests ⇒ four label lines; the guard is not vacuous.
-      expect(signatureLines()).toHaveLength(4);
+      // Task 0492: a failing reconcile entry logs its error — prefix only.
+      const failing = signers[0][1]({
+        data: [purchasePayload({ purchaseToken: LONG_TOKEN })],
+      });
+      const failingRes = await request(
+        appWith(
+          mockPaymentsRepo({
+            findIntent: jest.fn().mockResolvedValue(openIntent()),
+            grantPaidPurchase: jest
+              .fn()
+              .mockRejectedValue(new Error("grant boom")),
+          }),
+        ),
+      )
+        .post("/v1/payments/yandex/reconcile")
+        .send({ signature: failing });
+      expect(failingRes.status).toBe(200);
+      expect(failingRes.body).toEqual({ processedTokens: [], failedCount: 1 });
+      expect(
+        logLines.filter((line) => line.includes("reconcile entry failed")),
+      ).toHaveLength(1);
+      // Five verified requests ⇒ five label lines; the guard is not vacuous.
+      expect(signatureLines()).toHaveLength(5);
       // No meta objects: a secret passed as `log.info("…", { signature })`
       // would reach the real JSON log but not logLines.
       for (const args of logCalls) {

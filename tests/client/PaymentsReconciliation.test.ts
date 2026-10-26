@@ -59,7 +59,10 @@ describe("PaymentsReconciliation", () => {
     getPaymentsCatalogStatus.mockReturnValue("ready");
     isCitizenshipSurfacesEnabled.mockResolvedValue(true);
     getSignedPurchases.mockResolvedValue({ signature: "sig.list" });
-    reconcile.mockResolvedValue(["tok-1", "tok-2"]);
+    reconcile.mockResolvedValue({
+      kind: "ok",
+      processedTokens: ["tok-1", "tok-2"],
+    });
     consumePurchase.mockResolvedValue(undefined);
   });
 
@@ -136,7 +139,7 @@ describe("PaymentsReconciliation", () => {
   });
 
   it("fires nothing when the server returns no processed tokens", async () => {
-    reconcile.mockResolvedValue([]);
+    reconcile.mockResolvedValue({ kind: "ok", processedTokens: [] });
 
     schedulePaymentsReconciliation();
     await flushAsync();
@@ -146,7 +149,7 @@ describe("PaymentsReconciliation", () => {
   });
 
   it("fires nothing when the reconcile call fails", async () => {
-    reconcile.mockResolvedValue(null);
+    reconcile.mockResolvedValue({ kind: "failed" });
 
     schedulePaymentsReconciliation();
     await flushAsync();

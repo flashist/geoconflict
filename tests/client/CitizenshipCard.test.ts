@@ -103,6 +103,10 @@ import {
 import { PURCHASES_RECONCILED_EVENT } from "../../src/client/PaymentsReconciliation";
 import { loadPlayerProfileView } from "../../src/client/PlayerProfileView";
 import {
+  createPurchaseCoordinator,
+  setPurchaseCoordinator,
+} from "../../src/client/PurchaseCoordinator";
+import {
   PROFILE_READ_RESTART_MARKER_KEY,
   resetProfileReadRestartForTests,
 } from "../../src/client/ProfileReadRestart";
@@ -186,6 +190,19 @@ describe("CitizenshipCard", () => {
     // Late Yandex login (task 0397): by default the boot answer stands.
     whenYandexAuthorizedLate.mockReturnValue(new Promise(() => {}));
     runPurchase.mockResolvedValue("error");
+    // Task 0494: buys go through the page's purchase coordinator, which
+    // Main.ts registers in production; here it runs over the mocked flow.
+    setPurchaseCoordinator(
+      createPurchaseCoordinator({
+        profileSource: () =>
+          document.querySelector<CitizenshipCard>("citizenship-card"),
+        runProductPurchase: () => runCitizenshipPurchase(),
+        catalogPrice: (productId) =>
+          FlashistFacade.instance.getCatalogProduct(productId)?.price ?? null,
+        logUiTap: (tapElementId) =>
+          FlashistFacade.instance.logUiTapEvent(tapElementId),
+      }),
+    );
     submitNameChange.mockResolvedValue({ status: "ok" });
     cancelNameChange.mockResolvedValue({ status: "ok" });
     claimTenureGrant.mockResolvedValue({ status: "skipped" });
@@ -3616,6 +3633,134 @@ describe("CitizenshipCard", () => {
         expect(show).toHaveBeenCalledTimes(1);
         expect(show).toHaveBeenCalledWith({ source: "CardLink" });
       });
+    });
+  });
+
+  describe("purchase profile source (task 0494)", () => {
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    it("snapshot() carries the same inputs as the offer, with no ownership list", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(card.snapshot()).toEqual({
+        isRevealed: true,
+        isChecking: false,
+        profile: {
+          isCitizen: false,
+          isAuthoritative: true,
+          isVerifiedRead: false,
+          isPaidCitizen: false,
+          xp: 25,
+          entitlements: null,
+        },
+        paidGrantConfirmed: false,
+        grantedThisPage: new Set(),
+        canLogIn: true,
+      });
+    });
+
+    // Task 0496: the durable-item rule reads the owner view's list.
+    it("snapshot() carries the owner view's ownership list", async () => {
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        xp: 100,
+        isCitizen: true,
+        isVerifiedRead: true,
+        entitlements: ["citizenship"],
+      });
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(card.snapshot().profile?.entitlements).toEqual(["citizenship"]);
+      // The citizenship offer is unchanged by it.
+      expect(card.getCitizenshipOffer()).toEqual({ kind: "citizen" });
+    });
+
+    it("snapshot() ownership list is null when the view does not know it (unverified)", async () => {
+      loadProfile.mockResolvedValue({
+        ...NON_CITIZEN_PROFILE,
+        xp: 100,
+        isCitizen: true,
+        isVerifiedRead: false,
+        entitlements: null,
+      });
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(card.snapshot().profile).not.toBeNull();
+      expect(card.snapshot().profile?.entitlements).toBeNull();
+    });
+
+    it("snapshot() is unrevealed behind the flag, and a guest before login", async () => {
+      isCitizenshipUiEnabled.mockResolvedValue(false);
+      const hidden = await appendCard({ visible: true });
+      await settle(hidden);
+      expect(hidden.snapshot().isRevealed).toBe(false);
+      hidden.remove();
+      isCitizenshipUiEnabled.mockResolvedValue(true);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(card.snapshot().profile).toBeNull();
+    });
+
+    it("markGranted() flips the offer to citizen and publishes it before any re-read", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(card.getCitizenshipOffer().kind).toBe("buy");
+      const readsBefore = loadProfile.mock.calls.length;
+
+      card.markGranted("citizenship");
+      await settle(card);
+
+      expect(card.getCitizenshipOffer()).toEqual({ kind: "citizen" });
+      expect(getCitizenshipStatus()).toBe("citizen");
+      expect(card.snapshot().paidGrantConfirmed).toBe(true);
+      expect(card.snapshot().grantedThisPage).toEqual(new Set(["citizenship"]));
+      expect(card.querySelector("#citizenship-buy-button")).toBeNull();
+      expect(loadProfile.mock.calls.length).toBe(readsBefore);
+    });
+
+    it("reread() runs one profile read and applies it", async () => {
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      const readsBefore = loadProfile.mock.calls.length;
+      loadProfile.mockResolvedValue({ ...NON_CITIZEN_PROFILE, xp: 60 });
+
+      await card.reread();
+
+      expect(loadProfile.mock.calls.length).toBe(readsBefore + 1);
+      expect(card.snapshot().profile?.xp).toBe(60);
+    });
+
+    it("buyCitizenship with no coordinator registered: error line, no purchase", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      setPurchaseCoordinator(null);
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+      await expect(card.buyCitizenship("PurchaseCitizenship")).resolves.toBe(
+        "error",
+      );
+      await settle(card);
+
+      expect(runPurchase).not.toHaveBeenCalled();
+      expect(card.querySelector("#citizenship-purchase-error")).not.toBeNull();
+      expect(warn).toHaveBeenCalled();
+      warn.mockRestore();
     });
   });
 });

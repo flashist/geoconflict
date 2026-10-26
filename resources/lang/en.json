@@ -697,7 +697,18 @@
     "exit": "Exit Game",
     "keep": "Keep Playing",
     "spectate": "Spectate",
-    "wishlist": "Wishlist on Steam!"
+    "wishlist": "Wishlist on Steam!",
+    "xp_explainer": "You earn XP after every multiplayer match: for a win, a loss or being eliminated. {threshold} XP = citizenship.",
+    "rewarded_watch_button": "Watch an ad: double this match's XP (+{xp} XP)",
+    "rewarded_claiming": "Adding XP…",
+    "rewarded_granted": "Done! This match's XP has been doubled.",
+    "rewarded_closed_early": "The ad was closed before the end, so no XP was added. You can try again.",
+    "rewarded_unavailable": "No ad is available right now. Please try again a bit later.",
+    "rewarded_not_credited": "This match's XP wasn't recorded, so there is nothing to double.",
+    "rewarded_failed": "Couldn't add the XP. Please check your connection.",
+    "guest_login_text": "Log in with Yandex to earn XP for your matches and double it with an ad.",
+    "guest_login_button": "Log in with Yandex",
+    "guest_logged_in": "You're logged in. XP counts from your next match."
   },
   "reconnect": {
     "title": "Match in progress",

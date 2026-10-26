@@ -1,5 +1,6 @@
 import {
   PAYMENT_PRODUCT_IDS,
+  PRODUCT_DEFINITIONS,
   PurchaseCompleteRequestSchema,
   PurchaseCompleteResponseSchema,
   PurchaseIntentRequestSchema,
@@ -41,6 +42,19 @@ describe("PaymentsContract schemas", () => {
 
     it("keeps citizenship in the sellable-product list", () => {
       expect(PAYMENT_PRODUCT_IDS).toContain("citizenship");
+    });
+  });
+
+  // Task 0492: the Record type is the compile-time half; this is the runtime half.
+  describe("PRODUCT_DEFINITIONS", () => {
+    it("defines exactly the sellable products — no more, no fewer", () => {
+      expect(Object.keys(PRODUCT_DEFINITIONS).sort()).toEqual(
+        [...PAYMENT_PRODUCT_IDS].sort(),
+      );
+    });
+
+    it("citizenship is of kind citizenship", () => {
+      expect(PRODUCT_DEFINITIONS.citizenship).toEqual({ kind: "citizenship" });
     });
   });
 
@@ -88,6 +102,36 @@ describe("PaymentsContract schemas", () => {
         }).success,
       ).toBe(false);
     });
+
+    // Task 0492: optional, so a box from before 0492 (no field) still parses.
+    it.each([true, false])("keeps becamePaidCitizen: %s", (value) => {
+      const parsed = PurchaseCompleteResponseSchema.safeParse({
+        success: true,
+        purchaseToken: "tok-1",
+        becamePaidCitizen: value,
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data?.becamePaidCitizen).toBe(value);
+    });
+
+    it("accepts a body without becamePaidCitizen (old box, or a replay)", () => {
+      const parsed = PurchaseCompleteResponseSchema.safeParse({
+        success: true,
+        purchaseToken: "tok-1",
+      });
+      expect(parsed.success).toBe(true);
+      expect(parsed.data).not.toHaveProperty("becamePaidCitizen");
+    });
+
+    it("rejects a non-boolean becamePaidCitizen", () => {
+      expect(
+        PurchaseCompleteResponseSchema.safeParse({
+          success: true,
+          purchaseToken: "tok-1",
+          becamePaidCitizen: "true",
+        }).success,
+      ).toBe(false);
+    });
   });
 
   describe("reconcile schemas", () => {
@@ -112,6 +156,28 @@ describe("PaymentsContract schemas", () => {
       expect(
         PurchaseReconcileResponseSchema.safeParse({ processedTokens: [""] })
           .success,
+      ).toBe(false);
+    });
+
+    // Task 0492 (OQ-1): optional, so a box from before 0492 still parses.
+    it("accepts a reconcile body with and without failedCount", () => {
+      expect(
+        PurchaseReconcileResponseSchema.safeParse({ processedTokens: [] }).data,
+      ).not.toHaveProperty("failedCount");
+      expect(
+        PurchaseReconcileResponseSchema.safeParse({
+          processedTokens: ["tok-1"],
+          failedCount: 2,
+        }).data?.failedCount,
+      ).toBe(2);
+    });
+
+    it.each([-1, 1.5, "1"])("rejects failedCount %p", (value) => {
+      expect(
+        PurchaseReconcileResponseSchema.safeParse({
+          processedTokens: [],
+          failedCount: value,
+        }).success,
       ).toBe(false);
     });
   });

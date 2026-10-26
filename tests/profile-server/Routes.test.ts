@@ -4,7 +4,11 @@ import winston from "winston";
 import type { PlayerProfile } from "../../src/core/profile/PlayerProfile";
 import { logger } from "../../src/profile-server/Logger";
 import { toPublicProfile } from "../../src/profile-server/PublicProjection";
-import { createApp, type ProfileRepo } from "../../src/profile-server/Routes";
+import {
+  createApp,
+  type PaymentsRepo,
+  type ProfileRepo,
+} from "../../src/profile-server/Routes";
 import {
   noopProfileMetrics,
   type ProfileMetrics,
@@ -1060,5 +1064,76 @@ describe("profile API routes", () => {
     for (const res of publicResponses) {
       expect(JSON.stringify(res.body)).not.toMatch(UUID_SHAPE);
     }
+  });
+});
+
+// Task 0496: the owner view's `entitlements`, read soft — a profile deploy
+// serves this route before migration 010 exists on the box.
+describe("GET /v1/profile — owned durable items (task 0496)", () => {
+  function paymentsWith(listEntitlements: jest.Mock): PaymentsRepo {
+    return {
+      createIntent: jest.fn(),
+      findIntent: jest.fn(),
+      getProcessedPurchase: jest.fn(),
+      grantPaidPurchase: jest.fn(),
+      listEntitlements,
+    };
+  }
+
+  function readAs(listEntitlements: jest.Mock, verified: boolean) {
+    const repo = mockRepo({
+      getProfile: jest.fn().mockResolvedValue(fullProfile()),
+    });
+    const app = createApp(
+      repo,
+      {
+        paymentsRepo: paymentsWith(listEntitlements),
+        yandexPaymentsSecret: "s",
+      },
+      undefined,
+      undefined,
+      TEST_SESSION_CONFIG,
+    );
+    return request(app)
+      .get("/v1/profile")
+      .set("Authorization", bearerFor(PLAYER_ID, { verified }));
+  }
+
+  test("a verified read carries the owned list", async () => {
+    const list = jest.fn().mockResolvedValue(["test_durable_item"]);
+    const res = await readAs(list, true);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      ...fullProfile(),
+      entitlements: ["test_durable_item"],
+    });
+    expect(list).toHaveBeenCalledWith(PLAYER_ID);
+  });
+
+  test("an unverified read runs the same query but never carries the key", async () => {
+    const list = jest.fn().mockResolvedValue(["test_durable_item"]);
+    const res = await readAs(list, false);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(toPublicProfile(fullProfile()));
+    expect(list).toHaveBeenCalledWith(PLAYER_ID);
+  });
+
+  test("a read that throws → 200, owner view without the key (unknown)", async () => {
+    const list = jest.fn().mockRejectedValue(new Error("no such table"));
+    const res = await readAs(list, true);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(fullProfile());
+    expect(res.body).not.toHaveProperty("entitlements");
+  });
+
+  test("without payments wired the owner view has no key", async () => {
+    const repo = mockRepo({
+      getProfile: jest.fn().mockResolvedValue(fullProfile()),
+    });
+    const res = await request(appWithSession(repo))
+      .get("/v1/profile")
+      .set("Authorization", bearerFor(PLAYER_ID, { verified: true }));
+    expect(res.status).toBe(200);
+    expect(res.body).not.toHaveProperty("entitlements");
   });
 });

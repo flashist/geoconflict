@@ -15,7 +15,29 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   },
   flashist_logEventAnalytics: jest.fn(),
 }));
+// Task 0494: a test-only product, so the popup's text and events can follow it.
+jest.mock("../../src/client/ProductClientConfig", () => {
+  const actual = jest.requireActual("../../src/client/ProductClientConfig");
+  return {
+    getProductClientConfig: (productId: string) =>
+      productId === "test_item"
+        ? {
+            analytics: {
+              restartPrompt: {
+                shown: "TestItem:RestartPrompt:Shown",
+                restart: "TestItem:RestartPrompt:Restart",
+                later: "TestItem:RestartPrompt:Later",
+              },
+            },
+            restartPromptTitleKey: "test_item_restart.title",
+            restartPromptBodyKey: "test_item_restart.body",
+            isUiEnabled: null,
+          }
+        : actual.getProductClientConfig(productId),
+  };
+});
 
+import type { PaymentProductId } from "../../src/core/profile/PaymentsContract";
 import { CitizenshipRestartModal } from "../../src/client/CitizenshipRestartModal";
 import { createCitizenshipRestartOffer } from "../../src/client/CitizenshipRestartOffer";
 import { flashist_logEventAnalytics } from "../../src/client/flashist/FlashistFacade";
@@ -157,5 +179,54 @@ describe("CitizenshipRestartModal", () => {
 
     expect(modal.isVisible).toBe(false);
     expect(logEventAnalytics).not.toHaveBeenCalled();
+  });
+
+  describe("per product (task 0494; RP-1 keeps Later)", () => {
+    const TEST_ITEM = "test_item" as unknown as PaymentProductId;
+
+    it("show(onRestart, productId) renders that product's title and body, with both buttons", async () => {
+      const modal = await mount();
+      modal.show(() => true, TEST_ITEM);
+      await modal.updateComplete;
+
+      const text = modal.shadowRoot!.textContent!;
+      expect(text).toContain("test_item_restart.title");
+      expect(text).toContain("test_item_restart.body");
+      expect(text).not.toContain("citizenship_restart_modal.title");
+      expect(
+        modal.shadowRoot!.querySelector("#citizenship-restart-modal-restart"),
+      ).not.toBeNull();
+      expect(
+        modal.shadowRoot!.querySelector("#citizenship-restart-modal-later"),
+      ).not.toBeNull();
+    });
+
+    it("logs that product's Shown and Later", async () => {
+      const modal = await mount();
+      modal.show(() => true, TEST_ITEM);
+      await modal.updateComplete;
+
+      click(modal, "citizenship-restart-modal-later");
+
+      expect(loggedEvents()).toEqual([
+        "TestItem:RestartPrompt:Shown",
+        "TestItem:RestartPrompt:Later",
+      ]);
+    });
+
+    it("no product is citizenship: today's text and events", async () => {
+      const modal = await mount();
+      modal.show(() => true);
+      await modal.updateComplete;
+
+      expect(modal.shadowRoot!.textContent!).toContain(
+        "citizenship_restart_modal.title",
+      );
+      click(modal, "citizenship-restart-modal-later");
+      expect(loggedEvents()).toEqual([
+        "Citizenship:RestartPrompt:Shown",
+        "Citizenship:RestartPrompt:Later",
+      ]);
+    });
   });
 });

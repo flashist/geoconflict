@@ -101,6 +101,8 @@ const ZERO_STATE = {
   isPaidCitizen: false,
   // Never a verified session (task 0397).
   isVerifiedRead: false,
+  // Ownership is unknown without a verified owner view (task 0496).
+  entitlements: null,
 };
 
 describe("loadPlayerProfileView", () => {
@@ -148,6 +150,7 @@ describe("loadPlayerProfileView", () => {
       approvedName: "Генерал",
       isPaidCitizen: false,
       isVerifiedRead: false,
+      entitlements: null,
     });
     // The Yandex id is gone from the URL; the Bearer token carries the identity.
     expect(fetchMock).toHaveBeenCalledWith(
@@ -174,6 +177,7 @@ describe("loadPlayerProfileView", () => {
       approvedName: null,
       isPaidCitizen: false,
       isVerifiedRead: false,
+      entitlements: null,
     });
   });
 
@@ -315,6 +319,7 @@ describe("loadPlayerProfileView", () => {
       approvedName: null,
       isPaidCitizen: false,
       isVerifiedRead: false,
+      entitlements: null,
     });
   });
 
@@ -341,6 +346,7 @@ describe("loadPlayerProfileView", () => {
         approvedName: "Commander",
         isPaidCitizen: true,
         isVerifiedRead: true,
+        entitlements: null,
       });
     });
 
@@ -416,6 +422,66 @@ describe("loadPlayerProfileView", () => {
       stubFetch(200, ownerProfile({ is_paid_citizen: true }));
       expect((await loadPlayerProfileView())!.isVerifiedRead).toBe(false);
     });
+  });
+});
+
+// Task 0496 — `entitlements` comes from the verified owner view only; null
+// (unknown) everywhere else, and never "owns nothing" by default.
+describe("loadPlayerProfileView — entitlements (task 0496)", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    getServerConfig.mockResolvedValue({
+      profileApiUrl: () => PROFILE_API_BASE,
+    });
+    getYandexUniqueId.mockResolvedValue("yandex-123");
+    getCurPlayerName.mockResolvedValue(YANDEX_NAME);
+    isYandexAuthorized.mockResolvedValue(true);
+    await primeProfileSession();
+  });
+
+  afterEach(() => {
+    delete (global as { fetch?: unknown }).fetch;
+  });
+
+  it("an owner view keeps the known ids and drops unknown ones", async () => {
+    // "citizenship" is the only id this bundle knows, so it stands in for an item.
+    stubFetch(
+      200,
+      ownerProfile({ entitlements: ["citizenship", "a_future_item"] }),
+    );
+    expect((await loadPlayerProfileView())!.entitlements).toEqual([
+      "citizenship",
+    ]);
+    stubFetch(200, ownerProfile({ entitlements: [] }));
+    expect((await loadPlayerProfileView())!.entitlements).toEqual([]);
+  });
+
+  it("an owner view without the key → null (unknown)", async () => {
+    stubFetch(200, ownerProfile());
+    expect((await loadPlayerProfileView())!.entitlements).toBeNull();
+  });
+
+  it("an unverified view → null, even one that carries the key", async () => {
+    stubFetch(200, publicProfile({ is_citizen: true, entitlements: [] }));
+    expect((await loadPlayerProfileView())!.entitlements).toBeNull();
+    stubFetch(
+      200,
+      publicProfile({ is_citizen: true, entitlements: ["citizenship"] }),
+    );
+    expect((await loadPlayerProfileView())!.entitlements).toBeNull();
+  });
+
+  it("a malformed list degrades to the zero-state", async () => {
+    stubFetch(200, ownerProfile({ entitlements: "citizenship" }));
+    await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
+    stubFetch(200, ownerProfile({ entitlements: [42] }));
+    await expect(loadPlayerProfileView()).resolves.toEqual(ZERO_STATE);
+  });
+
+  it("a guest → null view", async () => {
+    isYandexAuthorized.mockResolvedValue(false);
+    await expect(loadPlayerProfileView()).resolves.toBeNull();
   });
 });
 
@@ -504,6 +570,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
         approvedName: "Commander",
         isPaidCitizen: false,
         isVerifiedRead: false,
+        entitlements: null,
       });
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });
@@ -626,6 +693,7 @@ describe("Citizenship:Earned:XP transition detection", () => {
         approvedName: "Commander",
         isPaidCitizen: false,
         isVerifiedRead: true,
+        entitlements: null,
       });
       expect(logEventAnalytics).not.toHaveBeenCalled();
     });

@@ -66,7 +66,10 @@ describe("PaymentsApiClient", () => {
 
   it("createPurchaseIntent posts only the productId, under a Bearer token", async () => {
     const fetchMock = stubFetch(200, { intentId: "intent-1" });
-    await expect(createPurchaseIntent("citizenship")).resolves.toBe("intent-1");
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "ok",
+      intentId: "intent-1",
+    });
     expect(fetchMock).toHaveBeenCalledWith(
       `${API_BASE}/v1/payments/yandex/intent`,
       expect.objectContaining({
@@ -94,25 +97,31 @@ describe("PaymentsApiClient", () => {
     ).toBeUndefined();
   });
 
-  it("createPurchaseIntent resolves null without a session, and never calls out", async () => {
+  it("createPurchaseIntent resolves failed without a session, and never calls out", async () => {
     resetProfileSessionForTests();
     isYandexAuthorized.mockResolvedValue(false);
     const fetchMock = stubFetch(200, { intentId: "intent-1" });
-    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "failed",
+    });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("is a no-op resolving null when the profile API base is empty", async () => {
+  it("is a no-op resolving failed when the profile API base is empty", async () => {
     getServerConfig.mockResolvedValue({ profileApiUrl: () => "" });
     const fetchMock = stubFetch(200, { intentId: "intent-1" });
-    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "failed",
+    });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("resolves null when the config loader itself throws", async () => {
+  it("resolves failed when the config loader itself throws", async () => {
     getServerConfig.mockRejectedValue(new Error("no /api/env"));
     stubFetch(200, { intentId: "intent-1" });
-    await expect(createPurchaseIntent("citizenship")).resolves.toBeNull();
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "failed",
+    });
   });
 
   it("completePurchase returns the success payload with the token", async () => {
@@ -131,14 +140,18 @@ describe("PaymentsApiClient", () => {
     await expect(completePurchase("sig.payload")).resolves.toBeNull();
 
     stubFetch(200, "not an object");
-    await expect(reconcilePurchases("sig.payload")).resolves.toBeNull();
+    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+      kind: "failed",
+    });
   });
 
   it("resolves null on a network failure and on an abort/timeout", async () => {
     global.fetch = jest
       .fn()
       .mockRejectedValue(new Error("network down")) as unknown as typeof fetch;
-    await expect(reconcilePurchases("sig.payload")).resolves.toBeNull();
+    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+      kind: "failed",
+    });
 
     global.fetch = jest
       .fn()
@@ -150,9 +163,72 @@ describe("PaymentsApiClient", () => {
 
   it("reconcilePurchases returns the processed token list", async () => {
     stubFetch(200, { processedTokens: ["tok-1", "tok-2"] });
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual([
-      "tok-1",
-      "tok-2",
-    ]);
+    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+      kind: "ok",
+      processedTokens: ["tok-1", "tok-2"],
+    });
   });
+
+  // Task 0494 (spec F6): only a 409 that says already_owned is that answer.
+  it("createPurchaseIntent: a 409 already_owned body is already_owned", async () => {
+    stubFetch(409, { error: "already_owned" });
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "already_owned",
+    });
+  });
+
+  it.each<[string, number, unknown]>([
+    ["a 409 with another body", 409, { error: "intent_used" }],
+    ["a 409 whose body is not JSON", 409, undefined],
+    ["a 400", 400, { error: "already_owned" }],
+    ["a 500", 500, { error: "internal" }],
+    ["a 200 without an intentId", 200, {}],
+  ])("createPurchaseIntent: %s is failed", async (_label, status, body) => {
+    if (body === undefined) {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status,
+        json: async () => {
+          throw new SyntaxError("Unexpected token");
+        },
+      }) as unknown as typeof fetch;
+    } else {
+      stubFetch(status, body);
+    }
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "failed",
+    });
+  });
+
+  it("createPurchaseIntent: a network failure is failed", async () => {
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new Error("network down")) as unknown as typeof fetch;
+    await expect(createPurchaseIntent("citizenship")).resolves.toEqual({
+      kind: "failed",
+    });
+  });
+
+  it("reconcilePurchases: a non-200 is failed", async () => {
+    stubFetch(500, { error: "internal" });
+    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+      kind: "failed",
+    });
+  });
+
+  it.each([true, false])(
+    "completePurchase passes becamePaidCitizen %s through",
+    async (becamePaidCitizen) => {
+      stubFetch(200, {
+        success: true,
+        purchaseToken: "tok-1",
+        becamePaidCitizen,
+      });
+      await expect(completePurchase("sig.payload")).resolves.toEqual({
+        success: true,
+        purchaseToken: "tok-1",
+        becamePaidCitizen,
+      });
+    },
+  );
 });

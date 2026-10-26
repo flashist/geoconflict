@@ -15,14 +15,23 @@
 // (ADR-116 Decision 4), so a paid citizen on an unverified session would look
 // unpaid. Every unknown gives plain `citizen`: no button. The server does not
 // refuse a second purchase, so this rule is the only guard.
+//
+// The rule itself lives in PurchaseOffer.ts (one rule for every product); this
+// maps its answer onto the citizenship surfaces' own offer shape.
+
+import type { PaymentProductId } from "../core/profile/PaymentsContract";
+import {
+  derivePurchaseOffer,
+  PURCHASE_OFFER_CHANGED_EVENT,
+  type PurchaseProfileSnapshot,
+} from "./PurchaseOffer";
 
 /**
  * Fired on `window` after every citizenship card update, so an open explainer
  * popup re-reads the offer (a profile read or the payments catalog can land
  * while it is open).
  */
-export const CITIZENSHIP_OFFER_CHANGED_EVENT =
-  "geoconflict-citizenship-offer-changed";
+export const CITIZENSHIP_OFFER_CHANGED_EVENT = PURCHASE_OFFER_CHANGED_EVENT;
 
 export type CitizenshipOffer =
   /** No read applied yet, a re-read in flight, or the card not yet revealed. */
@@ -57,33 +66,56 @@ export interface CitizenshipOfferInputs {
   productPrice: string | null;
 }
 
+/** The card's gathered inputs as the shared rule's snapshot (one mapping). */
+export function toPurchaseProfileSnapshot(
+  inputs: CitizenshipOfferInputs,
+  grantedThisPage: ReadonlySet<PaymentProductId> = new Set(),
+): PurchaseProfileSnapshot {
+  const profile = inputs.profile;
+  return {
+    isRevealed: inputs.isRevealed,
+    isChecking: inputs.isChecking,
+    profile:
+      profile === null
+        ? null
+        : {
+            isCitizen: profile.isCitizen,
+            isAuthoritative: profile.isAuthoritative,
+            isVerifiedRead: inputs.isVerifiedRead,
+            isPaidCitizen: inputs.isPaidCitizen,
+            xp: profile.xp,
+            // The card's snapshot() fills this (task 0496); the citizenship
+            // rule never reads it.
+            entitlements: null,
+          },
+    paidGrantConfirmed: inputs.paidGrantConfirmed,
+    grantedThisPage,
+    canLogIn: inputs.canLogIn,
+  };
+}
+
 export function deriveCitizenshipOffer(
   inputs: CitizenshipOfferInputs,
 ): CitizenshipOffer {
-  if (!inputs.isRevealed || inputs.isChecking) {
-    return { kind: "checking" };
-  }
   const profile = inputs.profile;
-  if (profile === null) {
-    return { kind: "guest", canLogIn: inputs.canLogIn };
+  const offer = derivePurchaseOffer(
+    "citizenship",
+    toPurchaseProfileSnapshot(inputs),
+    inputs.productPrice,
+  );
+  switch (offer.kind) {
+    case "owned":
+      return { kind: "citizen" };
+    case "buy":
+      return profile !== null && profile.isCitizen
+        ? { kind: "citizen_buy", price: offer.price }
+        : offer;
+    case "guest":
+      return { kind: "guest", canLogIn: offer.canLogIn };
+    case "cannot_verify":
+      // The citizenship kind never answers this; fail closed like a citizen.
+      return { kind: "citizen" };
+    default:
+      return offer;
   }
-  if (profile.isCitizen || inputs.paidGrantConfirmed) {
-    if (
-      !inputs.paidGrantConfirmed &&
-      profile.isAuthoritative &&
-      inputs.isVerifiedRead &&
-      !inputs.isPaidCitizen &&
-      inputs.productPrice !== null
-    ) {
-      return { kind: "citizen_buy", price: inputs.productPrice };
-    }
-    return { kind: "citizen" };
-  }
-  if (!profile.isAuthoritative) {
-    return { kind: "read_failed" };
-  }
-  if (inputs.productPrice === null) {
-    return { kind: "no_product", xp: profile.xp };
-  }
-  return { kind: "buy", price: inputs.productPrice, xp: profile.xp };
 }

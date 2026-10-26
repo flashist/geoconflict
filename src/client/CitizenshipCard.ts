@@ -13,15 +13,15 @@ import {
   deriveCitizenshipNotice,
   reportCitizenshipNoticeShown,
 } from "./CitizenshipNotice";
+import type { PaymentProductId } from "../core/profile/PaymentsContract";
 import {
   CITIZENSHIP_OFFER_CHANGED_EVENT,
   type CitizenshipOffer,
+  type CitizenshipOfferInputs,
   deriveCitizenshipOffer,
+  toPurchaseProfileSnapshot,
 } from "./CitizenshipOffer";
-import {
-  type CitizenshipPurchaseResult,
-  runCitizenshipPurchase,
-} from "./CitizenshipPurchase";
+import type { CitizenshipPurchaseResult } from "./CitizenshipPurchase";
 import { dispatchCitizenshipGrantedMidSession } from "./CitizenshipRestartOffer";
 import {
   deriveCitizenshipStatus,
@@ -46,6 +46,11 @@ import {
   flashistConstants,
 } from "./flashist/FlashistFacade";
 import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
+import {
+  getPurchaseCoordinator,
+  type PurchaseProfileSource,
+} from "./PurchaseCoordinator";
+import type { PurchaseProfileSnapshot } from "./PurchaseOffer";
 import {
   restartAfterProfileReadFailure,
   wasRestartedAfterProfileReadFailure,
@@ -113,7 +118,10 @@ export function resetCitizenshipSeenReportedForTests(): void {
  * logIn), so both surfaces share one rule, one latch and one end state.
  */
 @customElement("citizenship-card")
-export class CitizenshipCard extends LitElement {
+export class CitizenshipCard
+  extends LitElement
+  implements PurchaseProfileSource
+{
   @state() private profile: PlayerProfileView | null = null;
 
   // Gated by the "citizenship_ui" Yandex experiment flag: the card renders
@@ -130,6 +138,7 @@ export class CitizenshipCard extends LitElement {
   // presentation even when the follow-up profile re-fetch fails — a stale buy
   // button after a committed grant invites a second real charge.
   @state() private paidGrantConfirmed = false;
+  private readonly grantedThisPage = new Set<PaymentProductId>();
 
   // Name change (task 0067). `nameEditing` is the only local UI state; the
   // pending / rejected states are read from the server profile, never latched
@@ -499,11 +508,49 @@ export class CitizenshipCard extends LitElement {
    * has been revealed.
    */
   public getCitizenshipOffer(): CitizenshipOffer {
+    return deriveCitizenshipOffer(this.gatherOfferInputs());
+  }
+
+  /**
+   * PurchaseProfileSource (task 0494): the same inputs as the offer above, plus
+   * the owner view's ownership list (task 0496) for the durable-item rule.
+   */
+  public snapshot(): PurchaseProfileSnapshot {
+    const snapshot = toPurchaseProfileSnapshot(
+      this.gatherOfferInputs(),
+      this.grantedThisPage,
+    );
+    if (snapshot.profile === null) {
+      return snapshot;
+    }
+    return {
+      ...snapshot,
+      profile: {
+        ...snapshot.profile,
+        entitlements: this.profile?.entitlements ?? null,
+      },
+    };
+  }
+
+  /** PurchaseProfileSource: no "checking" publish, so a buy looks as before. */
+  public reread(): Promise<void> {
+    return this.refreshProfile();
+  }
+
+  /** PurchaseProfileSource: a server-confirmed grant, before its re-read lands. */
+  public markGranted(productId: PaymentProductId): void {
+    this.paidGrantConfirmed = true;
+    this.grantedThisPage.add(productId);
+    this.publishCitizenshipStatus();
+    this.requestUpdate();
+  }
+
+  private gatherOfferInputs(): CitizenshipOfferInputs {
     const facade = FlashistFacade.instance;
     const product = this.isEnabled
       ? facade.getCatalogProduct("citizenship")
       : null;
-    return deriveCitizenshipOffer({
+    return {
       isRevealed: this.isEnabled,
       isChecking: this.isEnabled && this.currentNotice() === "checking",
       profile: this.profile,
@@ -514,7 +561,7 @@ export class CitizenshipCard extends LitElement {
       isPaidCitizen: isCurrentPlayerPaidCitizen(),
       canLogIn: facade.yaGamesAvailable && !facade.isYandexDegraded(),
       productPrice: product === null ? null : product.price,
-    });
+    };
   }
 
   // Task 0301: an open explainer popup re-reads the offer after every update.
@@ -1009,8 +1056,6 @@ export class CitizenshipCard extends LitElement {
     `;
   }
 
-  private isPurchaseInFlight = false;
-
   private readonly onBuyCtaTap = (): void => {
     void this.buyCitizenship(
       flashistConstants.uiElementIds.purchaseCitizenship,
@@ -1019,41 +1064,37 @@ export class CitizenshipCard extends LitElement {
 
   /**
    * The paid purchase (task 0018). Task 0301: shared with the explainer popup,
-   * which passes its own tap id. One in-flight latch for both, so a card tap
-   * and a popup tap can never start two purchases — the second answers
-   * `"busy"`. Either way the card ends in the same state.
+   * which passes its own tap id. The page's purchase coordinator (task 0494)
+   * holds one in-flight latch for every surface and product, so a second tap
+   * answers `"busy"`; either way the card ends in the same state.
    */
   public async buyCitizenship(
     tapElementId: string,
   ): Promise<CitizenshipPurchaseResult | "busy"> {
-    if (this.isPurchaseInFlight) {
-      return "busy";
-    }
-    this.isPurchaseInFlight = true;
     this.purchaseError = false;
     // Explicit requestUpdate() after each state change — the codebase
     // convention (see connectedCallback / refreshProfile): the decorator
     // transform does not reliably schedule updates under the test build.
     this.requestUpdate();
-    try {
-      FlashistFacade.instance.logUiTapEvent(tapElementId);
-      const result = await runCitizenshipPurchase();
-      if (!this.isConnected) {
-        return result;
-      }
-      if (result === "granted") {
-        this.paidGrantConfirmed = true;
-        this.publishCitizenshipStatus();
-        this.requestUpdate();
-        await this.refreshProfile();
-      } else {
-        this.purchaseError = true;
-        this.requestUpdate();
-      }
-      return result;
-    } finally {
-      this.isPurchaseInFlight = false;
+    const coordinator = getPurchaseCoordinator();
+    const result =
+      coordinator === null
+        ? null
+        : await coordinator.requestPurchase({
+            productId: "citizenship",
+            tapElementId,
+          });
+    if (result === null) {
+      console.warn("No purchase coordinator registered; purchase skipped.");
     }
+    if (result === "granted" || result === "busy") {
+      return result;
+    }
+    if (this.isConnected) {
+      this.purchaseError = true;
+      this.requestUpdate();
+    }
+    return "error";
   }
 
   // Draft name. Deliberately a plain field, not @state(): it is bound into the

@@ -53,6 +53,22 @@ export interface TenureCheckOutcome {
   isCitizen: boolean;
 }
 
+/** `not_found`: the caller's player row is gone (task 0491). */
+export type RewardedMatchXpGrantStatus =
+  | "granted"
+  | "duplicate"
+  | "not_credited"
+  | "not_found";
+
+/** Fields mean what they do on `TenureCheckOutcome`. */
+export interface RewardedMatchXpOutcome {
+  status: RewardedMatchXpGrantStatus;
+  xpAwarded: number;
+  xp: number;
+  citizenshipNewlyGranted: boolean;
+  isCitizen: boolean;
+}
+
 // Postgres `foreign_key_violation` — a credit referencing a player_id with no
 // players row. The credit route only passes ids it just resolved, so this is the
 // "player erased in between" edge; reported rather than failing the whole batch.
@@ -143,6 +159,40 @@ WHERE player_id = $1 AND kind = 'tenure'
 `;
 
 const ADD_TENURE_XP_SQL = `
+UPDATE players
+SET xp = xp + $2, updated_at = now()
+WHERE id = $1
+RETURNING xp
+`;
+
+// Rewarded-ad match XP (task 0491). Lock-first, like the tenure check, so two tabs
+// or a grant racing a match credit serialize on the players row.
+const LOCK_PLAYER_FOR_REWARDED_SQL = `
+SELECT xp, is_citizen, citizenship_earned_at
+FROM players
+WHERE id = $1
+FOR UPDATE
+`;
+
+// Credit rows are insert-only, so this read needs no lock of its own.
+const SELECT_BASE_CREDIT_SQL = `
+SELECT xp_awarded FROM player_match_xp_credits
+WHERE game_id = $1 AND player_id = $2
+`;
+
+const INSERT_REWARDED_SQL = `
+INSERT INTO player_rewarded_match_xp (game_id, player_id, xp_awarded)
+VALUES ($1, $2, $3)
+ON CONFLICT (game_id, player_id) DO NOTHING
+RETURNING xp_awarded
+`;
+
+const SELECT_REWARDED_SQL = `
+SELECT xp_awarded FROM player_rewarded_match_xp
+WHERE game_id = $1 AND player_id = $2
+`;
+
+const ADD_REWARDED_XP_SQL = `
 UPDATE players
 SET xp = xp + $2, updated_at = now()
 WHERE id = $1
@@ -336,6 +386,117 @@ export class PlayerProfileRepository {
       }
 
       const updated = await client.query(ADD_TENURE_XP_SQL, [
+        playerId,
+        xpAwarded,
+      ]);
+      const newXp = Number(updated.rows[0].xp);
+      const earnedAt = locked.rows[0].citizenship_earned_at as Date | null;
+      let citizenshipNewlyGranted = false;
+      // Same decision as creditMatchXp, on the row this transaction locked.
+      if (
+        newXp >= CITIZENSHIP_XP_THRESHOLD &&
+        (!wasCitizen || earnedAt === null)
+      ) {
+        await client.query(GRANT_CITIZENSHIP_SQL, [
+          playerId,
+          CITIZENSHIP_XP_THRESHOLD,
+        ]);
+        citizenshipNewlyGranted = !wasCitizen;
+      }
+      await client.query("COMMIT");
+      outcome = {
+        status: "granted",
+        xpAwarded,
+        xp: newXp,
+        citizenshipNewlyGranted,
+        isCitizen: wasCitizen || citizenshipNewlyGranted,
+      };
+    } catch (error) {
+      try {
+        await client.query("ROLLBACK");
+      } catch {
+        // ROLLBACK failed (connection gone) — surface the ORIGINAL error.
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
+    if (outcome.citizenshipNewlyGranted) {
+      // After commit, never throwing — the creditMatchXp contract (0017 R1).
+      try {
+        this.afterCitizenshipEarned(playerId);
+      } catch (error) {
+        logInboxSendFailure("citizenship_earned", error);
+      }
+    }
+    return outcome;
+  }
+
+  /**
+   * Requiring the base credit row caps a faked watch at what an honest one gets
+   * (task 0491; the 0488 plan, section "XP crediting trust").
+   */
+  async grantRewardedMatchXp(
+    gameId: string,
+    playerId: string,
+  ): Promise<RewardedMatchXpOutcome> {
+    const client = await this.pool.connect();
+    let outcome: RewardedMatchXpOutcome;
+    try {
+      await client.query("BEGIN");
+      const locked = await client.query(LOCK_PLAYER_FOR_REWARDED_SQL, [
+        playerId,
+      ]);
+      if (locked.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return {
+          status: "not_found",
+          xpAwarded: 0,
+          xp: 0,
+          citizenshipNewlyGranted: false,
+          isCitizen: false,
+        };
+      }
+      const currentXp = Number(locked.rows[0].xp);
+      const wasCitizen = Boolean(locked.rows[0].is_citizen);
+
+      const base = await client.query(SELECT_BASE_CREDIT_SQL, [
+        gameId,
+        playerId,
+      ]);
+      if (base.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return {
+          status: "not_credited",
+          xpAwarded: 0,
+          xp: currentXp,
+          citizenshipNewlyGranted: false,
+          isCitizen: wasCitizen,
+        };
+      }
+      const xpAwarded = Number(base.rows[0].xp_awarded);
+
+      const inserted = await client.query(INSERT_REWARDED_SQL, [
+        gameId,
+        playerId,
+        xpAwarded,
+      ]);
+      if (inserted.rows.length === 0) {
+        const stored = await client.query(SELECT_REWARDED_SQL, [
+          gameId,
+          playerId,
+        ]);
+        await client.query("COMMIT");
+        return {
+          status: "duplicate",
+          xpAwarded: Number(stored.rows[0]?.xp_awarded ?? 0),
+          xp: currentXp,
+          citizenshipNewlyGranted: false,
+          isCitizen: wasCitizen,
+        };
+      }
+
+      const updated = await client.query(ADD_REWARDED_XP_SQL, [
         playerId,
         xpAwarded,
       ]);

@@ -125,6 +125,7 @@ function build(
     loginVerification: () => {},
     loginStaleSignatureAge: () => {},
     tenureClaim: () => {},
+    rewardedMatchXpGrant: () => {},
     resolveVouch: () => {},
     alertRelay: (result, keyed) => {
       metricCalls.push([result, keyed]);

@@ -1,5 +1,9 @@
 import type { NameChangeState } from "../core/profile/NameChangeContract";
 import {
+  PaymentProductIdSchema,
+  type PaymentProductId,
+} from "../core/profile/PaymentsContract";
+import {
   PublicPlayerProfileSchema,
   type PublicPlayerProfile,
 } from "../core/profile/PlayerProfile";
@@ -61,6 +65,13 @@ export type PlayerProfileView = {
    * entitlement.
    */
   isVerifiedRead: boolean;
+  /**
+   * Owned durable products (task 0496), from the verified OWNER view only —
+   * ids this bundle does not know are dropped. null = unknown: every
+   * zero-state, every unverified view (even one that carried the key) and every
+   * server that predates task 0496. Never "owns nothing".
+   */
+  entitlements: readonly PaymentProductId[] | null;
 };
 
 // Bound the profile read so an unreachable/slow profile API can never hang the
@@ -113,6 +124,7 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     approvedName: null,
     isPaidCitizen: false,
     isVerifiedRead: false,
+    entitlements: null,
   };
 
   const yandexPlayerId = await FlashistFacade.instance.getYandexUniqueId();
@@ -153,7 +165,18 @@ export async function loadPlayerProfileView(): Promise<PlayerProfileView | null>
     approvedName: profile.display_name ?? null,
     isPaidCitizen: isOwnerView && profile.is_paid_citizen === true,
     isVerifiedRead: isOwnerView,
+    entitlements:
+      isOwnerView && profile.entitlements !== undefined
+        ? knownProductIds(profile.entitlements)
+        : null,
   };
+}
+
+function knownProductIds(ids: readonly string[]): PaymentProductId[] {
+  return ids.flatMap((id) => {
+    const parsed = PaymentProductIdSchema.safeParse(id);
+    return parsed.success ? [parsed.data] : [];
+  });
 }
 
 /** What a verified (owner-view) read says about how the player became a citizen. */

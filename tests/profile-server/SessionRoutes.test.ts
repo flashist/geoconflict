@@ -82,6 +82,7 @@ function mocks(): Mocks {
       findIntent: jest.fn(),
       getProcessedPurchase: jest.fn(),
       grantPaidPurchase: jest.fn(),
+      listEntitlements: jest.fn().mockResolvedValue([]),
     },
   };
 }
@@ -151,7 +152,8 @@ interface PublicRoute {
   /**
    * Task 0250 S3b: set on the routes that answer a `vfy:true` caller with its OWN
    * true view. Absent ⇒ the route must answer `vfy:true` exactly like `vfy:false`
-   * (name change — 0319's job — and payments).
+   * (name change — 0319's job — and a citizenship payment; only a durable item's
+   * `/intent` reads `verified`, task 0496, pinned in PaymentsRoutes.test.ts).
    */
   ownerView?: {
     /** Rig the mocks so the two views differ (a no-op when they cannot). */
@@ -193,8 +195,9 @@ const ROUTES: PublicRoute[] = [
     actedWith: [PLAYER_ID],
     ownerView: {
       rig: () => {},
-      // The stored record verbatim, both paid keys present.
-      verifiedBody: PROFILE,
+      // The stored record verbatim, both paid keys present, and the owned
+      // durable items (task 0496).
+      verifiedBody: { ...PROFILE, entitlements: [] },
       // The equalized S1 view: citizen xp is the threshold, no paid keys.
       unverifiedBody: {
         schema_version: 1,

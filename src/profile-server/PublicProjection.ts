@@ -17,13 +17,20 @@
 // target id, so the caller can only ever read itself. That caller gets its own
 // stored values verbatim, plus the raw paid facts, and the original inbox keys.
 //
+// Owned durable items (`entitlements`, task 0496) are paid state too (spec OD-2):
+// only the owner view carries them, and the unverified inbox drops the
+// item-purchase welcome messages.
+//
 // The choice is made ONLY by the caller's own `verified` flag (the `*ForCaller`
 // choosers below), never by anything about the stored player, so which view
 // answers says nothing about paid state. The stored rows are never rewritten:
 // this is a projection at the route.
 
 import { CITIZENSHIP_XP_THRESHOLD } from "../core/profile/Citizenship";
-import type { InboxMessage } from "../core/profile/InboxContract";
+import type {
+  InboxMessage,
+  InboxTemplateKey,
+} from "../core/profile/InboxContract";
 import type { NameChangeState } from "../core/profile/NameChangeContract";
 import type {
   PlayerProfile,
@@ -33,7 +40,7 @@ import type {
 /** The unverified view's type: the paid keys are never on it. */
 export type UnverifiedPublicProfile = Omit<
   PublicPlayerProfile,
-  "is_paid_citizen" | "citizenship_purchased_at"
+  "is_paid_citizen" | "citizenship_purchased_at" | "entitlements"
 >;
 
 /**
@@ -89,26 +96,36 @@ export function toPublicProfile(
  * record verbatim — true `xp`, `citizenship_earned_at` and `updated_at`, and BOTH
  * paid keys, always present (even false / null) so their presence marks the owner
  * view and depends only on the caller's token, never on the player's state.
- * `name_change` is merged exactly as in `toPublicProfile`. The profile carries no
- * identity (task 0270), so nothing else can ride along. Only for a `vfy:true`
- * caller reading ITSELF — use `profileForCaller`, never call this directly.
+ * `name_change` is merged exactly as in `toPublicProfile`. `entitlements` (task
+ * 0496) is added when known — `[]` included — and left out when null/undefined
+ * (the read failed or payments are unwired: "unknown"). The profile carries no
+ * identity (task 0270). Only for a `vfy:true` caller reading ITSELF — use
+ * `profileForCaller`, never call this directly.
  */
 export function toOwnerProfile(
   profile: PlayerProfile,
   nameChange?: NameChangeState | null,
+  entitlements?: readonly string[] | null,
 ): PublicPlayerProfile {
   const owner: PublicPlayerProfile = { ...profile };
+  if (Array.isArray(entitlements)) {
+    owner.entitlements = [...entitlements];
+  }
   return nameChange ? { ...owner, name_change: nameChange } : owner;
 }
 
-/** The profile a caller sees: the owner view when verified, else the S1 view. */
+/**
+ * The profile a caller sees: the owner view when verified, else the S1 view.
+ * `entitlements` reaches the owner view only; `toPublicProfile` cannot take it.
+ */
 export function profileForCaller(
   profile: PlayerProfile,
   nameChange: NameChangeState | null | undefined,
   verified: boolean,
+  entitlements?: readonly string[] | null,
 ): PublicPlayerProfile {
   return verified
-    ? toOwnerProfile(profile, nameChange)
+    ? toOwnerProfile(profile, nameChange, entitlements)
     : toPublicProfile(profile, nameChange);
 }
 
@@ -142,17 +159,27 @@ const CITIZENSHIP_TEMPLATE_KEYS: ReadonlySet<string> = new Set([
 const NEUTRAL_CITIZENSHIP_TEMPLATE_KEY = "citizenship_granted";
 
 /**
+ * Item-purchase welcome templates (task 0496): each one also says "paid", so the
+ * unverified inbox drops them. Empty until the first item build adds its key; a
+ * test in PaymentsRepository.test.ts keeps PRODUCT_GRANTS inside this set.
+ */
+export const ITEM_PURCHASE_INBOX_TEMPLATE_KEYS: ReadonlySet<InboxTemplateKey> =
+  new Set<InboxTemplateKey>();
+
+/**
  * The inbox list an unverified caller sees. Every `citizenship_paid` /
  * `citizenship_earned` message becomes `citizenship_granted`, and only the
  * OLDEST of them is kept — a player who earned and then paid has two, which
  * would otherwise tell them apart. `messages` is newest first (InboxRepository),
  * so the oldest is the last one. Every other message — name-change templates and
  * literal (`templateKey: null`) messages — passes through untouched, and order,
- * ids, `sentAt` and `readAt` are kept. The kept citizenship message's
+ * ids, `sentAt` and `readAt` are kept, except item-purchase messages
+ * (`itemKeys`, task 0496), which are dropped. The kept citizenship message's
  * `templateParams` is reset to `{}` (the neutral template has none).
  */
 export function toPublicInboxMessages(
   messages: readonly InboxMessage[],
+  itemKeys: ReadonlySet<string> = ITEM_PURCHASE_INBOX_TEMPLATE_KEYS,
 ): InboxMessage[] {
   let oldestCitizenshipIndex = -1;
   messages.forEach((message, index) => {
@@ -162,6 +189,9 @@ export function toPublicInboxMessages(
   });
   const result: InboxMessage[] = [];
   messages.forEach((message, index) => {
+    if (message.templateKey !== null && itemKeys.has(message.templateKey)) {
+      return;
+    }
     if (!isCitizenshipMessage(message)) {
       result.push(message);
     } else if (index === oldestCitizenshipIndex) {
@@ -179,15 +209,17 @@ export function toPublicInboxMessages(
 
 /**
  * The ids of the stored messages `toPublicInboxMessages` hides — the newer
- * citizenship messages of a player who has more than one (review R2). Marking
- * messages read must neither count nor confirm these, or `updated` would tell
- * an earned-then-paid citizen apart from an earned-only one.
+ * citizenship messages of a player who has more than one (review R2), and every
+ * item-purchase message (task 0496). Marking messages read must neither count
+ * nor confirm these, or `updated` would tell an earned-then-paid citizen apart
+ * from an earned-only one.
  */
 export function hiddenInboxMessageIds(
   messages: readonly InboxMessage[],
+  itemKeys: ReadonlySet<string> = ITEM_PURCHASE_INBOX_TEMPLATE_KEYS,
 ): Set<number> {
   const visibleIds = new Set(
-    toPublicInboxMessages(messages).map((message) => message.id),
+    toPublicInboxMessages(messages, itemKeys).map((message) => message.id),
   );
   return new Set(
     messages

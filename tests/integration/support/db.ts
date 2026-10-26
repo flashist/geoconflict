@@ -20,6 +20,8 @@ const PROFILE_TABLES = [
   "player_messages",
   "processed_purchases",
   "purchase_intents",
+  "player_entitlements",
+  "player_rewarded_match_xp",
   "player_xp_grants",
   "player_cosmetic_ownership",
   "player_name_history",

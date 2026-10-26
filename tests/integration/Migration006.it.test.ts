@@ -147,12 +147,15 @@ RUN("migration 006 — player identity (integration)", () => {
     await applyMigrations(pool, MIGRATIONS_DIR, { filter: UP_TO_004 });
     expect(await appliedFiles(pool)).not.toContain("006_player_identity.sql");
 
-    // 006 is still the file under test; 007 (task 0314) and 008 (task 0425)
-    // follow it on the same run because the runner applies every pending file.
+    // 006 is still the file under test; 007 (task 0314), 008 (task 0425), 009
+    // (task 0491) and 010 (task 0496) follow it on the same run because the
+    // runner applies every pending file.
     await expect(applyMigrations(pool, MIGRATIONS_DIR)).resolves.toEqual([
       "006_player_identity.sql",
       "007_name_change_dismiss_and_clear.sql",
       "008_tester_role_snapshots.sql",
+      "009_player_rewarded_match_xp.sql",
+      "010_player_entitlements.sql",
     ]);
 
     const leftovers = await pool.query(
@@ -170,10 +173,12 @@ RUN("migration 006 — player identity (integration)", () => {
     expect(keys.rows).toEqual(
       [
         "player_cosmetic_ownership",
+        "player_entitlements",
         "player_identities",
         "player_match_xp_credits",
         "player_messages",
         "player_name_history",
+        "player_rewarded_match_xp",
         "player_xp_grants",
         "processed_purchases",
         "purchase_intents",

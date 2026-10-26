@@ -304,3 +304,80 @@ describe("PublicPlayerProfileSchema", () => {
     );
   });
 });
+
+// Task 0496: owned durable items, owner view only (spec OD-2).
+describe("PublicPlayerProfileSchema — entitlements (task 0496)", () => {
+  const OWNER_VIEW = {
+    ...validV1Profile(),
+    is_citizen: true,
+    is_paid_citizen: true,
+    citizenship_purchased_at: "2026-06-13T11:00:00.000Z",
+  };
+
+  test("carries entitlements when sent, [] included", () => {
+    for (const entitlements of [[], ["test_durable_item"]]) {
+      const body = { ...OWNER_VIEW, entitlements };
+      expect(PublicPlayerProfileSchema.parse(body)).toEqual(body);
+    }
+  });
+
+  test("never invents the key (S1 view)", () => {
+    const { is_paid_citizen, citizenship_purchased_at, ...s1View } =
+      validV1Profile();
+    void is_paid_citizen;
+    void citizenship_purchased_at;
+    expect(PublicPlayerProfileSchema.parse(s1View)).not.toHaveProperty(
+      "entitlements",
+    );
+  });
+
+  test("accepts an id this bundle does not know", () => {
+    expect(
+      PublicPlayerProfileSchema.safeParse({
+        ...OWNER_VIEW,
+        entitlements: ["a_future_item"],
+      }).success,
+    ).toBe(true);
+  });
+
+  test.each([
+    ["a string", "test_durable_item"],
+    ["null", null],
+    ["a number element", [1]],
+    ["an empty-string element", [""]],
+    ["an object", { test_durable_item: true }],
+  ])("rejects entitlements as %s", (_label, entitlements) => {
+    expect(
+      PublicPlayerProfileSchema.safeParse({ ...OWNER_VIEW, entitlements })
+        .success,
+    ).toBe(false);
+  });
+
+  test("a pre-0496 client parses a new owner body, the key stripped", () => {
+    // A copy of the schema as a client built before task 0496 has it.
+    const Pre0496PublicSchema = PlayerProfileSchema.omit({
+      is_paid_citizen: true,
+      citizenship_purchased_at: true,
+    }).extend({
+      name_change: NameChangeStateSchema.optional(),
+      is_paid_citizen: PlayerProfileSchema.shape.is_paid_citizen.optional(),
+      citizenship_purchased_at:
+        PlayerProfileSchema.shape.citizenship_purchased_at.optional(),
+    });
+    const parsed = Pre0496PublicSchema.safeParse({
+      ...OWNER_VIEW,
+      entitlements: ["test_durable_item"],
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data).toEqual(OWNER_VIEW);
+  });
+
+  test("the stored contract (PlayerProfileSchema) strips it", () => {
+    expect(
+      PlayerProfileSchema.parse({
+        ...validV1Profile(),
+        entitlements: ["test_durable_item"],
+      }),
+    ).not.toHaveProperty("entitlements");
+  });
+});

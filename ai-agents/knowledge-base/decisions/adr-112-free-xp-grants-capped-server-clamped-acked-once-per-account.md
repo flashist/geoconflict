@@ -1,7 +1,43 @@
 # ADR-112: Free XP grants are capped, server-clamped, recorded once per account in `player_xp_grants`, and marked claimed only after a server ack — the tenure grant is the first
 
-- **Status:** accepted · **amended 2026-09-15** (tenure-grant redesign — see the amendment block below)
-- **Date:** 2026-09-14 (recorded). Rulings given **2026-09-14**; redesign rulings **2026-09-15**.
+- **Status:** accepted · **amended 2026-09-15** (tenure-grant redesign — see the amendment block below) · **amended 2026-10-24** (rewarded-ad match bonus sits outside Part 2 — see the first amendment block below)
+- **Date:** 2026-09-14 (recorded). Rulings given **2026-09-14**; redesign rulings **2026-09-15**; rewarded-ad rulings **2026-10-24**.
+
+> ## 📌 Amendment — 2026-10-24: the rewarded-ad match bonus has its own ledger (owner rulings)
+>
+> **Provenance:** the owner ruled through `AskUserQuestion` in the lead session on 2026-10-24, relayed
+> by `fkit-lead`. The architect did not hear the rulings first-hand. Trigger: review finding **R2** in
+> `ai-agents/tasks/done/0491-profile-box-rewarded-ad-match-xp-grant-route-server-part-of-0488/review.md`.
+> **Where this block and the text below disagree, this block wins.**
+>
+> **Ruling 1** — question *"R2: record the new ad-bonus XP table as a design decision?"*, chosen
+> *"Write a short ADR update (Recommended)"*: *"Architect amends ADR-112: ad bonus is a per-match award
+> in its own table; XP = credits + grants + ad bonus."*
+>
+> - **The rewarded-ad match bonus is not a Part 2 grant.** It is a per-match award stored in its own
+>   ledger, `player_rewarded_match_xp` (`migrations/009_player_rewarded_match_xp.sql` —
+>   `create table player_rewarded_match_xp (`, PK `(game_id, player_id)`), written by
+>   `grantRewardedMatchXp` in `src/profile-server/PlayerProfileRepository.ts`.
+> - **Why not `player_xp_grants`:** its key is `(player_id, kind)` — one row per player per grant kind.
+>   The ad bonus is once **per match**, so it needs `(game_id, player_id)`. It is also not a "free"
+>   grant in Part 2's sense: the amount is the server-held base credit row for that match, not
+>   client evidence (0488 plan §4).
+> - **Part 2 rule 1 is narrowed:** non-match grants still go in `player_xp_grants`; the rewarded-ad
+>   match bonus does not. The other Part 2 rules do not bind it.
+> - **The invariant now reads `xp = Σ match credits + Σ grants + Σ rewarded match bonus`.** This replaces
+>   `xp = Σ match credits + Σ grants` in rule 1 and in the 2026-09-15 block. Nothing checks it in code
+>   today (R2: no check in `src/`, `scripts/` or the drill SQL).
+> - The re-raise line *"a future grant needs a different mechanism … a new ADR, not a quiet deviation"*
+>   is met by this amendment — the owner chose an amendment over a new ADR.
+>
+> **Ruling 2 (companion, same date)** — question *"The ad-bonus route works on unconfirmed logins. Put
+> it on a follow-up list?"*, chosen *"Accept, no follow-up"*: `POST /v1/profile/rewarded-match-xp` is
+> **not** gated on a verified login, and **no follow-up task is opened**. Bound on the harm: at most the
+> base `xp_awarded` per match the server really credited to the caller's player, once (0488 plan §4).
+>
+> **Sources:** task `0491` (folder above — `plan.md`, `review.md` R2); the owner-approved 0488 plan,
+> `ai-agents/tasks/done/0488-build-an-opt-in-yandex-rewarded-video-ad-to-improve-rating-and-income/plan.md`,
+> §4 *"XP crediting trust"* and Part S.
 
 > ## 📌 Amendment — 2026-09-15: the tenure-grant REDESIGN (owner rulings)
 >

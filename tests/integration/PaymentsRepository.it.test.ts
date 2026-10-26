@@ -9,7 +9,12 @@
 // is_paid_citizen / citizenship_purchased_at.
 
 import { Pool } from "pg";
-import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
+import { PAYMENT_PRODUCT_IDS } from "../../src/core/profile/PaymentsContract";
+import {
+  durableItemGrant,
+  PaymentsRepository,
+  PRODUCT_GRANTS,
+} from "../../src/profile-server/PaymentsRepository";
 import {
   PLATFORM_YANDEX_GAMES,
   PlayerIdentityRepository,
@@ -93,9 +98,9 @@ RUN("PaymentsRepository (integration)", () => {
 
   test("grantPaidPurchase grants, satisfies CHECKs, and marks the intent used", async () => {
     const intentId = await payments.createIntent(P, "citizenship");
-    await expect(payments.grantPaidPurchase(grantFor(intentId))).resolves.toBe(
-      "granted",
-    );
+    await expect(
+      payments.grantPaidPurchase(grantFor(intentId)),
+    ).resolves.toEqual({ status: "granted", becamePaidCitizen: true });
 
     const profile = await profiles.getProfile(P);
     expect(profile?.is_citizen).toBe(true);
@@ -118,9 +123,9 @@ RUN("PaymentsRepository (integration)", () => {
     await payments.grantPaidPurchase(grantFor(intentId));
     const first = await profiles.getProfile(P);
 
-    await expect(payments.grantPaidPurchase(grantFor(intentId))).resolves.toBe(
-      "already_processed",
-    );
+    await expect(
+      payments.grantPaidPurchase(grantFor(intentId)),
+    ).resolves.toEqual({ status: "already_processed" });
     const second = await profiles.getProfile(P);
     expect(second?.citizenship_purchased_at).toEqual(
       first?.citizenship_purchased_at,
@@ -199,7 +204,7 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
         intentId,
         rawPayload: '{"test":true}',
       }),
-    ).resolves.toBe("granted");
+    ).resolves.toEqual({ status: "granted", becamePaidCitizen: true });
 
     const composed = await profiles.getProfile(P);
     expect(composed?.is_citizen).toBe(true);
@@ -239,5 +244,291 @@ RUN("paid × earned citizenship compose (task 0018, integration)", () => {
     expect(composed?.citizenship_purchased_at).toEqual(
       paid?.citizenship_purchased_at,
     );
+  });
+});
+
+// Task 0492 (B1): the shared paid step and becamePaidCitizen, for every product,
+// against real row locks.
+RUN("product-grant registry (task 0492, integration)", () => {
+  let pool: Pool;
+  let payments: PaymentsRepository;
+  let profiles: PlayerProfileRepository;
+
+  let P: string;
+
+  beforeAll(() => {
+    pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    payments = new PaymentsRepository(pool);
+    profiles = new PlayerProfileRepository(pool);
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  beforeEach(async () => {
+    await truncateProfileTables(pool);
+    P = await createYandexPlayer(pool, "yandex-registry-1");
+  });
+
+  describe.each(PAYMENT_PRODUCT_IDS)("%s", (productId) => {
+    async function grant(token: string) {
+      const intentId = await payments.createIntent(P, productId);
+      return payments.grantPaidPurchase({
+        purchaseToken: token,
+        productId,
+        playerId: P,
+        intentId,
+        rawPayload: '{"test":true}',
+      });
+    }
+
+    test("first grant: becamePaidCitizen true, paid flag set, receipt recorded", async () => {
+      await expect(grant("tok-r1")).resolves.toEqual({
+        status: "granted",
+        becamePaidCitizen: true,
+      });
+      const profile = await profiles.getProfile(P);
+      expect(profile?.is_paid_citizen).toBe(true);
+      await expect(payments.getProcessedPurchase("tok-r1")).resolves.toEqual({
+        purchaseToken: "tok-r1",
+        playerId: P,
+        productId,
+      });
+    });
+
+    test("a second purchase by the same player: granted, becamePaidCitizen false", async () => {
+      await grant("tok-r1");
+      await expect(grant("tok-r2")).resolves.toEqual({
+        status: "granted",
+        becamePaidCitizen: false,
+      });
+    });
+
+    test("a replayed token: already_processed", async () => {
+      const intentId = await payments.createIntent(P, productId);
+      const input = {
+        purchaseToken: "tok-r1",
+        productId,
+        playerId: P,
+        intentId,
+        rawPayload: '{"test":true}',
+      };
+      await payments.grantPaidPurchase(input);
+      await expect(payments.grantPaidPurchase(input)).resolves.toEqual({
+        status: "already_processed",
+      });
+    });
+
+    // The 0425 tester role sets the flags with no purchase behind them.
+    test("a player made paid without a purchase: becamePaidCitizen false", async () => {
+      await pool.query(
+        `UPDATE players
+         SET is_citizen = true, is_paid_citizen = true,
+             citizenship_purchased_at = now()
+         WHERE id = $1`,
+        [P],
+      );
+      await expect(grant("tok-r1")).resolves.toEqual({
+        status: "granted",
+        becamePaidCitizen: false,
+      });
+    });
+
+    test("two grants for one player at once: exactly one becamePaidCitizen true", async () => {
+      const [intentA, intentB] = await Promise.all([
+        payments.createIntent(P, productId),
+        payments.createIntent(P, productId),
+      ]);
+      const outcomes = await Promise.all(
+        [
+          ["tok-race-a", intentA],
+          ["tok-race-b", intentB],
+        ].map(([token, intentId]) =>
+          payments.grantPaidPurchase({
+            purchaseToken: token,
+            productId,
+            playerId: P,
+            intentId,
+            rawPayload: '{"test":true}',
+          }),
+        ),
+      );
+      expect(outcomes.every((outcome) => outcome.status === "granted")).toBe(
+        true,
+      );
+      const flags = outcomes.map((outcome) =>
+        outcome.status === "granted" ? outcome.becamePaidCitizen : null,
+      );
+      expect(flags.sort()).toEqual([false, true]);
+    });
+  });
+});
+
+// Task 0496 (B4): the durable-item base over real Postgres. No item is sellable
+// yet, so a test-only id reaches the repository through its registry seam.
+RUN("PaymentsRepository — durable items (task 0496, integration)", () => {
+  const TEST_ITEM = "test_durable_item";
+  let pool: Pool;
+  let payments: PaymentsRepository;
+  let items: PaymentsRepository;
+  let profiles: PlayerProfileRepository;
+  let P: string;
+
+  beforeAll(() => {
+    pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    payments = new PaymentsRepository(pool);
+    items = new PaymentsRepository(pool, undefined, {
+      ...PRODUCT_GRANTS,
+      [TEST_ITEM]: durableItemGrant(null),
+    });
+    profiles = new PlayerProfileRepository(pool);
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  beforeEach(async () => {
+    await truncateProfileTables(pool);
+    P = await createYandexPlayer(pool, "yandex-item-1");
+  });
+
+  async function grantItem(token: string, productId = TEST_ITEM) {
+    const intentId = await items.createIntent(P, productId);
+    return items.grantPaidPurchase({
+      purchaseToken: token,
+      productId,
+      playerId: P,
+      intentId,
+      rawPayload: '{"test":true}',
+    });
+  }
+
+  async function entitlementRows(playerId: string) {
+    const res = await pool.query(
+      `SELECT product_id, purchase_token, granted_at
+       FROM player_entitlements WHERE player_id = $1`,
+      [playerId],
+    );
+    return res.rows;
+  }
+
+  test("createIntent accepts the item id", async () => {
+    const intentId = await items.createIntent(P, TEST_ITEM);
+    await expect(items.findIntent(intentId)).resolves.toMatchObject({
+      playerId: P,
+      productId: TEST_ITEM,
+      usedAt: null,
+    });
+  });
+
+  test("first grant: one row, the paid flags and the receipt", async () => {
+    await expect(grantItem("tok-i1")).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: true,
+    });
+    const rows = await entitlementRows(P);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      product_id: TEST_ITEM,
+      purchase_token: "tok-i1",
+    });
+    const profile = await profiles.getProfile(P);
+    expect(profile?.is_paid_citizen).toBe(true);
+    expect(profile?.is_citizen).toBe(true);
+    await expect(payments.getProcessedPurchase("tok-i1")).resolves.toEqual({
+      purchaseToken: "tok-i1",
+      playerId: P,
+      productId: TEST_ITEM,
+    });
+  });
+
+  test("listEntitlements: the owned item, and [] for a player with none", async () => {
+    await grantItem("tok-i1");
+    await expect(items.listEntitlements(P)).resolves.toEqual([TEST_ITEM]);
+    const other = await createYandexPlayer(pool, "yandex-item-2");
+    await expect(items.listEntitlements(other)).resolves.toEqual([]);
+  });
+
+  test("a citizenship purchase writes no entitlement", async () => {
+    const intentId = await payments.createIntent(P, "citizenship");
+    await payments.grantPaidPurchase({
+      purchaseToken: "tok-c1",
+      productId: "citizenship",
+      playerId: P,
+      intentId,
+      rawPayload: '{"test":true}',
+    });
+    await expect(payments.listEntitlements(P)).resolves.toEqual([]);
+  });
+
+  test("a replayed token: already_processed, still one row", async () => {
+    const intentId = await items.createIntent(P, TEST_ITEM);
+    const input = {
+      purchaseToken: "tok-i1",
+      productId: TEST_ITEM,
+      playerId: P,
+      intentId,
+      rawPayload: '{"test":true}',
+    };
+    await items.grantPaidPurchase(input);
+    await expect(items.grantPaidPurchase(input)).resolves.toEqual({
+      status: "already_processed",
+    });
+    expect(await entitlementRows(P)).toHaveLength(1);
+  });
+
+  test("a second token for an owned item (two tabs): granted, false; the original row kept", async () => {
+    await grantItem("tok-i1");
+    const [original] = await entitlementRows(P);
+    await expect(grantItem("tok-i2")).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: false,
+    });
+    const rows = await entitlementRows(P);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].purchase_token).toBe("tok-i1");
+    expect(rows[0].granted_at).toEqual(original.granted_at);
+  });
+
+  test("citizenship first, then the item: becamePaidCitizen false, row written", async () => {
+    const intentId = await payments.createIntent(P, "citizenship");
+    await payments.grantPaidPurchase({
+      purchaseToken: "tok-c1",
+      productId: "citizenship",
+      playerId: P,
+      intentId,
+      rawPayload: '{"test":true}',
+    });
+    await expect(grantItem("tok-i1")).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: false,
+    });
+    expect(await entitlementRows(P)).toHaveLength(1);
+  });
+
+  test("deleting the player cascades its rows; the receipt stays", async () => {
+    await grantItem("tok-i1");
+    await pool.query("DELETE FROM players WHERE id = $1", [P]);
+    expect(await entitlementRows(P)).toHaveLength(0);
+    await expect(
+      payments.getProcessedPurchase("tok-i1"),
+    ).resolves.toMatchObject({ purchaseToken: "tok-i1" });
+  });
+
+  test("the default repository refuses the item id and writes nothing", async () => {
+    const intentId = await payments.createIntent(P, TEST_ITEM);
+    await expect(
+      payments.grantPaidPurchase({
+        purchaseToken: "tok-i1",
+        productId: TEST_ITEM,
+        playerId: P,
+        intentId,
+        rawPayload: '{"test":true}',
+      }),
+    ).rejects.toThrow("no grant defined");
+    await expect(payments.getProcessedPurchase("tok-i1")).resolves.toBeNull();
+    expect(await entitlementRows(P)).toHaveLength(0);
   });
 });

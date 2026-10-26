@@ -12,6 +12,11 @@
 // row). It is no route; it runs only inside the profile container on the box.
 
 import { Pool, PoolClient } from "pg";
+import type { InboxTemplateKey } from "../core/profile/InboxContract";
+import {
+  PRODUCT_DEFINITIONS,
+  type PaymentProductId,
+} from "../core/profile/PaymentsContract";
 import { logInboxSendFailure, type InboxSender } from "./InboxRepository";
 
 /** A purchase_intents row, camelCased for the route layer. */
@@ -38,8 +43,94 @@ export interface PaidPurchaseGrant {
   rawPayload: string;
 }
 
-/** granted = fresh grant; already_processed = token seen before (idempotent no-op). */
-export type GrantStatus = "granted" | "already_processed";
+/**
+ * granted = fresh grant; already_processed = token seen before (idempotent no-op).
+ * becamePaidCitizen exists only on a fresh grant: a replay cannot know it.
+ */
+export type GrantOutcome =
+  | { status: "granted"; becamePaidCitizen: boolean }
+  | { status: "already_processed" };
+
+/** One product's own part of a grant; the paid flags are shared and written for every product. */
+export interface ProductGrant {
+  /** Runs inside the grant transaction; must never touch the paid flags. */
+  applyEntitlement(client: PoolClient, grant: PaidPurchaseGrant): Promise<void>;
+  /** Item welcome sent after commit; null for citizenship (citizenship_paid covers it). */
+  itemInboxTemplate: InboxTemplateKey | null;
+}
+
+/** Keyed by the id union, so a sellable product without a grant fails to compile. */
+export const PRODUCT_GRANTS: Record<PaymentProductId, ProductGrant> = {
+  citizenship: { applyEntitlement: async () => {}, itemInboxTemplate: null },
+};
+
+/**
+ * The grant every durable item uses (task 0496, spec §5): one ownership row per
+ * player and product. The primary key makes a second grant of an owned item a
+ * no-op, so a two-tab double charge never duplicates ownership.
+ */
+export function durableItemGrant(
+  itemInboxTemplate: InboxTemplateKey | null,
+): ProductGrant {
+  return {
+    applyEntitlement: async (client, grant) => {
+      await client.query(
+        `INSERT INTO player_entitlements (player_id, product_id, purchase_token)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (player_id, product_id) DO NOTHING`,
+        [grant.playerId, grant.productId, grant.purchaseToken],
+      );
+    },
+    itemInboxTemplate,
+  };
+}
+
+// Own-property lookup: a plain index would hand "constructor" or "__proto__"
+// an inherited value instead of refusing it (0019 R2).
+function productGrantFor(
+  registry: Readonly<Record<string, ProductGrant>>,
+  productId: string,
+): ProductGrant {
+  if (!Object.prototype.hasOwnProperty.call(registry, productId)) {
+    throw new Error(
+      `grantPaidPurchase: no grant defined for productId "${productId}"`,
+    );
+  }
+  return registry[productId];
+}
+
+function isCitizenshipProduct(productId: string): boolean {
+  return (
+    Object.prototype.hasOwnProperty.call(PRODUCT_DEFINITIONS, productId) &&
+    PRODUCT_DEFINITIONS[productId as PaymentProductId].kind === "citizenship"
+  );
+}
+
+/**
+ * The welcome messages a fresh grant sends, oldest first (task 0496). Every
+ * citizenship purchase gets `citizenship_paid`, as before; an item gets it only
+ * when it is what made the buyer paid, then its own template if it has one.
+ */
+export function welcomeTemplatesFor(
+  isCitizenship: boolean,
+  becamePaidCitizen: boolean,
+  itemTemplate: InboxTemplateKey | null,
+): InboxTemplateKey[] {
+  const templates: InboxTemplateKey[] = [];
+  if (isCitizenship || becamePaidCitizen) {
+    templates.push("citizenship_paid");
+  }
+  if (itemTemplate !== null) {
+    templates.push(itemTemplate);
+  }
+  return templates;
+}
+
+// Row-locked so two grants for one player queue here, and exactly one of them
+// sees "not paid yet". NO KEY UPDATE is the level the flags UPDATE takes anyway.
+const READ_WAS_PAID_SQL = `
+SELECT is_paid_citizen FROM players WHERE id = $1 FOR NO KEY UPDATE
+`;
 
 // The paid-flag write. Sets is_citizen too (chk_paid_implies_citizen);
 // citizenship_purchased_at is COALESCEd so a re-grant never rewrites history.
@@ -58,11 +149,28 @@ WHERE id = $1
 `;
 
 export class PaymentsRepository {
-  /** `inbox` optional: without it the post-grant seam sends nothing (tests/tools). */
+  /**
+   * `inbox` optional: without it the post-grant seam sends nothing (tests/tools).
+   * `grants` is a test seam for a product id that is not sellable; production
+   * passes nothing.
+   */
   constructor(
     private readonly pool: Pool,
     private readonly inbox?: InboxSender,
+    private readonly grants: Readonly<
+      Record<string, ProductGrant>
+    > = PRODUCT_GRANTS,
   ) {}
+
+  /** Owned durable product ids, sorted (task 0496). Citizenship is never here. */
+  async listEntitlements(playerId: string): Promise<string[]> {
+    const res = await this.pool.query(
+      `SELECT product_id FROM player_entitlements
+       WHERE player_id = $1 ORDER BY product_id`,
+      [playerId],
+    );
+    return res.rows.map((row) => row.product_id as string);
+  }
 
   /**
    * Create a purchase intent for an EXISTING player (the route resolves the
@@ -123,21 +231,16 @@ export class PaymentsRepository {
 
   /**
    * Grant a verified paid purchase in ONE transaction: record the receipt
-   * (token PK = idempotency + concurrency guard), set the paid flags, mark the
-   * intent used. A token already in the ledger short-circuits to
+   * (token PK = idempotency + concurrency guard), set the paid flags (every
+   * product makes the buyer a paid citizen), apply the product's own entitlement,
+   * mark the intent used. A token already in the ledger short-circuits to
    * "already_processed" WITHOUT touching flags again — safe under concurrent
    * double-submit because the conflicting INSERT serializes on the PK.
    */
-  async grantPaidPurchase(grant: PaidPurchaseGrant): Promise<GrantStatus> {
-    // GRANT_FLAGS_SQL is citizenship-specific. The day a second product joins
-    // PAYMENT_PRODUCT_IDS it needs its OWN grant branch here — fail loudly
-    // rather than silently minting citizenship for it.
-    if (grant.productId !== "citizenship") {
-      throw new Error(
-        `grantPaidPurchase: no grant defined for productId "${grant.productId}"`,
-      );
-    }
-    const status = await this.inTransaction<GrantStatus>(async (client) => {
+  async grantPaidPurchase(grant: PaidPurchaseGrant): Promise<GrantOutcome> {
+    // Before connect(): an unknown product never reaches the database.
+    const productGrant = productGrantFor(this.grants, grant.productId);
+    const outcome = await this.inTransaction<GrantOutcome>(async (client) => {
       const inserted = await client.query(
         `INSERT INTO processed_purchases
            (purchase_token, player_id, product_id, intent_id, raw_payload)
@@ -153,8 +256,10 @@ export class PaymentsRepository {
         ],
       );
       if (inserted.rows.length === 0) {
-        return "already_processed";
+        return { status: "already_processed" };
       }
+      const before = await client.query(READ_WAS_PAID_SQL, [grant.playerId]);
+      const wasPaid = before.rows[0]?.is_paid_citizen === true;
       const flags = await client.query(GRANT_FLAGS_SQL, [grant.playerId]);
       if ((flags.rowCount ?? 0) === 0) {
         // No players row to flag. processed_purchases.player_id has no FK (a
@@ -164,6 +269,7 @@ export class PaymentsRepository {
         // Practically unreachable: the intent's FK cascades on erasure.
         throw new Error("grantPaidPurchase: no player row to grant");
       }
+      await productGrant.applyEntitlement(client, grant);
       if (grant.intentId !== null) {
         await client.query(
           `UPDATE purchase_intents
@@ -172,9 +278,9 @@ export class PaymentsRepository {
           [grant.intentId],
         );
       }
-      return "granted";
+      return { status: "granted", becamePaidCitizen: !wasPaid };
     });
-    if (status === "granted") {
+    if (outcome.status === "granted") {
       // Fires AFTER commit — a hook failure must never roll back a real grant,
       // nor misreport a durable grant as a wire error (0017 review residual R1,
       // owner-ruled 2026-08-24): the hook never throws by contract, and this
@@ -182,36 +288,51 @@ export class PaymentsRepository {
       // never reaches here, so a /reconcile re-grant never duplicates the
       // welcome message.
       try {
-        this.afterPaidPurchaseGranted(grant);
+        this.afterPaidPurchaseGranted(
+          grant,
+          welcomeTemplatesFor(
+            isCitizenshipProduct(grant.productId),
+            outcome.becamePaidCitizen,
+            productGrant.itemInboxTemplate,
+          ),
+        );
       } catch (error) {
         logInboxSendFailure("citizenship_paid", error);
       }
     }
-    return status;
+    return outcome;
   }
 
   /**
    * Post-grant hook (task 0012 filled the 0019 seam; same shape as
-   * PlayerProfileRepository.afterCitizenshipEarned). Sends the
-   * `citizenship_paid` "Welcome, Citizen!" inbox template — rendered
-   * client-side from `inbox.templates.citizenship_paid.{title,body}` in
-   * resources/lang/*.json. Best-effort and contractually never-throwing: a
-   * sync throw is caught here, an async rejection is logged, and the grant
-   * status is returned unchanged either way.
+   * PlayerProfileRepository.afterCitizenshipEarned). Sends `templates` in order
+   * (see welcomeTemplatesFor) — rendered client-side from
+   * `inbox.templates.<key>.{title,body}` in resources/lang/*.json. Best-effort
+   * and contractually never-throwing: a sync throw is caught here, an async
+   * rejection is logged under its own key, and the grant outcome is returned
+   * unchanged either way.
    */
-  private afterPaidPurchaseGranted(grant: PaidPurchaseGrant): void {
-    if (this.inbox === undefined) {
+  private afterPaidPurchaseGranted(
+    grant: PaidPurchaseGrant,
+    templates: readonly InboxTemplateKey[],
+  ): void {
+    const inbox = this.inbox;
+    if (inbox === undefined || templates.length === 0) {
       return;
     }
-    try {
-      void this.inbox
-        .sendTemplate(grant.playerId, "citizenship_paid")
-        .catch((error: unknown) =>
-          logInboxSendFailure("citizenship_paid", error),
-        );
-    } catch (error) {
-      logInboxSendFailure("citizenship_paid", error);
-    }
+    // Each send waits for the one before to settle, so the welcome message is
+    // always the older row.
+    void templates.reduce<Promise<void>>(
+      (previous, templateKey) =>
+        previous.then(async () => {
+          try {
+            await inbox.sendTemplate(grant.playerId, templateKey);
+          } catch (error) {
+            logInboxSendFailure(templateKey, error);
+          }
+        }),
+      Promise.resolve(),
+    );
   }
 
   private async inTransaction<T>(

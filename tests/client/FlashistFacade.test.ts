@@ -1297,6 +1297,122 @@ describe("FlashistFacade.openYandexAuthDialog marks a platform dialog (task 0404
   });
 });
 
+// Task 0494 (spec §4.1, F15): one Yandex auth dialog at a time for every
+// caller — the card, the purchase flow and 0488's WinModal.
+describe("FlashistFacade.openYandexAuthDialog is single-flight (task 0494)", () => {
+  beforeEach(() => {
+    resetPlatformDialogPresenceForTests();
+  });
+
+  function deferred<T>() {
+    let resolve: (value: T) => void = () => {};
+    let reject: (error: unknown) => void = () => {};
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  }
+
+  function makeAuthFacade(sdk: {
+    openAuthDialog: jest.Mock;
+    getPlayer: jest.Mock;
+  }): FlashistFacade {
+    return makeFacade({
+      yaGamesAvailable: true,
+      yandexGamesSDK: {
+        auth: { openAuthDialog: sdk.openAuthDialog },
+        getPlayer: sdk.getPlayer,
+      },
+    });
+  }
+
+  it("two concurrent calls share one dialog, one getPlayer and one result", async () => {
+    const dialog = deferred<void>();
+    const sdk = {
+      openAuthDialog: jest.fn(() => dialog.promise),
+      getPlayer: jest.fn(async () => ({ isAuthorized: () => true })),
+    };
+    const facade = makeAuthFacade(sdk);
+
+    const first = facade.openYandexAuthDialog();
+    const second = facade.openYandexAuthDialog();
+    dialog.resolve();
+
+    await expect(first).resolves.toBe(true);
+    await expect(second).resolves.toBe(true);
+    expect(sdk.openAuthDialog).toHaveBeenCalledTimes(1);
+    expect(sdk.getPlayer).toHaveBeenCalledTimes(1);
+  });
+
+  it.each<[string, () => { openAuthDialog: jest.Mock; getPlayer: jest.Mock }]>([
+    [
+      "a login",
+      () => ({
+        openAuthDialog: jest.fn().mockResolvedValue(undefined),
+        getPlayer: jest.fn(async () => ({ isAuthorized: () => true })),
+      }),
+    ],
+    [
+      "a closed dialog (rejection)",
+      () => ({
+        openAuthDialog: jest.fn().mockRejectedValue(new Error("closed")),
+        getPlayer: jest.fn(),
+      }),
+    ],
+    [
+      "a getPlayer throw",
+      () => ({
+        openAuthDialog: jest.fn().mockResolvedValue(undefined),
+        getPlayer: jest.fn().mockRejectedValue(new Error("player")),
+      }),
+    ],
+  ])(
+    "the latch clears after %s: a later call opens a fresh dialog",
+    async (_label, makeSdk) => {
+      const sdk = makeSdk();
+      const facade = makeAuthFacade(sdk);
+
+      await facade.openYandexAuthDialog();
+      await facade.openYandexAuthDialog();
+
+      expect(sdk.openAuthDialog).toHaveBeenCalledTimes(2);
+      expect(isPlatformDialogOpen()).toBe(false);
+    },
+  );
+
+  it("the 0404 platform-dialog marker opens and closes once for a shared dialog", async () => {
+    const dialog = deferred<void>();
+    const seen: boolean[] = [];
+    const facade = makeAuthFacade({
+      openAuthDialog: jest.fn(() => dialog.promise),
+      getPlayer: jest.fn(async () => {
+        seen.push(isPlatformDialogOpen());
+        return { isAuthorized: () => false };
+      }),
+    });
+
+    const first = facade.openYandexAuthDialog();
+    const second = facade.openYandexAuthDialog();
+    expect(isPlatformDialogOpen()).toBe(true);
+    dialog.resolve();
+    await Promise.all([first, second]);
+
+    expect(seen).toEqual([true]);
+    expect(isPlatformDialogOpen()).toBe(false);
+  });
+
+  it("no SDK: false, and no latch held", async () => {
+    const facade = makeFacade({ yaGamesAvailable: true });
+
+    await expect(facade.openYandexAuthDialog()).resolves.toBe(false);
+    expect(
+      (facade as unknown as { authDialogInFlight?: unknown })
+        .authDialogInFlight ?? null,
+    ).toBeNull();
+  });
+});
+
 describe("reloadWithoutHash (task 0404)", () => {
   function makeTarget(fields: {
     pathname: string;

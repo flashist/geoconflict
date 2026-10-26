@@ -24,7 +24,11 @@ import { InboxListResponseSchema } from "../../src/core/profile/InboxContract";
 import { LoginResponseSchema } from "../../src/core/profile/LoginContract";
 import { PublicPlayerProfileSchema } from "../../src/core/profile/PlayerProfile";
 import { InboxRepository } from "../../src/profile-server/InboxRepository";
-import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
+import {
+  durableItemGrant,
+  PaymentsRepository,
+  PRODUCT_GRANTS,
+} from "../../src/profile-server/PaymentsRepository";
 import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
 import { toPublicProfile } from "../../src/profile-server/PublicProjection";
 import { createApp } from "../../src/profile-server/Routes";
@@ -168,7 +172,7 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
         intentId,
         rawPayload: '{"test":true}',
       }),
-    ).resolves.toBe("granted");
+    ).resolves.toMatchObject({ status: "granted" });
   }
 
   /** The inbox sends are fire-and-forget after commit — poll, bounded. */
@@ -675,15 +679,16 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
     const storedProfile = await realProfileRepo(pool).getProfile(paid.playerId);
     const { token, body: loginBody } = await verifiedLogin(paid);
 
-    // POST /v1/login: the owner view of the session it mints.
-    expect(loginBody.profile).toEqual(storedProfile);
+    // POST /v1/login: the owner view of the session it mints. A paid citizen
+    // with no items owns `[]` — citizenship is never an entitlement (task 0496).
+    expect(loginBody.profile).toEqual({ ...storedProfile, entitlements: [] });
 
     // GET /v1/profile.
     const profile = await request(signingApp)
       .get("/v1/profile")
       .set("Authorization", asToken(token));
     expect(profile.status).toBe(200);
-    expect(profile.body).toEqual(storedProfile);
+    expect(profile.body).toEqual({ ...storedProfile, entitlements: [] });
     expect(profile.body.is_paid_citizen).toBe(true);
     expect(profile.body.citizenship_purchased_at).toBe(
       new Date(stored.citizenship_purchased_at).toISOString(),
@@ -834,5 +839,71 @@ RUN("paid-state equalization over real Postgres (task 0250 S1)", () => {
       before.citizenship_purchased_at,
     );
     expect(Number(after.xp)).toBe(Number(before.xp));
+  });
+
+  // ── Task 0496: owned durable items, owner view only (spec OD-2) ────────────
+
+  test("0496: verified reads carry the owned list, and an item buyer reads like an earned citizen unverified", async () => {
+    const TEST_ITEM = "test_durable_item";
+    const itemPayments = new PaymentsRepository(pool, inbox, {
+      ...PRODUCT_GRANTS,
+      [TEST_ITEM]: durableItemGrant(null),
+    });
+    const buyer = await seedEarned("0496-buyer", 100);
+    const earnedRef = await seedEarned("0496-earned", 100);
+
+    const before = await verifiedLogin(buyer);
+    expect(
+      (before.body.profile as Record<string, unknown>).entitlements,
+    ).toEqual([]);
+    const beforeRead = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", asToken(before.token));
+    expect(beforeRead.body.entitlements).toEqual([]);
+
+    const intentId = await itemPayments.createIntent(buyer.playerId, TEST_ITEM);
+    await expect(
+      itemPayments.grantPaidPurchase({
+        purchaseToken: "tok-0496-item",
+        productId: TEST_ITEM,
+        playerId: buyer.playerId,
+        intentId,
+        rawPayload: '{"test":true}',
+      }),
+    ).resolves.toEqual({ status: "granted", becamePaidCitizen: true });
+    await waitForStoredKeys(buyer.playerId, 2);
+
+    const after = await verifiedLogin(buyer);
+    expect(
+      (after.body.profile as Record<string, unknown>).entitlements,
+    ).toEqual([TEST_ITEM]);
+    const afterRead = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", asToken(after.token));
+    expect(afterRead.body.entitlements).toEqual([TEST_ITEM]);
+    expect(afterRead.body.is_paid_citizen).toBe(true);
+    expect(PublicPlayerProfileSchema.safeParse(afterRead.body).success).toBe(
+      true,
+    );
+
+    // Unverified: no key, and the same shape and values as an earned citizen.
+    const buyerS1 = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", bearerFor(buyer.playerId));
+    const earnedS1 = await request(signingApp)
+      .get("/v1/profile")
+      .set("Authorization", bearerFor(earnedRef.playerId));
+    expect(buyerS1.status).toBe(200);
+    expect(buyerS1.body).not.toHaveProperty("entitlements");
+    expect(keySet(buyerS1.body)).toEqual(keySet(earnedS1.body));
+    const { created_at: _bc, updated_at: _bu, ...buyerRest } = buyerS1.body;
+    const { created_at: _ec, updated_at: _eu, ...earnedRest } = earnedS1.body;
+    void [_bc, _bu, _ec, _eu];
+    expect(buyerRest).toEqual(earnedRest);
+    const buyerMessages = await request(signingApp)
+      .get("/v1/messages")
+      .set("Authorization", bearerFor(buyer.playerId));
+    expect(leakL4(buyerMessages.body)).toBe(false);
+    expect(buyerMessages.body.messages).toHaveLength(1);
   });
 });

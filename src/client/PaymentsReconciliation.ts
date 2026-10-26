@@ -66,10 +66,11 @@ async function runPaymentsReconciliation(): Promise<void> {
   if (signed === null) {
     return; // No purchases pending (or payments unavailable) — nothing to do.
   }
-  const tokens = await reconcilePurchases(signed.signature);
-  if (tokens === null || tokens.length === 0) {
+  const reconciled = await reconcilePurchases(signed.signature);
+  if (reconciled.kind !== "ok" || reconciled.processedTokens.length === 0) {
     return;
   }
+  const tokens = reconciled.processedTokens;
   // The grants are committed the moment /reconcile responds — signal profile
   // consumers BEFORE consuming (review R3): a hung consumePurchase below must
   // not block the card's refresh and leave a live buy CTA on a player the

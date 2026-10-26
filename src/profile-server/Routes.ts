@@ -35,11 +35,17 @@ import {
   type NameChangeState,
 } from "../core/profile/NameChangeContract";
 import {
+  PRODUCT_DEFINITIONS,
   PurchaseCompleteRequestSchema,
   PurchaseIntentRequestSchema,
   PurchaseReconcileRequestSchema,
+  type ProductKind,
 } from "../core/profile/PaymentsContract";
 import type { PlayerProfile } from "../core/profile/PlayerProfile";
+import {
+  RewardedMatchXpRequestSchema,
+  type RewardedMatchXpResponse,
+} from "../core/profile/RewardedMatchXpContract";
 import {
   TenureGrantRequestSchema,
   tenureGrantForEvidence,
@@ -69,7 +75,7 @@ import type {
   RequestOutcome,
 } from "./NameChangeRepository";
 import type {
-  GrantStatus,
+  GrantOutcome,
   PaidPurchaseGrant,
   ProcessedPurchase,
   PurchaseIntent,
@@ -81,6 +87,7 @@ import {
 } from "./PlayerIdentityRepository";
 import type {
   CreditOutcome,
+  RewardedMatchXpOutcome,
   TenureCheckOutcome,
   XpGrantKind,
 } from "./PlayerProfileRepository";
@@ -167,7 +174,9 @@ export interface PaymentsRepo {
   getProcessedPurchase(
     purchaseToken: string,
   ): Promise<ProcessedPurchase | null>;
-  grantPaidPurchase(grant: PaidPurchaseGrant): Promise<GrantStatus>;
+  grantPaidPurchase(grant: PaidPurchaseGrant): Promise<GrantOutcome>;
+  /** Owned durable product ids (task 0496). */
+  listEntitlements(playerId: string): Promise<string[]>;
 }
 
 /** Payments wiring for createApp. Omitted (or an empty secret) ⇒ payments routes fail closed with 503. */
@@ -214,6 +223,8 @@ export interface AppOptions {
    * Here rather than on ProfileRepo so the many ProfileRepo mocks stay unchanged.
    */
   tenureGrant?: TenureGrantRepo;
+  /** Task 0491. Absent ⇒ the route answers 503, like `tenureGrant`. */
+  rewardedMatchXp?: RewardedMatchXpRepo;
   /**
    * Task 0325. The Yandex per-game secret that signs player data — the SAME key as
    * the payments secret (Server.ts passes one value to both). Absent or "" ⇒ every
@@ -238,6 +249,14 @@ export interface TenureGrantRepo {
     xpAwarded: number,
     evidence: TenureEvidence,
   ): Promise<TenureCheckOutcome>;
+}
+
+/** Structural, so tests can mock it (task 0491). */
+export interface RewardedMatchXpRepo {
+  grantRewardedMatchXp(
+    gameId: string,
+    playerId: string,
+  ): Promise<RewardedMatchXpOutcome>;
 }
 
 const BEARER_PREFIX = "Bearer ";
@@ -324,7 +343,8 @@ export interface NameChangeRepo {
  * Since 0250 S3b the profile, login, inbox and tenure routes read `verified`: a
  * verified caller gets its OWN true view (paid facts included), every other caller
  * the EQUALIZED view (PublicProjection.ts, task 0250 S1) — a paid and an earned
- * citizen look the same. Name change does not read it yet (0319), nor do payments.
+ * citizen look the same. Name change does not read it yet (0319). Payments read it
+ * only to refuse an owned durable item at `/intent` (task 0496, `intentRefusal`).
  */
 export type SessionCaller = {
   status: "ok";
@@ -340,6 +360,21 @@ type CallerResolution = SessionCaller | CallerFailure;
  */
 export function callerFromSession(claims: SessionClaims): SessionCaller {
   return { status: "ok", playerId: claims.pid, verified: claims.vfy === true };
+}
+
+/**
+ * Why `/intent` refuses (task 0496, spec §5.3), or null. Only a durable item
+ * the VERIFIED caller already owns is refused: an unverified caller's "owned"
+ * would be a paid-state oracle, and citizenship is never refused here.
+ */
+export function intentRefusal(
+  kind: ProductKind,
+  isOwned: boolean,
+  callerVerified: boolean,
+): "already_owned" | null {
+  return kind === "durable_item" && callerVerified && isOwned
+    ? "already_owned"
+    : null;
 }
 
 type CallerFailure =
@@ -480,6 +515,8 @@ export function createApp(
   const sshAlertsConfig = options?.sshAlerts;
   // Task 0253. Undefined ⇒ the tenure-grant route fails closed with 503.
   const tenureGrant = options?.tenureGrant;
+  // Task 0491. Undefined ⇒ the rewarded-match-xp route fails closed with 503.
+  const rewardedMatchXp = options?.rewardedMatchXp;
   // Task 0325. "" ⇒ the login's signature check counts `no_secret`, nothing else.
   const playerSignatureSecret = options?.playerSignatureSecret ?? "";
 
@@ -666,6 +703,25 @@ export function createApp(
       return undefined;
     }
   };
+  /**
+   * Owned durable items for the owner view (task 0496), or null = unknown:
+   * payments unwired, or the read failed. Fails soft like the name-change read —
+   * and it must, since a profile deploy serves this before migration 010 exists.
+   */
+  const readEntitlements = async (
+    playerId: string,
+  ): Promise<string[] | null> => {
+    const entitlementsRepo = payments?.paymentsRepo;
+    if (entitlementsRepo === undefined) {
+      return null;
+    }
+    try {
+      return await entitlementsRepo.listEntitlements(playerId);
+    } catch (error) {
+      log.error(`entitlements lookup failed: ${formatError(error)}`);
+      return null;
+    }
+  };
   app.options("/v1/profile", profileCors);
   app.get("/v1/profile", profileCors, profileReadLimiter, async (req, res) => {
     try {
@@ -682,10 +738,13 @@ export function createApp(
       }
       // The view is chosen by the caller's own token alone (0250 S3b): its own
       // true values and paid facts when verified, the equalized S1 view otherwise.
+      // Entitlements are read for every caller so the query pattern says nothing
+      // about the token; only the owner view uses them.
       const body = profileForCaller(
         profile,
         await readNameChangeState(caller.playerId),
         caller.verified,
+        await readEntitlements(caller.playerId),
       );
       // May carry purchase facts: no cache may keep it. Set for EVERY caller — it
       // depends only on the route, so it is no paid signal.
@@ -823,6 +882,12 @@ export function createApp(
             ? undefined
             : await readNameChangeState(resolved.playerId),
           verified,
+          // A brand-new player owns nothing — no query, as for name change.
+          resolved.created
+            ? payments?.paymentsRepo === undefined
+              ? null
+              : []
+            : await readEntitlements(resolved.playerId),
         ),
         grantChecks: { tenure: tenureDone ? "done" : "pending" },
         session: signSessionToken(sessionSecret, {
@@ -999,12 +1064,12 @@ export function createApp(
   if (paymentsRepo !== undefined) {
     // Create a purchase intent BEFORE the payment frame opens. The caller (since
     // task 0273: a session token, and nothing else — same trust level ADR-103
-    // accepted for crediting: a token may be `vfy:true` since task 0340, but this
-    // route does not read `verified` — neither 0250 S3b nor 0319 gates it) is only
-    // who the intent is FOR; the GRANT is bound to the Yandex-signed payload via
-    // developerPayload → intent row, so the worst abuse is paying real money to gift
-    // citizenship to a chosen id. A token for a player that no longer exists hits
-    // the FK — 404 (0271).
+    // accepted for crediting) is only who the intent is FOR; the GRANT is bound to
+    // the Yandex-signed payload via developerPayload → intent row, so the worst
+    // abuse is paying real money to gift citizenship to a chosen id. `verified` is
+    // read only for a durable item, to refuse one the caller owns (task 0496,
+    // `intentRefusal`); citizenship never reads it. A token for a player that no
+    // longer exists hits the FK — 404 (0271).
     app.post("/v1/payments/yandex/intent", async (req, res) => {
       const parsed = PurchaseIntentRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1016,9 +1081,23 @@ export function createApp(
         if (sendCallerFailure(res, caller)) {
           return;
         }
+        const productId = parsed.data.productId;
+        const kind = PRODUCT_DEFINITIONS[productId].kind;
+        // A read error falls to the 500 below: no intent, so fail closed.
+        const isOwned =
+          caller.verified && kind === "durable_item"
+            ? (await paymentsRepo.listEntitlements(caller.playerId)).includes(
+                productId,
+              )
+            : false;
+        const refusal = intentRefusal(kind, isOwned, caller.verified);
+        if (refusal !== null) {
+          res.status(409).json({ error: refusal });
+          return;
+        }
         const intentId = await paymentsRepo.createIntent(
           caller.playerId,
-          parsed.data.productId,
+          productId,
         );
         res.status(200).json({ intentId });
       } catch (error) {
@@ -1097,16 +1176,22 @@ export function createApp(
           res.status(409).json({ error: "intent_used" });
           return;
         }
-        await paymentsRepo.grantPaidPurchase({
+        const outcome = await paymentsRepo.grantPaidPurchase({
           purchaseToken: purchase.purchaseToken,
           productId: purchase.productId,
           playerId: intent.playerId,
           intentId: intent.id,
           rawPayload: verified.rawPayload,
         });
-        res
-          .status(200)
-          .json({ success: true, purchaseToken: purchase.purchaseToken });
+        // already_processed here = a parallel /reconcile won the token race;
+        // like the replay above, the field is left out rather than guessed.
+        res.status(200).json({
+          success: true,
+          purchaseToken: purchase.purchaseToken,
+          ...(outcome.status === "granted"
+            ? { becamePaidCitizen: outcome.becamePaidCitizen }
+            : {}),
+        });
       } catch (error) {
         log.error(
           `POST /v1/payments/yandex/complete failed: ${formatError(error)}`,
@@ -1119,7 +1204,8 @@ export function createApp(
     // grant anything still unprocessed, idempotently. Returns EVERY token that is
     // now safe to consume — including already-processed strays. Entries whose
     // developerPayload maps to no known intent are logged (token prefix only) and
-    // skipped: nothing is ever granted off an unmapped payload.
+    // skipped: nothing is ever granted off an unmapped payload. An entry that
+    // throws is logged and skipped too, so one bad entry cannot strand the rest.
     app.post("/v1/payments/yandex/reconcile", async (req, res) => {
       const parsed = PurchaseReconcileRequestSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -1145,8 +1231,9 @@ export function createApp(
           `reconcile skip (${reason}): token=${purchase.purchaseToken.slice(0, 8)}…`,
         );
       };
-      try {
-        for (const purchase of verified.purchases) {
+      let failedCount = 0;
+      for (const purchase of verified.purchases) {
+        try {
           const processed = await paymentsRepo.getProcessedPurchase(
             purchase.purchaseToken,
           );
@@ -1178,14 +1265,20 @@ export function createApp(
             rawPayload: verified.rawPayload,
           });
           processedTokens.push(purchase.purchaseToken);
+        } catch (error) {
+          failedCount += 1;
+          log.error(
+            `reconcile entry failed: token=${purchase.purchaseToken.slice(0, 8)}… ${formatError(error)}`,
+          );
         }
-        res.status(200).json({ processedTokens });
-      } catch (error) {
-        log.error(
-          `POST /v1/payments/yandex/reconcile failed: ${formatError(error)}`,
-        );
-        res.status(500).json({ error: "internal_error" });
       }
+      res
+        .status(200)
+        .json(
+          failedCount > 0
+            ? { processedTokens, failedCount }
+            : { processedTokens },
+        );
     });
   }
 
@@ -1706,6 +1799,68 @@ export function createApp(
         metrics.tenureClaim("error");
         log.error(
           `POST /v1/profile/tenure-grant failed: ${formatError(error)}`,
+        );
+        res.status(500).json({ error: "internal_error" });
+      }
+    });
+  }
+
+  // Rewarded-ad match XP (task 0491). No rate limiter, like tenure-grant: the base-credit
+  // rule and the per-match primary key bound abuse, and the client retries on purpose.
+  const rewardedMatchXpEnabled: RequestHandler = (_req, res, next) => {
+    if (rewardedMatchXp === undefined) {
+      metrics.rewardedMatchXpGrant("unavailable");
+      res.status(503).json({ error: "rewarded_match_xp_unavailable" });
+      return;
+    }
+    next();
+  };
+  app.use(
+    "/v1/profile/rewarded-match-xp",
+    publicCors("POST"),
+    rewardedMatchXpEnabled,
+  );
+
+  if (rewardedMatchXp !== undefined) {
+    app.post("/v1/profile/rewarded-match-xp", async (req, res) => {
+      const parsed = RewardedMatchXpRequestSchema.safeParse(req.body);
+      if (!parsed.success) {
+        metrics.rewardedMatchXpGrant("bad_request");
+        res.status(400).json({ error: "bad_request" });
+        return;
+      }
+      try {
+        const caller = await resolveCaller(req);
+        if (sendCallerFailure(res, caller)) {
+          metrics.rewardedMatchXpGrant(
+            caller.status === "unauthorized" ? "unauthorized" : "unavailable",
+          );
+          return;
+        }
+        const outcome = await rewardedMatchXp.grantRewardedMatchXp(
+          parsed.data.gameId,
+          caller.playerId,
+        );
+        metrics.rewardedMatchXpGrant(outcome.status);
+        // Outcome and amount only — never the player id, the token or the game id.
+        log.info(
+          `rewarded match xp ${outcome.status}: xpAwarded=${outcome.xpAwarded}`,
+        );
+        if (outcome.status === "not_found") {
+          res.status(404).json({ error: "not_found" });
+          return;
+        }
+        const body: RewardedMatchXpResponse = {
+          status: outcome.status,
+          xpAwarded: outcome.xpAwarded,
+          // Equalized for an unverified citizen, as on the tenure grant (0250 S1).
+          xp: xpForCaller(outcome.xp, outcome.isCitizen, caller.verified),
+        };
+        res.status(200).json(body);
+      } catch (error) {
+        metrics.rewardedMatchXpGrant("error");
+        log.error(
+          `POST /v1/profile/rewarded-match-xp failed: ${formatError(error)}`,
         );
         res.status(500).json({ error: "internal_error" });
       }

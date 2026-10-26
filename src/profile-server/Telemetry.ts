@@ -188,6 +188,17 @@ export type TenureClaimOutcome =
   | "unavailable"
   | "error";
 
+/** Bounded like TenureClaimOutcome (task 0491): never a free-text value. */
+export type RewardedMatchXpGrantOutcome =
+  | "granted"
+  | "duplicate"
+  | "not_credited"
+  | "not_found"
+  | "bad_request"
+  | "unauthorized"
+  | "unavailable"
+  | "error";
+
 /** What the routes and repositories record. Nothing here ever throws or awaits. */
 export interface ProfileMetrics {
   loginRequest(platform: MetricPlatform, outcome: LoginOutcome): void;
@@ -205,6 +216,8 @@ export interface ProfileMetrics {
   loginStaleSignatureAge(bracket: StaleSignatureAgeBracket): void;
   /** Once per `POST /v1/profile/tenure-grant` request (task 0253). */
   tenureClaim(outcome: TenureClaimOutcome): void;
+  /** Once per `POST /v1/profile/rewarded-match-xp` request (task 0491). */
+  rewardedMatchXpGrant(outcome: RewardedMatchXpGrantOutcome): void;
   /**
    * Once per `POST /internal/v1/players/resolve` that SUCCEEDED (task 0332,
    * ADR-124) — tokenless resolves included, as `absent`. ⚠️ Per RESOLVE, not per
@@ -261,6 +274,7 @@ export const noopProfileMetrics: ProfileMetrics = {
   loginVerification: () => {},
   loginStaleSignatureAge: () => {},
   tenureClaim: () => {},
+  rewardedMatchXpGrant: () => {},
   resolveVouch: () => {},
   alertRelay: () => {},
 };
@@ -352,6 +366,13 @@ export function createProfileMetrics(
     {
       description:
         "Tenure XP grant claims (POST /v1/profile/tenure-grant), by outcome",
+    },
+  );
+  const rewardedMatchXpGrants = meter.createCounter(
+    "geoconflict.profile.rewarded_match_xp.grants",
+    {
+      description:
+        "Rewarded-ad match XP grants (POST /v1/profile/rewarded-match-xp), by outcome",
     },
   );
   const resolveVouches = meter.createCounter(
@@ -486,6 +507,9 @@ export function createProfileMetrics(
     },
     tenureClaim: (outcome) => {
       tenureClaims.add(1, { outcome });
+    },
+    rewardedMatchXpGrant: (outcome) => {
+      rewardedMatchXpGrants.add(1, { outcome });
     },
     resolveVouch: (outcome) => {
       resolveVouches.add(1, { outcome });

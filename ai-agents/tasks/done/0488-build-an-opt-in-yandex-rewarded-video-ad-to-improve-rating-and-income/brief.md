@@ -21,7 +21,7 @@ Sprint 9
 > the open run it sits in (above `0481`): `0480`'s row directly above that run is a `➡️ Moved` row, a wall (ADR-035).
 
 ## Status
-🔄 In progress *(2026-10-24 — set by `fkit-lead` driving `/fkit-sprint-ship-loop`; OWNER RULING via `AskUserQuestion`: "0484 + 0488 in parallel (Recommended)".)*
+✅ Done (agent-closed — not owner-verified)
 
 > (Status until 2026-10-24) ~~🔲 Backlog~~
 
@@ -33,7 +33,7 @@ fkit-coder
 **Filed 2026-10-24 by a spawned `fkit-producer` with no owner channel (ADR-021/037), on an OWNER ANSWER given live in
 the lead's Claude Code session on 2026-10-24 (typed, not a listed option), relayed by `fkit-lead` (driving
 `/fkit-sprint-ship-loop` on Sprint 9); ⛔ not producer precedent.** Split out of the coin-economy talk
-[`0480`](../0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/brief.md), which is now ON HOLD on
+[`0480`](../../backlog/0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/brief.md), which is now ON HOLD on
 the Backlog board (answer 1 below). This brief is `0480`'s To-discuss question 2 answered: the minimal rewarded ad is
 **its own step**, not folded into a coin economy.
 
@@ -49,7 +49,7 @@ no currency). On *"Is citizenship the 'premium tier' the old plans mentioned?"* 
 ~~**not answered, pending**~~ *(answered later on 2026-10-24: the old "premium tier" idea is **dropped** unless
 something important is found in it; paid citizenship keeps something extra, every other feature goes to all citizens
 — recorded in `0480`'s worklog)*; it does not bind this build. Full record: `0480`'s
-[`worklog.md`](../0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/worklog.md).
+[`worklog.md`](../../backlog/0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/worklog.md).
 
 **The goal.** An **opt-in** Yandex rewarded video: the player presses a button, watches a video ad, and gets a
 reward. Built to **improve the game's rating and income** (owner's words). It never plays by itself — unlike the
@@ -75,7 +75,7 @@ this filing (it is a different board) — a producer follow-up.
   reaches a new rewarded path is unchecked (plan check 5).
 - **A rewarded ad is not a purchase.** Nobody pays, so the purchase rules (every purchase grants paid citizenship, a
   guest logs in first, price above 249 Yan) **do not apply**, and this build does **not** wait on the shared
-  purchase-flow design [`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
+  purchase-flow design [`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
 
 ### ⚠️ The trade-off behind the reward choice — stated, not decided
 
@@ -137,7 +137,7 @@ typed, not a listed option), relayed by `fkit-lead` (driving `/fkit-sprint-ship-
    - ⚠️ **OPEN — for the coder's plan, owner to confirm at plan approval. Not a ruling.** A guest has no profile and
      no XP, so there is nothing to double. *The lead's reading:* for a guest the offer becomes a **"log in to get the
      reward"** prompt. A **plain login prompt** (log in, then the reward applies from the next match or not at all) is
-     an ordinary login and does **not** need [`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
+     an ordinary login and does **not** need [`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md).
      A **seamless continue** (log in, then this same match's XP is doubled without starting over) would lean on
      `0484`'s design and would be re-scoped. The plan names which, and what a guest's XP for *this* match even is
      (a guest's match credits no XP today — see *What the producer knows*).
@@ -152,6 +152,13 @@ An opt-in rewarded video, end to end, for the reward, place, limits and audience
 existing popup if there is one), **no cap of our own**, shown to **non-citizens and guests only**, never to citizens.
 The popup also tells the player they get XP after a win, a loss or a match end. The guest case follows the open design
 point under question 5.
+
+> ✂️ **2026-10-24 — build scope after the split: plan Part C only.** OWNER RULINGS, live `AskUserQuestion` in the lead
+> session, relayed by `fkit-lead` (ADR-021/037); ⛔ not producer precedent: **"Approve as planned (Recommended)"** and
+> **"Split it (Recommended)"**. This task builds **Part C** of the approved [`plan.md`](plan.md) — **steps 7–12 plus
+> the client tests**. Part S (the profile-box route, steps 1–6 + its tests) is
+> [`0491`](../../done/0491-profile-box-rewarded-ad-match-xp-grant-route-server-part-of-0488/brief.md), which this task waits
+> on. Deploy order: profile box (`0491`) first, then this client. Dated record: [`worklog.md`](worklog.md).
 
 ### Plan-step checks — the coder answers each in the plan, with evidence, before building
 
@@ -248,15 +255,16 @@ point under question 5.
   producer splits it then. ~~Not split now because the reward is not chosen yet.~~ *(2026-10-24: the reward is now
   chosen — double this match's XP, R1. Match XP is credited by the game server at match end (`0217`), and the ad is
   watched **after** that, so the extra XP is very likely a second, later grant. Still not split: whether it needs a
-  new profile-box route, and who vouches for the watch, is plan check 4's answer. The producer splits on that answer.)*
+  new profile-box route, and who vouches for the watch, is plan check 4's answer. The producer splits on that answer.)* *(2026-10-24: **split done** on the owner ruling
+  "Split it (Recommended)" — server part is `0491`; see `Depends on:` above.)*
 - **Build vs verify (owner rule, 2026-09-29):** when this build closes, a live verify task (deploy, then read the
   events and the Yandex console) goes at the top of the next sprint.
 - **Deploy** in a weekend slot unless urgent (owner rule); committed is not deployed.
-- **Split from:** [`0480`](../0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/brief.md),
+- **Split from:** [`0480`](../../backlog/0480-discussion-coin-economy-and-rewarded-ads-what-coins-buy-and-outcome/brief.md),
   2026-10-24 (owner answer 2 above).
 - **Related:** [`0248`](../../done/0248-suppress-interstitial-ads-for-paid-citizens/brief.md),
   [`0217`](../../done/0217-profile-p2-wire-game-server-to-profile-box/brief.md),
   [`0405`](../../done/0405-verify-0332-live-read-the-identity-counters-and-confirm-no-session-token-in-the-logs/brief.md),
-  [`0484`](../0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md),
+  [`0484`](../../done/0484-design-the-shared-purchase-flow-guest-logs-in-then-goes-straight-into-the-purchase/brief.md),
   [`sprint-backlog.md`](../../../sprints/sprint-backlog.md) § *Task 6*.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

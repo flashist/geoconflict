@@ -4,7 +4,14 @@
 // under RUN_DB_TESTS.)
 
 import type { Pool } from "pg";
-import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
+import { PAYMENT_PRODUCT_IDS } from "../../src/core/profile/PaymentsContract";
+import {
+  durableItemGrant,
+  PRODUCT_GRANTS,
+  PaymentsRepository,
+  welcomeTemplatesFor,
+} from "../../src/profile-server/PaymentsRepository";
+import { ITEM_PURCHASE_INBOX_TEMPLATE_KEYS } from "../../src/profile-server/PublicProjection";
 
 interface MockClient {
   query: jest.Mock;
@@ -106,9 +113,10 @@ describe("PaymentsRepository", () => {
       const { pool } = makePool(client);
       const repo = new PaymentsRepository(pool);
 
-      await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe(
-        "granted",
-      );
+      await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual({
+        status: "granted",
+        becamePaidCitizen: true,
+      });
 
       const statements = client.query.mock.calls.map((call) => String(call[0]));
       expect(statements[0]).toBe("BEGIN");
@@ -159,9 +167,9 @@ describe("PaymentsRepository", () => {
       const { pool } = makePool(client);
       const repo = new PaymentsRepository(pool);
 
-      await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe(
-        "already_processed",
-      );
+      await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual({
+        status: "already_processed",
+      });
       const statements = client.query.mock.calls.map((call) => String(call[0]));
       expect(
         statements.some((sql) => sql.includes("is_paid_citizen = true")),
@@ -172,20 +180,24 @@ describe("PaymentsRepository", () => {
       expect(statements[statements.length - 1]).toBe("COMMIT");
     });
 
-    it("unknown productId: throws before touching the database", async () => {
-      const client: MockClient = {
-        query: jest.fn(),
-        release: jest.fn(),
-      };
-      const { pool } = makePool(client);
-      const repo = new PaymentsRepository(pool);
+    // Task 0492: prototype keys too — the registry lookup is own-property only.
+    it.each(["premium_skin", "constructor", "__proto__", "toString"])(
+      "unknown productId %p: throws before touching the database",
+      async (productId) => {
+        const client: MockClient = {
+          query: jest.fn(),
+          release: jest.fn(),
+        };
+        const { pool } = makePool(client);
+        const repo = new PaymentsRepository(pool);
 
-      await expect(
-        repo.grantPaidPurchase(grantInput({ productId: "premium_skin" })),
-      ).rejects.toThrow('no grant defined for productId "premium_skin"');
-      expect(client.query).not.toHaveBeenCalled();
-      expect((pool.connect as jest.Mock).mock.calls.length).toBe(0);
-    });
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId })),
+        ).rejects.toThrow(`no grant defined for productId "${productId}"`);
+        expect(client.query).not.toHaveBeenCalled();
+        expect((pool.connect as jest.Mock).mock.calls.length).toBe(0);
+      },
+    );
 
     it("null intentId: skips the intent-used update", async () => {
       const client: MockClient = {
@@ -208,6 +220,308 @@ describe("PaymentsRepository", () => {
       expect(
         statements.some((sql) => sql.includes("UPDATE purchase_intents")),
       ).toBe(false);
+    });
+  });
+
+  // Task 0492 (B1): the registry and the shared paid step, for every product.
+  describe("product-grant registry", () => {
+    it("PRODUCT_GRANTS covers exactly the sellable products (runtime half of the Record check)", () => {
+      expect(Object.keys(PRODUCT_GRANTS).sort()).toEqual(
+        [...PAYMENT_PRODUCT_IDS].sort(),
+      );
+    });
+
+    /** A fresh-token client; `wasPaid` is what the row-locked read returns. */
+    function freshClient(wasPaid: boolean): MockClient {
+      return {
+        query: jest.fn().mockImplementation(async (sql: string) => {
+          if (sql.includes("INSERT INTO processed_purchases")) {
+            return { rows: [{ purchase_token: "tok-1" }] };
+          }
+          if (sql.includes("FOR NO KEY UPDATE")) {
+            return { rows: [{ is_paid_citizen: wasPaid }] };
+          }
+          if (sql.includes("is_paid_citizen = true")) {
+            return { rows: [], rowCount: 1 };
+          }
+          return { rows: [] };
+        }),
+        release: jest.fn(),
+      };
+    }
+
+    function statementsOf(client: MockClient): string[] {
+      return client.query.mock.calls.map((call) => String(call[0]));
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    describe.each(PAYMENT_PRODUCT_IDS)("%s", (productId) => {
+      it("fresh grant to a non-paid player: becamePaidCitizen true, in the shared order", async () => {
+        const client = freshClient(false);
+        const repo = new PaymentsRepository(makePool(client).pool);
+
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId })),
+        ).resolves.toEqual({ status: "granted", becamePaidCitizen: true });
+
+        const statements = statementsOf(client);
+        const at = (needle: string) =>
+          statements.findIndex((sql) => sql.includes(needle));
+        expect(statements[0]).toBe("BEGIN");
+        expect(at("INSERT INTO processed_purchases")).toBe(1);
+        expect(at("FOR NO KEY UPDATE")).toBe(2);
+        expect(client.query.mock.calls[2][1]).toEqual([PLAYER_ID]);
+        expect(at("is_paid_citizen = true")).toBe(3);
+        expect(at("UPDATE purchase_intents")).toBe(4);
+        expect(statements[statements.length - 1]).toBe("COMMIT");
+      });
+
+      it("fresh grant to an already-paid player: becamePaidCitizen false, flags still written", async () => {
+        const client = freshClient(true);
+        const repo = new PaymentsRepository(makePool(client).pool);
+
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId })),
+        ).resolves.toEqual({ status: "granted", becamePaidCitizen: false });
+        expect(
+          statementsOf(client).some((sql) =>
+            sql.includes("is_paid_citizen = true"),
+          ),
+        ).toBe(true);
+        expect(statementsOf(client)).toContain("COMMIT");
+      });
+
+      it("replay: already_processed with no paid read and no flags", async () => {
+        const client: MockClient = {
+          query: jest.fn().mockResolvedValue({ rows: [] }),
+          release: jest.fn(),
+        };
+        const repo = new PaymentsRepository(makePool(client).pool);
+
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId })),
+        ).resolves.toEqual({ status: "already_processed" });
+        const statements = statementsOf(client);
+        expect(
+          statements.some((sql) => sql.includes("FOR NO KEY UPDATE")),
+        ).toBe(false);
+        expect(
+          statements.some((sql) => sql.includes("is_paid_citizen = true")),
+        ).toBe(false);
+      });
+
+      it("applies the product's entitlement once, inside the transaction, before COMMIT", async () => {
+        const client = freshClient(false);
+        const apply = jest.spyOn(PRODUCT_GRANTS[productId], "applyEntitlement");
+        const repo = new PaymentsRepository(makePool(client).pool);
+        const grant = grantInput({ productId });
+
+        await repo.grantPaidPurchase(grant);
+
+        expect(apply).toHaveBeenCalledTimes(1);
+        expect(apply).toHaveBeenCalledWith(client, grant);
+        const statements = statementsOf(client);
+        const order = client.query.mock.invocationCallOrder;
+        expect(apply.mock.invocationCallOrder[0]).toBeGreaterThan(
+          order[
+            statements.findIndex((sql) =>
+              sql.includes("is_paid_citizen = true"),
+            )
+          ],
+        );
+        expect(apply.mock.invocationCallOrder[0]).toBeLessThan(
+          order[statements.indexOf("COMMIT")],
+        );
+      });
+
+      it("an entitlement write that throws rolls the whole grant back — no receipt left alone", async () => {
+        const client = freshClient(false);
+        jest
+          .spyOn(PRODUCT_GRANTS[productId], "applyEntitlement")
+          .mockRejectedValue(new Error("entitlement boom"));
+        const repo = new PaymentsRepository(makePool(client).pool);
+
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId })),
+        ).rejects.toThrow("entitlement boom");
+        const statements = statementsOf(client);
+        expect(statements).toContain("ROLLBACK");
+        expect(statements).not.toContain("COMMIT");
+        expect(client.release).toHaveBeenCalled();
+      });
+    });
+  });
+
+  // Task 0496 (B4): the durable-item base. No item is sellable yet, so a
+  // test-only id reaches the repository through its registry seam.
+  describe("durable items (task 0496)", () => {
+    const TEST_ITEM = "test_durable_item";
+    const ENTITLEMENT_INSERT = `INSERT INTO player_entitlements (player_id, product_id, purchase_token)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (player_id, product_id) DO NOTHING`;
+
+    function freshClient(wasPaid: boolean): MockClient {
+      return {
+        query: jest.fn().mockImplementation(async (sql: string) => {
+          if (sql.includes("INSERT INTO processed_purchases")) {
+            return { rows: [{ purchase_token: "tok-1" }] };
+          }
+          if (sql.includes("FOR NO KEY UPDATE")) {
+            return { rows: [{ is_paid_citizen: wasPaid }] };
+          }
+          if (sql.includes("is_paid_citizen = true")) {
+            return { rows: [], rowCount: 1 };
+          }
+          return { rows: [] };
+        }),
+        release: jest.fn(),
+      };
+    }
+
+    function testRegistry() {
+      return { ...PRODUCT_GRANTS, [TEST_ITEM]: durableItemGrant(null) };
+    }
+
+    it("the sellable list is still citizenship only", () => {
+      expect([...PAYMENT_PRODUCT_IDS]).toEqual(["citizenship"]);
+    });
+
+    it("durableItemGrant issues exactly one ON CONFLICT DO NOTHING insert and carries its template", async () => {
+      const query = jest.fn().mockResolvedValue({ rows: [] });
+      const grant = durableItemGrant("name_change_approved");
+      expect(grant.itemInboxTemplate).toBe("name_change_approved");
+      expect(durableItemGrant(null).itemInboxTemplate).toBeNull();
+
+      await grant.applyEntitlement(
+        { query } as never,
+        grantInput({ productId: TEST_ITEM, purchaseToken: "tok-9" }),
+      );
+
+      expect(query).toHaveBeenCalledTimes(1);
+      expect(query).toHaveBeenCalledWith(ENTITLEMENT_INSERT, [
+        PLAYER_ID,
+        TEST_ITEM,
+        "tok-9",
+      ]);
+    });
+
+    it.each([false, true])(
+      "an injected item keeps the shared order and always writes the flags (wasPaid=%s)",
+      async (wasPaid) => {
+        const client = freshClient(wasPaid);
+        const repo = new PaymentsRepository(
+          makePool(client).pool,
+          undefined,
+          testRegistry(),
+        );
+
+        await expect(
+          repo.grantPaidPurchase(grantInput({ productId: TEST_ITEM })),
+        ).resolves.toEqual({ status: "granted", becamePaidCitizen: !wasPaid });
+
+        const statements = client.query.mock.calls.map((call) =>
+          String(call[0]),
+        );
+        const at = (needle: string) =>
+          statements.findIndex((sql) => sql.includes(needle));
+        expect(statements[0]).toBe("BEGIN");
+        expect(at("INSERT INTO processed_purchases")).toBe(1);
+        expect(at("FOR NO KEY UPDATE")).toBe(2);
+        expect(at("is_paid_citizen = true")).toBe(3);
+        expect(at("INSERT INTO player_entitlements")).toBe(4);
+        expect(at("UPDATE purchase_intents")).toBe(5);
+        expect(statements[statements.length - 1]).toBe("COMMIT");
+      },
+    );
+
+    it("the default repository refuses a test-only id before connecting", async () => {
+      const client = freshClient(false);
+      const { pool } = makePool(client);
+      const repo = new PaymentsRepository(pool);
+
+      await expect(
+        repo.grantPaidPurchase(grantInput({ productId: TEST_ITEM })),
+      ).rejects.toThrow(`no grant defined for productId "${TEST_ITEM}"`);
+      expect(pool.connect).not.toHaveBeenCalled();
+    });
+
+    it("the injected registry still refuses an inherited key", async () => {
+      const client = freshClient(false);
+      const { pool } = makePool(client);
+      const repo = new PaymentsRepository(pool, undefined, testRegistry());
+
+      await expect(
+        repo.grantPaidPurchase(grantInput({ productId: "constructor" })),
+      ).rejects.toThrow("no grant defined");
+      expect(pool.connect).not.toHaveBeenCalled();
+    });
+
+    it("listEntitlements maps the sorted product ids", async () => {
+      const client: MockClient = { query: jest.fn(), release: jest.fn() };
+      const { pool, poolQuery } = makePool(client);
+      poolQuery.mockResolvedValue({
+        rows: [{ product_id: "a_item" }, { product_id: "b_item" }],
+      });
+      const repo = new PaymentsRepository(pool);
+
+      await expect(repo.listEntitlements(PLAYER_ID)).resolves.toEqual([
+        "a_item",
+        "b_item",
+      ]);
+      expect(String(poolQuery.mock.calls[0][0])).toContain(
+        "ORDER BY product_id",
+      );
+      expect(poolQuery.mock.calls[0][1]).toEqual([PLAYER_ID]);
+
+      poolQuery.mockResolvedValue({ rows: [] });
+      await expect(repo.listEntitlements(PLAYER_ID)).resolves.toEqual([]);
+    });
+
+    it.each([
+      [true, true, null, ["citizenship_paid"]],
+      [true, false, null, ["citizenship_paid"]],
+      [false, true, null, ["citizenship_paid"]],
+      [false, false, null, []],
+      [
+        false,
+        true,
+        "name_change_approved",
+        ["citizenship_paid", "name_change_approved"],
+      ],
+      [false, false, "name_change_approved", ["name_change_approved"]],
+      [
+        true,
+        true,
+        "name_change_approved",
+        ["citizenship_paid", "name_change_approved"],
+      ],
+      [
+        true,
+        false,
+        "name_change_approved",
+        ["citizenship_paid", "name_change_approved"],
+      ],
+    ] as const)(
+      "welcomeTemplatesFor(citizenship=%s, becamePaid=%s, item=%s) → %j",
+      (isCitizenship, becamePaid, itemTemplate, expected) => {
+        expect(
+          welcomeTemplatesFor(isCitizenship, becamePaid, itemTemplate),
+        ).toEqual(expected);
+      },
+    );
+
+    // An item welcome means "paid": the unverified inbox must drop it.
+    it("every item template in PRODUCT_GRANTS is hidden from the unverified inbox", () => {
+      for (const grant of Object.values(PRODUCT_GRANTS)) {
+        if (grant.itemInboxTemplate !== null) {
+          expect(
+            ITEM_PURCHASE_INBOX_TEMPLATE_KEYS.has(grant.itemInboxTemplate),
+          ).toBe(true);
+        }
+      }
     });
   });
 

@@ -1,3 +1,4 @@
+import { Howler } from "howler";
 import { LitElement, TemplateResult, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "../../../client/Utils";
@@ -37,6 +38,38 @@ import {
   TUTORIAL_START_TIME_KEY,
 } from "../../TutorialStorage";
 import { logMatchEndAnalytics } from "../../MatchStartAnalytics";
+import {
+  CITIZENSHIP_XP_THRESHOLD,
+  XP_PER_MATCH,
+} from "../../../core/profile/Citizenship";
+import {
+  getCitizenshipStatus,
+  getProfileVerificationStatus,
+} from "../../CitizenshipStatus";
+import {
+  deriveRewardedOffer,
+  type RewardedOffer,
+  type RewardedOfferDecision,
+} from "../../RewardedMatchXpOffer";
+import {
+  claimRewardedMatchXp,
+  type RewardedMatchXpClaimResult,
+} from "../../RewardedMatchXpClaim";
+import type { RewardedVideoResult } from "../../flashist/FlashistFacade";
+
+/** How long Exit waits for a running reward claim before it navigates away. */
+const EXIT_WAIT_FOR_REWARDED_CLAIM_MS = 5_000;
+
+type RewardedStatus =
+  | "idle"
+  | "playing"
+  | "claiming"
+  | "granted"
+  | "not_credited"
+  | "failed"
+  | "closed_early"
+  | "unavailable"
+  | "logged_in";
 
 @customElement("win-modal")
 export class WinModal extends LitElement implements Layer {
@@ -68,6 +101,19 @@ export class WinModal extends LitElement implements Layer {
 
   @state()
   private isVkLinkVisible = false;
+
+  // Rewarded-video offer (task 0488). Per match, so the death popup and the
+  // match-end popup of one match share one offer and one reward.
+  private rewardedGameId: string | null = null;
+  @state()
+  private rewardedOffer: RewardedOffer = "hidden";
+  @state()
+  private rewardedStatus: RewardedStatus = "idle";
+  private rewardedClaim: Promise<RewardedMatchXpClaimResult> | null = null;
+  private isGuestLoginOpen = false;
+  private hasLoggedRewardedOfferShown = false;
+  private hasLoggedLoginOfferShown = false;
+  private hasLoggedSuppressedForCitizen = false;
 
   private _title: string;
   private _body = "";
@@ -117,6 +163,7 @@ export class WinModal extends LitElement implements Layer {
             </p>`
         : nothing}
         ${this.innerHtml()}
+        ${this.showButtons ? this.renderRewardedSection() : nothing}
         <div
           class="${this.showButtons
         ? "flex justify-between gap-2.5"
@@ -313,10 +360,232 @@ export class WinModal extends LitElement implements Layer {
     await this.loadPatternContent();
     this.isVisible = true;
     this.requestUpdate();
-    setTimeout(() => {
-      this.showButtons = true;
+    setTimeout(() => this.revealButtons(), 3000);
+  }
+
+  private revealButtons(): void {
+    this.showButtons = true;
+    this.requestUpdate();
+    void this.refreshRewardedOffer();
+  }
+
+  private renderRewardedSection(): TemplateResult | typeof nothing {
+    // Citizens, and every hidden case with nothing to report, see the popup as before.
+    if (this.rewardedOffer === "hidden" && this.rewardedStatus === "idle") {
+      return nothing;
+    }
+    const resultKey = this.rewardedResultKey();
+    return html`
+      <div class="mb-4 bg-black/30 p-3 rounded text-center">
+        <p class="m-0 mb-2 text-white">
+          ${translateText("win_modal.xp_explainer", {
+            threshold: CITIZENSHIP_XP_THRESHOLD,
+          })}
+        </p>
+        ${this.rewardedOffer === "watch"
+          ? html`
+              <button
+                @click=${this.onRewardedWatchPress}
+                ?disabled=${this.rewardedStatus === "playing"}
+                class="w-full px-3 py-3 text-base cursor-pointer bg-amber-500/70 text-white border-0 rounded transition-all duration-200 hover:bg-amber-500/90 disabled:opacity-50 disabled:cursor-default"
+              >
+                ${translateText("win_modal.rewarded_watch_button", {
+                  xp: XP_PER_MATCH,
+                })}
+              </button>
+            `
+          : nothing}
+        ${this.rewardedOffer === "log_in" && this.rewardedStatus !== "logged_in"
+          ? html`
+              <p class="m-0 mb-2 text-white">
+                ${translateText("win_modal.guest_login_text")}
+              </p>
+              <button
+                @click=${this.onGuestLoginPress}
+                class="w-full px-3 py-3 text-base cursor-pointer bg-amber-500/70 text-white border-0 rounded transition-all duration-200 hover:bg-amber-500/90"
+              >
+                ${translateText("win_modal.guest_login_button")}
+              </button>
+            `
+          : nothing}
+        ${resultKey !== null
+          ? html`<p class="m-0 mt-2 text-white">${translateText(resultKey)}</p>`
+          : nothing}
+      </div>
+    `;
+  }
+
+  private rewardedResultKey(): string | null {
+    switch (this.rewardedStatus) {
+      case "idle":
+      case "playing":
+        return null;
+      case "claiming":
+        return "win_modal.rewarded_claiming";
+      case "granted":
+        return "win_modal.rewarded_granted";
+      case "not_credited":
+        return "win_modal.rewarded_not_credited";
+      case "failed":
+        return "win_modal.rewarded_failed";
+      case "closed_early":
+        return "win_modal.rewarded_closed_early";
+      case "unavailable":
+        return "win_modal.rewarded_unavailable";
+      case "logged_in":
+        return "win_modal.guest_logged_in";
+    }
+  }
+
+  /** Forget the offer when the popup is for a different match than last time. */
+  private syncRewardedMatch(gameId: string): void {
+    if (this.rewardedGameId === gameId) {
+      return;
+    }
+    this.rewardedGameId = gameId;
+    this.rewardedOffer = "hidden";
+    this.rewardedStatus = "idle";
+    this.rewardedClaim = null;
+    this.hasLoggedRewardedOfferShown = false;
+    this.hasLoggedLoginOfferShown = false;
+    this.hasLoggedSuppressedForCitizen = false;
+  }
+
+  private async refreshRewardedOffer(): Promise<void> {
+    let decision: RewardedOfferDecision;
+    let gameId: string;
+    try {
+      gameId = this.game.gameID();
+      this.syncRewardedMatch(gameId);
+      const [isOfferFlagEnabled, isCitizenshipSurfacesEnabled] =
+        await Promise.all([
+          FlashistFacade.instance.isRewardedVideoEnabled(),
+          FlashistFacade.instance.isCitizenshipSurfacesEnabled(),
+        ]);
+      const config = this.game.config();
+      const gameConfig = config.gameConfig();
+      decision = deriveRewardedOffer({
+        isOfferFlagEnabled,
+        isCitizenshipSurfacesEnabled,
+        isRewardedVideoAvailable:
+          FlashistFacade.instance.isRewardedVideoAvailable(),
+        gameType: gameConfig.gameType,
+        isTutorial: gameConfig.isTutorial === true,
+        isReplay: config.isReplay(),
+        participation: this.ownParticipation(),
+        citizenshipStatus: getCitizenshipStatus(),
+        verificationStatus: getProfileVerificationStatus(),
+        isMatchAlreadyClaimed: this.rewardedClaim !== null,
+      });
+    } catch (error) {
+      console.warn("WinModal | rewarded offer check failed: ", error);
+      return;
+    }
+    if (!this.isConnected || this.rewardedGameId !== gameId) {
+      return;
+    }
+    this.rewardedOffer = decision.offer;
+    this.requestUpdate();
+    const events = flashistConstants.analyticEvents;
+    if (
+      decision.isSuppressedForCitizen &&
+      !this.hasLoggedSuppressedForCitizen
+    ) {
+      this.hasLoggedSuppressedForCitizen = true;
+      flashist_logEventAnalytics(events.AD_REWARDED_SUPPRESSED_CITIZEN);
+    }
+    if (decision.offer === "watch" && !this.hasLoggedRewardedOfferShown) {
+      this.hasLoggedRewardedOfferShown = true;
+      flashist_logEventAnalytics(events.AD_REWARDED_OFFER_SHOWN);
+    }
+    if (decision.offer === "log_in" && !this.hasLoggedLoginOfferShown) {
+      this.hasLoggedLoginOfferShown = true;
+      flashist_logEventAnalytics(events.AD_REWARDED_LOGIN_OFFER_SHOWN);
+    }
+  }
+
+  /** The same summary the XP credit is decided on, for this player only. */
+  private ownParticipation(): PlayerParticipation | null {
+    const myPlayer = this.game.myPlayer();
+    const clientID = myPlayer?.clientID() ?? null;
+    if (myPlayer === null || clientID === null) {
+      return null;
+    }
+    return {
+      clientID,
+      hasSpawned: myPlayer.hasSpawned(),
+      isAliveAtEnd: myPlayer.isAlive(),
+      // An eliminated player is credited at elimination (0211), via killedAt.
+      killedAt: isEliminated(this.game, myPlayer)
+        ? this.game.ticks()
+        : undefined,
+    };
+  }
+
+  private async onRewardedWatchPress(): Promise<void> {
+    const gameId = this.rewardedGameId;
+    if (
+      gameId === null ||
+      this.rewardedOffer !== "watch" ||
+      this.rewardedStatus === "playing" ||
+      this.rewardedClaim !== null
+    ) {
+      return;
+    }
+    flashist_logEventAnalytics(
+      flashistConstants.analyticEvents.AD_REWARDED_PRESSED,
+    );
+    this.rewardedStatus = "playing";
+    this.requestUpdate();
+    const result: RewardedVideoResult =
+      await FlashistFacade.instance.showRewardedVideo(
+        () => this.startRewardedClaim(gameId),
+        (muted) => Howler.mute(muted),
+      );
+    if (this.rewardedGameId !== gameId || this.rewardedClaim !== null) {
+      return;
+    }
+    this.rewardedStatus =
+      result === "closed_early" ? "closed_early" : "unavailable";
+    this.requestUpdate();
+  }
+
+  private startRewardedClaim(gameId: string): void {
+    if (this.rewardedGameId !== gameId || this.rewardedClaim !== null) {
+      return;
+    }
+    this.rewardedOffer = "hidden";
+    this.rewardedStatus = "claiming";
+    this.requestUpdate();
+    this.rewardedClaim = claimRewardedMatchXp(gameId);
+    void this.rewardedClaim.then((claim) => {
+      if (this.rewardedGameId !== gameId) {
+        return;
+      }
+      this.rewardedStatus =
+        claim.status === "duplicate" ? "granted" : claim.status;
       this.requestUpdate();
-    }, 3000);
+    });
+  }
+
+  private async onGuestLoginPress(): Promise<void> {
+    if (this.isGuestLoginOpen) {
+      return;
+    }
+    this.isGuestLoginOpen = true;
+    const events = flashistConstants.analyticEvents;
+    try {
+      flashist_logEventAnalytics(events.AD_REWARDED_LOGIN_PRESSED);
+      // No restart request: a match is on, and Exit's navigation starts the
+      // session on the next page load anyway. XP counts from the next match.
+      if (await FlashistFacade.instance.openYandexAuthDialog()) {
+        flashist_logEventAnalytics(events.AD_REWARDED_LOGIN_COMPLETED);
+        this.rewardedStatus = "logged_in";
+        this.requestUpdate();
+      }
+    } finally {
+      this.isGuestLoginOpen = false;
+    }
   }
 
   // hide() {
@@ -334,6 +603,15 @@ export class WinModal extends LitElement implements Layer {
   // Flashist Adaptation
   // private _handleExit() {
   private async _handleExit() {
+    // Navigating away would cut off a reward claim still in flight.
+    if (this.rewardedClaim !== null) {
+      await Promise.race([
+        this.rewardedClaim,
+        new Promise((resolve) =>
+          setTimeout(resolve, EXIT_WAIT_FOR_REWARDED_CLAIM_MS),
+        ),
+      ]);
+    }
     // this.hide();
     await this.hide();
 

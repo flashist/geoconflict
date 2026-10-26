@@ -12,7 +12,11 @@ jest.mock("../../src/profile-server/Logger", () => ({
 
 import type { Pool } from "pg";
 import type { InboxSender } from "../../src/profile-server/InboxRepository";
-import { PaymentsRepository } from "../../src/profile-server/PaymentsRepository";
+import {
+  durableItemGrant,
+  PaymentsRepository,
+  PRODUCT_GRANTS,
+} from "../../src/profile-server/PaymentsRepository";
 import { PlayerProfileRepository } from "../../src/profile-server/PlayerProfileRepository";
 
 interface MockClient {
@@ -66,12 +70,17 @@ function grantInput() {
   };
 }
 
+const FRESH_GRANT = { status: "granted", becamePaidCitizen: true };
+
 /** A payments client: fresh token (receipt row returned) or replay (no row). */
-function paymentsClient(fresh: boolean): MockClient {
+function paymentsClient(fresh: boolean, wasPaid = false): MockClient {
   return {
     query: jest.fn().mockImplementation(async (sql: string) => {
       if (sql.includes("INSERT INTO processed_purchases") && fresh) {
         return { rows: [{ purchase_token: "tok-1" }] };
+      }
+      if (sql.includes("FOR NO KEY UPDATE")) {
+        return { rows: [{ is_paid_citizen: wasPaid }] };
       }
       if (sql.includes("is_paid_citizen = true")) {
         return { rows: [], rowCount: 1 };
@@ -575,7 +584,9 @@ describe("PaymentsRepository.afterPaidPurchaseGranted", () => {
       makePool(client),
       inboxWith(sendTemplate),
     );
-    await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe("granted");
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual(
+      FRESH_GRANT,
+    );
     expect(sendTemplate).toHaveBeenCalledTimes(1);
     expect(sendTemplate).toHaveBeenCalledWith(PLAYER_ID, "citizenship_paid");
     const statements = client.query.mock.calls.map((call) => String(call[0]));
@@ -584,15 +595,31 @@ describe("PaymentsRepository.afterPaidPurchaseGranted", () => {
     );
   });
 
+  // Task 0492: the welcome follows every fresh citizenship grant, as before B1 —
+  // becamePaidCitizen gates it only for a durable item (task 0496).
+  test("a fresh grant to an already-paid player still sends citizenship_paid", async () => {
+    const sendTemplate = jest.fn().mockResolvedValue(undefined);
+    const repo = new PaymentsRepository(
+      makePool(paymentsClient(true, true)),
+      inboxWith(sendTemplate),
+    );
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: false,
+    });
+    expect(sendTemplate).toHaveBeenCalledTimes(1);
+    expect(sendTemplate).toHaveBeenCalledWith(PLAYER_ID, "citizenship_paid");
+  });
+
   test("a replayed token (already_processed) never sends — /reconcile re-grants stay silent", async () => {
     const sendTemplate = jest.fn().mockResolvedValue(undefined);
     const repo = new PaymentsRepository(
       makePool(paymentsClient(false)),
       inboxWith(sendTemplate),
     );
-    await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe(
-      "already_processed",
-    );
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual({
+      status: "already_processed",
+    });
     expect(sendTemplate).not.toHaveBeenCalled();
   });
 
@@ -602,7 +629,9 @@ describe("PaymentsRepository.afterPaidPurchaseGranted", () => {
       makePool(paymentsClient(true)),
       inboxWith(sendTemplate),
     );
-    await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe("granted");
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual(
+      FRESH_GRANT,
+    );
     await new Promise((resolve) => setImmediate(resolve));
   });
 
@@ -614,11 +643,119 @@ describe("PaymentsRepository.afterPaidPurchaseGranted", () => {
       makePool(paymentsClient(true)),
       inboxWith(sendTemplate),
     );
-    await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe("granted");
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual(
+      FRESH_GRANT,
+    );
   });
 
   test("without an inbox the grant still resolves granted", async () => {
     const repo = new PaymentsRepository(makePool(paymentsClient(true)));
-    await expect(repo.grantPaidPurchase(grantInput())).resolves.toBe("granted");
+    await expect(repo.grantPaidPurchase(grantInput())).resolves.toEqual(
+      FRESH_GRANT,
+    );
+  });
+});
+
+// Task 0496: an item is not sellable yet, so it reaches the grant through the
+// repository's registry seam. "name_change_approved" stands in for an item's
+// own template (no item key exists yet).
+describe("PaymentsRepository.afterPaidPurchaseGranted — durable items (task 0496)", () => {
+  const TEST_ITEM = "test_durable_item";
+  const ITEM_TEMPLATE = "name_change_approved" as const;
+
+  function itemRepo(
+    client: MockClient,
+    sendTemplate: jest.Mock,
+    itemTemplate: typeof ITEM_TEMPLATE | null = ITEM_TEMPLATE,
+  ): PaymentsRepository {
+    return new PaymentsRepository(makePool(client), inboxWith(sendTemplate), {
+      ...PRODUCT_GRANTS,
+      [TEST_ITEM]: durableItemGrant(itemTemplate),
+    });
+  }
+
+  function itemGrant() {
+    return { ...grantInput(), productId: TEST_ITEM };
+  }
+
+  async function settle(): Promise<void> {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  test("an item to a non-paid buyer sends citizenship_paid, then the item's template", async () => {
+    const sendTemplate = jest.fn().mockResolvedValue(undefined);
+    const repo = itemRepo(paymentsClient(true, false), sendTemplate);
+    await expect(repo.grantPaidPurchase(itemGrant())).resolves.toEqual(
+      FRESH_GRANT,
+    );
+    await settle();
+    expect(sendTemplate.mock.calls).toEqual([
+      [PLAYER_ID, "citizenship_paid"],
+      [PLAYER_ID, ITEM_TEMPLATE],
+    ]);
+  });
+
+  test("the item send waits for the welcome send to settle", async () => {
+    let releaseWelcome: () => void = () => {};
+    const sendTemplate = jest
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseWelcome = resolve;
+          }),
+      )
+      .mockResolvedValue(undefined);
+    const repo = itemRepo(paymentsClient(true, false), sendTemplate);
+    await repo.grantPaidPurchase(itemGrant());
+    await settle();
+    expect(sendTemplate).toHaveBeenCalledTimes(1);
+    releaseWelcome();
+    await settle();
+    expect(sendTemplate).toHaveBeenCalledTimes(2);
+  });
+
+  test("an item to an already-paid buyer sends only the item's template", async () => {
+    const sendTemplate = jest.fn().mockResolvedValue(undefined);
+    const repo = itemRepo(paymentsClient(true, true), sendTemplate);
+    await expect(repo.grantPaidPurchase(itemGrant())).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: false,
+    });
+    await settle();
+    expect(sendTemplate.mock.calls).toEqual([[PLAYER_ID, ITEM_TEMPLATE]]);
+  });
+
+  test("an item with no template to an already-paid buyer sends nothing", async () => {
+    const sendTemplate = jest.fn().mockResolvedValue(undefined);
+    const repo = itemRepo(paymentsClient(true, true), sendTemplate, null);
+    await repo.grantPaidPurchase(itemGrant());
+    await settle();
+    expect(sendTemplate).not.toHaveBeenCalled();
+  });
+
+  test("a replayed item token sends nothing", async () => {
+    const sendTemplate = jest.fn().mockResolvedValue(undefined);
+    const repo = itemRepo(paymentsClient(false), sendTemplate);
+    await expect(repo.grantPaidPurchase(itemGrant())).resolves.toEqual({
+      status: "already_processed",
+    });
+    await settle();
+    expect(sendTemplate).not.toHaveBeenCalled();
+  });
+
+  test("a failing welcome send never throws and still lets the item send run", async () => {
+    const sendTemplate = jest
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("sync boom");
+      })
+      .mockRejectedValueOnce(new Error("inbox down"));
+    const repo = itemRepo(paymentsClient(true, false), sendTemplate);
+    await expect(repo.grantPaidPurchase(itemGrant())).resolves.toEqual(
+      FRESH_GRANT,
+    );
+    await settle();
+    expect(sendTemplate).toHaveBeenCalledTimes(2);
   });
 });

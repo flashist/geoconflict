@@ -92,6 +92,14 @@ export const PublicPlayerProfileSchema = PlayerProfileSchema.omit({
    */
   is_paid_citizen: z.boolean().optional(),
   citizenship_purchased_at: z.iso.datetime().nullable().optional(),
+  /**
+   * Owned durable product ids (task 0496) — sent ONLY in the verified owner
+   * view, since ownership is paid state (spec OD-2). `.optional()` for the same
+   * separate-deploy reason as `name_change`. Plain strings, not the product-id
+   * enum: an id the box knows before this client bundle does must not fail the
+   * whole parse.
+   */
+  entitlements: z.array(z.string().min(1)).optional(),
 });
 
 export type PublicPlayerProfile = z.infer<typeof PublicPlayerProfileSchema>;

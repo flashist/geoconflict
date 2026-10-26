@@ -11,6 +11,7 @@ import {
   equalizedXp,
   hiddenInboxMessageIds,
   inboxMessagesForCaller,
+  ITEM_PURCHASE_INBOX_TEMPLATE_KEYS,
   profileForCaller,
   toOwnerProfile,
   toPublicInboxMessages,
@@ -405,5 +406,77 @@ describe("per-caller choosers", () => {
       expect(chosen).toEqual(list);
       expect(chosen).not.toBe(list);
     });
+  });
+});
+
+// ── Task 0496: owned durable items are paid state (spec OD-2) ─────────────────
+
+describe("entitlements and item-purchase messages (task 0496)", () => {
+  const TEST_ITEM = "test_durable_item";
+  // No item key exists yet: the set is injected, as the first item build's would be.
+  const ITEM_KEYS: ReadonlySet<string> = new Set(["test_item_ready"]);
+
+  test.each([
+    ["[]", [] as string[], []],
+    ["[X]", [TEST_ITEM], [TEST_ITEM]],
+  ])("owner view with %s carries the key", (_name, list, expected) => {
+    expect(toOwnerProfile(PAID_THEN_EARNED, null, list)).toEqual({
+      ...PAID_THEN_EARNED,
+      entitlements: expected,
+    });
+  });
+
+  test("owner view with an unknown list (null / undefined) leaves the key out", () => {
+    expect(toOwnerProfile(PAID_THEN_EARNED, null, null)).not.toHaveProperty(
+      "entitlements",
+    );
+    expect(toOwnerProfile(PAID_THEN_EARNED)).not.toHaveProperty("entitlements");
+  });
+
+  test("profileForCaller: the unverified view never carries entitlements", () => {
+    const view = profileForCaller(PAID_THEN_EARNED, null, false, [TEST_ITEM]);
+    expect(view).not.toHaveProperty("entitlements");
+    expect(view).toEqual(toPublicProfile(PAID_THEN_EARNED));
+    expect(
+      profileForCaller(PAID_THEN_EARNED, null, true, [TEST_ITEM]),
+    ).toHaveProperty("entitlements", [TEST_ITEM]);
+  });
+
+  test("a paid buyer with an item and an earned citizen look the same unverified", () => {
+    expect(
+      profileForCaller(paidNotEarned(30), null, false, [TEST_ITEM]),
+    ).toEqual(profileForCaller(EARNED_AT_100, null, false, []));
+  });
+
+  test("the unverified inbox drops item-purchase messages; hidden ids include them", () => {
+    const list = [
+      message(9, "test_item_ready"),
+      message(5, "name_change_approved", { templateParams: { name: "A" } }),
+      message(2, "citizenship_paid"),
+    ];
+    expect(toPublicInboxMessages(list, ITEM_KEYS)).toEqual([
+      list[1],
+      { ...list[2], templateKey: "citizenship_granted" },
+    ]);
+    expect(hiddenInboxMessageIds(list, ITEM_KEYS)).toEqual(new Set([9]));
+    // A paid-with-item inbox and an earned one read the same.
+    expect(toPublicInboxMessages(list, ITEM_KEYS)).toEqual(
+      toPublicInboxMessages(
+        [list[1], message(2, "citizenship_earned")],
+        ITEM_KEYS,
+      ),
+    );
+  });
+
+  test("the verified inbox keeps item-purchase messages", () => {
+    const list = [
+      message(9, "test_item_ready"),
+      message(2, "citizenship_paid"),
+    ];
+    expect(inboxMessagesForCaller(list, true)).toEqual(list);
+  });
+
+  test("the shipped item-key set is empty today, so nothing else changes", () => {
+    expect([...ITEM_PURCHASE_INBOX_TEMPLATE_KEYS]).toEqual([]);
   });
 });

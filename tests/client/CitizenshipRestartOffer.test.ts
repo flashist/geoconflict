@@ -12,6 +12,24 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   },
   flashist_logEventAnalytics: jest.fn(),
 }));
+// Task 0494: a test-only product, so the per-product rules have two products.
+jest.mock("../../src/client/ProductClientConfig", () => {
+  const actual = jest.requireActual("../../src/client/ProductClientConfig");
+  return {
+    getProductClientConfig: (productId: string) =>
+      productId === "test_item"
+        ? {
+            analytics: {
+              restartPrompt: {
+                shown: "TestItem:RestartPrompt:Shown",
+                restart: "TestItem:RestartPrompt:Restart",
+                later: "TestItem:RestartPrompt:Later",
+              },
+            },
+          }
+        : actual.getProductClientConfig(productId),
+  };
+});
 
 import {
   CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
@@ -20,6 +38,9 @@ import {
   type CitizenshipGrantedMidSessionDetail,
 } from "../../src/client/CitizenshipRestartOffer";
 import { flashist_logEventAnalytics } from "../../src/client/flashist/FlashistFacade";
+import type { PaymentProductId } from "../../src/core/profile/PaymentsContract";
+
+const TEST_ITEM = "test_item" as unknown as PaymentProductId;
 
 const logEventAnalytics = flashist_logEventAnalytics as jest.Mock;
 
@@ -169,7 +190,126 @@ describe("createCitizenshipRestartOffer", () => {
   });
 });
 
+describe("createCitizenshipRestartOffer — per product (task 0494)", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("onGranted() with no product is citizenship (the tenure gift)", async () => {
+    const { offer, showPrompt } = setup();
+
+    await offer.onGranted();
+
+    expect(showPrompt).toHaveBeenCalledWith("citizenship");
+  });
+
+  it("onGranted(productId) hands that product to showPrompt", async () => {
+    const { offer, showPrompt } = setup();
+
+    await offer.onGranted(TEST_ITEM);
+
+    expect(showPrompt).toHaveBeenCalledWith(TEST_ITEM);
+  });
+
+  it("restart() logs the shown product's Restart event", async () => {
+    const { offer } = setup();
+
+    await offer.onGranted(TEST_ITEM);
+    offer.restart();
+
+    expect(logEventAnalytics).toHaveBeenCalledWith(
+      "TestItem:RestartPrompt:Restart",
+    );
+    expect(logEventAnalytics).not.toHaveBeenCalledWith(
+      "Citizenship:RestartPrompt:Restart",
+    );
+  });
+
+  it("once per page across products: a second product's grant shows nothing", async () => {
+    const { offer, showPrompt } = setup();
+
+    await offer.onGranted("citizenship");
+    await offer.onGranted(TEST_ITEM);
+    offer.restart();
+
+    expect(showPrompt).toHaveBeenCalledTimes(1);
+    expect(showPrompt).toHaveBeenCalledWith("citizenship");
+    expect(logEventAnalytics).toHaveBeenCalledWith(
+      "Citizenship:RestartPrompt:Restart",
+    );
+  });
+
+  it("two grants racing the kill-switch read: one popup, for the first", async () => {
+    const { offer, showPrompt } = setup();
+
+    await Promise.all([
+      offer.onGranted("citizenship"),
+      offer.onGranted(TEST_ITEM),
+    ]);
+    offer.restart();
+
+    expect(showPrompt).toHaveBeenCalledTimes(1);
+    expect(showPrompt).toHaveBeenCalledWith("citizenship");
+    expect(logEventAnalytics).toHaveBeenCalledWith(
+      "Citizenship:RestartPrompt:Restart",
+    );
+  });
+
+  it("a waiting offer keeps the latest product", async () => {
+    const { state, offer, showPrompt } = setup({ away: true });
+
+    await offer.onGranted("citizenship");
+    await offer.onGranted(TEST_ITEM);
+    state.away = false;
+    offer.onBackOnStartScreen();
+    offer.restart();
+
+    expect(showPrompt).toHaveBeenCalledTimes(1);
+    expect(showPrompt).toHaveBeenCalledWith(TEST_ITEM);
+    expect(logEventAnalytics).toHaveBeenCalledWith(
+      "TestItem:RestartPrompt:Restart",
+    );
+  });
+
+  it("a refused restart re-shows the same product", async () => {
+    const { state, offer, showPrompt } = setup();
+
+    await offer.onGranted(TEST_ITEM);
+    state.away = true;
+    offer.restart();
+    state.away = false;
+    offer.onBackOnStartScreen();
+
+    expect(showPrompt).toHaveBeenNthCalledWith(2, TEST_ITEM);
+  });
+});
+
 describe("dispatchCitizenshipGrantedMidSession", () => {
+  it("a purchase carries its product and becamePaidCitizen (task 0494)", () => {
+    const received: CitizenshipGrantedMidSessionDetail[] = [];
+    const listener = (event: Event) => {
+      received.push(
+        (event as CustomEvent<CitizenshipGrantedMidSessionDetail>).detail,
+      );
+    };
+    window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, listener);
+    try {
+      dispatchCitizenshipGrantedMidSession("purchase", {
+        productId: TEST_ITEM,
+        becamePaidCitizen: false,
+      });
+    } finally {
+      window.removeEventListener(
+        CITIZENSHIP_GRANTED_MID_SESSION_EVENT,
+        listener,
+      );
+    }
+
+    expect(received).toEqual([
+      { source: "purchase", productId: TEST_ITEM, becamePaidCitizen: false },
+    ]);
+  });
+
   it.each(["purchase", "tenure"] as const)(
     "fires the event on window with source %s",
     (source) => {

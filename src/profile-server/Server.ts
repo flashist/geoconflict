@@ -205,6 +205,8 @@ const app = createApp(
     playerSignatureSecret: yandexPaymentsSecret,
     // Tenure XP grant (task 0253): the profile repository owns the transaction.
     tenureGrant: profiles,
+    // Rewarded-ad match XP (task 0491): same repository, same transaction owner.
+    rewardedMatchXp: profiles,
     alertRelay: {
       secret: alertWebhookToken,
       telegram: {

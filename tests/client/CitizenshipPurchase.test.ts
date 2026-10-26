@@ -71,7 +71,7 @@ describe("runCitizenshipPurchase", () => {
       onGrantedSignal,
     );
     // Happy-path defaults; individual tests break one link at a time.
-    createIntent.mockResolvedValue("intent-uuid");
+    createIntent.mockResolvedValue({ kind: "ok", intentId: "intent-uuid" });
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
     complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
     consumePurchase.mockResolvedValue(undefined);
@@ -87,7 +87,9 @@ describe("runCitizenshipPurchase", () => {
   it("granted: fires the restart-offer signal once, with source purchase (task 0303)", async () => {
     await expect(runCitizenshipPurchase()).resolves.toBe("granted");
 
-    expect(grantedSignals).toEqual([{ source: "purchase" }]);
+    expect(grantedSignals).toEqual([
+      { source: "purchase", productId: "citizenship", becamePaidCitizen: null },
+    ]);
   });
 
   it("a HUNG consume still fires the restart-offer signal (task 0303)", async () => {
@@ -95,14 +97,16 @@ describe("runCitizenshipPurchase", () => {
 
     await expect(runCitizenshipPurchase()).resolves.toBe("granted");
 
-    expect(grantedSignals).toEqual([{ source: "purchase" }]);
+    expect(grantedSignals).toEqual([
+      { source: "purchase", productId: "citizenship", becamePaidCitizen: null },
+    ]);
   });
 
   it.each([
     [
       "no intent",
       () => {
-        createIntent.mockResolvedValue(null);
+        createIntent.mockResolvedValue({ kind: "failed" });
       },
     ],
     [
@@ -160,9 +164,9 @@ describe("runCitizenshipPurchase", () => {
 
   // Since S4 (task 0273) the flow no longer reads the Yandex id at all — the
   // identity travels as the Bearer token inside createPurchaseIntent. A guest,
-  // a failed login and a failed /intent all arrive here as a null intent.
+  // a failed login and a failed /intent all arrive here as a failed intent.
   it("intent creation fails (incl. no session): error, frame never opened, no Started and no Abandoned", async () => {
-    createIntent.mockResolvedValue(null);
+    createIntent.mockResolvedValue({ kind: "failed" });
 
     await expect(runCitizenshipPurchase()).resolves.toBe("error");
 
@@ -245,7 +249,7 @@ describe("runCitizenshipPurchase marks a platform dialog (task 0404)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetPlatformDialogPresenceForTests();
-    createIntent.mockResolvedValue("intent-uuid");
+    createIntent.mockResolvedValue({ kind: "ok", intentId: "intent-uuid" });
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
     complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
     consumePurchase.mockResolvedValue(undefined);
@@ -255,7 +259,7 @@ describe("runCitizenshipPurchase marks a platform dialog (task 0404)", () => {
     const seen: boolean[] = [];
     createIntent.mockImplementation(async () => {
       seen.push(isPlatformDialogOpen());
-      return "intent-uuid";
+      return { kind: "ok", intentId: "intent-uuid" };
     });
     purchaseCatalogItem.mockImplementation(async () => {
       seen.push(isPlatformDialogOpen());
@@ -277,7 +281,7 @@ describe("runCitizenshipPurchase marks a platform dialog (task 0404)", () => {
     [
       "intent null",
       () => {
-        createIntent.mockResolvedValue(null);
+        createIntent.mockResolvedValue({ kind: "failed" });
       },
       "error",
     ],

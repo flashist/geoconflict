@@ -6,8 +6,8 @@
 // isOnStartScreen() would change what CitizenshipCard, ProfileReadRestart and
 // CitizenshipRestartOffer see.
 //
-// Marked by runCitizenshipPurchase() (intent → payment frame → server
-// /complete) and FlashistFacade.openYandexAuthDialog().
+// Marked by runProductPurchase() (intent → payment frame → server /complete)
+// and FlashistFacade.openYandexAuthDialog().
 
 let dialogsOpen = 0;
 let noDialogOpenWaiters: Array<() => void> = [];

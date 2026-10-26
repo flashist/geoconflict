@@ -194,13 +194,16 @@ RUN("profile API over real Postgres (integration)", () => {
       intentId,
       rawPayload: '{"test":true}',
     };
-    await expect(payments.grantPaidPurchase(grant)).resolves.toBe("granted");
+    await expect(payments.grantPaidPurchase(grant)).resolves.toEqual({
+      status: "granted",
+      becamePaidCitizen: true,
+    });
     const rows = await waitForMessages(pool, playerId, 1);
     expect(rows[0].template_key).toBe("citizenship_paid");
 
-    await expect(payments.grantPaidPurchase(grant)).resolves.toBe(
-      "already_processed",
-    );
+    await expect(payments.grantPaidPurchase(grant)).resolves.toEqual({
+      status: "already_processed",
+    });
     await new Promise((resolve) => setTimeout(resolve, 100));
     const after = await pool.query(
       "SELECT count(*)::int AS n FROM player_messages WHERE player_id = $1",

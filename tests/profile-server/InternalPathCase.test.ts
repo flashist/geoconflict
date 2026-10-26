@@ -174,6 +174,7 @@ function build(): { app: ReturnType<typeof createApp>; deps: Deps } {
     loginVerification: () => {},
     loginStaleSignatureAge: () => {},
     tenureClaim: () => {},
+    rewardedMatchXpGrant: () => {},
     resolveVouch: () => {},
     alertRelay: (result, keyed) => alertRelayMetric(result, keyed),
   };

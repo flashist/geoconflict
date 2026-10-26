@@ -242,6 +242,29 @@ export const flashistConstants = {
     // tiered SHOWN ads. No value, no placement.
     AD_INTERSTITIAL_SUPPRESSED_PAID_CITIZEN:
       "Ad:InterstitialSuppressed:PaidCitizen",
+    // Task 0488: an interstitial request skipped because a rewarded video
+    // closed under a minute ago — no back-to-back ads.
+    AD_INTERSTITIAL_SUPPRESSED_AFTER_REWARDED:
+      "Ad:InterstitialSuppressed:AfterRewarded",
+
+    // Rewarded video funnel (task 0488): offer → press → open → watched →
+    // server-confirmed reward. No ids, no game id; value only on Granted (XP).
+    AD_REWARDED_OFFER_SHOWN: "Ad:Rewarded:OfferShown",
+    AD_REWARDED_PRESSED: "Ad:Rewarded:Pressed",
+    AD_REWARDED_OPENED: "Ad:Rewarded:Opened",
+    AD_REWARDED_WATCHED: "Ad:Rewarded:Watched",
+    AD_REWARDED_CLOSED_EARLY: "Ad:Rewarded:ClosedEarly",
+    AD_REWARDED_ERROR: "Ad:Rewarded:Error",
+    AD_REWARDED_UNAVAILABLE: "Ad:Rewarded:Unavailable",
+    AD_REWARDED_REWARD_GRANTED: "Ad:Rewarded:Reward:Granted",
+    AD_REWARDED_REWARD_DUPLICATE: "Ad:Rewarded:Reward:Duplicate",
+    AD_REWARDED_REWARD_NOT_CREDITED: "Ad:Rewarded:Reward:NotCredited",
+    AD_REWARDED_REWARD_FAILED: "Ad:Rewarded:Reward:Failed",
+    AD_REWARDED_LOGIN_OFFER_SHOWN: "Ad:Rewarded:LoginOfferShown",
+    AD_REWARDED_LOGIN_PRESSED: "Ad:Rewarded:LoginPressed",
+    AD_REWARDED_LOGIN_COMPLETED: "Ad:Rewarded:LoginCompleted",
+    // Paid and earned citizens alike, on purpose: it cannot tell them apart.
+    AD_REWARDED_SUPPRESSED_CITIZEN: "Ad:RewardedSuppressed:Citizen",
 
     BUILD_STALE_DETECTED: "Build:StaleDetected",
 
@@ -480,6 +503,10 @@ export const flashistConstants = {
     // 0302's `private_lobbies` flag, which is no longer read.
     PRIVATE_LOBBIES_ALL_FLAG_NAME: "private_lobbies_all",
     PRIVATE_LOBBIES_ALL_ENABLED_VALUE: "enabled",
+    // Remote on/off for the rewarded-video offer (task 0488). Unset = off, so
+    // the offer stays dark until the owner turns it on in the console.
+    REWARDED_VIDEO_FLAG_NAME: "rewarded_video",
+    REWARDED_VIDEO_ENABLED_VALUE: "enabled",
   },
 
   // Tester marker (task 0302). When this localStorage key equals "1", getFlags()
@@ -816,6 +843,41 @@ export interface IProduct {
 }
 
 export type PaymentsCatalogStatus = "idle" | "ready" | "failed" | "unavailable";
+
+/** How one rewarded video ended. Only `onRewarded` grants; this never does. */
+export type RewardedVideoResult =
+  | "watched"
+  | "closed_early"
+  | "error"
+  | "unavailable";
+
+/** Task 0488: no interstitial this soon after a rewarded video was on screen. */
+export const INTERSTITIAL_GAP_AFTER_REWARDED_MS = 60_000;
+
+// Module-level, not per instance: every showInterstitial() call site must see it.
+let lastRewardedVideoClosedAtMs: number | null = null;
+
+/** Test seam — forget the last rewarded video. */
+export function resetRewardedVideoForTests(): void {
+  lastRewardedVideoClosedAtMs = null;
+}
+
+function isInterstitialSuppressedAfterRewarded(): boolean {
+  if (lastRewardedVideoClosedAtMs === null) {
+    return false;
+  }
+  const elapsedMs = Date.now() - lastRewardedVideoClosedAtMs;
+  return elapsedMs >= 0 && elapsedMs < INTERSTITIAL_GAP_AFTER_REWARDED_MS;
+}
+
+/** Analytics must never break an ad flow (the showInterstitial pattern). */
+function logAdEventSafely(event: string): void {
+  try {
+    flashist_logEventAnalytics(event);
+  } catch (error) {
+    console.log(`FlashistFacade | ad event logging failed: ${event}`, error);
+  }
+}
 
 export class FlashistFacade {
   private static _instance: FlashistFacade;
@@ -1679,6 +1741,13 @@ export class FlashistFacade {
     );
   }
 
+  public async isRewardedVideoEnabled(): Promise<boolean> {
+    return this.checkExperimentFlag(
+      flashistConstants.experiments.REWARDED_VIDEO_FLAG_NAME,
+      flashistConstants.experiments.REWARDED_VIDEO_ENABLED_VALUE,
+    );
+  }
+
   public async isCitizenshipUiEnabled(): Promise<boolean> {
     return this.checkExperimentFlag(
       flashistConstants.experiments.CITIZENSHIP_UI_FLAG_NAME,
@@ -2423,7 +2492,21 @@ export class FlashistFacade {
     return this.isYandexLoggedIn();
   }
 
-  public async openYandexAuthDialog(): Promise<boolean> {
+  // Task 0494: one Yandex auth dialog at a time for every caller (the card,
+  // the purchase flow, 0488's WinModal); a second call shares the open one.
+  private authDialogInFlight: Promise<boolean> | null = null;
+
+  public openYandexAuthDialog(): Promise<boolean> {
+    if (!this.yandexGamesSDK) {
+      return Promise.resolve(false);
+    }
+    this.authDialogInFlight ??= this.runAuthDialog().finally(() => {
+      this.authDialogInFlight = null;
+    });
+    return this.authDialogInFlight;
+  }
+
+  private async runAuthDialog(): Promise<boolean> {
     if (!this.yandexGamesSDK) {
       return false;
     }
@@ -2542,6 +2625,14 @@ export class FlashistFacade {
       return false;
     }
 
+    if (isInterstitialSuppressedAfterRewarded()) {
+      logAdEventSafely(
+        flashistConstants.analyticEvents
+          .AD_INTERSTITIAL_SUPPRESSED_AFTER_REWARDED,
+      );
+      return false;
+    }
+
     return new Promise<boolean>((resolve) => {
       // Guards Ad:Interstitial against the SDK calling onClose twice.
       let impressionLogged = false;
@@ -2595,6 +2686,120 @@ export class FlashistFacade {
         );
         // reject(error);
         resolve(false);
+      }
+    });
+  }
+
+  /** Sync, so a render can hide the offer: false with no SDK (standalone page, degraded boot). */
+  public isRewardedVideoAvailable(): boolean {
+    return typeof this.yandexGamesSDK?.adv?.showRewardedVideo === "function";
+  }
+
+  /**
+   * One Yandex rewarded video (task 0488). `onRewarded` runs at most once, and
+   * only from the SDK's onRewarded — not at close, so an SDK that never closes
+   * still pays out. Resolves once, at onClose / onError / a throw.
+   * `setGameSoundMuted` is the caller's, so Howler stays out of the boot bundle.
+   */
+  public async showRewardedVideo(
+    onRewarded: () => void,
+    setGameSoundMuted: (muted: boolean) => void,
+  ): Promise<RewardedVideoResult> {
+    const events = flashistConstants.analyticEvents;
+    if (!this.isRewardedVideoAvailable()) {
+      logAdEventSafely(events.AD_REWARDED_UNAVAILABLE);
+      return "unavailable";
+    }
+
+    const setMutedSafely = (muted: boolean) => {
+      try {
+        setGameSoundMuted(muted);
+      } catch (error) {
+        console.log(
+          "FlashistFacade | showRewardedVideo __ mute failed: ",
+          error,
+        );
+      }
+    };
+    // Task 0404: the forced "please refresh" popup waits while this is open.
+    const endPlatformDialog = beginPlatformDialog();
+
+    return new Promise<RewardedVideoResult>((resolve) => {
+      let isSettled = false;
+      let isRewarded = false;
+      let isMuted = false;
+      let wasOnScreen = false;
+
+      const settle = (result: RewardedVideoResult) => {
+        if (isSettled) {
+          return;
+        }
+        isSettled = true;
+        if (isMuted) {
+          isMuted = false;
+          setMutedSafely(false);
+        }
+        if (wasOnScreen) {
+          lastRewardedVideoClosedAtMs = Date.now();
+        }
+        endPlatformDialog();
+        resolve(result);
+      };
+
+      try {
+        this.yandexGamesSDK.adv.showRewardedVideo({
+          callbacks: {
+            onOpen: () => {
+              if (isSettled || wasOnScreen) {
+                return;
+              }
+              wasOnScreen = true;
+              isMuted = true;
+              setMutedSafely(true);
+              logAdEventSafely(events.AD_REWARDED_OPENED);
+            },
+            onRewarded: () => {
+              if (isRewarded) {
+                return;
+              }
+              isRewarded = true;
+              wasOnScreen = true;
+              logAdEventSafely(events.AD_REWARDED_WATCHED);
+              try {
+                onRewarded();
+              } catch (error) {
+                console.log(
+                  "FlashistFacade | showRewardedVideo __ onRewarded handler failed: ",
+                  error,
+                );
+              }
+            },
+            onClose: () => {
+              if (!isSettled && !isRewarded) {
+                logAdEventSafely(events.AD_REWARDED_CLOSED_EARLY);
+              }
+              wasOnScreen = true;
+              settle(isRewarded ? "watched" : "closed_early");
+            },
+            onError: (error: unknown) => {
+              console.log(
+                "FlashistFacade | showRewardedVideo __ onError __ error: ",
+                error,
+              );
+              if (!isSettled) {
+                logAdEventSafely(events.AD_REWARDED_ERROR);
+              }
+              settle(isRewarded ? "watched" : "error");
+            },
+          },
+        });
+      } catch (error) {
+        console.log(
+          "FlashistFacade | showRewardedVideo __ catch __ error: ",
+          error,
+        );
+        logAdEventSafely(events.AD_REWARDED_ERROR);
+        settle(isRewarded ? "watched" : "error");
       }
     });
   }

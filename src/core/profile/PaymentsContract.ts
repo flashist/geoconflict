@@ -8,9 +8,9 @@ import { z } from "zod";
  *
  * Trust model (task 0019, ADR-103; task 0273 S4): `/intent` identifies its caller by
  * the login session's Bearer token. A token may be `vfy:true` since task 0340, but
- * the route does not read `verified` (neither 0250 S3b nor 0319 gates it), so it is
- * still the same trust level the credit path accepted (anyone can mint a
- * `vfy:false` token for an id they assert). The paid
+ * the route reads `verified` only to refuse a durable item the caller already owns
+ * (task 0496); for citizenship it is still the same trust level the credit path
+ * accepted (anyone can mint a `vfy:false` token for an id they assert). The paid
  * GRANT itself is bound to the Yandex-HMAC-signed payload via `developerPayload` →
  * intent row → player id, so a forged caller can only ever direct an attacker's own
  * real payment at an id he chose himself.
@@ -22,6 +22,16 @@ import { z } from "zod";
 export const PAYMENT_PRODUCT_IDS = ["citizenship"] as const;
 export const PaymentProductIdSchema = z.enum(PAYMENT_PRODUCT_IDS);
 export type PaymentProductId = z.infer<typeof PaymentProductIdSchema>;
+
+export type ProductKind = "citizenship" | "durable_item";
+
+/** Keyed by the id union, so a product added above without a definition fails to compile. */
+export const PRODUCT_DEFINITIONS: Record<
+  PaymentProductId,
+  { kind: ProductKind }
+> = {
+  citizenship: { kind: "citizenship" },
+};
 
 /**
  * Create a purchase intent BEFORE the client opens the Yandex payment frame.
@@ -62,6 +72,9 @@ export type PurchaseCompleteRequest = z.infer<
 export const PurchaseCompleteResponseSchema = z.object({
   success: z.literal(true),
   purchaseToken: z.string().min(1),
+  // Present only on a fresh grant: a replay cannot know whether that earlier
+  // grant is what made the buyer paid. false = they were already paid.
+  becamePaidCitizen: z.boolean().optional(),
 });
 export type PurchaseCompleteResponse = z.infer<
   typeof PurchaseCompleteResponseSchema
@@ -84,6 +97,9 @@ export type PurchaseReconcileRequest = z.infer<
  */
 export const PurchaseReconcileResponseSchema = z.object({
   processedTokens: z.array(z.string().min(1)),
+  // Entries that threw and were skipped: a 200 with fewer tokens must not read
+  // as "nothing pending", or the client could open a second payment window.
+  failedCount: z.number().int().nonnegative().optional(),
 });
 export type PurchaseReconcileResponse = z.infer<
   typeof PurchaseReconcileResponseSchema

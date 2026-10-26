@@ -1,8 +1,8 @@
 // Client → profile-server payments calls (task 0019). Same degrade-gracefully
 // contract as PlayerProfileView's profile fetch: empty/unset profileApiUrl ⇒
 // no-op, bounded timeout, Zod-validated responses, NEVER throws — every failure
-// path resolves to null and the caller decides the UX (0018) or silently skips
-// (session reconciliation).
+// path resolves to a failure value and the caller decides the UX (0018) or
+// silently skips (session reconciliation).
 
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
@@ -57,10 +57,23 @@ async function postJson(path: string, body: unknown): Promise<unknown | null> {
   }
 }
 
+export type CreateIntentResult =
+  | { kind: "ok"; intentId: string }
+  | { kind: "already_owned" }
+  | { kind: "failed" };
+
+export type ReconcileResult =
+  | { kind: "ok"; processedTokens: string[] }
+  | { kind: "failed" };
+
+const ALREADY_OWNED_STATUS = 409;
+
 /**
  * Create a server-side purchase intent; its id becomes the developerPayload of
  * the Yandex purchase. The caller is the login session (task 0273, S4) — no id
- * is sent. Null on any failure, including no session (caller aborts the flow).
+ * is sent. `already_owned` only for a 409 whose body says so (a durable item
+ * the verified caller owns, task 0496); every other failure, including no
+ * session, is `failed` and the caller aborts the flow.
  *
  * This is the ONLY payments call that carries a Bearer token. `complete` and
  * `reconcile` must NOT: reconciliation runs at session start to recover an
@@ -69,18 +82,37 @@ async function postJson(path: string, body: unknown): Promise<unknown | null> {
  */
 export async function createPurchaseIntent(
   productId: PaymentProductId,
-): Promise<string | null> {
+): Promise<CreateIntentResult> {
   const result = await profileFetch("/v1/payments/yandex/intent", {
     method: "POST",
     body: JSON.stringify({ productId }),
     timeoutMs: PAYMENTS_FETCH_TIMEOUT_MS,
   });
-  if (result.kind !== "response" || !result.response.ok) {
-    return null;
+  if (result.kind !== "response") {
+    return { kind: "failed" };
   }
-  const json: unknown = await result.response.json().catch(() => null);
+  const response = result.response;
+  if (!response.ok && response.status !== ALREADY_OWNED_STATUS) {
+    return { kind: "failed" };
+  }
+  const json: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    return isAlreadyOwnedBody(json)
+      ? { kind: "already_owned" }
+      : { kind: "failed" };
+  }
   const parsed = PurchaseIntentResponseSchema.safeParse(json);
-  return parsed.success ? parsed.data.intentId : null;
+  return parsed.success
+    ? { kind: "ok", intentId: parsed.data.intentId }
+    : { kind: "failed" };
+}
+
+function isAlreadyOwnedBody(json: unknown): boolean {
+  return (
+    typeof json === "object" &&
+    json !== null &&
+    (json as { error?: unknown }).error === "already_owned"
+  );
 }
 
 /**
@@ -98,13 +130,15 @@ export async function completePurchase(
 }
 
 /**
- * Post the signed getPurchases() output; returns every token now safe to
- * consume (including already-processed strays), or null on any failure.
+ * Post the signed getPurchases() output; `ok` carries every token now safe to
+ * consume (including already-processed strays).
  */
 export async function reconcilePurchases(
   signature: string,
-): Promise<string[] | null> {
+): Promise<ReconcileResult> {
   const json = await postJson("/v1/payments/yandex/reconcile", { signature });
   const parsed = PurchaseReconcileResponseSchema.safeParse(json);
-  return parsed.success ? parsed.data.processedTokens : null;
+  return parsed.success
+    ? { kind: "ok", processedTokens: parsed.data.processedTokens }
+    : { kind: "failed" };
 }

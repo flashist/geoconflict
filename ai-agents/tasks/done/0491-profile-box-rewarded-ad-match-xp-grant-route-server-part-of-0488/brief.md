@@ -26,7 +26,9 @@ Sprint 9
 > It sits **below** `0488` on the board; the ship loop orders by dependency, so `0488` still waits for it.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+> (Status until 2026-10-24) ~~🔲 Backlog~~
 
 ## Owner
 fkit-coder
