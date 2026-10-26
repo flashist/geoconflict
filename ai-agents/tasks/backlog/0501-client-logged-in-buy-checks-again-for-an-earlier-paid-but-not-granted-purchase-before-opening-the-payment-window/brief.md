@@ -126,6 +126,31 @@ Applies to every product through the shared coordinator (citizenship today; item
   `held_elsewhere` like `pending_ungranted`, as a block** (no payment window). The plan decides how; the owner approves
   the plan. `0510` also edits `PurchaseCoordinator.ts` — same working-tree rule as above. The owner's *"Nothing waits
   on it"* stands: no `Depends on:` line was added either way.
+- 📌 **2026-10-26 — in scope: the late-login case from `0510` review R3 (OWNER RULING).** Given live via
+  `AskUserQuestion` in the `fkit-lead` session (Sprint 9), relayed to a spawned `fkit-producer`; ⛔ not producer
+  precedent. Q: *"R3: a late login can still show Buy to a player whose purchase is on another profile. What do we
+  do?"* → **"Note it in 0501 (Recommended)"** — option text: *"0510 stays as is; 0501 (Backlog) gets this case. The
+  rare gap goes live until 0501 ships. Knock-on: none (checked)."*
+  - **The case.** When the Yandex login lands late (task `0397`'s late-auth path) — after the once-per-page boot
+    reconcile already asked for a session and got none — that reconcile goes **without a Bearer**, so the server cannot
+    answer `heldElsewhere` on that page and the held-elsewhere store stays empty. The card's late re-read then shows
+    **Buy** to a logged-in player whose permanent purchase is held on another profile, and a **second real charge** is
+    possible. Nothing re-runs the boot pass on late login. Rare: needs a late login **and** a purchase held on another
+    profile. Code pointer: `src/client/PaymentsReconciliation.ts` ~:122 (the boot pass's session wait,
+    `sessionTokenOrNull()`); line numbers drift — find it by name.
+  - **How this task closes it.** The logged-in "check again before paying" re-check (`reconcileNow`, which since
+    `0510` sends the Bearer and fills the held-elsewhere store) runs on the logged-in Buy and **blocks on
+    `held_elsewhere`** exactly as it blocks on `pending_ungranted`: no `/intent`, no payment window, ending at `0510`'s
+    `held_elsewhere` end state with its `Purchase:Blocked:OtherProfile:<Product>` event (per product, through the
+    product config). Add the matching coordinator test (re-check `held_elsewhere` → that end, no `/intent`, no
+    `runProductPurchase`).
+  - ⚠️ **Interacts with the trigger question above.** Under option **(a)** ("re-check only when this page's earlier
+    check did not come back clean"), a reconcile that ran **without a Bearer** must count as *not clean* for a player
+    who is logged in by tap time — otherwise this case slips through (a) unchanged. The plan says how; the owner rules
+    at plan approval as before.
+  - **Accepted gap until this ships.** The owner accepted that this gap **goes live with the held `0510` deploy** and
+    stays live until this task ships.
+  - `0510` stays as is. 0501 stays on the Backlog board; `Depends on:` / `Blocks:` unchanged. Knock-on: none (checked).
 - **Ships by:** a game deploy — weekend slot unless urgent (owner rule); committed is not deployed. Split a live verify
   task out at close, per the build-vs-verify rule.
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

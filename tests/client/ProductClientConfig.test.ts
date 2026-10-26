@@ -54,6 +54,8 @@ describe("PRODUCT_CLIENT_CONFIG", () => {
           "Purchase:Blocked:EarlierPurchasePending:Citizenship",
         // The citizenship kind never answers cannot_verify (task 0495).
         blockedCannotVerify: null,
+        heldOnOtherProfile: "Purchase:HeldOnOtherProfile:Citizenship",
+        blockedOtherProfile: "Purchase:Blocked:OtherProfile:Citizenship",
       },
       restartPromptTitleKey: "citizenship_restart_modal.title",
       restartPromptBodyKey: "citizenship_restart_modal.body",
@@ -81,6 +83,8 @@ describe("PRODUCT_CLIENT_CONFIG", () => {
         analytics.continueNeedsTap,
         analytics.blockedAlreadyOwned,
         analytics.blockedEarlierPurchasePending,
+        analytics.heldOnOtherProfile,
+        analytics.blockedOtherProfile,
         ...(analytics.blockedCannotVerify === null
           ? []
           : [analytics.blockedCannotVerify]),

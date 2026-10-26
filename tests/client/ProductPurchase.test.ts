@@ -87,7 +87,11 @@ describe("runProductPurchase", () => {
     window.addEventListener(CITIZENSHIP_GRANTED_MID_SESSION_EVENT, onSignal);
     createIntent.mockResolvedValue({ kind: "ok", intentId: "intent-1" });
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
-    complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
+    complete.mockResolvedValue({
+      success: true,
+      purchaseToken: "tok-1",
+      consume: true,
+    });
     consumePurchase.mockResolvedValue(undefined);
   });
 
@@ -229,6 +233,38 @@ describe("runProductPurchase", () => {
 
     expect(consumePurchase).toHaveBeenCalledWith("tok-1");
     expect(signals).toHaveLength(1);
+  });
+
+  // ADR-126 (task 0510): a permanent purchase is kept unless the server says
+  // otherwise; absent = a box older than 0506, kept too.
+  it.each<[string, boolean | undefined]>([
+    ["false", false],
+    ["absent (an older box)", undefined],
+  ])(
+    "consume %s: no consume, still granted, Completed and the restart offer stand",
+    async (_label, consume) => {
+      complete.mockResolvedValue({
+        success: true,
+        purchaseToken: "tok-1",
+        ...(consume === undefined ? {} : { consume }),
+      });
+
+      await expect(runProductPurchase(TEST_ITEM)).resolves.toBe("granted");
+
+      expect(consumePurchase).not.toHaveBeenCalled();
+      expect(loggedEvents()).toEqual([
+        "Purchase:Started:TestItem",
+        "Purchase:Completed:TestItem",
+      ]);
+      expect(signals).toHaveLength(1);
+    },
+  );
+
+  it("consume true: consumes the server's token", async () => {
+    await runProductPurchase(TEST_ITEM);
+
+    expect(consumePurchase).toHaveBeenCalledTimes(1);
+    expect(consumePurchase).toHaveBeenCalledWith("tok-1");
   });
 
   it("marks a platform dialog from the intent through /complete, closed afterwards", async () => {

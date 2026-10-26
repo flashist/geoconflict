@@ -19,6 +19,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
       purchasePaidCitizenshipExplainer: "PurchasePaidCitizenshipExplainer",
       citizenshipLoginExplainer: "CitizenshipLoginExplainer",
       purchaseLoginCitizenshipExplainer: "PurchaseLoginCitizenshipExplainer",
+      telegramLinkHeldElsewhere: "TelegramLinkHeldElsewhere",
+      vkLinkHeldElsewhere: "VkLinkHeldElsewhere",
     },
     citizenshipExplainerSources: {
       cardLink: "CardLink",
@@ -27,8 +29,11 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     },
   },
   flashist_logEventAnalytics: jest.fn(),
+  TELEGRAM_CHANNEL_URL: "https://t.me/test-channel",
+  VK_CHANNEL_URL: "https://vk.com/test-channel",
   FlashistFacade: {
     instance: {
+      logUiTapEvent: jest.fn(),
       isCitizenshipSurfacesEnabled: jest.fn(),
       logCitizenshipExplainerOpenedEvent: jest.fn(),
       getCatalogProduct: jest.fn(),
@@ -72,6 +77,37 @@ const isRowEnabled = isPrivateLobbyRowEnabled as jest.Mock;
 const getCatalogProduct = FlashistFacade.instance
   .getCatalogProduct as jest.Mock;
 const reloadApp = FlashistFacade.instance.reloadApp as jest.Mock;
+const logUiTapEvent = FlashistFacade.instance.logUiTapEvent as jest.Mock;
+
+/** Task 0510: the line and both links, under the ids of one surface. */
+function expectHeldElsewhere(
+  modal: CitizenshipExplainerModal,
+  shouldTap = false,
+): void {
+  expect(
+    byId(modal, "citizenship-explainer-held-elsewhere")!.textContent,
+  ).toContain("purchase_flow.held_elsewhere");
+  const telegram = byId(
+    modal,
+    "citizenship-explainer-held-elsewhere-telegram",
+  )!;
+  const vk = byId(modal, "citizenship-explainer-held-elsewhere-vk")!;
+  expect(telegram.getAttribute("href")).toBe("https://t.me/test-channel");
+  expect(vk.getAttribute("href")).toBe("https://vk.com/test-channel");
+  for (const link of [telegram, vk]) {
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener");
+  }
+  if (shouldTap) {
+    const block = (event: Event) => event.preventDefault();
+    telegram.addEventListener("click", block);
+    vk.addEventListener("click", block);
+    telegram.click();
+    vk.click();
+    expect(logUiTapEvent).toHaveBeenCalledWith("TelegramLinkHeldElsewhere");
+    expect(logUiTapEvent).toHaveBeenCalledWith("VkLinkHeldElsewhere");
+  }
+}
 const translate = translateText as jest.Mock;
 
 interface CardStandIn {
@@ -409,6 +445,13 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
     ["read_failed", { kind: "read_failed" }, true],
     ["no_product", { kind: "no_product", xp: 25 }, true],
     ["buy", BUY, true],
+    ["held_elsewhere", { kind: "held_elsewhere", isCitizen: false }, true],
+    // Review R1: an earned citizen whose paid purchase sits elsewhere.
+    [
+      "held_elsewhere, citizen",
+      { kind: "held_elsewhere", isCitizen: true },
+      false,
+    ],
   ] as Array<[string, CitizenshipOffer, boolean]>)(
     "the free-route line (%s): shown = %s",
     async (_label, offer, isShown) => {
@@ -426,6 +469,42 @@ describe("CitizenshipExplainerModal (task 0301)", () => {
   );
 
   describe("the action area, per offer", () => {
+    // Task 0510 (ADR-126).
+    it("held_elsewhere: the contact line and links, no Buy, and each link logs its tap", async () => {
+      appendCard({ kind: "held_elsewhere", isCitizen: false });
+      const modal = await mount();
+      await showFrom(modal);
+
+      expectHeldElsewhere(modal, true);
+      expect(byId(modal, "citizenship-explainer-buy")).toBeNull();
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).toBeNull();
+      expect(byId(modal, "citizenship-explainer-already-citizen")).toBeNull();
+    });
+
+    it("held_elsewhere, earned citizen: the already-citizen line above the contact line (review R1)", async () => {
+      appendCard({ kind: "held_elsewhere", isCitizen: true });
+      const modal = await mount();
+      await showFrom(modal);
+
+      expectHeldElsewhere(modal);
+      expect(
+        byId(modal, "citizenship-explainer-already-citizen")!.textContent,
+      ).toContain("citizenship_explainer.already_citizen");
+      expect(byId(modal, "citizenship-explainer-citizen-buy")).toBeNull();
+    });
+
+    it("buy: a held_elsewhere result shows no error line", async () => {
+      const card = appendCard(BUY);
+      card.buyCitizenship.mockResolvedValue("held_elsewhere");
+      const modal = await mount();
+      await showFrom(modal);
+
+      byId(modal, "citizenship-explainer-buy")!.click();
+      await flush(modal);
+
+      expect(byId(modal, "citizenship-explainer-purchase-error")).toBeNull();
+    });
+
     it("buy: the Buy button with the catalog price", async () => {
       appendCard(BUY);
       const modal = await mount();
@@ -901,6 +980,33 @@ describe("CitizenshipExplainerModal guest Log in and buy (task 0495)", () => {
     expect(byId(modal, "citizenship-explainer-login-and-buy")).toBeNull();
     expect(byId(modal, "citizenship-explainer-login")).toBeNull();
     expect(byId(modal, "citizenship-explainer-flow-buy")).toBeNull();
+  });
+
+  it("held_elsewhere: the contact line and links, no button", async () => {
+    const { modal } = await openAndTapLoginAndBuy();
+
+    await moveTo(modal, "held_elsewhere");
+
+    expectHeldElsewhere(modal);
+    expect(byId(modal, "citizenship-explainer-login-and-buy")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-flow-buy")).toBeNull();
+    expect(byId(modal, "citizenship-explainer-already-citizen")).toBeNull();
+  });
+
+  it("held_elsewhere, the login found an earned citizen: the already-citizen line too (review R1)", async () => {
+    const { modal, card } = await openAndTapLoginAndBuy();
+    card.getCitizenshipOffer.mockReturnValue({
+      kind: "held_elsewhere",
+      isCitizen: true,
+    });
+
+    await moveTo(modal, "held_elsewhere");
+
+    expectHeldElsewhere(modal);
+    expect(
+      byId(modal, "citizenship-explainer-already-citizen")!.textContent,
+    ).toContain("citizenship_explainer.already_citizen");
+    expect(byId(modal, "citizenship-explainer-free-body")).toBeNull();
   });
 
   it("login_cancelled: its line and Log in and buy again", async () => {

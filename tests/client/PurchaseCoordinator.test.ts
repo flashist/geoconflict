@@ -49,10 +49,17 @@ const BUYABLE: PurchaseProfileSnapshot = {
   },
   paidGrantConfirmed: false,
   grantedThisPage: new Set(),
+  heldElsewhere: new Set(),
   canLogIn: true,
 };
 
 const GUEST: PurchaseProfileSnapshot = { ...BUYABLE, profile: null };
+
+/** Task 0510: the reconcile says another profile of this login holds it. */
+const HELD_CITIZENSHIP: PurchaseProfileSnapshot = {
+  ...BUYABLE,
+  heldElsewhere: new Set(["citizenship"]),
+};
 
 const ANALYTICS: ProductAnalytics = {
   started: "Started",
@@ -68,6 +75,8 @@ const ANALYTICS: ProductAnalytics = {
   blockedAlreadyOwned: "BlockedAlreadyOwned",
   blockedEarlierPurchasePending: "BlockedEarlierPurchasePending",
   blockedCannotVerify: null,
+  heldOnOtherProfile: "HeldOnOtherProfile",
+  blockedOtherProfile: "BlockedOtherProfile",
 };
 
 function deferred<T>() {
@@ -308,6 +317,17 @@ describe("createPurchaseCoordinator (logged-in path)", () => {
       "cannot_verify",
     );
     expect(t.runProductPurchase).not.toHaveBeenCalled();
+  });
+
+  // Task 0510: a tap that raced the render of the contact line.
+  it("offer held_elsewhere → held_elsewhere and Blocked:OtherProfile, with no purchase call", async () => {
+    const t = setup({ snapshot: HELD_CITIZENSHIP });
+
+    await expect(request(t.coordinator)).resolves.toBe("held_elsewhere");
+
+    expect(t.runProductPurchase).not.toHaveBeenCalled();
+    expect(t.logEvent).toHaveBeenCalledWith("BlockedOtherProfile");
+    expect(states.map((s) => s.state)).toEqual(["preparing", "held_elsewhere"]);
   });
 
   it("no catalog price → error, with no purchase call", async () => {
@@ -713,6 +733,38 @@ describe("guest path (task 0495)", () => {
       expect(t.runProductPurchase).not.toHaveBeenCalled();
     });
 
+    // Task 0510 (ADR-126).
+    it("the reconcile says held elsewhere → held_elsewhere, Blocked:OtherProfile, no intent", async () => {
+      const t = guestSetup({ snapshotAfterReread: HELD_CITIZENSHIP });
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("held_elsewhere");
+      expect(t.source.reread).toHaveBeenCalledTimes(1);
+      expect(t.runProductPurchase).not.toHaveBeenCalled();
+      expect(loggedEvents(t)).toContain("BlockedOtherProfile");
+      expect(loggedEvents(t)).not.toContain("ContinueReady");
+      expect(states.at(-1)).toBe("held_elsewhere");
+    });
+
+    it("held elsewhere, but another product: the read still offers Buy → needs_tap, never a payment window by itself", async () => {
+      const t = guestSetup();
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("needs_tap");
+      expect(t.runProductPurchase).not.toHaveBeenCalled();
+      expect(loggedEvents(t)).toContain("ContinueNeedsTap");
+      expect(loggedEvents(t)).not.toContain("BlockedOtherProfile");
+    });
+
+    it("held elsewhere even without the payments refresh: still ends held_elsewhere", async () => {
+      const t = guestSetup({ snapshotAfterReread: HELD_CITIZENSHIP });
+      t.refreshPaymentsAfterLogin.mockResolvedValueOnce(false);
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("held_elsewhere");
+      expect(t.runProductPurchase).not.toHaveBeenCalled();
+    });
+
     it("/intent answers 409 → already_owned and Blocked:AlreadyOwned", async () => {
       const t = guestSetup();
       t.runProductPurchase.mockResolvedValueOnce("already_owned");
@@ -735,6 +787,17 @@ describe("guest path (task 0495)", () => {
       expect(t.coordinator.currentState("citizenship")).toBe("idle");
       await advance(60_000);
       t.coordinator.surfaceClosed("citizenship");
+      expect(t.requestLoginRestart).toHaveBeenCalledTimes(1);
+    });
+
+    it("held_elsewhere → the restart exactly at the delay, as already_owned", async () => {
+      const t = guestSetup({ snapshotAfterReread: HELD_CITIZENSHIP });
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("held_elsewhere");
+      await advance(4_999);
+      expect(t.requestLoginRestart).not.toHaveBeenCalled();
+      await advance(1);
       expect(t.requestLoginRestart).toHaveBeenCalledTimes(1);
     });
 
@@ -882,6 +945,29 @@ describe("guest path (task 0495)", () => {
       expect(t.requestLoginRestart).not.toHaveBeenCalled();
       await advance(1);
       expect(t.requestLoginRestart).toHaveBeenCalledTimes(1);
+    });
+
+    it("a tap whose re-check says held elsewhere, read held → held_elsewhere: no payment window", async () => {
+      const t = guestSetup();
+      t.reconcileNow.mockResolvedValueOnce("failed");
+      await expect(request(t)).resolves.toBe("needs_tap");
+      t.setSnapshot(HELD_CITIZENSHIP);
+      t.source.reread.mockImplementation(async () => {});
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("held_elsewhere");
+      expect(t.runProductPurchase).not.toHaveBeenCalled();
+      expect(loggedEvents(t)).toContain("BlockedOtherProfile");
+    });
+
+    it("a tap after a held-elsewhere stop for another product pays for this one", async () => {
+      const t = guestSetup();
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+      await expect(request(t)).resolves.toBe("needs_tap");
+      t.reconcileNow.mockResolvedValueOnce("held_elsewhere");
+
+      await expect(request(t)).resolves.toBe("granted");
+      expect(t.runProductPurchase).toHaveBeenCalledTimes(1);
     });
 
     it.each<ReconcileNowResult>(["failed", "timeout"])(

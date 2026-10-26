@@ -6,7 +6,7 @@
 > design and ADR-126 as described?"*, the owner picked **"Approve (Recommended)"** — option text: *"ADR-126 becomes
 > accepted; producer splits 0506 into profile-server and game build tasks, then planning starts."* ⛔ Not producer
 > precedent. This brief now carries **S1 (profile box) only**. The other three rows of the spec's §12 are new tasks:
-> **S2** client → [`0510`](../../backlog/0510-client-stop-consuming-permanent-purchases-held-elsewhere-offer-and-coordinator-end-state-s2/brief.md),
+> **S2** client → [`0510`](../0510-client-stop-consuming-permanent-purchases-held-elsewhere-offer-and-coordinator-end-state-s2/brief.md),
 > **S1v** → [`0511`](../../backlog/0511-verify-0506-live-the-profile-box-answers-held-purchases-quietly-and-says-consume-false-for-citizenship-s1v/brief.md),
 > **S2v** → [`0512`](../../backlog/0512-verify-0510-pre-release-checks-t1-t3-on-the-yandex-test-copy-then-live-after-the-game-deploy-s2v/brief.md).
 > Narrowed rather than cancelled because S1 is what the held deploy and the four held checks wait on first (box ships

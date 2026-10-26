@@ -49,6 +49,10 @@ const REQUIRED_KEYS: Array<[string, string]> = [
   ["purchase_flow", "cannot_verify"],
   ["purchase_flow", "error"],
   ["purchase_flow", "earlier_purchase_pending"],
+  // Task 0510 (ADR-126): held on another profile, and its contact links.
+  ["purchase_flow", "held_elsewhere"],
+  ["purchase_flow", "contact_telegram"],
+  ["purchase_flow", "contact_vk"],
 ];
 
 const placeholders = (text: string): string[] =>

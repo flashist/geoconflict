@@ -21,6 +21,7 @@ function inputs(
     isPaidCitizen: false,
     canLogIn: true,
     productPrice: "99 ₽",
+    heldElsewhere: new Set(),
     ...overrides,
   };
 }
@@ -213,5 +214,44 @@ describe("deriveCitizenshipOffer (task 0301)", () => {
         ).toEqual({ kind: "guest", canLogIn: true, price: "99 ₽" });
       },
     );
+  });
+});
+
+// Task 0510 (ADR-126): held by another profile of this login.
+describe("deriveCitizenshipOffer — held elsewhere (task 0510)", () => {
+  const held = new Set(["citizenship"] as const);
+
+  it("a non-citizen gets held_elsewhere instead of buy", () => {
+    expect(deriveCitizenshipOffer(inputs({ heldElsewhere: held }))).toEqual({
+      kind: "held_elsewhere",
+      isCitizen: false,
+    });
+  });
+
+  it("an earned citizen on a verified unpaid read gets held_elsewhere, not citizen_buy — still a citizen (review R1)", () => {
+    expect(
+      deriveCitizenshipOffer(
+        inputs({ profile: CITIZEN, isVerifiedRead: true, heldElsewhere: held }),
+      ),
+    ).toEqual({ kind: "held_elsewhere", isCitizen: true });
+  });
+
+  it("a paid citizen stays citizen", () => {
+    expect(
+      deriveCitizenshipOffer(
+        inputs({
+          profile: CITIZEN,
+          isVerifiedRead: true,
+          isPaidCitizen: true,
+          heldElsewhere: held,
+        }),
+      ),
+    ).toEqual({ kind: "citizen" });
+  });
+
+  it("a guest stays guest", () => {
+    expect(
+      deriveCitizenshipOffer(inputs({ profile: null, heldElsewhere: held })),
+    ).toEqual({ kind: "guest", canLogIn: true, price: "99 ₽" });
   });
 });

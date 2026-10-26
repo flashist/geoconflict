@@ -73,7 +73,11 @@ describe("runCitizenshipPurchase", () => {
     // Happy-path defaults; individual tests break one link at a time.
     createIntent.mockResolvedValue({ kind: "ok", intentId: "intent-uuid" });
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
-    complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
+    complete.mockResolvedValue({
+      success: true,
+      purchaseToken: "tok-1",
+      consume: true,
+    });
     consumePurchase.mockResolvedValue(undefined);
   });
 
@@ -161,6 +165,31 @@ describe("runCitizenshipPurchase", () => {
       consumePurchase.mock.invocationCallOrder[0],
     );
   });
+
+  // ADR-126 (task 0510): citizenship is permanent, so it is kept unless the
+  // server says consume; an older box (no field) keeps it too.
+  it.each<[string, boolean | undefined]>([
+    ["false", false],
+    ["absent", undefined],
+  ])(
+    "consume %s: granted, Completed and the restart offer, but no consume",
+    async (_label, consume) => {
+      complete.mockResolvedValue({
+        success: true,
+        purchaseToken: "tok-1",
+        ...(consume === undefined ? {} : { consume }),
+      });
+
+      await expect(runCitizenshipPurchase()).resolves.toBe("granted");
+
+      expect(consumePurchase).not.toHaveBeenCalled();
+      expect(loggedEvents()).toEqual([
+        "Purchase:Started:Citizenship",
+        "Purchase:Completed:Citizenship",
+      ]);
+      expect(grantedSignals).toHaveLength(1);
+    },
+  );
 
   // Since S4 (task 0273) the flow no longer reads the Yandex id at all — the
   // identity travels as the Bearer token inside createPurchaseIntent. A guest,
@@ -251,7 +280,11 @@ describe("runCitizenshipPurchase marks a platform dialog (task 0404)", () => {
     resetPlatformDialogPresenceForTests();
     createIntent.mockResolvedValue({ kind: "ok", intentId: "intent-uuid" });
     purchaseCatalogItem.mockResolvedValue({ signature: "sig.payload" });
-    complete.mockResolvedValue({ success: true, purchaseToken: "tok-1" });
+    complete.mockResolvedValue({
+      success: true,
+      purchaseToken: "tok-1",
+      consume: true,
+    });
     consumePurchase.mockResolvedValue(undefined);
   });
 

@@ -42,6 +42,7 @@ export type PurchaseFlowState =
   | "login_cancelled"
   | "needs_tap"
   | "earlier_purchase_pending"
+  | "held_elsewhere"
   | "error";
 
 export type PurchaseRequestResult =
@@ -53,6 +54,7 @@ export type PurchaseRequestResult =
   | "login_cancelled"
   | "needs_tap"
   | "earlier_purchase_pending"
+  | "held_elsewhere"
   | "error";
 
 export interface PurchaseFlowStateDetail {
@@ -118,7 +120,16 @@ export interface PurchaseCoordinator {
 
 type RunResult = Exclude<PurchaseRequestResult, "busy">;
 
-type PrepareResult = "ready" | "profile_unavailable" | "not_ready";
+/**
+ * `held_elsewhere`: the reconcile found a purchase on another profile of this
+ * login. The flow goes on to the read, which decides per product, but never
+ * opens the payment window by itself after it.
+ */
+type PrepareResult =
+  | "ready"
+  | "profile_unavailable"
+  | "not_ready"
+  | "held_elsewhere";
 
 /** A guest who logged in through this flow and has not been handed off yet. */
 interface GuestFlow {
@@ -220,6 +231,8 @@ export function createPurchaseCoordinator(
         return end(productId, "cannot_verify");
       case "read_failed":
         return end(productId, "profile_unavailable");
+      case "held_elsewhere":
+        return heldElsewhere(productId);
       default:
         // checking, no_product: a tap cannot reach these on the logged-in
         // path (a guest takes runGuestLogin).
@@ -243,6 +256,9 @@ export function createPurchaseCoordinator(
       return "profile_unavailable";
     }
     const reconciled = await deps.reconcileNow(RECONCILE_TIMEOUT_MS);
+    if (reconciled === "held_elsewhere") {
+      return "held_elsewhere";
+    }
     // A failed or unanswered reconcile may hide a paid, ungranted purchase, and
     // without the refresh the reconcile read the guest-time payments object,
     // not this account's: never open a second payment window by itself after
@@ -266,6 +282,11 @@ export function createPurchaseCoordinator(
   const alreadyOwned = (productId: PaymentProductId): RunResult => {
     deps.logEvent(deps.productAnalytics(productId).blockedAlreadyOwned);
     return end(productId, "already_owned");
+  };
+
+  const heldElsewhere = (productId: PaymentProductId): RunResult => {
+    deps.logEvent(deps.productAnalytics(productId).blockedOtherProfile);
+    return end(productId, "held_elsewhere");
   };
 
   const runGuestLogin = async (
@@ -371,6 +392,8 @@ export function createPurchaseCoordinator(
         return end(productId, "cannot_verify");
       case "read_failed":
         return profileUnavailable(productId);
+      case "held_elsewhere":
+        return heldElsewhere(productId);
       case "checking":
         // A newer read is still in flight (the card's read guard): one more tap.
         return needsTap(productId);
@@ -378,6 +401,10 @@ export function createPurchaseCoordinator(
         return end(productId, "error");
     }
 
+    if (deadlineAt !== null && prepared === "held_elsewhere") {
+      // Another product is held; this one's Buy waits for the player's tap.
+      return needsTap(productId);
+    }
     if (deadlineAt !== null) {
       deps.logEvent(analytics.continueReady, deps.now() - flow.loggedInAt);
     }

@@ -49,6 +49,11 @@ export type CitizenshipOffer =
   | { kind: "read_failed" }
   /** An authoritative non-citizen, but the catalog has no citizenship product. */
   | { kind: "no_product"; xp: number }
+  /**
+   * Paid for on another profile of this login (ADR-126): no Buy, contact us.
+   * `isCitizen`: an earned citizen still has citizenship — say so (review R1).
+   */
+  | { kind: "held_elsewhere"; isCitizen: boolean }
   | { kind: "buy"; price: string; xp: number };
 
 export interface CitizenshipOfferInputs {
@@ -67,6 +72,8 @@ export interface CitizenshipOfferInputs {
   canLogIn: boolean;
   /** The catalog price of the citizenship product, or null if it has none. */
   productPrice: string | null;
+  /** Products the reconcile says another profile of this login holds. */
+  heldElsewhere: ReadonlySet<PaymentProductId>;
 }
 
 /** The card's gathered inputs as the shared rule's snapshot (one mapping). */
@@ -93,6 +100,7 @@ export function toPurchaseProfileSnapshot(
           },
     paidGrantConfirmed: inputs.paidGrantConfirmed,
     grantedThisPage,
+    heldElsewhere: inputs.heldElsewhere,
     canLogIn: inputs.canLogIn,
   };
 }
@@ -113,6 +121,11 @@ export function deriveCitizenshipOffer(
       return profile !== null && profile.isCitizen
         ? { kind: "citizen_buy", price: offer.price }
         : offer;
+    case "held_elsewhere":
+      return {
+        kind: "held_elsewhere",
+        isCitizen: profile !== null && profile.isCitizen,
+      };
     case "cannot_verify":
       // The citizenship kind never answers this; fail closed like a citizen.
       return { kind: "citizen" };

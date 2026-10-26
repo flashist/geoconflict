@@ -24,7 +24,7 @@ Sprint 9
 > it. Appended after the board's highest rank (36), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder
@@ -88,7 +88,7 @@ implements and lists any deviation for owner approval.
 ## Notes
 
 - **Depends on:** 0506
-- **Blocks:** 0512, 0497, 0498, 0499
+- **Blocks:** 0512, 0497, 0498, 0499, 0513
 - **Why `0506`:** S2 reads S1's response fields (spec §12, *"build after S1's contract lands"*). Same sprint.
 - 📌 **Deploy hold carried over (2026-10-26).** OWNER RULING **"Hold it"** — option text: *"0493, 0497, 0498, 0499 then
   also wait on 0506 (design + ADR + build first). All Sprint 9."* — relayed; ⛔ not producer precedent. With `0506` now

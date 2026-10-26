@@ -258,6 +258,13 @@ export const flashistConstants = {
       "Purchase:Blocked:AlreadyOwned:Citizenship",
     PURCHASE_BLOCKED_EARLIER_PURCHASE_PENDING_CITIZENSHIP:
       "Purchase:Blocked:EarlierPurchasePending:Citizenship",
+    // ADR-126 (task 0510). HeldOnOtherProfile = the reconcile says another
+    // profile of this verified login holds it (once per page per product);
+    // Blocked:OtherProfile = a purchase tap ended there, no payment window.
+    PURCHASE_HELD_ON_OTHER_PROFILE_CITIZENSHIP:
+      "Purchase:HeldOnOtherProfile:Citizenship",
+    PURCHASE_BLOCKED_OTHER_PROFILE_CITIZENSHIP:
+      "Purchase:Blocked:OtherProfile:Citizenship",
 
     // Ad impressions (task 0020). Fired on a real impression (onClose
     // wasShown === true), not per attempt; no tier dimension — the tiered
@@ -470,6 +477,9 @@ export const flashistConstants = {
     telegramLinkGameEnd: "TelegramLinkGameEnd",
     vkLinkStartScreen: "VkLinkStartScreen",
     vkLinkGameEnd: "VkLinkGameEnd",
+    // Under the "held on another profile" line, card and explainer (task 0510).
+    telegramLinkHeldElsewhere: "TelegramLinkHeldElsewhere",
+    vkLinkHeldElsewhere: "VkLinkHeldElsewhere",
     tutorialSkipBtnCorner: "TutorialSkipBtnCorner",
     tutorialSkipBtnInline: "TutorialSkipBtnInline",
     multiplayerTab: "MultiplayerTab",

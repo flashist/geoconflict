@@ -1,33 +1,85 @@
 // Session-start purchase reconciliation (task 0019) — required for Yandex
 // moderation compliance: purchases whose /complete never landed (closed tab,
-// dropped network, failed consume) are re-granted idempotently by the server
-// and consumed here so they stop reappearing in getPurchases().
+// dropped network) are re-granted idempotently by the server. Since task 0506
+// (ADR-126) a permanent purchase is never consumed, so it shows up in
+// getPurchases() on every load: only the tokens the server lists in
+// `consumeTokens` are consumed, and only a fresh grant signals the page.
 //
 // Scheduled by FlashistFacade once the payments catalog reaches 'ready' (via
 // dynamic import — see fetchPaymentsCatalog); waits for the game-init gate so
 // it never competes with boot. Best-effort end to end: every failure is
 // swallowed and simply retried on the next session.
 
+import type { PaymentProductId } from "../core/profile/PaymentsContract";
 import {
   FlashistFacade,
+  flashist_logEventAnalytics,
   flashist_waitGameInitComplete,
 } from "./flashist/FlashistFacade";
-import { reconcilePurchases } from "./PaymentsApiClient";
+import { reconcilePurchases, type ReconcileResult } from "./PaymentsApiClient";
+import { getProductClientConfig } from "./ProductClientConfig";
+import { ensureSession } from "./ProfileSession";
+import { PURCHASE_OFFER_CHANGED_EVENT } from "./PurchaseOffer";
 
 /**
- * Fired on `window` after reconciliation processed ≥1 purchase — the server
- * may have granted an entitlement this session's profile fetch predates, so
- * profile consumers (the citizenship card, task 0018) must re-fetch. Fired
- * even when a consume fails: the GRANT is committed server-side either way,
- * and a stale card showing the buy CTA invites a second real charge.
+ * Fired on `window` after reconciliation GRANTED ≥1 purchase in this call — the
+ * profile fetch predates it, so profile consumers (the citizenship card, task
+ * 0018) must re-fetch. A kept purchase that was granted long ago does not fire
+ * it, so a reload stays quiet. Fired before any consume.
  */
 export const PURCHASES_RECONCILED_EVENT = "geoconflict-purchases-reconciled";
 
 let hasScheduled = false;
 
-/** Test seam — reset the once-per-session latch. */
+// Products this verified login paid for on another profile (ADR-126). Only
+// grows within a page: the server's answer cannot change without a merge.
+const heldElsewhereProducts = new Set<PaymentProductId>();
+
+/** Test seam — reset the once-per-session latch and the held-elsewhere store. */
 export function resetPaymentsReconciliationForTests(): void {
   hasScheduled = false;
+  heldElsewhereProducts.clear();
+}
+
+/** What the reconcile said is held by another profile, this page load. */
+export function getHeldElsewhereProducts(): ReadonlySet<PaymentProductId> {
+  return heldElsewhereProducts;
+}
+
+function recordHeldElsewhere(productIds: readonly PaymentProductId[]): void {
+  let isChanged = false;
+  for (const productId of productIds) {
+    if (heldElsewhereProducts.has(productId)) {
+      continue;
+    }
+    heldElsewhereProducts.add(productId);
+    isChanged = true;
+    flashist_logEventAnalytics(
+      getProductClientConfig(productId).analytics.heldOnOtherProfile,
+    );
+  }
+  if (isChanged) {
+    window.dispatchEvent(new CustomEvent(PURCHASE_OFFER_CHANGED_EVENT));
+  }
+}
+
+type ReconcileOk = Extract<ReconcileResult, { kind: "ok" }>;
+
+// A box older than 0506 cannot say what was fresh: fall back to the old rule,
+// which re-fires on every load until that box is upgraded.
+function hasFreshGrant(reconciled: ReconcileOk): boolean {
+  return reconciled.grantedTokens === null
+    ? reconciled.processedTokens.length > 0
+    : reconciled.grantedTokens.length > 0;
+}
+
+/** Never throws, never retries a failed login (login rule D3). */
+async function sessionTokenOrNull(): Promise<string | null> {
+  try {
+    return await ensureSession();
+  } catch {
+    return null;
+  }
 }
 
 /** Fire-and-forget; latched so it runs at most once per session. */
@@ -66,31 +118,31 @@ async function runPaymentsReconciliation(): Promise<void> {
   if (signed === null) {
     return; // No purchases pending (or payments unavailable) — nothing to do.
   }
-  const reconciled = await reconcilePurchases(signed.signature);
-  if (reconciled.kind !== "ok" || reconciled.processedTokens.length === 0) {
+  // Only so the server can answer `heldElsewhere`; a guest resolves null at once.
+  const sessionToken = await sessionTokenOrNull();
+  const reconciled = await reconcilePurchases(signed.signature, sessionToken);
+  if (reconciled.kind !== "ok") {
     return;
   }
-  const tokens = reconciled.processedTokens;
+  recordHeldElsewhere(reconciled.heldElsewhere);
   // The grants are committed the moment /reconcile responds — signal profile
   // consumers BEFORE consuming (review R3): a hung consumePurchase below must
   // not block the card's refresh and leave a live buy CTA on a player the
-  // server just granted. Consume-after-grant ordering is preserved: each
-  // consume still starts only after the server listed its token as processed.
-  window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
-  for (const token of tokens) {
-    try {
-      await facade.consumePurchase(token);
-    } catch {
-      // A failed consume resurfaces in next session's getPurchases() — retry then.
-    }
+  // server just granted.
+  if (hasFreshGrant(reconciled)) {
+    window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
   }
+  await consumeAll(facade, reconciled.consumeTokens);
 }
 
 /**
- * - `processed`: the server granted ≥1 pending purchase (the profile is stale).
- * - `none`: verifiably nothing pending.
+ * - `processed`: the server granted ≥1 pending purchase in this call (the
+ *   profile is stale).
+ * - `none`: verifiably nothing pending, or only purchases granted earlier.
  * - `pending_ungranted`: the server reported a pending purchase it failed to
  *   grant (task 0492's `failedCount`) — no purchase may go on (OQ-1).
+ * - `held_elsewhere`: a purchase is held by another profile of this verified
+ *   login (ADR-126); the store already has it, so the offer says so.
  * - `failed`: could not tell — an automatic purchase must not go on (spec F5).
  * - `timeout`: no answer in time; a late finish still signals and consumes.
  */
@@ -98,6 +150,7 @@ export type ReconcileNowResult =
   | "processed"
   | "none"
   | "pending_ungranted"
+  | "held_elsewhere"
   | "failed"
   | "timeout";
 
@@ -134,20 +187,26 @@ async function runReconcileNow(): Promise<ReconcileNowResult> {
   if (signed.kind !== "signed") {
     return signed.kind;
   }
-  const reconciled = await reconcilePurchases(signed.signature);
+  // The guest flow already resolved the session, so this starts no login.
+  const sessionToken = await sessionTokenOrNull();
+  const reconciled = await reconcilePurchases(signed.signature, sessionToken);
   if (reconciled.kind !== "ok") {
     return "failed";
   }
-  const tokens = reconciled.processedTokens;
-  if (tokens.length > 0) {
+  recordHeldElsewhere(reconciled.heldElsewhere);
+  const isFreshGrant = hasFreshGrant(reconciled);
+  if (isFreshGrant) {
     // Signal before consuming, as the boot pass does (review R3 there).
     window.dispatchEvent(new CustomEvent(PURCHASES_RECONCILED_EVENT));
-    void consumeAll(facade, tokens);
   }
+  void consumeAll(facade, reconciled.consumeTokens);
   if (reconciled.failedCount > 0) {
     return "pending_ungranted";
   }
-  return tokens.length > 0 ? "processed" : "none";
+  if (reconciled.heldElsewhere.length > 0) {
+    return "held_elsewhere";
+  }
+  return isFreshGrant ? "processed" : "none";
 }
 
 async function consumeAll(

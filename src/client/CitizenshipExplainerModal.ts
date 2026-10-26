@@ -12,7 +12,12 @@ import {
   type CitizenshipGrantedMidSessionDetail,
 } from "./CitizenshipRestartOffer";
 import { darkScrollbarStyles } from "./components/baseComponents/DarkScrollbarStyles";
-import { FlashistFacade, flashistConstants } from "./flashist/FlashistFacade";
+import {
+  FlashistFacade,
+  flashistConstants,
+  TELEGRAM_CHANNEL_URL,
+  VK_CHANNEL_URL,
+} from "./flashist/FlashistFacade";
 import { isPrivateLobbyRowEnabled } from "./PrivateLobbyAccess";
 import { getProductClientConfig } from "./ProductClientConfig";
 import { restartAfterProfileReadFailure } from "./ProfileReadRestart";
@@ -188,6 +193,24 @@ export class CitizenshipExplainerModal extends LitElement {
       }
 
       .modal-box .secondary-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .modal-box .contact-link {
+        display: block;
+        margin-top: 8px;
+        padding: 12px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+      }
+
+      .modal-box .contact-link:hover {
         background: rgba(255, 255, 255, 0.2);
       }
 
@@ -449,7 +472,9 @@ export class CitizenshipExplainerModal extends LitElement {
             </li>
           </ul>
 
-          ${offer.kind === "citizen" || offer.kind === "citizen_buy"
+          ${offer.kind === "citizen" ||
+          offer.kind === "citizen_buy" ||
+          isCitizenHeldElsewhere(offer)
             ? // Task 0421: a citizen already has it — no "get it free" line.
               nothing
             : html`<p id="citizenship-explainer-free-body">
@@ -486,7 +511,7 @@ export class CitizenshipExplainerModal extends LitElement {
       ? (getPurchaseCoordinator()?.currentState("citizenship") ?? "idle")
       : "idle";
     if (flowState !== "idle" && flowState !== "granted") {
-      return this.renderGuestFlow(flowState);
+      return this.renderGuestFlow(flowState, isCitizenHeldElsewhere(offer));
     }
     switch (offer.kind) {
       case "buy":
@@ -551,6 +576,8 @@ export class CitizenshipExplainerModal extends LitElement {
       case "no_product":
         // The same as the card: no product, no purchase line at all.
         return nothing;
+      case "held_elsewhere":
+        return this.renderHeldElsewhere(offer.isCitizen);
       case "checking":
         return html`<p id="citizenship-explainer-checking" class="muted">
           ${translateText("citizenship_status.checking")}
@@ -570,6 +597,7 @@ export class CitizenshipExplainerModal extends LitElement {
 
   private renderGuestFlow(
     state: Exclude<PurchaseFlowState, "idle" | "granted">,
+    isCitizen: boolean,
   ) {
     const price =
       FlashistFacade.instance.getCatalogProduct("citizenship")?.price ?? null;
@@ -599,6 +627,8 @@ export class CitizenshipExplainerModal extends LitElement {
         return this.renderFlowLine(
           getProductClientConfig("citizenship").alreadyOwnedLineKey,
         );
+      case "held_elsewhere":
+        return this.renderHeldElsewhere(isCitizen);
       case "profile_unavailable":
         return html`${this.renderFlowLine("citizenship_status.read_failed")}
           <button
@@ -610,6 +640,52 @@ export class CitizenshipExplainerModal extends LitElement {
           </button>`;
     }
   }
+
+  // ADR-126: paid for on another profile of this login — contact us instead.
+  private renderHeldElsewhere(isCitizen: boolean) {
+    return html`
+      ${isCitizen
+        ? html`<p id="citizenship-explainer-already-citizen">
+            ${translateText("citizenship_explainer.already_citizen")}
+          </p>`
+        : nothing}
+      <p id="citizenship-explainer-held-elsewhere" class="muted">
+        ${translateText("purchase_flow.held_elsewhere")}
+      </p>
+      <a
+        id="citizenship-explainer-held-elsewhere-telegram"
+        class="contact-link"
+        href=${TELEGRAM_CHANNEL_URL}
+        target="_blank"
+        rel="noopener"
+        @click=${this.onHeldElsewhereTelegramTap}
+      >
+        ${translateText("purchase_flow.contact_telegram")}
+      </a>
+      <a
+        id="citizenship-explainer-held-elsewhere-vk"
+        class="contact-link"
+        href=${VK_CHANNEL_URL}
+        target="_blank"
+        rel="noopener"
+        @click=${this.onHeldElsewhereVkTap}
+      >
+        ${translateText("purchase_flow.contact_vk")}
+      </a>
+    `;
+  }
+
+  private readonly onHeldElsewhereTelegramTap = (): void => {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.telegramLinkHeldElsewhere,
+    );
+  };
+
+  private readonly onHeldElsewhereVkTap = (): void => {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.vkLinkHeldElsewhere,
+    );
+  };
 
   private renderFlowLine(textKey: string) {
     return html`<p id="citizenship-explainer-flow-status" class="muted">
@@ -634,4 +710,8 @@ function sessionStorageOrNull(): Storage | null {
   } catch {
     return null;
   }
+}
+
+function isCitizenHeldElsewhere(offer: CitizenshipOffer): boolean {
+  return offer.kind === "held_elsewhere" && offer.isCitizen;
 }

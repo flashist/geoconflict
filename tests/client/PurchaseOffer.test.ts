@@ -45,6 +45,7 @@ function snapshot(
     profile: NON_CITIZEN,
     paidGrantConfirmed: false,
     grantedThisPage: new Set(),
+    heldElsewhere: new Set(),
     canLogIn: true,
     ...overrides,
   };
@@ -225,5 +226,115 @@ describe("deriveOfferForKind — durable item (spec §5 order)", () => {
     ] as const)("%s: cannot_verify, never owned", (_label, profile) => {
       expect(item(snapshot({ profile }))).toEqual({ kind: "cannot_verify" });
     });
+  });
+});
+
+// Task 0510 (ADR-126): a purchase held by another profile of this login.
+describe("derivePurchaseOffer — held elsewhere", () => {
+  const heldItem = new Set<PaymentProductId>([ITEM]);
+  const heldCitizenship = new Set<PaymentProductId>(["citizenship"]);
+
+  it("citizenship: replaces a would-be buy, for a non-citizen and an earned citizen", () => {
+    for (const profile of [NON_CITIZEN, EARNED_VERIFIED]) {
+      expect(
+        derivePurchaseOffer(
+          "citizenship",
+          snapshot({ profile, heldElsewhere: heldCitizenship }),
+          PRICE,
+        ),
+      ).toEqual({ kind: "held_elsewhere" });
+    }
+  });
+
+  it("durable item: replaces a would-be buy", () => {
+    expect(item(snapshot({ heldElsewhere: heldItem }))).toEqual({
+      kind: "held_elsewhere",
+    });
+  });
+
+  it("only for the held product: another product's buy stands", () => {
+    expect(
+      deriveOfferForKind(
+        "durable_item",
+        OTHER_ITEM,
+        snapshot({ heldElsewhere: heldItem }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "buy", price: PRICE, xp: 40 });
+  });
+
+  it("owned and a confirmed grant stay above it", () => {
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ profile: PAID_CITIZEN, heldElsewhere: heldCitizenship }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "owned" });
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ paidGrantConfirmed: true, heldElsewhere: heldCitizenship }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "owned" });
+    expect(
+      item(
+        snapshot({
+          profile: { ...NON_CITIZEN, entitlements: [ITEM] },
+          heldElsewhere: heldItem,
+        }),
+      ),
+    ).toEqual({ kind: "owned" });
+    expect(
+      item(
+        snapshot({
+          grantedThisPage: new Set([ITEM]),
+          heldElsewhere: heldItem,
+        }),
+      ),
+    ).toEqual({ kind: "owned" });
+  });
+
+  it("never for a guest", () => {
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ profile: null, heldElsewhere: heldCitizenship }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "guest", canLogIn: true, price: PRICE });
+  });
+
+  it("read_failed, no_product, checking and cannot_verify are unchanged", () => {
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ profile: FAILED_READ, heldElsewhere: heldCitizenship }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "read_failed" });
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ heldElsewhere: heldCitizenship }),
+        null,
+      ),
+    ).toEqual({ kind: "no_product", xp: 40 });
+    expect(
+      derivePurchaseOffer(
+        "citizenship",
+        snapshot({ isChecking: true, heldElsewhere: heldCitizenship }),
+        PRICE,
+      ),
+    ).toEqual({ kind: "checking" });
+    expect(
+      item(
+        snapshot({
+          profile: { ...EARNED_UNVERIFIED, entitlements: null },
+          heldElsewhere: heldItem,
+        }),
+      ),
+    ).toEqual({ kind: "cannot_verify" });
   });
 });

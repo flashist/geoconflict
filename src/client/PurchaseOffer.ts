@@ -29,6 +29,8 @@ export type PurchaseOffer =
   | { kind: "read_failed" }
   /** The catalog has no such product. */
   | { kind: "no_product"; xp: number }
+  /** Paid for on another profile of this login (ADR-126): no Buy, contact us. */
+  | { kind: "held_elsewhere" }
   | { kind: "buy"; price: string; xp: number };
 
 export interface PurchaseProfileSnapshot {
@@ -52,6 +54,8 @@ export interface PurchaseProfileSnapshot {
   paidGrantConfirmed: boolean;
   /** Product ids the server granted during this page load. */
   grantedThisPage: ReadonlySet<PaymentProductId>;
+  /** Product ids the reconcile says another profile of this login holds. */
+  heldElsewhere: ReadonlySet<PaymentProductId>;
   /** `yaGamesAvailable && !isYandexDegraded()`. */
   canLogIn: boolean;
 }
@@ -83,10 +87,14 @@ export function deriveOfferForKind(
   if (profile === null) {
     return { kind: "guest", canLogIn: snapshot.canLogIn, price: catalogPrice };
   }
-  if (kind === "citizenship") {
-    return deriveCitizenshipKindOffer(profile, snapshot, catalogPrice);
-  }
-  return deriveDurableItemOffer(productId, profile, snapshot, catalogPrice);
+  const offer =
+    kind === "citizenship"
+      ? deriveCitizenshipKindOffer(profile, snapshot, catalogPrice)
+      : deriveDurableItemOffer(productId, profile, snapshot, catalogPrice);
+  // Only a would-be Buy: owned, unknown and failed reads keep their answer.
+  return offer.kind === "buy" && snapshot.heldElsewhere.has(productId)
+    ? { kind: "held_elsewhere" }
+    : offer;
 }
 
 type SnapshotProfile = NonNullable<PurchaseProfileSnapshot["profile"]>;

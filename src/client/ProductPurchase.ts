@@ -1,7 +1,8 @@
 // One product's paid purchase (task 0494; generalizes task 0018's citizenship
 // flow): server intent → Yandex payment frame → server-verified /complete →
-// consume. Separate from any surface so the sequencing and its analytics
-// contract are unit-testable in isolation.
+// consume, only when the server says so (ADR-126: permanent products are kept).
+// Separate from any surface so the sequencing and its analytics contract are
+// unit-testable in isolation.
 //
 // Analytics contract (0021 §3–5): Started fires as the payment frame is
 // opened; exactly one of Completed/Abandoned follows for every started flow;
@@ -103,7 +104,7 @@ async function purchaseProduct(
   const completed = await completePurchase(signature);
   if (completed === null) {
     // Money may be captured with the grant deferred: the purchase stays
-    // unconsumed, so next session's reconciliation re-grants and consumes it.
+    // unconsumed, so next session's reconciliation re-grants it.
     // Funnel-wise this is still Abandoned (0021 §5 — no Completed this flow).
     flashist_logEventAnalytics(analytics.abandoned);
     return "error";
@@ -111,14 +112,14 @@ async function purchaseProduct(
 
   // Server-confirmed grant — the authoritative Completed signal (0021 §4).
   flashist_logEventAnalytics(analytics.completed);
-  // Consume only AFTER the server confirmed the grant (consuming earlier can
-  // lose purchases) — but deliberately NOT awaited (review R2): the grant is
-  // committed, so a hung or failed SDK consume must never freeze the flow and
-  // hold the purchase latch post-grant. A stray unconsumed token is recovered
-  // by next session's reconciliation either way.
-  void facade.consumePurchase(completed.purchaseToken).catch(() => {
-    // Deliberately swallowed — see above.
-  });
+  // Absent `consume` = a box older than 0506: keeping the purchase is the safe
+  // side (ADR-126). Not awaited (review R2): a hung SDK consume must never
+  // hold the purchase latch after a committed grant.
+  if (completed.consume === true) {
+    void facade.consumePurchase(completed.purchaseToken).catch(() => {
+      // Deliberately swallowed — see above.
+    });
+  }
   // ADR-125: every completed purchase offers the "restart to apply" popup, so
   // this is its only purchase dispatch site and every caller of this flow gets it.
   dispatchCitizenshipGrantedMidSession("purchase", {

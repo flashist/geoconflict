@@ -26,6 +26,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
     uiElementIds: {
       citizenshipLoginToEarn: "CitizenshipLoginToEarn",
       purchaseCitizenship: "PurchaseCitizenship",
+      telegramLinkHeldElsewhere: "TelegramLinkHeldElsewhere",
+      vkLinkHeldElsewhere: "VkLinkHeldElsewhere",
     },
     features: {
       // ON in tests so the existing suites keep exercising current behavior;
@@ -35,6 +37,8 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
   },
   flashist_logEventAnalytics: jest.fn(),
   flashist_waitGameInitComplete: jest.fn().mockResolvedValue(undefined),
+  TELEGRAM_CHANNEL_URL: "https://t.me/test-channel",
+  VK_CHANNEL_URL: "https://vk.com/test-channel",
   FlashistFacade: {
     instance: {
       yaGamesAvailable: true,
@@ -53,8 +57,11 @@ jest.mock("../../src/client/flashist/FlashistFacade", () => ({
 jest.mock("../../src/client/CitizenshipPurchase", () => ({
   runCitizenshipPurchase: jest.fn(),
 }));
+// Task 0510: the held-elsewhere store, filled per test.
+const mockHeldElsewhere = new Set<string>();
 jest.mock("../../src/client/PaymentsReconciliation", () => ({
   PURCHASES_RECONCILED_EVENT: "geoconflict-purchases-reconciled",
+  getHeldElsewhereProducts: () => mockHeldElsewhere,
 }));
 jest.mock("../../src/client/NameChangeRequest", () => ({
   submitNameChangeRequest: jest.fn(),
@@ -157,6 +164,8 @@ const GUEST_FLOW_ANALYTICS: ProductAnalytics = {
   blockedAlreadyOwned: "BlockedAlreadyOwned",
   blockedEarlierPurchasePending: "BlockedEarlierPurchasePending",
   blockedCannotVerify: null,
+  heldOnOtherProfile: "HeldOnOtherProfile",
+  blockedOtherProfile: "BlockedOtherProfile",
 };
 
 const CITIZENSHIP_PRODUCT = {
@@ -187,6 +196,7 @@ describe("CitizenshipCard", () => {
     document.body.innerHTML = "";
     localStorage.clear();
     jest.clearAllMocks();
+    mockHeldElsewhere.clear();
     // Plain field, not a jest.fn() — clearAllMocks() won't restore it after a
     // test sets it to false.
     FlashistFacade.instance.yaGamesAvailable = true;
@@ -3670,6 +3680,109 @@ describe("CitizenshipCard", () => {
     });
   });
 
+  describe("held on another profile (task 0510, ADR-126)", () => {
+    const buyButton = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-buy-button");
+    const heldLine = (card: CitizenshipCard) =>
+      card.querySelector("#citizenship-held-elsewhere");
+
+    async function settle(card: CitizenshipCard): Promise<void> {
+      for (let i = 0; i < 4; i++) {
+        await flushMicrotasks();
+        await flushLit(card);
+      }
+    }
+
+    it("draws the contact line and both links instead of the Buy button", async () => {
+      mockHeldElsewhere.add("citizenship");
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+
+      const card = await appendCard({ visible: true });
+      await settle(card);
+
+      expect(buyButton(card)).toBeNull();
+      expect(heldLine(card)!.textContent).toContain(
+        "purchase_flow.held_elsewhere",
+      );
+      const telegram = card.querySelector<HTMLAnchorElement>(
+        "#citizenship-held-elsewhere-telegram",
+      )!;
+      const vk = card.querySelector<HTMLAnchorElement>(
+        "#citizenship-held-elsewhere-vk",
+      )!;
+      expect(telegram.getAttribute("href")).toBe("https://t.me/test-channel");
+      expect(vk.getAttribute("href")).toBe("https://vk.com/test-channel");
+      for (const link of [telegram, vk]) {
+        expect(link.getAttribute("target")).toBe("_blank");
+        expect(link.getAttribute("rel")).toBe("noopener");
+      }
+    });
+
+    it("each link tap logs its UI id", async () => {
+      mockHeldElsewhere.add("citizenship");
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      const block = (event: Event) => event.preventDefault();
+      card.addEventListener("click", block);
+
+      card
+        .querySelector<HTMLElement>("#citizenship-held-elsewhere-telegram")!
+        .click();
+      card
+        .querySelector<HTMLElement>("#citizenship-held-elsewhere-vk")!
+        .click();
+
+      expect(logUiTapEvent).toHaveBeenCalledWith("TelegramLinkHeldElsewhere");
+      expect(logUiTapEvent).toHaveBeenCalledWith("VkLinkHeldElsewhere");
+    });
+
+    it("a store change after the render re-renders once — no event loop", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      expect(buyButton(card)).not.toBeNull();
+      const render = jest.spyOn(card, "render");
+
+      mockHeldElsewhere.add("citizenship");
+      window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
+      await settle(card);
+
+      expect(render).toHaveBeenCalledTimes(1);
+      expect(buyButton(card)).toBeNull();
+      expect(heldLine(card)).not.toBeNull();
+
+      // Its own updated() event, and any other, change nothing now.
+      window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
+      await settle(card);
+      expect(render).toHaveBeenCalledTimes(1);
+    });
+
+    it("a tap that raced the line ends held_elsewhere: no payment, no red error", async () => {
+      getCatalogProduct.mockReturnValue(CITIZENSHIP_PRODUCT);
+      loadProfile.mockResolvedValue(NON_CITIZEN_PROFILE);
+      const card = await appendCard({ visible: true });
+      await settle(card);
+      mockHeldElsewhere.add("citizenship");
+
+      await expect(card.buyCitizenship("PurchaseCitizenship")).resolves.toBe(
+        "held_elsewhere",
+      );
+      await settle(card);
+
+      expect(runPurchase).not.toHaveBeenCalled();
+      expect(logEventAnalytics).toHaveBeenCalledWith(
+        "BlockedOtherProfile",
+        undefined,
+      );
+      expect(card.querySelector("#citizenship-purchase-error")).toBeNull();
+      expect(heldLine(card)).not.toBeNull();
+    });
+  });
+
   describe("purchase profile source (task 0494)", () => {
     async function settle(card: CitizenshipCard): Promise<void> {
       for (let i = 0; i < 4; i++) {
@@ -3697,6 +3810,7 @@ describe("CitizenshipCard", () => {
         },
         paidGrantConfirmed: false,
         grantedThisPage: new Set(),
+        heldElsewhere: new Set(),
         canLogIn: true,
       });
     });

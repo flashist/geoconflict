@@ -44,13 +44,21 @@ import {
   flashist_logEventAnalytics,
   flashist_waitGameInitComplete,
   flashistConstants,
+  TELEGRAM_CHANNEL_URL,
+  VK_CHANNEL_URL,
 } from "./flashist/FlashistFacade";
-import { PURCHASES_RECONCILED_EVENT } from "./PaymentsReconciliation";
+import {
+  getHeldElsewhereProducts,
+  PURCHASES_RECONCILED_EVENT,
+} from "./PaymentsReconciliation";
 import {
   getPurchaseCoordinator,
   type PurchaseProfileSource,
 } from "./PurchaseCoordinator";
-import type { PurchaseProfileSnapshot } from "./PurchaseOffer";
+import {
+  PURCHASE_OFFER_CHANGED_EVENT,
+  type PurchaseProfileSnapshot,
+} from "./PurchaseOffer";
 import {
   restartAfterProfileReadFailure,
   wasRestartedAfterProfileReadFailure,
@@ -189,6 +197,10 @@ export class CitizenshipCard
       PURCHASES_RECONCILED_EVENT,
       this.onPurchasesReconciled,
     );
+    window.removeEventListener(
+      PURCHASE_OFFER_CHANGED_EVENT,
+      this.onOfferChanged,
+    );
     super.disconnectedCallback();
   }
 
@@ -210,6 +222,9 @@ export class CitizenshipCard
       PURCHASES_RECONCILED_EVENT,
       this.onPurchasesReconciled,
     );
+    // The reconcile can find a purchase held on another profile after this
+    // render (task 0510).
+    window.addEventListener(PURCHASE_OFFER_CHANGED_EVENT, this.onOfferChanged);
     // The payments catalog can settle after this first render (it races
     // the platform-init deadline) — re-render on settle so a late 'ready'
     // reveals the buy CTA. Never resolves in a catalog-less session.
@@ -570,14 +585,26 @@ export class CitizenshipCard
       isPaidCitizen: isCurrentPlayerPaidCitizen(),
       canLogIn: facade.yaGamesAvailable && !facade.isYandexDegraded(),
       productPrice: product === null ? null : product.price,
+      heldElsewhere: getHeldElsewhereProducts(),
     };
   }
 
   // Task 0301: an open explainer popup re-reads the offer after every update.
   protected updated(changedProperties: Map<PropertyKey, unknown>): void {
     super.updated(changedProperties);
+    this.renderedHeldElsewhereCount = getHeldElsewhereProducts().size;
     window.dispatchEvent(new CustomEvent(CITIZENSHIP_OFFER_CHANGED_EVENT));
   }
+
+  private renderedHeldElsewhereCount = 0;
+
+  // updated() fires this same event, so only a real store change re-renders —
+  // anything else would loop. The store only grows, so its size is enough.
+  private readonly onOfferChanged = (): void => {
+    if (getHeldElsewhereProducts().size !== this.renderedHeldElsewhereCount) {
+      this.requestUpdate();
+    }
+  };
 
   private isAuthDialogOpen = false;
 
@@ -835,6 +862,9 @@ export class CitizenshipCard
             // drawn by the popup only (task 0409, owner ruling 2026-10-08).
             this.renderBuyCta(offer.price)
           : nothing}
+        ${offer.kind === "held_elsewhere"
+          ? this.renderHeldElsewhere()
+          : nothing}
         ${isCitizen && profile.isAuthoritative
           ? // The exact inverse of the buy-CTA gate: name change is the
             // citizens-only benefit. `isAuthoritative` is required for the same
@@ -1073,6 +1103,54 @@ export class CitizenshipCard
     `;
   }
 
+  // ADR-126: paid for on another profile of this login — contact us instead.
+  private renderHeldElsewhere() {
+    return html`
+      <div
+        id="citizenship-held-elsewhere"
+        class="mt-2 p-2 rounded-lg bg-white/[0.06]"
+      >
+        <div class="text-[11px] text-[#98989f] leading-[1.4]">
+          ${translateText("purchase_flow.held_elsewhere")}
+        </div>
+        <div class="mt-1.5 flex gap-1.5">
+          <a
+            id="citizenship-held-elsewhere-telegram"
+            class="flex-1 px-3 py-[5px] rounded-lg text-[12px] font-bold text-center text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            href=${TELEGRAM_CHANNEL_URL}
+            target="_blank"
+            rel="noopener"
+            @click=${this.onHeldElsewhereTelegramTap}
+          >
+            ${translateText("purchase_flow.contact_telegram")}
+          </a>
+          <a
+            id="citizenship-held-elsewhere-vk"
+            class="flex-1 px-3 py-[5px] rounded-lg text-[12px] font-bold text-center text-white bg-white/10 hover:bg-white/20 transition-colors duration-200"
+            href=${VK_CHANNEL_URL}
+            target="_blank"
+            rel="noopener"
+            @click=${this.onHeldElsewhereVkTap}
+          >
+            ${translateText("purchase_flow.contact_vk")}
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  private readonly onHeldElsewhereTelegramTap = (): void => {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.telegramLinkHeldElsewhere,
+    );
+  };
+
+  private readonly onHeldElsewhereVkTap = (): void => {
+    FlashistFacade.instance.logUiTapEvent(
+      flashistConstants.uiElementIds.vkLinkHeldElsewhere,
+    );
+  };
+
   private readonly onBuyCtaTap = (): void => {
     void this.buyCitizenship(
       flashistConstants.uiElementIds.purchaseCitizenship,
@@ -1087,7 +1165,7 @@ export class CitizenshipCard
    */
   public async buyCitizenship(
     tapElementId: string,
-  ): Promise<CitizenshipPurchaseResult | "busy"> {
+  ): Promise<CitizenshipPurchaseResult | "busy" | "held_elsewhere"> {
     this.purchaseError = false;
     // Explicit requestUpdate() after each state change — the codebase
     // convention (see connectedCallback / refreshProfile): the decorator
@@ -1104,7 +1182,12 @@ export class CitizenshipCard
     if (result === null) {
       console.warn("No purchase coordinator registered; purchase skipped.");
     }
-    if (result === "granted" || result === "busy") {
+    // held_elsewhere: the offer now draws the contact line, not an error.
+    if (
+      result === "granted" ||
+      result === "busy" ||
+      result === "held_elsewhere"
+    ) {
       return result;
     }
     if (this.isConnected) {

@@ -83,18 +83,51 @@ describe("PaymentsApiClient", () => {
   // Reconciliation must never depend on being logged in: it runs at session
   // start to recover an interrupted purchase, and the GRANT is bound to the
   // Yandex-signed payload, not to the caller.
-  it("completePurchase and reconcilePurchases send NO Authorization header", async () => {
-    const fetchMock = stubFetch(200, {
+  it("completePurchase, and reconcilePurchases without a token, send NO Authorization header", async () => {
+    const completeFetch = stubFetch(200, {
       success: true,
       purchaseToken: "tok-1",
     });
     await completePurchase("sig.payload");
-    stubFetch(200, { processedTokens: [] });
-    await reconcilePurchases("sig.payload");
-    expect(
-      (fetchMock.mock.calls[0][1].headers as Record<string, string>)
-        .Authorization,
-    ).toBeUndefined();
+    const reconcileFetch = stubFetch(200, { processedTokens: [] });
+    await reconcilePurchases("sig.payload", null);
+    for (const fetchMock of [completeFetch, reconcileFetch]) {
+      expect(
+        (fetchMock.mock.calls[0][1].headers as Record<string, string>)
+          .Authorization,
+      ).toBeUndefined();
+    }
+  });
+
+  // Task 0510 (ADR-126): the Bearer only lets the server answer heldElsewhere.
+  it("reconcilePurchases adds the given session token as a Bearer", async () => {
+    const fetchMock = stubFetch(200, { processedTokens: [] });
+    await reconcilePurchases("sig.payload", "session-token-1");
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_BASE}/v1/payments/yandex/reconcile`,
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ signature: "sig.payload" }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer session-token-1",
+        },
+      }),
+    );
+  });
+
+  // Login rule D3: a reconcile never looks up or starts a login itself.
+  it("reconcilePurchases never touches the login session", async () => {
+    resetProfileSessionForTests();
+    jest.clearAllMocks();
+    const fetchMock = stubFetch(200, { processedTokens: [] });
+    await reconcilePurchases("sig.payload", null);
+    expect(isYandexAuthorized).not.toHaveBeenCalled();
+    expect(getYandexUniqueId).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${API_BASE}/v1/payments/yandex/reconcile`,
+    );
   });
 
   it("createPurchaseIntent resolves failed without a session, and never calls out", async () => {
@@ -140,7 +173,7 @@ describe("PaymentsApiClient", () => {
     await expect(completePurchase("sig.payload")).resolves.toBeNull();
 
     stubFetch(200, "not an object");
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+    await expect(reconcilePurchases("sig.payload", null)).resolves.toEqual({
       kind: "failed",
     });
   });
@@ -149,7 +182,7 @@ describe("PaymentsApiClient", () => {
     global.fetch = jest
       .fn()
       .mockRejectedValue(new Error("network down")) as unknown as typeof fetch;
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+    await expect(reconcilePurchases("sig.payload", null)).resolves.toEqual({
       kind: "failed",
     });
 
@@ -161,21 +194,53 @@ describe("PaymentsApiClient", () => {
     await expect(completePurchase("sig.payload")).resolves.toBeNull();
   });
 
-  it("reconcilePurchases returns the processed token list; a missing failedCount reads as 0", async () => {
+  // An old box: no grantedTokens = cannot tell (null); nothing to consume.
+  it("reconcilePurchases reads a pre-0506 answer: granted null, consume and heldElsewhere empty, failedCount 0", async () => {
     stubFetch(200, { processedTokens: ["tok-1", "tok-2"] });
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+    await expect(reconcilePurchases("sig.payload", null)).resolves.toEqual({
       kind: "ok",
       processedTokens: ["tok-1", "tok-2"],
+      grantedTokens: null,
+      consumeTokens: [],
+      heldElsewhere: [],
       failedCount: 0,
+    });
+  });
+
+  it("reconcilePurchases passes the 0506 lists through", async () => {
+    stubFetch(200, {
+      processedTokens: ["tok-1", "tok-2"],
+      grantedTokens: ["tok-2"],
+      consumeTokens: ["tok-1"],
+      heldElsewhere: ["citizenship"],
+    });
+    await expect(reconcilePurchases("sig.payload", "token")).resolves.toEqual({
+      kind: "ok",
+      processedTokens: ["tok-1", "tok-2"],
+      grantedTokens: ["tok-2"],
+      consumeTokens: ["tok-1"],
+      heldElsewhere: ["citizenship"],
+      failedCount: 0,
+    });
+  });
+
+  // Residual R-S2-1: the parse is strict, so an id this client lacks fails it.
+  it("reconcilePurchases: an unknown heldElsewhere product id is failed", async () => {
+    stubFetch(200, { processedTokens: [], heldElsewhere: ["future_item"] });
+    await expect(reconcilePurchases("sig.payload", "token")).resolves.toEqual({
+      kind: "failed",
     });
   });
 
   // Task 0495 (OQ-1): the guest flow stops when any pending entry failed.
   it("reconcilePurchases passes failedCount through", async () => {
     stubFetch(200, { processedTokens: ["tok-1"], failedCount: 2 });
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+    await expect(reconcilePurchases("sig.payload", null)).resolves.toEqual({
       kind: "ok",
       processedTokens: ["tok-1"],
+      grantedTokens: null,
+      consumeTokens: [],
+      heldElsewhere: [],
       failedCount: 2,
     });
   });
@@ -222,7 +287,7 @@ describe("PaymentsApiClient", () => {
 
   it("reconcilePurchases: a non-200 is failed", async () => {
     stubFetch(500, { error: "internal" });
-    await expect(reconcilePurchases("sig.payload")).resolves.toEqual({
+    await expect(reconcilePurchases("sig.payload", null)).resolves.toEqual({
       kind: "failed",
     });
   });

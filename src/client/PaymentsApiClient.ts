@@ -32,7 +32,11 @@ async function resolveApiBase(): Promise<string | null> {
   return base.length > 0 ? base : null;
 }
 
-async function postJson(path: string, body: unknown): Promise<unknown | null> {
+async function postJson(
+  path: string,
+  body: unknown,
+  headers: Record<string, string> = {},
+): Promise<unknown | null> {
   const base = await resolveApiBase();
   if (base === null) {
     return null;
@@ -42,7 +46,7 @@ async function postJson(path: string, body: unknown): Promise<unknown | null> {
   try {
     const response = await fetch(`${base}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -63,7 +67,15 @@ export type CreateIntentResult =
   | { kind: "failed" };
 
 export type ReconcileResult =
-  | { kind: "ok"; processedTokens: string[]; failedCount: number }
+  | {
+      kind: "ok";
+      processedTokens: string[];
+      /** null = a box older than task 0506, which cannot say what was fresh. */
+      grantedTokens: string[] | null;
+      consumeTokens: string[];
+      heldElsewhere: PaymentProductId[];
+      failedCount: number;
+    }
   | { kind: "failed" };
 
 const ALREADY_OWNED_STATUS = 409;
@@ -75,10 +87,10 @@ const ALREADY_OWNED_STATUS = 409;
  * the verified caller owns, task 0496); every other failure, including no
  * session, is `failed` and the caller aborts the flow.
  *
- * This is the ONLY payments call that carries a Bearer token. `complete` and
- * `reconcile` must NOT: reconciliation runs at session start to recover an
- * interrupted purchase and must never depend on being logged in, and the grant
- * is bound to the Yandex-signed payload rather than to the caller.
+ * This is the only payments call that REQUIRES a Bearer token. `complete` never
+ * sends one and `reconcile` only adds one it already holds: reconciliation must
+ * recover an interrupted purchase without being logged in, and the grant is
+ * bound to the Yandex-signed payload rather than to the caller.
  */
 export async function createPurchaseIntent(
   productId: PaymentProductId,
@@ -117,9 +129,9 @@ function isAlreadyOwnedBody(json: unknown): boolean {
 
 /**
  * Post the signed purchase payload for verification + grant. On success the
- * server returns the purchaseToken to consume (signed-mode purchase() never
- * exposes it client-side). Null on any failure — the purchase stays
- * unconsumed and the next session's reconciliation recovers it.
+ * server returns the purchaseToken (signed-mode purchase() never exposes it
+ * client-side) and whether it may be consumed. Null on any failure — the next
+ * session's reconciliation recovers the purchase.
  */
 export async function completePurchase(
   signature: string,
@@ -130,19 +142,29 @@ export async function completePurchase(
 }
 
 /**
- * Post the signed getPurchases() output; `ok` carries every token now safe to
- * consume (including already-processed strays). A box older than task 0492
- * never sends `failedCount`, so it reads as 0.
+ * Post the signed getPurchases() output. Only `consumeTokens` may be consumed
+ * (ADR-126); a box older than task 0506 sends none, so nothing is. The Bearer,
+ * when given, only lets the server answer `heldElsewhere` for a verified caller.
+ * Never logs in (no profileFetch): a missing or rejected session must not block
+ * the recovery. A box older than task 0492 never sends `failedCount` (reads as 0).
  */
 export async function reconcilePurchases(
   signature: string,
+  sessionToken: string | null,
 ): Promise<ReconcileResult> {
-  const json = await postJson("/v1/payments/yandex/reconcile", { signature });
+  const json = await postJson(
+    "/v1/payments/yandex/reconcile",
+    { signature },
+    sessionToken === null ? {} : { Authorization: `Bearer ${sessionToken}` },
+  );
   const parsed = PurchaseReconcileResponseSchema.safeParse(json);
   return parsed.success
     ? {
         kind: "ok",
         processedTokens: parsed.data.processedTokens,
+        grantedTokens: parsed.data.grantedTokens ?? null,
+        consumeTokens: parsed.data.consumeTokens ?? [],
+        heldElsewhere: parsed.data.heldElsewhere ?? [],
         failedCount: parsed.data.failedCount ?? 0,
       }
     : { kind: "failed" };

@@ -22,6 +22,9 @@ export interface ProductAnalytics {
   blockedEarlierPurchasePending: string;
   /** null for a kind that never answers `cannot_verify` (citizenship). */
   blockedCannotVerify: string | null;
+  // ADR-126: the reconcile found it on another profile; a purchase was refused.
+  heldOnOtherProfile: string;
+  blockedOtherProfile: string;
 }
 
 export interface ProductClientConfig {
@@ -62,6 +65,8 @@ const PRODUCT_CLIENT_CONFIG: Record<
         blockedEarlierPurchasePending:
           events.PURCHASE_BLOCKED_EARLIER_PURCHASE_PENDING_CITIZENSHIP,
         blockedCannotVerify: null,
+        heldOnOtherProfile: events.PURCHASE_HELD_ON_OTHER_PROFILE_CITIZENSHIP,
+        blockedOtherProfile: events.PURCHASE_BLOCKED_OTHER_PROFILE_CITIZENSHIP,
       },
       restartPromptTitleKey: "citizenship_restart_modal.title",
       restartPromptBodyKey: "citizenship_restart_modal.body",
