@@ -95,6 +95,12 @@ tenure gift again. Nothing alerts us; we would learn of it only from player feed
 **Until then the owner monitors player feedback** (owner ruling above). No sprint pulls this in without a fresh owner
 decision.
 
+> 📌 **2026-10-27 — trigger fired, KEPT PARKED by OWNER RULING.** A paying player reported on 2026-10-25 that his paid
+> citizenship and nickname were gone (task `0502`). Asked via `AskUserQuestion` in the `fkit-lead` session, relayed to a
+> spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent), the owner picked verbatim **"Keep parked until
+> Yandex (Recommended)"** — option text: *"Yandex's answer tells us if it's needed. Knock-on: none (checked)."* The
+> question to Yandex went out 2026-10-27 (task `0508`). Revisit when Yandex answers.
+
 ## What to investigate (when triggered)
 
 Ideas, not commitments — the investigator picks what the new evidence makes worth doing:

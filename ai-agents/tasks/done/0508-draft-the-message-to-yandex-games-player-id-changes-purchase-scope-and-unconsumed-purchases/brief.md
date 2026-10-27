@@ -29,7 +29,7 @@ Sprint 9
 > beyond one player. Appended after the board's highest rank, never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer
