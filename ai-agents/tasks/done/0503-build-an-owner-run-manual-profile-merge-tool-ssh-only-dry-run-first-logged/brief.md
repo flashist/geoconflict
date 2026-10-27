@@ -23,8 +23,10 @@ Sprint 9
 ## Status
 ✅ Done (agent-closed — not owner-verified)
 
-> 2026-10-27 — was ~~🔲 Backlog~~. Plan approved by the owner (see the 📌 approval note under *Notes*). Build waits on
-> **ADR-128**, which `fkit-architect` is recording now (plan §0); the build starts only after it is recorded.
+> 2026-10-27 — was ~~🔲 Backlog~~. Plan approved by the owner (see the 📌 approval note under *Notes*). ~~Build waits on
+> **ADR-128**, which `fkit-architect` is recording now (plan §0); the build starts only after it is recorded.~~
+> *(2026-10-27, later: stale — ADR-128 is recorded and `accepted`, and the build is done; see the close entry on the
+> [Sprint 9 board](../../../sprints/plan-sprint-9.md) and the worklog.)*
 
 ## Owner
 fkit-coder

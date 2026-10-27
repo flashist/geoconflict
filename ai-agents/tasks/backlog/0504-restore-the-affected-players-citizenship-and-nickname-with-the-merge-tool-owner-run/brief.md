@@ -77,14 +77,16 @@ it, once, for him (plus any re-run the steps below require).
 >   [`0508` worklog](../../done/0508-draft-the-message-to-yandex-games-player-id-changes-purchase-scope-and-unconsumed-purchases/worklog.md)).
 >   It named a **wrong candidate profile** — a different player's (`0502` worklog, 2026-10-27).
 > - **Correction:** drafted 2026-10-27 — names the right three-profile chain and the old profile's citizenship receipt,
->   and withdraws the wrong candidate. **Send: not yet confirmed.**
+>   and withdraws the wrong candidate. ~~**Send: not yet confirmed.**~~ **Sent 2026-10-27** — owner's words, typed in the
+>   `fkit-lead` session after the lead showed him the correction text: *"I've commited the files, and I already have sent the message to Yandex as soon as you sent it to me"* (relayed by `fkit-lead`;
+>   recorded by a spawned `fkit-producer`). Yandex's answer is still pending.
 > - **Yandex's answer** to the first message and to the correction is recorded below — date + the answer in words
 >   only (no ids, names, ticket numbers or links). **It is this task's entry gate** (step 1).
 >
 > | What | Date | Recorded in words |
 > |---|---|---|
 > | First message sent | 2026-10-27 | Sent as drafted (owner's words, `0508` worklog); named the wrong candidate. |
-> | Correction sent | *not yet confirmed* | — |
+> | Correction sent | 2026-10-27 | Sent to Yandex Games support right after the lead showed the text (owner's words: *"I've commited the files, and I already have sent the message to Yandex as soon as you sent it to me"*). |
 > | Yandex's answer | *pending* | — |
 >
 > - **Check 7 (are other players hit?)** — OWNER RULING the same day, **"Run it now (Recommended)"** — option text:
