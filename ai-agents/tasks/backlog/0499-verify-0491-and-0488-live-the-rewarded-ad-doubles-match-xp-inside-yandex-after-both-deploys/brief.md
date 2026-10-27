@@ -27,7 +27,9 @@ Sprint 9
 > nothing else gates it. Appended after the board's highest rank (27), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+> 2026-10-27 — live checks partly run by the owner (relayed by `fkit-lead`; recorded by a spawned `fkit-producer`). Results and what is still open: [`worklog.md`](worklog.md). Not closed: verification steps not all met.
 
 ## Owner
 fkit-producer

@@ -32,7 +32,9 @@ Sprint 9
 > board's highest rank (38), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+> 2026-10-27 — live checks partly run by the owner (relayed by `fkit-lead`; recorded by a spawned `fkit-producer`). Results and what is still open: [`worklog.md`](worklog.md). Not closed: verification steps not all met.
 
 ## Owner
 fkit-producer
@@ -67,6 +69,10 @@ Nothing. Owner-run checks, recorded in this folder's `worklog.md` with the owner
 ## Verification steps
 
 **Part (a) — before the game deploy, on the Yandex test copy (spec §10.3):**
+
+> ⚠️ **2026-10-27 — part (a) did NOT run; the owner skipped the dev deploy** (verbatim, relayed by `fkit-lead`: *"I skipped the dev deploy (we can't test anything there this build)"*). The game went live without the T3 release blocker; T3 and T1 were run on **live** after the deploy and passed (T3 with a caveat). The owner's call, not a producer ruling. Details: [`worklog.md`](worklog.md).
+>
+> ✅ **2026-10-27 — OWNER RULING: part (a)'s pre-release gate is DROPPED; the live checks count.** Given via `AskUserQuestion` in the `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Asked *"0512's 'before release' checks can't be pre-release any more. What do we do with them?"* → **"Count the live checks (Recommended)"** — option text: *"Drop the pre-release wording; the live T1/T3 results count. Knock-on: none (checked)."* So: step 1 (T1) is met by the **live** T1 (quiet reloads) and step 3 (T3) by the **live** T3 (sightings stayed 0, with the caveat in the worklog). The "before the game deploy, on the Yandex test copy" wording no longer applies. **Still open:** T2 (step 2) and the counters (step 7). This ruling says nothing about T4 or the purchase-list half of step 6; those stay as recorded in the worklog.
 
 1. **T1 (permanent stays):** buy citizenship (test purchase). It is granted and the restart prompt shows. Reload 3×:
    the reconcile POST is still made on each load (network tab); the card shows owned with no flicker or "checking";
