@@ -387,6 +387,8 @@ ROLLBACK;
 - Name history, fuzzy search: **0 rows**. A fuzzy search on **current** names was **not confirmed** as run.
 - Reading (relayed): the named nickname never existed in our system. ⚠️ Caveat: with the current-name fuzzy search
   unconfirmed, a current name with a near spelling is not ruled out.
+- *(Superseded 2026-10-27: this search used his current display name from the feedback's "Username" field, not the
+  nickname he set. Re-run with the right name: found. See the 2026-10-27 outcome section below.)*
 
 **Check 2 — receipts:** not run in full. For the old candidate only: **1 citizenship receipt**, processed
 **2026-09-28**.
@@ -399,7 +401,8 @@ ROLLBACK;
 - All credits are on **2026-10-25, after 12:11 UTC**.
 - ⚠️ **Open puzzle — timing.** The feedback send time is unconfirmed *(confirmed 2026-10-27 as about 07:38 UTC — see the owner-rulings section below)*. Earlier relays said **07:38 UTC on 2026-10-25**.
   If that is right, every credit in the matches listed in his report came **after** the report, and the new
-  candidate was created (11:08 UTC, below) after it too. Not explained.
+  candidate was created (11:08 UTC, below) after it too. Not explained. *(Resolved 2026-10-27: these match IDs came
+  from his **second** feedback message, sent 2026-10-26. See below.)*
 - Check 4b (rewarded-ad XP): not reported.
 
 **Check 5 — the new candidate's fingerprint** (partial):
@@ -410,9 +413,11 @@ ROLLBACK;
 - Receipts / purchase intents of its own: not reported.
 
 **Paid citizens (extra, not a numbered check):** **34 rows**; every one created **on or after 2026-09-26**. None
-carries the named nickname.
+carries the named nickname. *(2026-10-27: "the named nickname" here was his current display name, the wrong name —
+see below.)*
 
-**The old candidate** (a possible old record, found among the paid citizens):
+**The old candidate** (a possible old record, found among the paid citizens): *(Superseded 2026-10-27: **not his** — a
+different player. See below.)*
 - Paid citizen; created **2026-09-28**, bought citizenship the **same day**; last login **2026-10-24 11:41 UTC**.
 - Tenure evidence **daysPlayed 75**, **gameRecordDays 87** — close to the new candidate's 77 / 88.
 - **Carries a different nickname** from the one he named.
@@ -430,7 +435,7 @@ carries the named nickname.
 
 **Extra E1 — purchase-holder sightings:** not reported.
 
-**Outcome: not yet (A), (B) or (C).**
+**Outcome: not yet (A), (B) or (C).** *(Superseded 2026-10-27: outcome (A), owner ruling — see below.)*
 - Leaning **(A) two records**, with the old candidate as the old record — **unconfirmed**: it carries a different
   nickname, and the near-equal browser counts across about 4 weeks are unexplained.
 - ⚠️ Read literally, the reading rule above sends "check 1 not found" to **(B)**. The lead's relay holds the outcome
@@ -450,7 +455,8 @@ rulings below.)*
 
 - **Outcome — HELD OPEN.** Owner picked verbatim **"Hold open until Yandex (Recommended)"** — option text: *"No call
   yet; the merge (0504) keeps waiting either way. Knock-on: none (checked)."* No outcome (A), (B) or (C) is called;
-  verification step 2 stays open until Yandex answers (task `0508`, sent 2026-10-27).
+  verification step 2 stays open until Yandex answers (task `0508`, sent 2026-10-27). *(Superseded later on
+  2026-10-27 by the owner's ruling "A now, merge after Yandex" — see below.)*
 - **`0424` — KEPT PARKED.** Owner picked verbatim **"Keep parked until Yandex (Recommended)"** — option text:
   *"Yandex's answer tells us if it's needed. Knock-on: none (checked)."* (Verification step 5.) Also noted, dated, in
   `0424`'s brief under *Trigger*.
@@ -462,7 +468,168 @@ rulings below.)*
     before** the XP credits for the 3 matches the report lists (all from 12:11 UTC).
   - ⚠️ **OPEN QUESTION for the analysis — the timing puzzle is real and unexplained.** A report cannot normally list
     matches that were credited hours after it was sent, and the record he would have been playing as at report time
-    did not yet exist. **No conclusion is drawn here.**
+    did not yet exist. **No conclusion is drawn here.** *(Resolved later on 2026-10-27 — the matches came from his
+    second message. See below.)*
 
 **Still to run for this task to close:** check 3; checks 2, 5 and 6 in full; check 7; check 8 or "skipped" confirmed;
-the owner's own words on the outcome.
+the owner's own words on the outcome. *(Superseded 2026-10-27 — see the close status at the end.)*
+
+#### 2026-10-27, later — corrected evidence and outcome (A) (recorded by `fkit-producer`)
+
+> 📌 Owner's read-only checks on the profile box, 2026-10-27, and an OWNER RULING given via `AskUserQuestion` in the
+> `fkit-lead` session the same day. Relayed by `fkit-lead` to a spawned `fkit-producer` (no owner channel;
+> ADR-021/037). ⛔ Not producer precedent. Not seen first-hand by the producer. Words, dates and counts only. Three
+> profiles are named by role: the **"old paid profile"**, the **"intermediate profile"** and the **"current
+> profile"** (the "new candidate" above).
+
+**Correction — the earlier searches used the wrong name.** The player sent **two** feedback messages:
+
+- **2026-10-25, about 07:38 UTC**, category Bug: he bought citizenship on his first day and changed his nickname to a
+  name he gives in the message; both are now gone.
+- **2026-10-26, about 07:33 UTC**, category Other: asks for the citizenship he bought back.
+
+The "Username" field in both messages is his **current display name**, not the nickname he set. The check-1 search
+above (0 rows) and the "34 paid citizens" line searched for that display name — the wrong name. The match IDs used in
+check 4 above came from the **second** message.
+
+**Check 1 (re-run with the nickname he named in his first message):** **found**, on a paid citizen profile — the
+**old paid profile**.
+- Created **2026-09-29 06:54 UTC**; citizenship bought **06:54:33 the same minute** (his "first day").
+- Last login **2026-10-22 13:31 UTC**.
+- Tenure evidence at creation: **daysPlayed 54**, **gameRecordDays 64**.
+- XP: not reported.
+
+**Check 2:** **1 citizenship receipt**, processed **2026-09-29**.
+
+**Check 3 — not run as a query.** Partly answered by check 1: the nickname is still the old paid profile's current
+name, so it was not changed away or cleared. Its history row and approval date: not checked.
+
+**Check 4 (re-run with the 3 matches from the first message, 2026-10-22 to 2026-10-24):** **all 3** credited to one
+record — the **intermediate profile**. (The earlier run, with the second message's matches, credited the current
+profile in 2 of 3.)
+
+**Check 5 — the two newer profiles:**
+
+| | Intermediate profile | Current profile |
+|---|---|---|
+| Created | 2026-10-22 14:19 UTC | 2026-10-25 11:08 UTC |
+| Paid | no | no |
+| Nickname | none | none |
+| Tenure evidence (daysPlayed / gameRecordDays) | 75 / 86 | 77 / 88 |
+| Last login | 2026-10-25 07:36 UTC | 2026-10-26 |
+
+Not reported: the intermediate profile's identity count; receipts or purchase intents of either.
+
+**Check 6 (in substance; identity rows not counted):**
+- Old paid profile last login 2026-10-22 13:31 UTC → intermediate profile created 14:19 UTC: **48 minutes** later.
+- Intermediate profile last login 2026-10-25 07:36 UTC (**2 minutes before** the first feedback) → current profile
+  created 11:08 UTC: about **3.5 hours** later.
+
+**Reading:**
+- Browser counts rise steadily across the three — daysPlayed **54 → 75 → 77**, gameRecordDays **64 → 86 → 88** — and
+  each profile starts shortly after the previous one stops. → **One browser, one player; his player ID changed
+  twice** (2026-10-22 and 2026-10-25).
+- **Timing puzzle — resolved:** the matches first checked came from the second message, sent after the current profile
+  existed.
+- **The earlier "old candidate" is not his** — a different player. It is the profile named in the first message to
+  Yandex.
+
+~~**Check 7 — not run.** The owner called the outcome without it. **Whether other players are hit: unknown** — no daily
+counts exist (verification step 3).~~ *(Superseded 2026-10-27: a simplified check 7 was run after the close — see
+"2026-10-27 — check 7 results" at the end of this worklog. True at close: the outcome was called without it.)*
+
+**Check 8 — skipped** (optional; `0505`'s design does not wait on it; the profile box's shadow logs answer it after the
+`0506` deploy).
+
+**Check 0, check 4b, extra E1:** not reported.
+
+**Read-only:** relayed as the owner's read-only checks; no write was reported.
+
+**Outcome — (A), on a three-profile chain.** OWNER RULING, `AskUserQuestion` in the `fkit-lead` session, 2026-10-27.
+Question, verbatim except the nickname: *"Given the new evidence ([the nickname he named in his first message] →
+profile #1 → profile #2), what's 0502's result now?"* Owner picked verbatim **"A now, merge after Yandex
+(Recommended)"** — option text: *"Call it A on our data; plan the merge tool (0503) now; run the restore (0504) only
+after Yandex confirms. Knock-on: 0503 planning starts; 0504 still waits."*
+- Supersedes the "Hold open until Yandex" ruling above.
+- Differs from outcome (A) as the brief wrote it: **three** records, not two; and `0504` waits on Yandex confirming, not
+  only on `0503` being built.
+- The reading rule's "check 1 not found → (B)" no longer applies: check 1 had searched the wrong name.
+
+**Correction to Yandex:** a correction naming the right chain and receipt, and withdrawing the wrong candidate, was
+drafted for the owner. **Not confirmed sent** as of this entry. `0508` is closed, so no open task tracks this send.
+
+**`0424`:** no new ruling; stays parked (ruling above). Its *Trigger* note now records the confirmed twice-changed ID.
+
+**Close status (checked against the verification steps, 2026-10-27):**
+1. Checks 1, 2 and 4 recorded; check 5 recorded except the items listed as not reported; checks 3 and 6 in substance
+   only; ~~check 7 not run~~ *(check 7: simplified version run after the close, see "check 7 results" below)*; check 8
+   skipped. ⚠️ Checks 3, 6 and 7 are **not** recorded in full as the step asks — closed on `fkit-lead`'s instruction
+   that they may be recorded as not run, **not** on an owner ruling. The UUID / Yandex-id `grep` of this folder: run at
+   close, clean (see the close report).
+2. Met — outcome (A), owner's words above.
+3. ~~Met only as "not run — unknown"; no daily counts.~~ *(2026-10-27, after the close: daily tenure-gift counts now
+   recorded — see "check 7 results" below. Simplified query; `new_players` per day not reported.)*
+4. Met as relayed — read-only checks, no write reported.
+5. Met — `0424` kept parked, 2026-10-27, owner's words above.
+
+## 2026-10-27, later — check 7 being run now (recorded by `fkit-producer`, spawned by `fkit-lead`; no owner channel)
+
+> 📌 **OWNER RULING**, `AskUserQuestion` in the `fkit-lead` session, 2026-10-27, relayed to a spawned `fkit-producer`
+> (ADR-021/037; ⛔ not producer precedent). Owner picked verbatim **"Run it now (Recommended)"** — option text: *"I give
+> you the ready query; one read-only run on the profile server; counts only. Knock-on: none (checked)."*
+
+- **Check 7 (are other players hit?):** the owner is running it now — one read-only run on the profile server, counts
+  only. ~~**Results: pending.** A later producer adds them here, dated, counts only (no ids, names or hosts).~~
+  *(Results recorded — see "check 7 results" below.)*
+- This task stays closed; the close entry above ("check 7 not run") stays as it was at close and is superseded only
+  once the results are recorded. *(Done 2026-10-27: struck and pointed at the results entry.)*
+- **Correction to Yandex and Yandex's answer:** now tracked on `0504` (OWNER RULING *"Note on 0504 (Recommended)"*,
+  2026-10-27) — see that brief. The line above ("no open task tracks this send") no longer holds.
+
+## 2026-10-27 — check 7 results (recorded by `fkit-producer`, spawned by `fkit-lead`; no owner channel)
+
+**Owner-run, read-only, one run on the profile server, counts only** (relayed by `fkit-lead`; no write reported). Runs
+under the OWNER RULING *"Run it now (Recommended)"* in the entry above. This task stays closed; the close entry's
+"check 7 not run" is struck above and points here.
+
+⚠️ **A simplified check 7, not the query written above.** As relayed, the query:
+- counted only tenure grants with `xp > 0`;
+- used `daysPlayed` only — **not** `gameRecordDays`, and **not** the "record under a day old" condition;
+- reported no `new_players`, `tenure_checks` or `tenure_at_cap_50` columns.
+
+Columns (as relayed): **gifts** = new profiles that got some tenure XP that UTC day; **30+** = of those, how many had
+`daysPlayed` ≥ 30. Per UTC day since 2026-09-26:
+
+| Day | Gifts | 30+ | | Day | Gifts | 30+ |
+|---|---|---|---|---|---|---|
+| 09-26 | 678 | 223 | | 10-12 | 102 | 13 |
+| 09-27 | 576 | 124 | | 10-13 | 104 | 13 |
+| 09-28 | 625 | 214 | | 10-14 | 110 | 12 |
+| 09-29 | 336 | 82 | | 10-15 | 98 | 7 |
+| 09-30 | 273 | 55 | | 10-16 | 128 | 15 |
+| 10-01 | 267 | 47 | | 10-17 | 143 | 9 |
+| 10-02 | 259 | 37 | | 10-18 | 96 | 10 |
+| 10-03 | 230 | 26 | | 10-19 | 94 | 7 |
+| 10-04 | 184 | 18 | | 10-20 | 100 | 5 |
+| 10-05 | 184 | 30 | | 10-21 | 121 | 7 |
+| 10-06 | 184 | 10 | | 10-22 | 106 | 11 |
+| 10-07 | 162 | 18 | | 10-23 | 124 | 5 |
+| 10-08 | 157 | 19 | | 10-24 | 131 | 10 |
+| 10-09 | 168 | 24 | | 10-25 | 111 | 8 |
+| 10-10 | 176 | 12 | | 10-26 | 122 | 8 |
+| 10-11 | 105 | 9 | | 10-27 | 26 | 3 *(partial day)* |
+
+**Reading — `fkit-lead`'s, relayed, unverified:**
+- The first days are the 2026-09-26 fresh start (every existing player got a new profile).
+- Since about 10-06: a steady ~5–15 per day in the 30+ column. No spike around 10-22 or 10-25 (his two ID-change days).
+- Each 30+ row is **either** a guest who played 30+ days and then logged in, **or** a player-ID change like this
+  player's. **The data cannot tell them apart.**
+
+**Producer arithmetic (from the table, 10-06 to 10-26, full days only):** 30+ ranges 5–24 per day (max 24 on 10-09);
+gifts range 94–184 per day. Producer reading, not checked against the output: this player's own two newer profiles
+each got a tenure gift with about 75 days of history, so each is probably one of the 30+ rows on 10-22 and 10-25.
+
+**What it answers:** "are other players hit?" — **still unknown in number.** No spike; an upper bound of a few to ~15
+possible cases a day, mixed in with ordinary guest-to-login players. Not a finding of other affected players.
+
+**Feeds `0424`** (still parked on the Backlog board until Yandex answers) — no change to it here.

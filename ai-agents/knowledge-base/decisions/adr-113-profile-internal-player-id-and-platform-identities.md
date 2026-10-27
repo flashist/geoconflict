@@ -1,6 +1,11 @@
 # ADR-113: Profiles get our own random player id; platform logins map to it; login issues a stateless signed token from v1; account linking is deferred
 
 - **Status:** ✅ **accepted** — owner-signed **2026-09-15**.
+  - ⛔ **2026-10-27 — § *Account linking* is superseded in part by
+    [ADR-128](adr-128-owner-run-profile-merge-tool-paid-state-moves-only-via-transfer-purchase-merges-are-audited.md)**
+    (accepted 2026-10-27, owner-approved `0503` plan): an **owner-run** merge tool is built, with a merge audit table.
+    Real account linking is still not built; the tombstone and `unique (player_id, platform)` choices and the *"second
+    login method"* trigger stand. The word `accepted` above is left as written.
 - **Date:** 2026-09-15
 - **Deciders:** Owner (Mark Dolbyrev).
   - **Owner rulings (AskUserQuestion, 2026-09-15, relayed by `fkit-lead`):**
@@ -116,11 +121,19 @@ migration later.
 
 - **Not built now and no backlog task.** **Revisit when a second login method is actually scheduled** —
   that event re-raises this section.
+  > ⛔ **2026-10-27 — superseded in part by ADR-128, for owner-run merges only.** An SSH-only, owner-run merge command
+  > is built (task `0503`) and answers the three questions below for that case. **Account linking itself is still not
+  > built**, and this revisit trigger **stays armed** — ADR-128 does not fire it. Text above left byte-identical.
 - The schema already allows it (point 2).
 - Deliberately **not** added:
   - a `merged_into` tombstone;
   - a merge audit table;
   - `unique (player_id, platform)` — it would block merging two Yandex-only players.
+  > ⛔ **2026-10-27 — "a merge audit table" is superseded by ADR-128:** migration `012` adds `player_merges`, one row
+  > per real merge, written in the merge's own transaction. **The other two stand:** still no `merged_into` tombstone
+  > (ADR-128 relies on the 24 h TTL plus a required follow-up dry run), still no `unique (player_id, platform)` (a
+  > merged record holds several Yandex identities). The three questions below are answered for owner-run merges in
+  > ADR-128 § *Decision* 2. Text above left byte-identical.
 - The future decision must answer:
   - which XP, citizenship and paid state survive a merge;
   - child-table PK clashes (two `tenure` rows, pending name changes);
@@ -265,3 +278,5 @@ this ADR changes; Status stays `accepted`.**
   *Note, 2026-10-07* above.
 - 📝 Added 2026-10-07: [ADR-124](adr-124-join-token-profile-server-vouches-for-the-game-servers-identity-funnel.md)
   (join token, task `0332`) — point 6 clarified; see § *Note, 2026-10-07 — ADR-124*.
+- ⛔ Added 2026-10-27: [ADR-128](adr-128-owner-run-profile-merge-tool-paid-state-moves-only-via-transfer-purchase-merges-are-audited.md)
+  (owner-run profile merge tool, task `0503`) — § *Account linking* superseded in part; see the ⛔ pointers there.

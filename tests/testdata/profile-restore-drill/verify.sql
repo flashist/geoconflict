@@ -30,10 +30,10 @@ select 'uncovered_tables: ' || coalesce(string_agg(table_name::text, ',' order b
      'players', 'player_identities', 'player_match_xp_credits', 'player_name_history',
      'player_cosmetic_ownership', 'purchase_intents', 'processed_purchases', 'player_messages',
      'player_xp_grants', 'schema_migrations', 'tester_role_snapshots', 'player_rewarded_match_xp',
-     'player_entitlements', 'purchase_holder_sightings'
+     'player_entitlements', 'purchase_holder_sightings', 'player_merges'
    );
 
-\echo '=== row counts + content digests (14 tables) ==='
+\echo '=== row counts + content digests (15 tables) ==='
 select 'players' as tbl, count(*) as n,
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.id), '')) as digest from players t
 union all select 'player_identities', count(*),
@@ -62,6 +62,8 @@ union all select 'player_entitlements', count(*),
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.player_id, t.product_id), '')) from player_entitlements t
 union all select 'purchase_holder_sightings', count(*),
        md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.purchase_token, t.seen_player_id), '')) from purchase_holder_sightings t
+union all select 'player_merges', count(*),
+       md5(coalesce(string_agg(row_to_json(t)::text, '|' order by t.id), '')) from player_merges t
 order by 1;
 
 \echo '=== sequences (a lost setval is the classic silent restore defect) ==='

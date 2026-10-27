@@ -174,7 +174,8 @@ WHERE id = $1
 FOR UPDATE
 `;
 
-// Credit rows are insert-only, so this read needs no lock of its own.
+// No lock of its own: credit rows change only by insert or by the owner-run merge
+// (ProfileMergeRepository, task 0503), and the merge holds this players row lock too.
 const SELECT_BASE_CREDIT_SQL = `
 SELECT xp_awarded FROM player_match_xp_credits
 WHERE game_id = $1 AND player_id = $2

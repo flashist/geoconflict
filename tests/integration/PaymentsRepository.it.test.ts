@@ -639,3 +639,195 @@ RUN("PaymentsRepository — holder sightings (task 0506, integration)", () => {
     ).rejects.toMatchObject({ code: "23503" });
   });
 });
+
+// Task 0503 (ADR-128 §2.1): the one receipt-moving primitive, used by the owner-run merge.
+RUN("PaymentsRepository.transferPurchase (integration, task 0503)", () => {
+  const TEST_ITEM = "test_durable_item";
+  let pool: Pool;
+  let payments: PaymentsRepository;
+  let items: PaymentsRepository;
+
+  beforeAll(() => {
+    pool = new Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    payments = new PaymentsRepository(pool);
+    items = new PaymentsRepository(pool, undefined, {
+      ...PRODUCT_GRANTS,
+      [TEST_ITEM]: durableItemGrant(null),
+    });
+  });
+
+  afterAll(async () => {
+    await pool.end();
+  });
+
+  beforeEach(async () => {
+    await truncateProfileTables(pool);
+  });
+
+  async function grant(
+    repo: PaymentsRepository,
+    playerId: string,
+    token: string,
+    productId: string,
+  ) {
+    const intentId = await repo.createIntent(playerId, productId);
+    await repo.grantPaidPurchase({
+      purchaseToken: token,
+      productId,
+      playerId,
+      intentId,
+      rawPayload: '{"test":true}',
+    });
+    return intentId;
+  }
+
+  async function inTransaction<T>(
+    work: (client: import("pg").PoolClient) => Promise<T>,
+  ) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const result = await work(client);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async function flags(playerId: string) {
+    const res = await pool.query(
+      `SELECT is_citizen, is_paid_citizen, citizenship_purchased_at::text AS purchased_at
+       FROM players WHERE id = $1`,
+      [playerId],
+    );
+    return res.rows[0];
+  }
+
+  test("moves the receipt, its intent and the ownership row, and recomputes both sides", async () => {
+    const from = await createYandexPlayer(pool, "zz0503-from");
+    const to = await createYandexPlayer(pool, "zz0503-to");
+    const intentId = await grant(items, from, "zz0503-tok", TEST_ITEM);
+    const purchasedAt = (await flags(from)).purchased_at;
+
+    await expect(
+      inTransaction((client) =>
+        payments.transferPurchase(client, "zz0503-tok", from, to),
+      ),
+    ).resolves.toEqual({ productId: TEST_ITEM, entitlement: "moved" });
+
+    expect((await payments.getProcessedPurchase("zz0503-tok"))?.playerId).toBe(
+      to,
+    );
+    expect((await payments.findIntent(intentId))?.playerId).toBe(to);
+    await expect(items.listEntitlements(to)).resolves.toEqual([TEST_ITEM]);
+    await expect(items.listEntitlements(from)).resolves.toEqual([]);
+    expect(await flags(to)).toEqual({
+      is_citizen: true,
+      is_paid_citizen: true,
+      purchased_at: purchasedAt,
+    });
+    expect(await flags(from)).toEqual({
+      is_citizen: false,
+      is_paid_citizen: false,
+      purchased_at: null,
+    });
+  });
+
+  test("a source with a second receipt stays paid", async () => {
+    const from = await createYandexPlayer(pool, "zz0503-from");
+    const to = await createYandexPlayer(pool, "zz0503-to");
+    await grant(payments, from, "zz0503-tok-1", "citizenship");
+    await grant(payments, from, "zz0503-tok-2", "citizenship");
+    await inTransaction((client) =>
+      payments.transferPurchase(client, "zz0503-tok-1", from, to),
+    );
+    expect(await flags(from)).toMatchObject({
+      is_citizen: true,
+      is_paid_citizen: true,
+    });
+    expect((await flags(from)).purchased_at).not.toBeNull();
+    expect(await flags(to)).toMatchObject({ is_paid_citizen: true });
+  });
+
+  describe("moving one receipt out of several: each side's purchase date comes from its own receipts", () => {
+    const JAN = "2026-01-01T00:00:00.000Z";
+    const MAR = "2026-03-01T00:00:00.000Z";
+    const DEC = "2025-12-01T00:00:00.000Z";
+
+    async function datedReceipt(playerId: string, token: string, at: string) {
+      await grant(payments, playerId, token, "citizenship");
+      await pool.query(
+        `UPDATE processed_purchases SET processed_at = $2 WHERE purchase_token = $1`,
+        [token, at],
+      );
+      await pool.query(
+        `UPDATE players p SET citizenship_purchased_at = (
+           SELECT min(processed_at) FROM processed_purchases WHERE player_id = p.id)
+         WHERE id = $1`,
+        [playerId],
+      );
+    }
+
+    async function purchasedAt(playerId: string): Promise<string | null> {
+      const res = await pool.query(
+        `SELECT citizenship_purchased_at FROM players WHERE id = $1`,
+        [playerId],
+      );
+      const at = res.rows[0].citizenship_purchased_at as Date | null;
+      return at === null ? null : at.toISOString();
+    }
+
+    test.each([
+      ["the later receipt", "zz0503-tok-mar", MAR, JAN],
+      ["the earlier receipt", "zz0503-tok-jan", JAN, MAR],
+    ])("moving %s", async (_label, token, expectedTo, expectedFrom) => {
+      const from = await createYandexPlayer(pool, "zz0503-from");
+      const to = await createYandexPlayer(pool, "zz0503-to");
+      await datedReceipt(from, "zz0503-tok-jan", JAN);
+      await datedReceipt(from, "zz0503-tok-mar", MAR);
+
+      await inTransaction((client) =>
+        payments.transferPurchase(client, token, from, to),
+      );
+
+      expect(await purchasedAt(to)).toBe(expectedTo);
+      expect(await purchasedAt(from)).toBe(expectedFrom);
+      expect(await flags(from)).toMatchObject({ is_paid_citizen: true });
+    });
+
+    test("a target with an earlier purchase of its own keeps that date", async () => {
+      const from = await createYandexPlayer(pool, "zz0503-from");
+      const to = await createYandexPlayer(pool, "zz0503-to");
+      await datedReceipt(from, "zz0503-tok-jan", JAN);
+      await datedReceipt(from, "zz0503-tok-mar", MAR);
+      await datedReceipt(to, "zz0503-tok-dec", DEC);
+
+      await inTransaction((client) =>
+        payments.transferPurchase(client, "zz0503-tok-mar", from, to),
+      );
+
+      expect(await purchasedAt(to)).toBe(DEC);
+      expect(await purchasedAt(from)).toBe(JAN);
+    });
+  });
+
+  test("a receipt the source does not hold is refused and nothing moves", async () => {
+    const holder = await createYandexPlayer(pool, "zz0503-holder");
+    const other = await createYandexPlayer(pool, "zz0503-other");
+    const to = await createYandexPlayer(pool, "zz0503-to");
+    await grant(payments, holder, "zz0503-tok", "citizenship");
+    await expect(
+      inTransaction((client) =>
+        payments.transferPurchase(client, "zz0503-tok", other, to),
+      ),
+    ).rejects.toThrow("does not hold");
+    expect((await payments.getProcessedPurchase("zz0503-tok"))?.playerId).toBe(
+      holder,
+    );
+    expect(await flags(to)).toMatchObject({ is_paid_citizen: false });
+  });
+});

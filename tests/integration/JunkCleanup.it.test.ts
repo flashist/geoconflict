@@ -191,9 +191,9 @@ RUN("junk cleanup SQL (integration)", () => {
   beforeEach(async () => {
     sql = await pool.connect();
     await sql.query(
-      `TRUNCATE player_messages, processed_purchases, purchase_intents, player_xp_grants,
-                player_cosmetic_ownership, player_name_history, player_match_xp_credits,
-                player_identities, players RESTART IDENTITY CASCADE`,
+      `TRUNCATE player_merges, player_messages, processed_purchases, purchase_intents,
+                player_xp_grants, player_cosmetic_ownership, player_name_history,
+                player_match_xp_credits, player_identities, players RESTART IDENTITY CASCADE`,
     );
   });
 
@@ -224,6 +224,7 @@ RUN("junk cleanup SQL (integration)", () => {
       "player_name_history",
       "player_cosmetic_ownership",
       "player_identities",
+      "player_merges",
     ]) {
       expect(predicate).toContain(table);
     }
@@ -304,6 +305,19 @@ RUN("junk cleanup SQL (integration)", () => {
     survivors.olderIdentity = await seedPlayer("zz0274-old-identity", {
       identityCreatedAt: BEFORE,
     });
+    // Task 0503: both sides of a merge, otherwise empty. The source's identity moved to the
+    // kept record, so it has none; only the player_merges clause keeps either row.
+    const mergeKeep = await seedPlayer("zz0503-merge-keep");
+    survivors.mergeKeep = mergeKeep;
+    survivors.mergedAwaySource = await seedPlayer("zz0503-merge-source");
+    await sql.query("DELETE FROM player_identities WHERE player_id = $1", [
+      survivors.mergedAwaySource,
+    ]);
+    await sql.query(
+      `INSERT INTO player_merges (operator, into_player_id, from_player_ids, fingerprint, moved, before_state)
+       VALUES ('test', $1, ARRAY[$2]::uuid[], 'zz0503', '{}'::jsonb, '[]'::jsonb)`,
+      [mergeKeep, survivors.mergedAwaySource],
+    );
 
     await buildPredicate();
 
@@ -333,12 +347,12 @@ RUN("junk cleanup SQL (integration)", () => {
        WHERE NOT EXISTS (SELECT 1 FROM players p WHERE p.id = i.player_id)`,
     );
     expect(Number(orphans.rows[0].n)).toBe(0);
-    // ...and no player without an identity either.
+    // ...and no player without an identity either, except the merged-away source.
     const orphanPlayers = await sql.query(
       `SELECT count(*)::int AS n FROM players p
        WHERE NOT EXISTS (SELECT 1 FROM player_identities i WHERE i.player_id = p.id)`,
     );
-    expect(Number(orphanPlayers.rows[0].n)).toBe(0);
+    expect(Number(orphanPlayers.rows[0].n)).toBe(1);
   });
 
   test("the dry run reports the same count as the delete removes, and no ids", async () => {

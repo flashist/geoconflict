@@ -161,18 +161,24 @@ Run this against a **throwaway** Postgres container, never prod. Record the wall
 > `purchase_holder_sightings`. On a box without `011`, P5's `schema_migrations` list has no `011_…` entry —
 > **STOP there**, before seeding, for the same reason.
 
-**`006` inventory the drill must preserve** — 14 base tables: `players`, `player_identities`,
+> ⚠️ **The same holds for migration `012` (task `0503`).** `verify.sql` also reads `player_merges`. On a box
+> without `012`, P5's `schema_migrations` list has no `012_…` entry — **STOP there**, before seeding, for the
+> same reason.
+
+**`006` inventory the drill must preserve** — 15 base tables: `players`, `player_identities`,
 `player_match_xp_credits`, `player_name_history`, `player_cosmetic_ownership`, `purchase_intents`,
 `processed_purchases`, `player_messages`, `player_xp_grants`, `schema_migrations`,
 `tester_role_snapshots` (migration `008`, task `0425`; the seed writes no rows to it), and
 `player_rewarded_match_xp` (migration `009`, task `0491`; the seed writes no rows to it), and
 `player_entitlements` (migration `010`, task `0496`; the seed writes no rows to it), and
-`purchase_holder_sightings` (migration `011`, task `0506`; the seed writes no rows to it). Two sequences
+`purchase_holder_sightings` (migration `011`, task `0506`; the seed writes no rows to it), and
+`player_merges` (migration `012`, task `0503`; the seed writes no rows to it; its id is a uuid, so no new
+sequence). Two sequences
 (`player_name_history_id_seq`, `player_messages_id_seq`). Three partial indexes
 (`players_display_name_uq`, `player_name_history_one_pending_uq`, `player_messages_unread_idx`).
 `processed_purchases.player_id` has **no** foreign key (a receipt outlives a deleted player), so cleanup
 deletes receipts explicitly. Measured **locally** on a runner-built `006` DB (2026-09-15, not yet on the
-box): **30** public constraints, **17** public indexes. **Not re-measured since `007`–`011`** (`009` alone
+box): **30** public constraints, **17** public indexes. **Not re-measured since `007`–`012`** (`009` alone
 adds a primary key, a foreign key and a check, plus the primary-key index), so do not expect these totals
 on a current box. They are not a pass criterion: step 5 compares source against restored.
 
@@ -234,7 +240,7 @@ select format('sequences: player_messages_id_seq=%s/%s player_name_history_id_se
   | tee /root/drill0275/before.txt; echo "exit=${PIPESTATUS[0]}"
 #    Expect exit=0, every count 0, and schema_migrations: 001_…,002_…,003_…,004_…,006_player_identity.sql,
 #    007_name_change_dismiss_and_clear.sql,008_tester_role_snapshots.sql,009_player_rewarded_match_xp.sql,
-#    010_player_entitlements.sql,011_purchase_holder_sightings.sql.
+#    010_player_entitlements.sql,011_purchase_holder_sightings.sql,012_player_merges.sql.
 #    A table missing (psql ERROR) or an extra migration is a schema-drift finding → STOP.
 ```
 
@@ -262,9 +268,9 @@ SRC_EXIT=${PIPESTATUS[0]}; echo "verify_exit=$SRC_EXIT"                 # must b
 tail -1 /root/drill0275/source.txt                                     # must be: verify_end: complete
 #    Must also show `uncovered_tables: none`, and these counts in verify.sql's own (alphabetical) order:
 #      player_cosmetic_ownership 4 · player_entitlements 0 · player_identities 9 ·
-#      player_match_xp_credits 24 · player_messages 6 · player_name_history 6 ·
+#      player_match_xp_credits 24 · player_merges 0 · player_messages 6 · player_name_history 6 ·
 #      player_rewarded_match_xp 0 · player_xp_grants 3 · players 8 · processed_purchases 3 ·
-#      purchase_holder_sightings 0 · purchase_intents 5 · schema_migrations 10 · tester_role_snapshots 0
+#      purchase_holder_sightings 0 · purchase_intents 5 · schema_migrations 11 · tester_role_snapshots 0
 #    Non-zero exit, a missing sentinel or a wrong count → STOP → abort path.
 /opt/profile/backup.sh 2>&1 | tail -20; echo "exit=${PIPESTATUS[0]}"   # PIPESTATUS, not $? (0218)
 cat /opt/profile/backups/last-backup.json
@@ -334,7 +340,7 @@ fi
 #    SRC_EXIT was lost with the shell, re-run step 2's verify command (not the backup) and repeat step 5.
 #    A diff → STOP → abort path (interpret it as 0218 C5: count, digest, sequence or shape line).
 #    verify.sql fingerprints: a coverage line (`uncovered_tables: none` — a table added by a future
-#    migration shows up here by name); per-table row count + md5 content digest for all 14 tables;
+#    migration shows up here by name); per-table row count + md5 content digest for all 15 tables;
 #    `last_value` + `is_called` of both sequences; constraint count + digest of every constraint
 #    DEFINITION (catches a lost `on delete cascade`, not just a lost name); index count + digest of
 #    every index DEFINITION (catches a lost partial `where`); spot checks — bigint xp above int4,

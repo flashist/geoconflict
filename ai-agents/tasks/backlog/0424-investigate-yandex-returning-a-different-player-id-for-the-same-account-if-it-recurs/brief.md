@@ -101,6 +101,15 @@ decision.
 > Yandex (Recommended)"** — option text: *"Yandex's answer tells us if it's needed. Knock-on: none (checked)."* The
 > question to Yandex went out 2026-10-27 (task `0508`). Revisit when Yandex answers.
 
+> 📌 **2026-10-27, later — confirmed on our data: one player's ID changed TWICE.** `0502`'s re-run checks (owner,
+> read-only; relayed, words and counts only) found **one browser behind three profile records**: an old paid record
+> (created 2026-09-29), then a fresh record from **2026-10-22** (created 48 minutes after the old one's last login),
+> then another from **2026-10-25**. Browser counts rise steadily across the three (days played 54 → 75 → 77), so it is
+> one player — not proof that it is one Yandex account (Yandex has been asked). Owner called `0502` outcome (A) the same
+> day (*"A now, merge after Yandex (Recommended)"*). Still **parked**; no new ruling on `0424`. Not run in `0502`:
+> check 7 (new records / tenure gifts per day) — **whether other players are hit is unknown**; that detector stays
+> item 3 below.
+
 ## What to investigate (when triggered)
 
 Ideas, not commitments — the investigator picks what the new evidence makes worth doing:

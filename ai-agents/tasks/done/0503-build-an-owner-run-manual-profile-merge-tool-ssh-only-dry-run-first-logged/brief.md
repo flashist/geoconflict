@@ -10,7 +10,7 @@ Sprint 9
 > ADR-021/037). ⛔ Not producer precedent. The owner picked **"Merge tool + stop consuming"** — option text: *"Both.
 > Stopping consuming is medium work, needs a new ADR, and touches the purchase flow waiting to deploy. Knock-on: may
 > hold that deploy (0493/0497/0498 wait on it)."* Full provenance in
-> [`0502`](../0502-confirm-the-two-record-cause-of-the-lost-citizenship-report-owner-run-read-only-prod-checks/brief.md).
+> [`0502`](../../done/0502-confirm-the-two-record-cause-of-the-lost-citizenship-report-owner-run-read-only-prod-checks/brief.md).
 
 ## Priority
 30
@@ -21,7 +21,10 @@ Sprint 9
 > rank, never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
+
+> 2026-10-27 — was ~~🔲 Backlog~~. Plan approved by the owner (see the 📌 approval note under *Notes*). Build waits on
+> **ADR-128**, which `fkit-architect` is recording now (plan §0); the build starts only after it is recorded.
 
 ## Owner
 fkit-coder
@@ -127,6 +130,40 @@ Do not settle this silently in code; the owner rules at plan approval.
 - **Blocks:** 0504 (running it for the affected player).
 - **Build does not wait on `0502`; use does.** The tool is generic, so it can be built and tested while the owner runs
   the checks. `0504` waits on both.
+- 📌 **2026-10-27 — `0502` = outcome (A); planning starts now; the merge must handle a CHAIN.** OWNER RULING via
+  `AskUserQuestion` in the `fkit-lead` session, relayed (ADR-021/037; ⛔ not producer precedent): **"A now, merge after
+  Yandex (Recommended)"** — option text: *"Call it A on our data; plan the merge tool (0503) now; run the restore (0504)
+  only after Yandex confirms. Knock-on: 0503 planning starts; 0504 still waits."* The affected player has **three**
+  records, not two: **old paid profile** (paid flag, 1 citizenship receipt, nickname) → **intermediate profile**
+  (2026-10-22 to 2026-10-25, not paid, no nickname, his XP for those days, its own tenure grant) → **current profile**
+  (since 2026-10-25, not paid, its own tenure grant). The plan must say how the tool handles a chain — for example
+  several sources into one target in one transaction, or repeated pairwise runs — including the XP rule and the PK
+  clashes across all three (three `tenure` grant rows), and how the dry run shows all of them. Under the re-point
+  alternative (item 5), the plan must also say what happens to the **two** fresh records. Input, not a decision: the
+  owner rules at plan approval. Details in `0502`'s worklog.
+- ✅ **2026-10-27 — PLAN APPROVED.** OWNER RULING via `AskUserQuestion` in the `fkit-lead` session, 2026-10-27,
+  relayed to a spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). Question, verbatim: *"Approve the 0503
+  merge tool plan?"* Owner picked verbatim **"Approve, all 7 as recommended (Recommended)"** — option text: *"Keep old
+  profile, XP each match once + one gift, record table, ships in profile image, no auto message, extra name stays
+  reserved, 24h follow-up required. Then ADR-128, then build."*
+  - **Approved plan:** [`plan.md`](plan.md), git blob `271fda24…` (written by `fkit-lead` at approval). The plan, not
+    this brief, is the build spec where they differ.
+  - **The seven answers** (plan *Open questions*, all option 1):
+    Q1 **keep the OLD paid profile** — the newer profiles are the sources (KEEP = old; this is item 5's re-point
+    direction, done by the same engine); Q2 **XP:** every match once, the largest tenure gift once, every ad bonus once;
+    Q3 **a `player_merges` audit table** (migration `012`); Q4 **ships as a command inside the profile image** — option
+    (b) of *How it ships*; Q5 **no automatic in-game message** — the owner tells the player; Q6 a source's nickname,
+    when KEEP already has one, **stays reserved** on the merged-away profile; Q7 **the 24-hour follow-up dry run is
+    required** in `0504`.
+  - **Before the build:** `fkit-architect` records **ADR-128** (`/fkit-record-decision`) — a new ADR, not a dated
+    note on ADR-113 — covering ADR-113's three questions, `transferPurchase` as a second writer of paid state, the
+    audit table, and identities moved onto one record for owner-run merges only. **Being recorded now** (2026-10-27);
+    not yet on disk at this entry. Verification step 6 is met only once it is.
+  - **Knock-on of Q4 (b), from the plan:** the tool reaches the box only with a profile-image deploy, which carries
+    whatever profile code is committed by then (the held `0491`/`0492`/`0496`, and `0506` S1). `0503` joins that
+    deploy if committed before it; otherwise it needs its own later profile deploy (weekend slot unless urgent). It
+    never holds the S1 deploy back. No `Depends on:` line changes.
+  - `0504` edited the same day to match Q1, Q5 and Q7.
 - **Related:** `0424` — this is a **new task that `0424` relates to**, not a pull or absorb of it. `0424` scoped "any
   code change … a merge tool" as *a new brief*; this is that brief. `0424` stays parked on the Backlog board for the
   root-cause question (can a Yandex id change, how often) unless the owner un-parks it.

@@ -16,6 +16,7 @@ import type { ProfileRepo } from "../../../src/profile-server/Routes";
 
 /** Every row-holding profile table — ONE list, so a new table is cleared everywhere. */
 const PROFILE_TABLES = [
+  "player_merges",
   "tester_role_snapshots",
   "player_messages",
   "processed_purchases",
@@ -67,7 +68,10 @@ export function realProfileRepo(pool: Pool, inbox?: InboxSender): ProfileRepo {
   };
 }
 
-/** Count of players with no identity at all — must always be 0. */
+/**
+ * Count of players with no identity at all — 0 in every suite except the merge one:
+ * a merged-away source keeps its row with no identity (ADR-128).
+ */
 export async function countOrphanPlayers(pool: Pool): Promise<number> {
   const res = await pool.query(
     `SELECT count(*)::int AS n FROM players p

@@ -10,6 +10,10 @@
 // both flags for its `paid-citizen` role and puts the tester's own values back on
 // `restore` — with NO purchase record (no processed_purchases or purchase_intents
 // row). It is no route; it runs only inside the profile container on the box.
+// A SECOND writer of paid state FROM RECEIPTS (task 0503, ADR-128 / ADR-126 D7):
+// transferPurchase, used only by the SSH-only merge command
+// (src/profile-server/ProfileMergeRepository.ts). It moves a receipt and recomputes
+// both sides' flags from the receipts each then holds — move, never copy.
 
 import { Pool, PoolClient } from "pg";
 import type { InboxTemplateKey } from "../core/profile/InboxContract";
@@ -53,6 +57,64 @@ export interface HolderSighting {
   seenPlayerId: string;
   payloadIssuedAt: Date | null;
 }
+
+/**
+ * What transferPurchase did with the receipt's durable-item row. `dropped_duplicate`:
+ * the receiving profile already owned that item, so the moved receipt is a second
+ * charge for one item (the caller warns).
+ */
+export type TransferredEntitlement = "moved" | "dropped_duplicate" | "none";
+
+export interface TransferOutcome {
+  productId: string;
+  entitlement: TransferredEntitlement;
+}
+
+/** A sighting as the merge's dry run prints it: no token. */
+export interface HolderSightingRow {
+  holderPlayerId: string;
+  seenPlayerId: string;
+  payloadIssuedAt: Date | null;
+  firstSeenAt: Date;
+  lastSeenAt: Date;
+  seenCount: number;
+}
+
+// Both rows, in id order — the merge's lock order, so a transfer inside a merge
+// re-takes locks it already holds and a standalone one cannot deadlock with it.
+const LOCK_TRANSFER_PLAYERS_SQL = `
+SELECT id FROM players WHERE id = ANY($1::uuid[]) ORDER BY id FOR UPDATE
+`;
+
+// The receiving side. One statement, because the paid CHECKs are tested per
+// statement. It takes this receipt's own date, never the source's (which may
+// belong to a receipt that stays); an earlier date it already has wins.
+const TRANSFER_TO_FLAGS_SQL = `
+UPDATE players t
+SET is_paid_citizen = true,
+    is_citizen = true,
+    citizenship_purchased_at = least(t.citizenship_purchased_at, pp.processed_at),
+    updated_at = now()
+FROM processed_purchases pp
+WHERE t.id = $1 AND pp.purchase_token = $2
+`;
+
+// Flags from the receipts the player holds now; the purchase date is its
+// earliest remaining receipt's. Losing paid state drops citizenship only when
+// nothing else earned it; an unpaid row keeps is_citizen.
+const RECOMPUTE_PAID_FLAGS_SQL = `
+UPDATE players p
+SET is_paid_citizen = r.first_receipt_at IS NOT NULL,
+    citizenship_purchased_at = r.first_receipt_at,
+    is_citizen = CASE
+      WHEN r.first_receipt_at IS NOT NULL THEN true
+      WHEN p.is_paid_citizen THEN p.citizenship_earned_at IS NOT NULL
+      ELSE p.is_citizen END,
+    updated_at = now()
+FROM (SELECT min(processed_at) AS first_receipt_at
+      FROM processed_purchases WHERE player_id = $1) r
+WHERE p.id = $1
+`;
 
 // 2019-01-01T00:00:00Z: older than any Geoconflict purchase.
 const EARLIEST_PLAUSIBLE_ISSUED_AT_SECONDS = 1_546_300_800;
@@ -284,6 +346,122 @@ export class PaymentsRepository {
         sighting.payloadIssuedAt,
       ],
     );
+  }
+
+  /**
+   * Move one receipt from `fromPlayerId` to `toPlayerId` inside the caller's
+   * transaction (task 0503, ADR-128 §2.1): the receipt, its intent and its
+   * durable-item row move together, then both sides' paid flags are recomputed
+   * from the receipts each holds. `citizenship_purchased_at` comes from receipts,
+   * never `now()`: the target takes this receipt's date (or keeps an earlier one),
+   * the source its earliest remaining receipt's (null if none). Throws (the caller rolls back) on an unknown receipt, a receipt
+   * the source does not hold, or a missing player row.
+   */
+  async transferPurchase(
+    client: PoolClient,
+    purchaseToken: string,
+    fromPlayerId: string,
+    toPlayerId: string,
+  ): Promise<TransferOutcome> {
+    if (fromPlayerId === toPlayerId) {
+      throw new Error("transferPurchase: source and target are the same");
+    }
+    const locked = await client.query(LOCK_TRANSFER_PLAYERS_SQL, [
+      [fromPlayerId, toPlayerId],
+    ]);
+    if (locked.rows.length !== 2) {
+      throw new Error("transferPurchase: no player row for one side");
+    }
+    const receipt = await client.query(
+      `SELECT player_id, product_id, intent_id FROM processed_purchases
+       WHERE purchase_token = $1 FOR UPDATE`,
+      [purchaseToken],
+    );
+    if (receipt.rows.length === 0) {
+      throw new Error("transferPurchase: no such receipt");
+    }
+    if (String(receipt.rows[0].player_id) !== fromPlayerId) {
+      throw new Error("transferPurchase: the source does not hold the receipt");
+    }
+    const productId = String(receipt.rows[0].product_id);
+    const intentId = receipt.rows[0].intent_id as string | null;
+
+    await client.query(
+      `UPDATE processed_purchases SET player_id = $2 WHERE purchase_token = $1`,
+      [purchaseToken, toPlayerId],
+    );
+    if (intentId !== null) {
+      await client.query(
+        `UPDATE purchase_intents SET player_id = $3
+         WHERE id = $1 AND player_id = $2`,
+        [intentId, fromPlayerId, toPlayerId],
+      );
+    }
+
+    let entitlement: TransferredEntitlement = "none";
+    const owned = await client.query(
+      `SELECT 1 FROM player_entitlements
+       WHERE player_id = $1 AND product_id = $2 AND purchase_token = $3`,
+      [fromPlayerId, productId, purchaseToken],
+    );
+    if (owned.rows.length > 0) {
+      const moved = await client.query(
+        `UPDATE player_entitlements SET player_id = $3
+         WHERE player_id = $1 AND product_id = $2
+           AND NOT EXISTS (SELECT 1 FROM player_entitlements
+                           WHERE player_id = $3 AND product_id = $2)`,
+        [fromPlayerId, productId, toPlayerId],
+      );
+      if ((moved.rowCount ?? 0) > 0) {
+        entitlement = "moved";
+      } else {
+        await client.query(
+          `DELETE FROM player_entitlements WHERE player_id = $1 AND product_id = $2`,
+          [fromPlayerId, productId],
+        );
+        entitlement = "dropped_duplicate";
+      }
+    }
+
+    await client.query(TRANSFER_TO_FLAGS_SQL, [toPlayerId, purchaseToken]);
+    await client.query(RECOMPUTE_PAID_FLAGS_SQL, [fromPlayerId]);
+    return { productId, entitlement };
+  }
+
+  /** Move every intent still on the source, so a late reconcile lands on the target (task 0503). */
+  async moveRemainingIntents(
+    client: PoolClient,
+    fromPlayerId: string,
+    toPlayerId: string,
+  ): Promise<number> {
+    const res = await client.query(
+      `UPDATE purchase_intents SET player_id = $2 WHERE player_id = $1`,
+      [fromPlayerId, toPlayerId],
+    );
+    return res.rowCount ?? 0;
+  }
+
+  /** Sightings where any of the players is the holder or the one seen (task 0503 dry run). */
+  async readHolderSightings(
+    client: PoolClient,
+    playerIds: readonly string[],
+  ): Promise<HolderSightingRow[]> {
+    const res = await client.query(
+      `SELECT holder_player_id, seen_player_id, payload_issued_at,
+              first_seen_at, last_seen_at, seen_count
+       FROM purchase_holder_sightings
+       WHERE holder_player_id = ANY($1::uuid[]) OR seen_player_id = ANY($1::uuid[])
+       ORDER BY first_seen_at, purchase_token, seen_player_id`,
+      [playerIds],
+    );
+    return res.rows.map((row) => ({
+      holderPlayerId: String(row.holder_player_id),
+      seenPlayerId: String(row.seen_player_id),
+      payloadIssuedAt: (row.payload_issued_at as Date | null) ?? null,
+      firstSeenAt: row.first_seen_at as Date,
+      lastSeenAt: row.last_seen_at as Date,
+      seenCount: Number(row.seen_count),
+    }));
   }
 
   /**

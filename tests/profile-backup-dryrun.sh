@@ -256,7 +256,7 @@ fi
 grep -qx 'verify_end: complete' "$WORK/restored.txt" && ok "verify.sql ran to its end-of-file sentinel on the restored DB" \
   || no "verify.sql restored output lacks the 'verify_end: complete' sentinel"
 if diff "$WORK/source.txt" "$WORK/restored.txt"; then
-  ok "fingerprint IDENTICAL (14 tables, sequences, constraint/index definitions, spot checks)"
+  ok "fingerprint IDENTICAL (15 tables, sequences, constraint/index definitions, spot checks)"
 else
   no "fingerprint differs between source and restored (diff above)"
 fi

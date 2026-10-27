@@ -27,7 +27,7 @@ Sprint 9
 > (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer
@@ -49,11 +49,11 @@ and carries his in-game name only.
   path removes both. Nothing expires or refunds paid citizenship.
 - **Most likely (suspected):** his login now resolves to a **different** profile record. Either Yandex issued a new
   `getUniqueID()` for the same account — parked task
-  [`0424`](../0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md), which
+  [`0424`](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md), which
   happened to the owner's own test account on 2026-10-08 — or he is on a different Yandex account. Either way, a fresh
   empty record was created; the old paid record is probably intact but unreachable.
 - **Less likely:** profile loads failing for him (task
-  [`0474`](../0474-investigate-why-about-2-3-percent-of-logged-in-loads-get-no-profile-login-timeouts/brief.md)), or he
+  [`0474`](../../backlog/0474-investigate-why-about-2-3-percent-of-logged-in-loads-get-no-profile-login-timeouts/brief.md)), or he
   is playing as a guest / the Yandex SDK failed, so no profile loaded at all.
 - Approved nicknames are **unique, case-insensitive** (`players_display_name_uq`, migration `006`), so the approved
   nickname finds at most one record.

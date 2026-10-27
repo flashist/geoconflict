@@ -157,6 +157,10 @@ Now the predicate. **This block is the single source of truth** — an integrati
 against a real database, so the SQL here is tested SQL, not illustrative SQL. Edit it here and
 nowhere else.
 
+⚠️ **Needs migration `012` (`player_merges`).** On an older box the view fails with `relation
+"player_merges" does not exist`: drop the last clause (`and not exists ( … player_merges … )`),
+keeping the closing `;`.
+
 <!-- cleanup-sql:candidates -->
 ```sql
 -- `or replace` so an edited predicate actually takes effect on a re-paste instead of
@@ -204,7 +208,14 @@ where
   and not exists (select 1 from processed_purchases pp where pp.player_id = p.id)
   and not exists (select 1 from player_messages m where m.player_id = p.id)
   and not exists (select 1 from player_name_history nh where nh.player_id = p.id)
-  and not exists (select 1 from player_cosmetic_ownership co where co.player_id = p.id);
+  and not exists (select 1 from player_cosmetic_ownership co where co.player_id = p.id)
+  -- A profile in an owner-run merge (task 0503, ADR-128). A merged-away source keeps its row
+  -- with no identity and may hold nothing else, so it would otherwise look like junk; deleting
+  -- it would also cascade away its purchase-holder sightings, the merge's evidence.
+  and not exists (
+    select 1 from player_merges pm
+    where pm.into_player_id = p.id or p.id = any (pm.from_player_ids)
+  );
 ```
 
 `player_identities` rows go with the player automatically (`on delete cascade`), so they are
