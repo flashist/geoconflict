@@ -111,3 +111,4 @@ All plumbing for paid citizenship is in place and tested (87 suites / 690 tests 
 - [[systems/shared-purchase-flow]] — 2026-10-26: this pipeline generalised to every product (not deployed)
 - [[tasks/purchase-grant-registry]] — task `0492` (B1): the grant registry that keeps R2
 - [[tasks/shared-purchase-flow-design]] — task `0484`: the design built on this pipeline
+- [[decisions/adr-126-permanent-purchases-not-consumed]] — 2026-10-26: this build's "consume every purchase after the grant" is reversed for permanent products (citizenship, durable items) — committed in `0506`/`0510`, not deployed

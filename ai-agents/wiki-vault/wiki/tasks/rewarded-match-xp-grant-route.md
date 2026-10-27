@@ -53,3 +53,4 @@ Yandex documents **no server-side proof** of a rewarded view.
 - [[systems/player-profile-store]] — the profile box
 - [[tasks/profile-backup-restore-reproof-006]] — the drill's table inventory, updated here
 - [[decisions/sprint-9]] — the board (rank 20)
+- [[tasks/stop-consuming-profile-box-s1]] — task `0506`, 2026-10-26: this held profile code (migration `009`) deploys with S1

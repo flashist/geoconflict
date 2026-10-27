@@ -252,3 +252,4 @@ Absent those, a review finding of the form *"1 XP is a trivially small award"*, 
 - [[systems/project-brief]] — product ground truth that cites this economy
 - [[tasks/profile-p2-wire-game-server]] — task `0217`, whose 2026-09-26 go-live recorded 1 XP per real credit in production
 - [[tasks/after-deploy-production-checks]] — task `0296`, the production checks moved out of `0062`/`0017`/`0012` — all passed 2026-09-26
+- [[decisions/adr-128-owner-run-profile-merge]] — 2026-10-27: an owner-run merge must leave the kept record's XP no lower than the highest XP any merged record had ("move up, never down")

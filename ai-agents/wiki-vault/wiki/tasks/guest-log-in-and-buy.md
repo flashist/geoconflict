@@ -64,3 +64,4 @@ logs in with Yandex, and the game goes on to the payment window on the **same pa
 - [[tasks/session-verified-status-line]] — task `0397`, the Restart game button kept on `profile_unavailable`
 - [[systems/analytics]] — the `Purchase:Login:*` / `Continue:*` / `Blocked:*` events
 - [[decisions/sprint-9]] — the board (rank 24); B5 `0498` at 27
+- [[tasks/stop-consuming-client-s2]] — task `0510`, 2026-10-26: adds a `held_elsewhere` end to this flow (no payment window); `0498` now also depends on `0506` and `0510`

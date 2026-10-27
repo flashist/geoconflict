@@ -3,6 +3,21 @@
 **Layer**: shared
 **Key files**: `src/client/PurchaseCoordinator.ts`, `src/client/PurchaseOffer.ts`, `src/client/ProductPurchase.ts`, `src/client/ProductClientConfig.ts`, `src/client/PaymentsApiClient.ts`, `src/client/PaymentsReconciliation.ts`, `src/client/CitizenshipExplainerModal.ts`, `src/client/CitizenshipCard.ts`, `src/client/CitizenshipRestartOffer.ts`, `src/client/GameRestart.ts`, `src/client/flashist/FlashistFacade.ts`, `src/core/profile/PaymentsContract.ts`, `src/core/profile/PlayerProfile.ts`, `src/profile-server/PaymentsRepository.ts`, `src/profile-server/Routes.ts`, `src/profile-server/PublicProjection.ts`, `migrations/010_player_entitlements.sql`
 
+> ⛔ **2026-10-27 sync (`5f93b96`) — "consume after grant" is SUPERSEDED for permanent products** by
+> [[decisions/adr-126-permanent-purchases-not-consumed]] (owner-approved 2026-10-26), after a paying player lost his
+> profile to a Yandex player-ID change ([[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]).
+> - **Citizenship and durable items are never consumed**; a future consumable still is. The **server** names what to
+>   consume (`/complete` → `consume`; `/reconcile` → `consumeTokens`); the client consumes nothing else — so the
+>   `ProductPurchase.ts` row below ("→ consume (not awaited)") is history for permanent products.
+> - Reconcile now separates `grantedTokens` (fires the refresh event) from held purchases (quiet), and returns
+>   **`heldElsewhere`** for a verified caller whose purchase sits on another profile → a new offer and coordinator end
+>   state **`held_elsewhere`**: no Buy, a "write to us" line with Telegram + VK links, **no payment window**.
+> - Built: S1 server `0506` ([[tasks/stop-consuming-profile-box-s1]], `baaf2f8`), S2 client `0510`
+>   ([[tasks/stop-consuming-client-s2]], `f7ce268`) — **committed, NOT deployed**. The held B1–B4 deploy now ships
+>   **with** them (owner: *"Hold it"*). The game half waits on the owner's pre-release checks T1–T3 (`0512`; **T3 blocks**).
+> - The one way a purchase can change profile is the owner-run merge's `transferPurchase`
+>   ([[decisions/adr-128-owner-run-profile-merge]]).
+
 > 🏗️ **State on 2026-10-26 (`4e9160a`) — BUILT AND COMMITTED, NOT DEPLOYED, NOTHING CHECKED LIVE.** B1–B4
 > (`0492`, `0494`, `0495`, `0496`) are closed `(agent-closed — not owner-verified)`; B1/B2/B4 are in commit `a3c32b4`,
 > B3 in `4e9160a`. `git tag --contains` → **none** for both (newest tags: game `0.0.165`, profile `0.0.164-profile.2`).
@@ -115,3 +130,8 @@ kill switch (`0236`) is different: off ⇒ nothing can be bought or reconciled.
 - [[decisions/sprint-backlog]] — the Backlog board: follow-up `0501`, and the item builds `0486`, `0010`, `0011` that will plug in
 - [[systems/project-brief]] — `PROJECT.md`: citizenship as the monetization spine
 - [[tasks/nickname-styling-talk]] — task `0477`: where the all-purchases rule and this flow were asked for; `0486` will be the first item
+- [[tasks/stop-consuming-design]] — task `0505`, 2026-10-26: the design that supersedes "consume after grant" for permanent products
+- [[tasks/stop-consuming-profile-box-s1]] · [[tasks/stop-consuming-client-s2]] — tasks `0506` (S1) and `0510` (S2), the build (committed, not deployed)
+- [[decisions/adr-126-permanent-purchases-not-consumed]] · [[decisions/adr-127-consume-switch-source-setting]] — 2026-10-26
+- [[decisions/adr-128-owner-run-profile-merge]] — `transferPurchase`, the one way a purchase changes profile
+- [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — why consuming was reversed

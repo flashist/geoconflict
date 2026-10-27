@@ -1,9 +1,25 @@
 # ADR-113 — Profiles get our own random internal player id; platform logins map to it; login issues a stateless signed token from v1; account linking is deferred
 
 **Date**: 2026-09-15
-**Status**: accepted
+**Status**: accepted *(⛔ § Account linking superseded in part by [[decisions/adr-128-owner-run-profile-merge]], 2026-10-27 — owner-run merges only)*
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
+>
+> ⛔ **2026-10-27 sync (`5f93b96`) — § *Account linking* SUPERSEDED IN PART by [[decisions/adr-128-owner-run-profile-merge]]**
+> (accepted 2026-10-27; owner approved `0503`'s plan, *"Approve, all 7 as recommended (Recommended)"*).
+> `fkit-architect` added **append-only ⛔ pointers** at the Status line, in § *Account linking* (twice) and in Related;
+> the text above them is left byte-identical and the word `accepted` stands. What changed:
+> - **An owner-run, SSH-only merge command is built** (task `0503`, [[tasks/profile-merge-tool]]; committed, not
+>   deployed) and answers this ADR's three deferred questions **for that case only** — see ADR-128 § *Decision* 2.
+> - **"A merge audit table" is superseded:** migration `012` adds `player_merges`, one row per real merge, written in
+>   the merge's own transaction.
+> - **The other two choices stand:** still **no `merged_into` tombstone** (ADR-128 relies on the 24 h token life plus a
+>   required follow-up dry run) and still **no `unique (player_id, platform)`** (a merged record holds several Yandex
+>   identities).
+> - **Real account linking is still not built**, and the *"A second login method is scheduled"* trigger **stays
+>   armed** — ADR-128 does not fire it.
+> - Why it came up: [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — a paying player's Yandex id
+>   changed twice, leaving three records.
 >
 > 📝 **2026-10-07 (later) sync — point 6 CLARIFIED by [[decisions/adr-124-join-token]]** (accepted 2026-10-07; owner
 > *"Accept with answers (Recommended)"*). `fkit-architect` appended a 📝 pointer at point 6, a *"Note, 2026-10-07 —
@@ -208,3 +224,8 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/authenticated-profile-read]] — task `0250`: S3b branches the profile read on the session's `verified` claim
 - [[decisions/adr-124-join-token]] — 2026-10-07: point 6 clarified — the game server relays the session token on resolve, holds it in memory only, never the secret
 - [[tasks/join-token-identity-vouch]] — task `0332`, the build of that relay (committed, not deployed) 📌 *2026-10-08 lint: deployed since — profile side in `0.0.156-profile.4`, game side in game `0.0.157`, both 2026-10-08 (`0396` worklog); live read still owed — `0405`.*
+- [[decisions/adr-128-owner-run-profile-merge]] — ⛔ 2026-10-27: § *Account linking* superseded in part — owner-run merges built, `player_merges` audit table added; tombstone and uniqueness choices stand
+- [[decisions/adr-126-permanent-purchases-not-consumed]] — 2026-10-26: reconcile compares a verified caller with a receipt's holder; no route takes a player id (point 3 kept)
+- [[tasks/lost-citizenship-cause-checks]] — task `0502`: a paying player's Yandex id changed twice — three records under this model
+- [[tasks/profile-merge-tool]] — task `0503`: the owner-run merge command (committed, not deployed)
+- [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — the incident behind ADR-128

@@ -68,3 +68,4 @@ hand-off delay (5 s), and a `consumable` kind (coins) — designed only if `0480
 - [[tasks/guest-log-in-and-buy]] — B3
 - [[tasks/durable-items-entitlements]] — B4
 - [[decisions/sprint-9]] — the board (rank 17)
+- [[tasks/stop-consuming-design]] — task `0505`, 2026-10-26: supersedes this design's "consume after grant" for permanent products (ADR-126)

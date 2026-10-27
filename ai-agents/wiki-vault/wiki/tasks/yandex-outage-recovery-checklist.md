@@ -51,3 +51,4 @@ None — a recording-only checklist; no source written.
 - [[tasks/exit-confirm-popup]] — task `0437`, whose live check `0439` is item 4
 - [[systems/yandex-games-platform-rules]] — the platform this outage was on
 - [[decisions/sprint-8]] — the board (rank 37)
+- [[tasks/yandex-player-id-change-message]] — task `0508`, 2026-10-27: a later message to Yandex Games support, about a player-ID change

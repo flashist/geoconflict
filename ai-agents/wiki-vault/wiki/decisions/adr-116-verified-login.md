@@ -207,3 +207,4 @@ to the client — ADR-103 already says do not re-propose it).
 - [[decisions/adr-125-log-in-and-buy-skips-reload]] — 2026-10-24: leaves Decision 4 unchanged; item ownership ruled private too (OD-2)
 - [[systems/shared-purchase-flow]] — 2026-10-26: item ownership gets the same privacy as paid status (owner view only)
 - [[tasks/durable-items-entitlements]] — task `0496`: `entitlements` only on the verified owner view; `/intent` 409 only for a verified caller
+- [[decisions/adr-126-permanent-purchases-not-consumed]] — 2026-10-26: only a `vfy:true` caller is compared with a purchase's holder; "held elsewhere" is never shown to an unverified session

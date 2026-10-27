@@ -88,3 +88,4 @@ task no longer gates the `PROFILE_INTERNAL_TOKEN` set at the window; its binding
 - [[tasks/remove-game-name-from-player-texts]] — task `0311` (2026-09-28): the game name removed from player-facing texts, titles and install name
 - [[tasks/tenure-popup-never-over-match]] — task `0336` (2026-09-30): the thank-you popup never opens over a lobby or match, and a match start closes it
 - [[tasks/rewarded-match-xp-grant-route]] — task `0491`: the rewarded-ad XP route built in the same shape
+- [[tasks/lost-citizenship-cause-checks]] — task `0502`, 2026-10-27: a fresh record with a long browser history gets a tenure gift — the signature used to spot a Yandex player-ID change (check 7)

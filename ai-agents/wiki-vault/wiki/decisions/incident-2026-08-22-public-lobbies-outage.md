@@ -68,3 +68,4 @@ The investigation established a complete causal chain and split the response int
 - [[systems/project-brief]] — the current-focus picture this outage and the `0062` blocker reshaped
 - [[tasks/forward-profile-internal-token]] — task `0062`, the §9 token-forwarding loose end; closed 2026-09-23, not proven in production
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the §9 feedback-delivery follow-up, closed 2026-09-26
+- [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — 2026-10-27 sync: the next incident page — a paying player's Yandex player ID changed twice

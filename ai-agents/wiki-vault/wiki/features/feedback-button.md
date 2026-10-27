@@ -85,3 +85,5 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[tasks/feedback-remove-contact-field]] — Sprint 4 removal of the optional contact field (152-ФЗ data minimization)
 - [[tasks/feedback-telegram-delivery-failure]] — task `0061`, the production delivery-failure investigation and its retry fix
 - [[decisions/sprint-backlog]] — backlog task `0300`: what the player should see when delivery fails
+- [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — 2026-10-27 sync: the 2026-10-25 report that came only through this form (it carries the current display name only; `0509`, backlog, would add a stable player id)
+- [[tasks/one-player-message-popup]] — task `0507`: a way to write back to one player who reached us only through this form

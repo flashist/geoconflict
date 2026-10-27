@@ -182,3 +182,4 @@ who") counts as *"presented to players"* under ADR-115's re-raise trigger. Owner
 - [[tasks/verified-login-enforce]] — task `0340`, S3a: the verified session the token carries
 - [[tasks/join-token-identity-vouch-live]] — task `0405`: trigger 2 not hit (owner ruling 2026-10-10)
 - [[tasks/routes-it-test-verified-field]] — task `0431`: the integration test updated for the resolve reply's `verified` key
+- [[decisions/adr-128-owner-run-profile-merge]] — 2026-10-27: a session token minted for a merged-away source reads as `other_player` for up to 24 h — expected and harmless under Decision 5

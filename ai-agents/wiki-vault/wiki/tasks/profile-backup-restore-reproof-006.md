@@ -121,3 +121,4 @@ task, `0281` (move the backup `age` identity into the owner's password manager).
 - [[tasks/rewarded-match-xp-grant-route]] — task `0491`: migration `009`, a 12th drill table
 - [[tasks/durable-items-entitlements]] — task `0496`: migration `010`, the 13th drill table
 - [[systems/shared-purchase-flow]] — the deploy order `009` → `010` the drill now depends on
+- [[tasks/profile-merge-tool]] — 2026-10-27 sync: migrations `011` (`0506`) and `012` (`0503`) raise the drill inventory to **15 tables**; a box missing either → STOP before seeding (`profile-backup-restore-runbook.md`). Committed, not deployed

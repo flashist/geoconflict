@@ -43,3 +43,4 @@ one coordinator (logged-in path) and a per-product restart popup — with **no v
 - [[tasks/citizenship-restart-prompt]] — task `0303`, the popup made per-product here
 - [[tasks/citizenship-explainer-popup]] — task `0301`, whose Buy now goes through the coordinator
 - [[decisions/sprint-9]] — the board (rank 23)
+- [[tasks/stop-consuming-client-s2]] — task `0510`, 2026-10-26: the client consumes only what the server lists; new offer `held_elsewhere`

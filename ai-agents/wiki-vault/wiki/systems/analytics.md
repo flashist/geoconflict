@@ -3,6 +3,21 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 🆕 **2026-10-27 sync (`5f93b96`) — six new events and two new tap ids, all COMMITTED, NOT DEPLOYED** (live player
+> incident, [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]):
+> - **Player Message Events** (`0507`, [[tasks/one-player-message-popup]]): `PlayerMessage:Shown` (at most once per page
+>   load), `PlayerMessage:Closed`, `PlayerMessage:ClickTelegram`, `PlayerMessage:ClickVk` — none carries the player's
+>   name or the flag value. **Excluded flag:** `player_message_targets` produces **no** `Experiment:*` event
+>   (`EXPERIMENT_FLAGS_NOT_LOGGED` in `FlashistFacade.ts`), because its value is a list of player names.
+> - **Held on another profile** (`0510`, [[tasks/stop-consuming-client-s2]], ADR-126):
+>   `Purchase:HeldOnOtherProfile:Citizenship` (reconcile said the purchase is on another profile of this verified
+>   login), `Purchase:Blocked:OtherProfile:Citizenship` (a tap ended there instead of a payment window — a new funnel
+>   side exit), `UI:Tap:TelegramLinkHeldElsewhere`, `UI:Tap:VkLinkHeldElsewhere`.
+> - **Changed descriptions:** `Purchase:Completed:Citizenship` (the client consumes only on the server's
+>   `consume: true` — [[decisions/adr-126-permanent-purchases-not-consumed]]) and `Purchase:Continue:NeedsTap:Citizenship`
+>   (the held-elsewhere case).
+> - `git tag --contains` → none for `baaf2f8`, `f7ce268` (2026-10-27).
+
 > 🏗️ **2026-10-26 sync (`4e9160a`) — new events, all COMMITTED, NOT DEPLOYED** (`git tag --contains` → none for
 > `a3c32b4` and `4e9160a`), so none has fired in production:
 > - **Rewarded video (task `0488`)** — `Ad:Rewarded:{OfferShown,Pressed,Opened,Watched,ClosedEarly,Error,Unavailable}`,

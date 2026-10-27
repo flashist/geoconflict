@@ -51,3 +51,4 @@ with a test-only product string that is **not** added to `PAYMENT_PRODUCT_IDS`.
 - [[systems/player-profile-store]] — the store and the restore drill
 - [[tasks/profile-backup-restore-reproof-006]] — the drill's table inventory (now 13)
 - [[decisions/sprint-9]] — the board (rank 25); `0497` at 26
+- [[tasks/stop-consuming-profile-box-s1]] — task `0506`, 2026-10-26: durable items are never consumed either; this code now deploys with S1 (owner: *"Hold it"*)

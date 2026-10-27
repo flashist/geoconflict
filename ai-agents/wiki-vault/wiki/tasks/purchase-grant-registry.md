@@ -44,3 +44,4 @@ product's grant also makes the buyer a full paid citizen, **structurally**, whil
 - [[decisions/paid-items-purchase-rules]] — rule 2 (every purchase → paid citizen)
 - [[systems/player-profile-store]] — the profile box
 - [[decisions/sprint-9]] — the board (rank 21); `0493` at 22
+- [[tasks/stop-consuming-profile-box-s1]] — task `0506`, 2026-10-26: builds on this registry; the held B1 code deploys with S1; `0493` now also depends on `0506`

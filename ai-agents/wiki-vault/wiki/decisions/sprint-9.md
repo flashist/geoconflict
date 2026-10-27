@@ -3,6 +3,38 @@
 **Date**: 2026-10-16
 **Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-16`** — started by owner ruling *"Start it now (Recommended)"*; was ~~`🔲 Backlog — 2026-10-16` — created, NOT started~~)*
 
+> 🚨 **2026-10-27 sync (`5f93b96`) — 40 ROWS — 26 `✅ Done` · 1 `🔄 In progress` · 10 `🔲 Backlog` · 3 `➡️ Moved`; 11
+> OPEN** (counted by me by each row's leading status glyph; was 28 / 6). Twelve rows (ranks 29–40, `0502`–`0513`) were
+> added **out of band** on 2026-10-26/27 for a **live player incident** —
+> [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — on the owner's ruling **"Merge tool + stop
+> consuming"** (relayed by `fkit-lead`). Every rank is **append rank, flagged** for owner confirmation (ADR-035). Every
+> close is **agent-closed — not owner-verified**. Still **no theme name and no goal**.
+>
+> | Rank | Task | Status (2026-10-27) | Vault |
+> |---|---|---|---|
+> | 29 | `0502` read-only checks: the two-record cause | ✅ 2026-10-27 — outcome **(A)**, three profiles | [[tasks/lost-citizenship-cause-checks]] |
+> | 30 | `0503` owner-run profile merge tool | ✅ 2026-10-27 — committed `962f427`, **not deployed** | [[tasks/profile-merge-tool]] |
+> | 31 | `0504` restore the affected player with the merge tool | 🔲 Backlog — waits on Yandex's answer | [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] |
+> | 32 | `0505` design + ADR: stop consuming | ✅ 2026-10-26 — ADR-126 accepted | [[tasks/stop-consuming-design]] |
+> | 33 | `0506` S1 profile box | ✅ 2026-10-26 — committed `baaf2f8`, **not deployed** | [[tasks/stop-consuming-profile-box-s1]] |
+> | 34 | `0507` one-player message popup | ✅ 2026-10-26 — committed `baaf2f8`, **not deployed** | [[tasks/one-player-message-popup]] |
+> | 35 | `0508` message to Yandex Games | ✅ 2026-10-27 — sent; answer pending | [[tasks/yandex-player-id-change-message]] |
+> | 36 | `0509` stable player id in feedback | 🔲 Backlog | [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] |
+> | 37 | `0510` S2 client | ✅ 2026-10-26 — committed `f7ce268`, **not deployed** | [[tasks/stop-consuming-client-s2]] |
+> | 38 | `0511` S1v verify `0506` live | 🔲 Backlog | [[tasks/stop-consuming-profile-box-s1]] |
+> | 39 | `0512` S2v: T1–T3 on the Yandex test copy (T3 blocks the game deploy), then live | 🔲 Backlog | [[tasks/stop-consuming-client-s2]] |
+> | 40 | `0513` verify `0507` live | 🔲 Backlog | [[tasks/one-player-message-popup]] |
+>
+> - **Unchanged since the previous sync:** `0455` 🔄; `0234`, `0493`, `0497`, `0498`, `0499` 🔲. **Deploy hold** (owner,
+>   *"Hold it"*, 2026-10-26): the committed purchase-flow code (`0491`/`0492`/`0494`/`0495`/`0496`/`0488`) now ships
+>   **with** S1/S2; `0493`, `0497`, `0498`, `0499` gained `0506` (and the last three `0510`) as dependencies.
+> - **Deploy order** ([[decisions/adr-127-consume-switch-source-setting]]): profile box (held code + `0506` + `0503`,
+>   migrations `009`–`012`) to the **live** box first → `0511` → `0512` part (a) → the game deploy (`0510`, `0507`, held
+>   client code). `git tag --contains` → **none** for `baaf2f8`, `f7ce268`, `cc52296`, `962f427`, `5f93b96` (checked
+>   2026-10-27; newest tags game `0.0.165`, profile `0.0.164-profile.2`).
+> - ⚠️ `0502` closed with checks 3 and 6 in substance only and check 8 skipped, on `fkit-lead`'s instruction — not an
+>   owner ruling. Its check 7 was run after the close (counts only).
+
 > 🆕 **2026-10-26 (latest, `4e9160a`) — 28 ROWS — 19 `✅ Done` · 1 `🔄 In progress` · 5 `🔲 Backlog` · 3 `➡️ Moved`; 6
 > OPEN** (counted by me by each row's leading status glyph; was 9 / 9). Every close is **agent-closed — not
 > owner-verified**. Still the only sprint in progress; **still no theme name and no goal** (the owner's to set). The
@@ -135,3 +167,6 @@ text, verbatim: ***"Create Sprint 9 board and move the task there"*** (relayed b
 - [[decisions/adr-125-log-in-and-buy-skips-reload]] — recorded during `0484`
 - [[decisions/paid-items-purchase-rules]] — ruled during the `0343` / `0477` talks
 - [[decisions/adr-112-free-xp-grants]] — amended 2026-10-24 for the rewarded-ad bonus
+- [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — 2026-10-27: the live player incident behind ranks 29–40
+- [[decisions/adr-126-permanent-purchases-not-consumed]] · [[decisions/adr-127-consume-switch-source-setting]] · [[decisions/adr-128-owner-run-profile-merge]] — the three ADRs recorded inside this sprint (2026-10-26/27)
+- [[tasks/lost-citizenship-cause-checks]] · [[tasks/profile-merge-tool]] · [[tasks/stop-consuming-design]] · [[tasks/stop-consuming-profile-box-s1]] · [[tasks/one-player-message-popup]] · [[tasks/yandex-player-id-change-message]] · [[tasks/stop-consuming-client-s2]] — tasks `0502`, `0503`, `0505`, `0506`, `0507`, `0508`, `0510`

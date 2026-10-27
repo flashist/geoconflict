@@ -206,3 +206,4 @@ conflate the two reasons A4 waited — one is cleared, one is not.**
 - [[tasks/profile-identity-s3-game-server-resolve-and-credit]] — S3, task `0272`, closed 2026-09-26
 - [[tasks/profile-identity-s4-client-login-session]] — S4, task `0273`, closed 2026-09-26
 - [[tasks/alert-delivery-after-idle]] — task `0289`, amendment A1 (idle-period delivery), closed 2026-10-01 bounded to 4 h 36 min
+- [[decisions/adr-127-consume-switch-source-setting]] — 2026-10-26: the consume-permanent switch deliberately does NOT copy this page's remembered env-var switch; it is a committed constant (not precedent for moving this one)

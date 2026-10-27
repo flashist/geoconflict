@@ -3,6 +3,30 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🚨 **2026-10-27 sync (`5f93b96`) — live player incident; three new profile-box pieces COMMITTED, NOT DEPLOYED.**
+> See [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]: a paying player's Yandex player ID changed
+> twice (2026-10-22, 2026-10-25), so his logins landed on two fresh empty records while his paid citizenship and
+> nickname stayed on the old one (outcome A of `0502`, [[tasks/lost-citizenship-cause-checks]]).
+> - **Owner-run merge command** (`0503`, [[tasks/profile-merge-tool]], [[decisions/adr-128-owner-run-profile-merge]]):
+>   `npm run merge-profiles -- dry-run | commit --into … --from …` inside the profile image, SSH-only, no route, never
+>   automatic; `transferPurchase` in `PaymentsRepository.ts` becomes the **second writer of paid state from receipts**;
+>   migration **`012_player_merges.sql`** audits every real merge. Runbook: `ai-agents/knowledge-base/profile-merge-runbook.md`.
+>   ADR-113's "no merge audit table" is superseded; no tombstone, no `unique (player_id, platform)` still stand.
+> - **Stop consuming permanent purchases, server half** (`0506`, [[tasks/stop-consuming-profile-box-s1]],
+>   [[decisions/adr-126-permanent-purchases-not-consumed]]): `/complete` answers `consume`, `/reconcile` answers
+>   `grantedTokens` / `consumeTokens` / `heldElsewhere` with an optional verified caller; migration
+>   **`011_purchase_holder_sightings.sql`**; shadow counters for payload `issuedAt` and entry `status`.
+> - **The safety switch is a committed constant** (`CONSUME_PERMANENT_PURCHASES = false` in
+>   `src/profile-server/ConsumePermanentSetting.ts`, [[decisions/adr-127-consume-switch-source-setting]]); flip = edit
+>   it and its pinning test, commit, redeploy the box. ⚠️ One-way per purchase. Its runbook section is in
+>   `profile-backup-restore-runbook.md` (*Payments safety setting*). ⚠️ **There is no dev profile box** — S1 goes to the
+>   live box first.
+> - **Schema now 15 base tables** (restore-drill inventory, `profile-backup-restore-runbook.md`; a box missing `011` or
+>   `012` → STOP before seeding). The junk-profile cleanup gains a `not exists player_merges` clause.
+> - **Deploy:** one profile-image deploy will carry the held `0491`/`0492`/`0496` (migrations `009`/`010`), `0506`
+>   (`011`) and `0503` (`012`) together — weekend slot unless urgent. `git tag --contains` → none for `baaf2f8`,
+>   `962f427` (checked 2026-10-27). Live checks `0511`, `0493`, `0497`; first merge use `0504` waits on Yandex.
+
 > 🏗️ **2026-10-26 sync (`4e9160a`) — the clean-slate epic is CLOSED, and new profile-box code is COMMITTED, NOT
 > DEPLOYED.**
 > - **Closed 2026-10-20** (agent-closed — not owner-verified, owner ruling *"Yes, close all 5 (Recommended)"*): `0385`

@@ -62,3 +62,5 @@ restore exactly.
 - [[tasks/tester-roles-live]] — task `0430`, the first live run (passed)
 - [[tasks/backup-dryrun-minio-image]] — task `0436`, the full backup dry-run with migration `008`
 - [[tasks/name-change-review-walkthrough]] — task `0350`, a third operator command built in the same shape
+- [[decisions/adr-128-owner-run-profile-merge]] — 2026-10-27: the merge command copies this command's SSH-only shape; tester-role stays the one flag-only exception to paid state's writers; a record with a tester snapshot is refused by the merge
+- [[tasks/profile-merge-tool]] — task `0503`, the second SSH-only command in the profile image
