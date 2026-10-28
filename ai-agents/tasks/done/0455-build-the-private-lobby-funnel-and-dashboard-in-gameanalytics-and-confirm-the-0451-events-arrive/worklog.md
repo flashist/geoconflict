@@ -98,3 +98,11 @@ Funnels are not a dashboard widget type here as far as seen; the dashboard links
 
 **Verification 6 — owner has seen them: ⏳ not yet** (the owner made the call; a look at the saved funnels/dashboard is
 owed). Nothing else was saved, shared or exported; the agent's page zoom (a view-only change in the browser) was reset.
+
+## 2026-10-28 — verification 6 met: the owner has seen them; closed (spawned `fkit-producer`, agent-closed — not owner-verified)
+
+The `fkit-lead` session relayed the producer's status line *"0455: the private-lobby funnels and dashboard are saved. The only step left is you looking at them."* The owner typed in reply, verbatim, on **2026-10-28**, in the **`fkit-lead` Claude Code session** (relayed to a spawned `fkit-producer` with no owner channel, ADR-021/037):
+
+> **"I looked at them, we're good here"**
+
+That is the owner's verification of step 6 (*"the owner has seen them"*): ✅ **met**. With it, every verification step is recorded. Closed via `/fkit-task-done` with the marker `✅ Done (agent-closed — not owner-verified)`: the skill gives the plain `✅ Done` only to an owner-present producer session (ADR-033 §5); a spawned producer is an agent even when it relays the owner's own words. The owner's look is recorded here; the owner can upgrade the marker by running `/fkit-task-done` himself.

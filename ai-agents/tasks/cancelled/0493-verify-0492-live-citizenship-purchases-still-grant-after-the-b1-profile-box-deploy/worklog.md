@@ -20,3 +20,9 @@ expected result here, not "consumed". Profile box version not read (see 0511).
 
 **Not closed.** Open: the "not consumed" half of step 1 (look at Yandex's purchase list, or the network tab), step 2,
 step 3, step 4 (box-log read incl. `reconcile entry failed`), the profile box version.
+
+## 2026-10-28 — cancelled (spawned `fkit-producer`, relayed owner ruling; agent-closed — not owner-verified)
+
+OWNER RULING in the `fkit-lead` session, relayed (ADR-021/037); ⛔ not producer precedent: the hand-run live checks are replaced by a metrics read — task `0516` (GameAnalytics, on or after 2026-11-03). Option picked: **"The 4 purchase ones (Recommended)"**. The 2026-10-27 results above stand as recorded; `0516`'s Context summarises them.
+
+Where the open steps went: step 4 (no reconcile 500s, plus the `reconcile entry failed` grep) → `0511` step 8; the profile box version (step 5) → `0511` step 7 (already there); the game client version → `0511` step 9; step 3 (a stray purchase still granted) → `0511` step 11, as passive counter evidence only. Step 1's "not consumed" half, step 2 and a purchase-driven step 3 need a paid purchase: not carried. The client-side metrics → `0516` step 2.

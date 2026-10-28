@@ -35,7 +35,7 @@ Sprint 9
 > highest (48, `0454`), never inserted (ADR-035) — a position, not merit.
 
 ## Status
-🔄 In progress — 2026-10-24, OWNER RULING, live `AskUserQuestion` in the lead session 2026-10-24, relayed by `fkit-lead` to a spawned `fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Asked *"Change 0469 and 0455 from Backlog to In progress, since work has started on both?"* → verbatim **"Mark both In progress (Recommended)"** (option text: *"Changes only the label on the board and in both briefs. Both stay in Sprint 9."*). Status edit only: no move, no rank change.
+✅ Done (agent-closed — not owner-verified)
 
 *(Status until 2026-10-24, kept as history:)* ~~🔲 Backlog~~
 

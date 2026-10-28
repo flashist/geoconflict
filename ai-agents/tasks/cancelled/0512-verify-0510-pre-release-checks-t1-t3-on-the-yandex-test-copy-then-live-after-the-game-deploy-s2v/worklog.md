@@ -78,3 +78,9 @@ purchase is now kept at Yandex, so a non-citizen role there would offer a real s
 those checks, **not a ruling on T2**. How to get a paid purchase for T2 is still open with the owner.
 
 **Still open:** T2 (step 2), counters (step 7), T4 / purchase-list half of step 6 / profile box version as recorded above.
+
+## 2026-10-28 — cancelled (spawned `fkit-producer`, relayed owner ruling; agent-closed — not owner-verified)
+
+OWNER RULING in the `fkit-lead` session, relayed (ADR-021/037); ⛔ not producer precedent: the hand-run live checks are replaced by a metrics read — task `0516` (GameAnalytics, on or after 2026-11-03). Option picked: **"The 4 purchase ones (Recommended)"**. The 2026-10-27 results above stand as recorded; `0516`'s Context summarises them.
+
+Where the open steps went: step 7 (server counters move) → `0511` step 4 (already there); a re-read of `purchase_holder_sightings` (T3 evidence) → `0511` step 10; versions (step 8) → `0511` steps 7 and 9. T2 and T4 stay unproven; step 6's purchase-list half stays unproven. Client side → `0516`.

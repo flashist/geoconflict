@@ -39,3 +39,9 @@ the deployed version in step 7.
 
 ⚠️ **Steps 3 and 4 need a real completed purchase** on a non-citizen. With the tester role that is the older account, and
 paying would be a real charge unless it is a Yandex test purchase. How to run it is the owner's call; no ruling yet.
+
+## 2026-10-28 — cancelled (spawned `fkit-producer`, relayed owner ruling; agent-closed — not owner-verified)
+
+OWNER RULING in the `fkit-lead` session, relayed (ADR-021/037); ⛔ not producer precedent: the hand-run live checks are replaced by a metrics read — task `0516` (GameAnalytics, on or after 2026-11-03). Option picked: **"The 4 purchase ones (Recommended)"**. The 2026-10-27 results above stand as recorded; `0516`'s Context summarises them.
+
+Where the open steps went: no server-side step. The game client version (step 7) → `0511` step 9. Steps 1(ii)–(iii) and 3–6 → `0516` steps 2–3 at metrics level (incl. the `Continue:Ready` time that tunes `AUTO_CONTINUE_DEADLINE_MS`). What metrics cannot show is listed in `0516`.

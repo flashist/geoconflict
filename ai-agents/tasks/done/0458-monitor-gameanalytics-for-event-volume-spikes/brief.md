@@ -114,7 +114,7 @@ read of 2026-10-14 (its [findings report](../../../knowledge-base/reports/2026-1
 - **One brief:** a single read-and-log check; nothing in it ships separately.
 - **Related (background only):** [`0230`](../../backlog/0230-investigate-3-4-sep-gameanalytics-per-user-event-spike/brief.md)
   (why the spikes happen — open), `0456` (the investigation this comes from), `0418` and
-  [`0455`](../../backlog/0455-build-the-private-lobby-funnel-and-dashboard-in-gameanalytics-and-confirm-the-0451-events-arrive/brief.md) (other GameAnalytics
+  [`0455`](../../done/0455-build-the-private-lobby-funnel-and-dashboard-in-gameanalytics-and-confirm-the-0451-events-arrive/brief.md) (other GameAnalytics
   reads in the owner's Chrome — a check could share one sitting with them).
 - **If the `Platform` events ever change**, re-check with the owner that the `Platform` ÷ sessions comparison still
   means what it means today before relying on it.

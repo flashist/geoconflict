@@ -40,12 +40,12 @@ All seven on **Sprint 9** (OD-4), each with canonical `**Depends on:**` lines (r
 | Spec id | Task | Depends on |
 |---|---|---|
 | B1 | [`0492`](../../done/0492-profile-box-product-grant-registry-becamepaidcitizen-and-per-entry-reconcile-b1/brief.md) | 0484 |
-| B1v | [`0493`](../../backlog/0493-verify-0492-live-citizenship-purchases-still-grant-after-the-b1-profile-box-deploy/brief.md) | 0492 (and its profile-box deploy) |
+| B1v | [`0493`](../../cancelled/0493-verify-0492-live-citizenship-purchases-still-grant-after-the-b1-profile-box-deploy/brief.md) | 0492 (and its profile-box deploy) |
 | B2 | [`0494`](../0494-client-shared-purchase-core-offer-product-purchase-coordinator-and-per-product-restart-popup-b2/brief.md) | 0484 |
 | B3 | [`0495`](../0495-client-guest-log-in-and-buy-continues-straight-into-the-purchase-citizenship-first-b3/brief.md) | 0494 |
 | B4 | [`0496`](../0496-durable-items-base-entitlements-migration-item-grant-branch-private-ownership-and-already-owned-refusal-b4/brief.md) | 0492 |
 | B4v | [`0497`](../../backlog/0497-verify-0496-live-entitlements-migration-applied-and-ownership-stays-private-after-the-b4-deploy/brief.md) | 0496 (and its deploys) |
-| B5 | [`0498`](../../backlog/0498-verify-0495-live-inside-yandex-guest-log-in-and-buy-opens-the-payment-window-with-no-second-tap/brief.md) | 0495 (and its game deploy) |
+| B5 | [`0498`](../../cancelled/0498-verify-0495-live-inside-yandex-guest-log-in-and-buy-opens-the-payment-window-with-no-second-tap/brief.md) | 0495 (and its game deploy) |
 
 **Re-pointed item builds (OD-3, "Full flow, B3 + B4 (Recommended)"):** `0486`, `0010` and `0011` now wait on
 **`0495` + `0496`** instead of `0484` (their other blockers kept). Recorded in the Sprint 9 addendum for `0492`–`0498`

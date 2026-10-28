@@ -47,3 +47,9 @@ No Yandex moderation message reported.
 
 **Not closed.** Open: step 3's "only once" part, 4, 5, 6's "sound comes back", 7, 8, 9, and the deployed versions in
 step 1.
+
+## 2026-10-28 — cancelled (spawned `fkit-producer`, relayed owner ruling; agent-closed — not owner-verified)
+
+OWNER RULING in the `fkit-lead` session, relayed (ADR-021/037); ⛔ not producer precedent: the hand-run live checks are replaced by a metrics read — task `0516` (GameAnalytics, on or after 2026-11-03). Option picked: **"The 4 purchase ones (Recommended)"**. The 2026-10-27 results above stand as recorded; `0516`'s Context summarises them.
+
+Where the open steps went: no server-side step. Versions (step 1) → `0511` steps 7 and 9. Steps 3 ("only once"), 4–7 and 9 → `0516` steps 5–7; step 8 (YAN) → `0516` step 8. Sound coming back and the same-page interstitial stay indirect only.

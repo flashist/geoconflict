@@ -28,7 +28,7 @@ Sprint 9
 > renumbered.
 
 ## Status
-🔄 In progress
+⛔ Cancelled (agent-closed — not owner-verified) (2026-10-28) — Hand-run live verification replaced by GameAnalytics metrics verification in `0516` (owner ruling 2026-10-28, relayed by `fkit-lead`); server-side read-only steps folded into `0511`
 
 > 2026-10-27 — live checks partly run by the owner (relayed by `fkit-lead`; recorded by a spawned `fkit-producer`). Results and what is still open: [`worklog.md`](worklog.md). Not closed: verification steps not all met.
 

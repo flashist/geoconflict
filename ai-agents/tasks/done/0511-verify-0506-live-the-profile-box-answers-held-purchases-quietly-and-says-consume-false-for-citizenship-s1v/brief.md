@@ -31,7 +31,7 @@ Sprint 9
 > Appended after the board's highest rank (37), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
 
 > 2026-10-27 — live checks partly run by the owner (relayed by `fkit-lead`; recorded by a spawned `fkit-producer`). Results and what is still open: [`worklog.md`](worklog.md). Not closed: verification steps not all met.
 
@@ -89,11 +89,41 @@ Nothing. A live check, recorded in this folder's `worklog.md`.
    never a box setting.
 7. The worklog records the date, the deployed version, and each result; no connection strings, endpoints or keys.
 
+> ➕ **2026-10-28 — steps 8–12 folded in from cancelled tasks, OWNER RULING** given via `AskUserQuestion` in the
+> `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037); ⛔ not producer precedent. Asked *"Which
+> hand-run check tasks should the producer cancel?"* → **"The 4 purchase ones (Recommended)"** — option text: *"Cancel
+> 0493, 0498, 0499, 0512. Keep 0511 (server checks, no purchase); their server-side steps move into 0511. Knock-on: none
+> (checked)."* Only **server-side, read-only, no-purchase** steps came here. The client side went to
+> [`0516`](../../backlog/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/brief.md)
+> (GameAnalytics read, on or after 2026-11-03). Nothing that needs a paid purchase was added. Steps already here that
+> the cancelled tasks also asked for are not repeated: server counters (`0512` step 7 = step 4 above), profile box
+> version (`0493` step 5, `0512` step 8 = step 7 above).
+
+8. **No reconcile 500s, and no `reconcile entry failed` lines** in the profile box logs since the 2026-10-27 deploy —
+   or their count, if any. *(From
+   [`0493`](../../cancelled/0493-verify-0492-live-citizenship-purchases-still-grant-after-the-b1-profile-box-deploy/brief.md)
+   step 4 and its knock-on note from `0492`'s plan: after B1 a failing entry no longer gives a 500, so the grep is the
+   real check. Each such line carries the token's first 8 characters only; do not copy them into the worklog.)*
+9. **Which game client version is live** (`0.0.166` or `0.0.167` — both version-bump commits are dated 2026-10-27;
+   unconfirmed), read on the game box, read-only. *(From `0493` step 5,
+   [`0498`](../../cancelled/0498-verify-0495-live-inside-yandex-guest-log-in-and-buy-opens-the-payment-window-with-no-second-tap/brief.md)
+   step 7, [`0499`](../../cancelled/0499-verify-0491-and-0488-live-the-rewarded-ad-doubles-match-xp-inside-yandex-after-both-deploys/brief.md)
+   step 1, [`0512`](../../cancelled/0512-verify-0510-pre-release-checks-t1-t3-on-the-yandex-test-copy-then-live-after-the-game-deploy-s2v/brief.md)
+   step 8.)*
+10. **`purchase_holder_sightings` re-read** at the time of this read: the count only, no ids. Since S2 shipped a
+    non-zero count is possible; it is expected only for players with two profiles on one Yandex login. *(From `0512`
+    step 3 — the T3 evidence was this count staying 0.)*
+11. **Passive evidence that reconcile still grants a stray purchase:** if the reconcile outcome counters (step 4) show
+    any grant outcome since the deploy, record it. If none, this stays unproven — no purchase is made for it. *(From
+    `0493` step 3, which needed a never-completed purchase on a non-citizen account.)*
+12. The worklog says, for each of steps 8–11, which cancelled task it came from.
+
 ## Notes
 
 - **Depends on:** 0506
 - **Blocks:** nothing
-- **Related:** `0493` (run together), `0512` (S2v), `0502` (its read-only checks could also count payloads with
+- **Related:** `0493` (run together — ⛔ cancelled 2026-10-28), `0512` (S2v — ⛔ cancelled 2026-10-28), `0516` (the
+  GameAnalytics read that replaces them), `0502` (its read-only checks could also count payloads with
   `issuedAt`, spec §14 item 2).
 - **Ships by:** nothing ships; it follows the profile-box deploy (weekend slot unless urgent).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.
