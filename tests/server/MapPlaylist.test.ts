@@ -48,7 +48,8 @@ function testGameConfig(): GameConfig {
 describe("MapPlaylist", () => {
   test("regular public team counts are capped at 4", () => {
     expect(REGULAR_TEAM_COUNTS).toEqual([2, 3, 4]);
-    expect(TEAM_COUNTS).toEqual([2, 3, 4, HumansVsNations, Duos, Trios, Quads]);
+    expect(TEAM_COUNTS).toEqual([2, 3, 4, Duos, Trios, Quads]);
+    expect(TEAM_COUNTS).not.toContain(HumansVsNations);
     expect(TEAM_COUNTS).not.toContain(5);
     expect(TEAM_COUNTS).not.toContain(6);
     expect(TEAM_COUNTS).not.toContain(7);
@@ -76,6 +77,25 @@ describe("MapPlaylist", () => {
       expect(gameConfig.playerTeams).toBeDefined();
       expect(TEAM_COUNTS).toContain(gameConfig.playerTeams);
       expect([5, 6, 7]).not.toContain(gameConfig.playerTeams);
+    }
+  });
+
+  test("generated public team configs never use Humans Vs Nations and keep NPCs off", () => {
+    const playlist = new MapPlaylist(false);
+    const seenTeamCounts = new Set<GameConfig["playerTeams"]>();
+
+    for (let i = 0; i < 300; i++) {
+      const gameConfig = playlist.gameConfig();
+      expect(gameConfig.playerTeams).not.toBe(HumansVsNations);
+
+      if (gameConfig.gameMode === GameMode.Team) {
+        expect(gameConfig.disableNPCs).toBe(true);
+        seenTeamCounts.add(gameConfig.playerTeams);
+      }
+    }
+
+    for (const teamCount of [2, 3, 4, Duos, Trios, Quads]) {
+      expect(seenTeamCounts).toContain(teamCount);
     }
   });
 

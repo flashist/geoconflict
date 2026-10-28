@@ -164,6 +164,9 @@ migration later.
 - **Positive:**
   - one internal key everywhere;
   - Yandex ids leave request URLs, logs and Telegram operator commands;
+    > 📝 **2026-10-28 — clarified: this does not cover in-game feedback messages**, which carry the raw Yandex id by
+    > owner ruling (task `0509`). Logs stay id-free. See § *Note, 2026-10-28 — feedback messages*. Bullet above left
+    > byte-identical.
   - verification later is a change at login;
   - multi-login needs no reshape.
 - **Negative:**
@@ -267,6 +270,40 @@ this ADR changes; Status stays `accepted`.**
 - `verified` changes nothing the game server grants today — the owner kept every use open to unverified players
   (ADR-124 Decision 5).
 
+## Note, 2026-10-28 — feedback messages carry the raw Yandex id; the Consequences gain does not cover them
+
+**Added 2026-10-28 by `fkit-architect`, spawned by `fkit-lead` (`/fkit-sprint-ship-loop`, Sprint 9), for task `0509`
+(plan step 6), under `decisions/README.md`'s clarification carve-out.** Append-only; the 📝 pointer under
+*Consequences → Positive* leads here. **No decision in this ADR changes; Status stays `accepted`.**
+
+**The owner ruling** (relayed by `fkit-lead`; the architect did not hear it first-hand): asked via `AskUserQuestion`
+in the lead session on 2026-10-28, the owner chose verbatim **"Raw Yandex id"**, whose description read, verbatim:
+*"The id itself in Telegram. Simplest lookup; a real platform id sits in a third-party chat."* He then approved the
+`0509` plan (**"Approve plan (Recommended)"**).
+
+**What the Consequences bullet covers.** *"Yandex ids leave request URLs, logs and Telegram operator commands"*
+describes what this ADR's design achieved for the channels it re-keyed. "Telegram operator commands" meant the
+operator routes and the name-change ready-to-paste Telegram command, which take `playerId`
+([`../reports/2026-09-15-profile-identity-design.md`](../reports/2026-09-15-profile-identity-design.md) §
+*Operator routes*). The in-game feedback message was never in that scope. Nothing in § *Decision* governs it.
+
+**Clarified scope, from `0509`:**
+- **In-game feedback messages carry the raw Yandex id**, labelled *client-reported, unverified*. It goes to the
+  Telegram feedback chat, and to the feedback webhook if one is ever set (blank in production at this writing,
+  as relayed). Code: `describePlayerReference` in the `/api/feedback` route (`src/server/Master.ts`); the client
+  reads the id through `resolveFeedbackPlayerReference` (`src/client/FeedbackPlayerReference.ts`) from
+  `FlashistFacade.getYandexUniqueId()`, which returns the SDK's `getUniqueID()`.
+- **Logs stay id-free.** The stdout fallback (used only when neither webhook nor Telegram is set) writes only the
+  reference's `kind` (`playerReference: d.playerReference?.kind ?? "not sent"` in the same route). The webhook and
+  Telegram error log lines carry no message content.
+- **Point 3 is unchanged.** The internal player id is not involved: no client sends it, and `/api/feedback` accepts
+  only a platform id, as `POST /v1/login` already does.
+- **This is a clarification, not a reversal**, so no superseding ADR is needed. It narrows how one Consequences
+  bullet reads; it undoes no choice in § *Decision*.
+
+**Accepted trade-off, stated honestly:** a real platform id now sits in a third-party chat. A fingerprint would have
+identified the player with less exposure; the owner chose the raw id for the simpler lookup.
+
 ## Related
 
 - `../reports/2026-09-15-profile-identity-design.md` (slices in §9)
@@ -280,3 +317,5 @@ this ADR changes; Status stays `accepted`.**
   (join token, task `0332`) — point 6 clarified; see § *Note, 2026-10-07 — ADR-124*.
 - ⛔ Added 2026-10-27: [ADR-128](adr-128-owner-run-profile-merge-tool-paid-state-moves-only-via-transfer-purchase-merges-are-audited.md)
   (owner-run profile merge tool, task `0503`) — § *Account linking* superseded in part; see the ⛔ pointers there.
+- 📝 Added 2026-10-28: task `0509` (raw Yandex id in feedback messages) — a Consequences bullet clarified; see §
+  *Note, 2026-10-28 — feedback messages*.

@@ -66,7 +66,7 @@ and the `/flags` assets are deliberately switched off (project memory). No optio
 Badges (earned only, from the `0482` talk) will sit next to names **beside the ★**. `0489` uses the ★ as its style
 reference and must not be confused with it. So every option here must say how it would sit next to a badge, and must
 stay clearly different from one. Neither task waits on the other; the badge set itself is not chosen yet (it comes
-after [`0234`](../0234-leaderboard-core-system-definition/brief.md)'s findings — see `0482`'s
+after [`0234`](../../done/0234-leaderboard-core-system-definition/brief.md)'s findings — see `0482`'s
 [worklog](../../done/0482-discussion-leaderboard-rewards-badges-earned-only-or-sold-and-outcome/worklog.md), batch 3).
 
 **Technical unknown, not a dependency: text or image?** An option that is an image (SVG or bitmap) instead of a text

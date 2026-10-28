@@ -1,7 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import version from "../version";
+import { resolveFeedbackPlayerReference } from "./FeedbackPlayerReference";
 import {
+  FlashistFacade,
   flashist_logEventAnalytics,
   flashistConstants,
 } from "./flashist/FlashistFacade";
@@ -273,6 +275,9 @@ export class FeedbackModal extends LitElement {
     const username = usernameEl?.getCurrentUsername() ?? "";
 
     const deviceInfo = this.collectDeviceInfo();
+    const playerReference = await resolveFeedbackPlayerReference(
+      FlashistFacade.instance,
+    );
 
     const payload = {
       category: this.category,
@@ -285,6 +290,7 @@ export class FeedbackModal extends LitElement {
       username: username || undefined,
       deviceInfo: Object.keys(deviceInfo).length > 0 ? deviceInfo : undefined,
       recentMatchIds: this.getRecentMatchIds(),
+      playerReference,
     };
 
     try {

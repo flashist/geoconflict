@@ -17,7 +17,7 @@ Sprint 9
 ~~Sprint backlog — no sprint home yet. Filed on [`sprint-backlog.md`](../../../sprints/sprint-backlog.md),
 where the `Task 7 — Leaderboard: Core System` row already lives; this brief fills that row's
 previously-empty `None — see plan-index` Brief cell. **The row was not moved to another board** — task
-[`0001`](../0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) owns board consolidation.~~
+[`0001`](../../backlog/0001-consolidate-unsprinted-work-onto-backlog-board/brief.md) owns board consolidation.~~
 
 ## Priority
 19
@@ -27,7 +27,7 @@ previously-empty `None — see plan-index` Brief cell. **The row was not moved t
 > ~~Unscheduled~~ until 2026-10-24.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer
@@ -52,7 +52,7 @@ fkit-producer
 > ✅ **Not a duplicate — verified 2026-09-08 by reading both, so nobody re-derives it:**
 > - [`0161-leaderboard-player-count`](../../done/0161-leaderboard-player-count/brief.md) (**done**) only
 >   shows a **human player count in a "Players Only" label**. It is not a ranking system.
-> - [`0210-singleplayer-platform-leaderboard-reporting-policy`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)
+> - [`0210-singleplayer-platform-leaderboard-reporting-policy`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md)
 >   is a **reporting-policy decision** about whether Singleplayer should report to the **Yandex
 >   platform** leaderboard at all. It is narrower and about the existing platform surface.
 >
@@ -77,12 +77,12 @@ downstream dependency. **No metric, no scope, no surface, no store, no cadence.*
 **What "replaces buggy Yandex built-in" refers to — verified, and the strongest evidence available for
 why this task exists.** The Yandex platform leaderboard is live today and is demonstrably broken:
 
-- [`0210`](../0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) —
+- [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) —
   `increaseCurPlayerLeaderboardScore(points)` is the real platform call, and in non-tutorial
   Singleplayer it is handed **10** — the first-place award — **to a player who lost**. The brief states
   plainly that it **is farmable**: *"Singleplayer has no opponent to beat and no matchmaking cost. Start
   a match, lose it, take 10 points."*
-- [`0209`](../0209-define-placement-semantics-and-fix-literal-one/brief.md) — placement semantics /
+- [`0209`](../../backlog/0209-define-placement-semantics-and-fix-literal-one/brief.md) — placement semantics /
   literal-one defect on the same surface.
 
 ⚠️ **Neither of those is superseded by this task, and this task does not fix them.** They are defects in
@@ -165,6 +165,14 @@ Also determine, and state plainly:
 
 ## Notes
 
+- 📄 **Findings — FINAL 2026-10-28, all owner rulings folded in (~~DRAFT — pending owner rulings on Q1, Q2+Q3, Q4, Q6
+  product half, and replace/alongside/feed~~; ~~still pending: placement protection design, matches with no independent
+  witness, render surface (Q4), experiments flag~~ — all ruled 2026-10-28, relayed by `fkit-lead`):**
+  [`2026-10-28-0234-leaderboard-core-system-findings.md`](../../../knowledge-base/reports/2026-10-28-0234-leaderboard-core-system-findings.md)
+  — written 2026-10-28 by a spawned `fkit-producer` (`fkit-lead`, `/fkit-sprint-ship-loop` on Sprint 9); `fkit-architect`
+  consulted on Q5 and the technical half of Q6 (and, after the rulings, on server-protected placement). ~~The
+  decomposition in it is a proposal, not yet final;~~ Its decomposition (§10, slices S0–S6) is final; no implementation
+  brief filed — those are filed separately via `/fkit-task-brief`.
 - **Depends on:** nothing
 - **Blocks:** Sprint 5 `Leaderboard — Rewards Layer` (plan-index Task 10); all Task 7 implementation
   slices, which cannot be briefed until this task's findings exist

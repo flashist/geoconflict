@@ -102,13 +102,13 @@ is investigating for nickname styles (one shared name-drawing path?). **Read `04
 - **Depends on:** nothing
 - **Blocks:** nothing
 - The badge **build** is **not filed yet** — `0482` was parked until the leaderboard is live
-  ([`0234`](../0234-leaderboard-core-system-definition/brief.md), Sprint 9). By owner ruling **the build will not wait
+  ([`0234`](../../done/0234-leaderboard-core-system-definition/brief.md), Sprint 9). By owner ruling **the build will not wait
   on this art**; it ships with placeholders if this task is not done.
 - Starting this task early is possible, but step 1 needs the owner's tier pick, and step 2's file format is best
   confirmed after `0485`. Neither is a `Depends on:` — both are information this task reads, and nothing waits.
 - **Related:** [`0482`](../../done/0482-discussion-leaderboard-rewards-badges-earned-only-or-sold-and-outcome/brief.md) (the
   talk) · [`0068`](../../done/0068-citizen-verified-icon/brief.md) (the ★, style reference) ·
   [`0485`](../0485-investigate-nickname-styles-one-shared-name-drawing-path-and-a-reusable-readability-approval-solution/brief.md)
-  (shared name-drawing path) · [`0234`](../0234-leaderboard-core-system-definition/brief.md) (core leaderboard) ·
+  (shared name-drawing path) · [`0234`](../../done/0234-leaderboard-core-system-definition/brief.md) (core leaderboard) ·
   [`0066`](../../done/0066-licensing-remediation-proprietary-purge/brief.md) (licensing precedent).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

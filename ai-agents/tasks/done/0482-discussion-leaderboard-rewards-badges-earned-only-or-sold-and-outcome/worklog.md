@@ -17,7 +17,7 @@ more questions. Nothing waits on it."*):
 ⇒ **The talk continues now**, on Sprint 9. It is not parked before `0234` lands (the brief's guess in
 To-discuss 1 — *"Probably: park until `0234` lands"* — is overruled for the **talk**; see answer 2 for the
 **build**).
-⇒ **"The leaderboard-related task" = [`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md)** (the
+⇒ **"The leaderboard-related task" = [`0234`](../0234-leaderboard-core-system-definition/brief.md)** (the
 core leaderboard definition investigation). Checked 2026-10-24 against the other open leaderboard tasks:
 [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) and
 [`0209`](../../backlog/0209-define-placement-semantics-and-fix-literal-one/brief.md) fix the **existing Yandex
@@ -141,7 +141,7 @@ Options put to him: **two badges** (the producer's proposal, recommended) / **th
 
 ⇒ **Recorded as "decide after `0234`'s findings".** ⚠️ **This is `fkit-lead`'s reading, not the owner's
 words.** The lead read *"answers from the producer"* as the answers of
-[`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md) — the leaderboard definition investigation,
+[`0234`](../0234-leaderboard-core-system-definition/brief.md) — the leaderboard definition investigation,
 whose owner is `fkit-producer` and whose questions 2 (one board or several) and 3 (reset cadence) are
 exactly what the choice turns on. ⚠️ **Another reading was possible and was not taken:** *"the producer
 decides"*. If that is what the owner meant, the producer's pick is candidate 1 below (it was the
@@ -150,7 +150,7 @@ recommended option). Either reading leaves the build exactly where it is — not
 ⇒ **The badge-system question is CARRIED, not answered.** It goes to the **future badge build brief**,
 which by the Park ruling (batch 2, answer 4) is written when the leaderboard is live. That brief is not
 filed yet, so the question is also written down where it can be read today:
-- [`0234`'s brief](../../backlog/0234-leaderboard-core-system-definition/brief.md) — an input note: the badge choice
+- [`0234`'s brief](../0234-leaderboard-core-system-definition/brief.md) — an input note: the badge choice
   needs to know whether there is a **monthly reset**, and whether there is **one board or both an all-time
   and a monthly board**.
 - [`0489`'s brief](../../backlog/0489-design-real-art-for-the-leaderboard-badges/brief.md) (the badge art) — its

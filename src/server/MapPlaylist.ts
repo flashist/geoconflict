@@ -107,8 +107,8 @@ export const REGULAR_TEAM_COUNTS = [
 export const TEAM_COUNTS = [
   ...REGULAR_TEAM_COUNTS,
 
-  // Flashist Adaptation: keep Humans vs Nations in the public rotation.
-  HumansVsNations,
+  // Flashist Adaptation: Humans Vs Nations left out of the public rotation (0515): unbalanced
+  // against humans when a match is not full. Private lobbies and single player still offer it.
   Duos,
   Trios,
   Quads,

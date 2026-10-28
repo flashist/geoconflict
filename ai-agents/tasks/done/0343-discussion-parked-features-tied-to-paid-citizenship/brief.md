@@ -274,7 +274,7 @@ permanent "Month — Top 3" badge collectors keep forever.
 
 **Known dependencies / related work.** 🚨 **Needs the core leaderboard (Task 7) first, and that does not exist
 yet** — only a definition investigation is filed:
-[`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md) (Backlog). Also
+[`0234`](../0234-leaderboard-core-system-definition/brief.md) (Backlog). Also
 [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) (Backlog). Badge display must go
 through the one shared name-rendering path (the prose's "Task 8" component; the citizen ★ icon, `0068`, is the
 nearest thing today).
@@ -373,7 +373,7 @@ keeps members on the same team in team modes — no backend, no UI. Findings:
   [`0010`](../../backlog/0010-re-enable-flags-paid-non-country-cosmetic/brief.md),
   [`0011`](../../backlog/0011-re-enable-territory-patterns/brief.md),
   [`0009`](../../backlog/0009-self-host-upstream-openfront-api-dependency/brief.md),
-  [`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md),
+  [`0234`](../0234-leaderboard-core-system-definition/brief.md),
   [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md),
   [`0152`](../../done/0152-investigate-clans-system/brief.md).
 - **Why one brief and not eight:** by owner ruling (exactly two briefs). Each item is expected to split into its own

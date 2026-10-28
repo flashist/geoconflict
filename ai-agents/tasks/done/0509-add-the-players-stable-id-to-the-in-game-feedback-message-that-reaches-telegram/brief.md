@@ -24,7 +24,7 @@ Sprint 9
 > renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-coder

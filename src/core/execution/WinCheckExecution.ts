@@ -34,10 +34,10 @@ const FFA_LEADER_KIND: Record<PlayerType, WinConditionLeaderKind> = {
 // Task 0208. The leader kinds a team leader can have. ColoredTeams.Nations is
 // its own leaf, not HumanTeam: the HumansVsNations mode puts every clientless
 // FakeHuman nation on that team (GameImpl.addPlayers) and nothing else, so a
-// Nations win is the clientless case this task measures. That mode is live in
-// the public rotation (MapPlaylist.ts, with NPCs deliberately enabled) and
-// host-selectable in private lobbies. Every other team configuration mixes
-// nations into the coloured teams via assignTeams, where HumanTeam is fair.
+// Nations win is the clientless case this task measures. That mode is kept out
+// of the public rotation (MapPlaylist.ts) but stays host-selectable in private
+// lobbies, NPCs enabled. Every other team configuration mixes nations into
+// the coloured teams via assignTeams, where HumanTeam is fair.
 function teamLeaderKind(team: Team): WinConditionLeaderKind {
   if (team === ColoredTeams.Bot) {
     return "BotTeam";

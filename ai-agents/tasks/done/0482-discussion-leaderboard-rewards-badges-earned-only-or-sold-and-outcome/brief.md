@@ -133,7 +133,7 @@ deleted.
 ### Known technical blockers — context for the future build task, not `Depends on:` of this talk
 
 - 🚧 **Waits on `0234`.** The core leaderboard does not exist yet; only its definition investigation is filed:
-  [`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md) (~~Backlog board~~ **Sprint 9, rank 19, since 2026-10-24** — owner ruling in this talk, see the [worklog](worklog.md)). Also
+  [`0234`](../0234-leaderboard-core-system-definition/brief.md) (~~Backlog board~~ **Sprint 9, rank 19, since 2026-10-24** — owner ruling in this talk, see the [worklog](worklog.md)). Also
   [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md) (Backlog board). Any build brief this
   talk files must carry `0234` as its `Depends on:`; this talk does not wait on it.
 - Badge display must go through one shared name-drawing path (the prose's "Task 8" component; the citizen ★ icon,
@@ -193,7 +193,7 @@ Record the answers and the outcome in this folder's `worklog.md`.
 - **Split from:** [`0343`](../0343-discussion-parked-features-tied-to-paid-citizenship/brief.md) item F, by owner
   ruling 1 (2026-10-24). The other five talks: `0477` (nickname styling), `0478` (map voting), `0479` (clans), `0480`
   (coin economy), `0481` (custom uploaded flags). Order is the owner's (ruling 4); none waits on another.
-- **Related:** [`0234`](../../backlog/0234-leaderboard-core-system-definition/brief.md),
+- **Related:** [`0234`](../0234-leaderboard-core-system-definition/brief.md),
   [`0210`](../../backlog/0210-singleplayer-platform-leaderboard-reporting-policy/brief.md),
   [`0068`](../0068-citizen-verified-icon/brief.md), `0480` (coin economy — the no-coins-for-badges rule).
 - **Commit rule:** nothing is committed or pushed without the owner's explicit ask.

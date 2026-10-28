@@ -152,8 +152,14 @@ award fires."
 
 **`NationsTeam` is a clientless leaf — do not read it as human.** In the `Humans Vs Nations` team mode
 every FakeHuman nation is placed on one team of its own (`ColoredTeams.Nations`), so a leading Nations
-team is **100 % clientless**. That mode is live in the public rotation with NPCs deliberately enabled,
-and is host-selectable in private lobbies. Every other team configuration mixes nations into the
+team is **100 % clientless**. Task 0515 takes that mode **out of the public rotation**, from the game
+deploy that ships it (owner ruling 2026-10-28). It is **still offered** in private lobbies (host-selectable,
+NPCs deliberately enabled), so `TeamPrivate:…:NationsTeam` keeps arriving. Single player offers it too but
+never emits this event (`winConditionAnalyticsEventName` drops `Singleplayer`). A game deploy stops every
+running game, so a `TeamPublic:…:NationsTeam` sample after that deploy is most likely a late-delivered event
+from a game played before it. The operator-only, admin-token public create (`POST /api/create_game/:id`)
+also still accepts the mode, though today only the master calls it, with playlist configs.
+Per the collect-all-builds rule nothing is filtered. Every other team configuration mixes nations into the
 coloured teams, where `HumanTeam` is a fair label. Leaving `NationsTeam` out of the numerator above
 understates the clientless rate in exactly the mode that produces the most of it.
 

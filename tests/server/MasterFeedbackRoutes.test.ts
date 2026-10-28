@@ -437,3 +437,170 @@ describe("POST /api/feedback — every free field is HTML-escaped (task 0307)", 
     expect(text).not.toContain("<a href");
   });
 });
+
+// Task 0509 — NEW behaviour: the client-reported player reference. All ids and
+// tokens below are synthetic.
+describe("POST /api/feedback — player reference (task 0509)", () => {
+  const YANDEX_ID = "test-yandex-id-AbC+/=";
+  const SESSION_TOKEN = "synthetic-session-token-not-a-real-credential";
+
+  function bothLegs(): Express {
+    return loadMaster({
+      FEEDBACK_WEBHOOK_URL: WEBHOOK,
+      FEEDBACK_TELEGRAM_TOKEN: TOKEN,
+      FEEDBACK_TELEGRAM_CHAT_ID: CHAT_ID,
+      TELEGRAM_PROXY_URL: PROXY,
+    });
+  }
+
+  function telegramText(): string {
+    return JSON.parse(telegramCalls()[0][1].body).text as string;
+  }
+
+  function webhookPlayerField(): string {
+    const call = fetchMock.mock.calls.find(
+      (got) => String(got[0]) === WEBHOOK,
+    ) as [string, { body: string }];
+    const fields = JSON.parse(call[1].body).embeds[0].fields as Array<{
+      name: string;
+      value: string;
+    }>;
+    const player = fields.find((field) => field.name === "Player");
+    if (player === undefined) {
+      throw new Error("webhook embed has no Player field");
+    }
+    return player.value;
+  }
+
+  function webhookBody(): string {
+    const call = fetchMock.mock.calls.find(
+      (got) => String(got[0]) === WEBHOOK,
+    ) as [string, { body: string }];
+    return call[1].body;
+  }
+
+  it("shows a logged-in player's id on a labelled line in both legs", async () => {
+    const app = bothLegs();
+    const res = await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        playerReference: { kind: "yandex", yandexId: YANDEX_ID },
+      });
+    expect(res.status).toBe(200);
+    expect(telegramText()).toContain(
+      `<b>Player:</b> Yandex id <code>${YANDEX_ID}</code> (client-reported, unverified)`,
+    );
+    expect(webhookPlayerField()).toBe(
+      `Yandex id ${YANDEX_ID} (client-reported, unverified)`,
+    );
+  });
+
+  it("HTML-escapes <, & and > in the id", async () => {
+    const app = bothLegs();
+    await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        playerReference: { kind: "yandex", yandexId: "a<b>&c" },
+      });
+    expect(telegramText()).toContain("<code>a&lt;b&gt;&amp;c</code>");
+    expect(telegramText()).not.toContain("a<b>&c");
+    expect(webhookPlayerField()).toContain("a&lt;b&gt;&amp;c");
+  });
+
+  it.each([
+    ["guest", "none — not logged in (guest)"],
+    ["unavailable", "none — logged in, but the id could not be read"],
+  ])("shows the %s marker in both legs", async (kind, marker) => {
+    const app = bothLegs();
+    await request(app)
+      .post("/api/feedback")
+      .send({ ...FEEDBACK_BODY, playerReference: { kind } });
+    expect(telegramText()).toContain(`<b>Player:</b> ${marker}`);
+    expect(webhookPlayerField()).toBe(marker);
+  });
+
+  it("accepts an old-format post with no reference and says so", async () => {
+    const app = bothLegs();
+    const res = await request(app).post("/api/feedback").send(FEEDBACK_BODY);
+    expect(res.status).toBe(200);
+    expect(telegramText()).toContain(
+      "<b>Player:</b> none — not sent (older game client)",
+    );
+    expect(webhookPlayerField()).toBe("none — not sent (older game client)");
+  });
+
+  it.each([
+    ["129 characters", "a".repeat(129)],
+    ["a newline", "abc\n<b>Fake:</b> x"],
+    ["a space", "abc def"],
+    ["an empty string", ""],
+  ])("rejects an id with %s with 400 and sends nothing", async (_l, id) => {
+    const app = bothLegs();
+    const res = await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        playerReference: { kind: "yandex", yandexId: id },
+      });
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["1 character", "a"],
+    ["128 characters", "b".repeat(128)],
+  ])("accepts an id of %s", async (_l, id) => {
+    const app = telegramOnly();
+    const res = await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        playerReference: { kind: "yandex", yandexId: id },
+      });
+    expect(res.status).toBe(200);
+    expect(telegramText()).toContain(`<code>${id}</code>`);
+  });
+
+  it("never echoes the session token, in either leg or any log line", async () => {
+    const send = (app: Express) =>
+      request(app)
+        .post("/api/feedback")
+        .set("Authorization", `Bearer ${SESSION_TOKEN}`)
+        .send({
+          ...FEEDBACK_BODY,
+          playerReference: { kind: "yandex", yandexId: YANDEX_ID },
+        });
+    await send(bothLegs());
+    expect(telegramText()).not.toContain(SESSION_TOKEN);
+    expect(webhookBody()).not.toContain(SESSION_TOKEN);
+    await send(
+      loadMaster({
+        FEEDBACK_WEBHOOK_URL: undefined,
+        FEEDBACK_TELEGRAM_TOKEN: undefined,
+        FEEDBACK_TELEGRAM_CHAT_ID: undefined,
+        TELEGRAM_PROXY_URL: undefined,
+      }),
+    );
+    expect(allMessages()).not.toContain(SESSION_TOKEN);
+  });
+
+  it("keeps the stdout fallback free of the Yandex id", async () => {
+    const app = loadMaster({
+      FEEDBACK_WEBHOOK_URL: undefined,
+      FEEDBACK_TELEGRAM_TOKEN: undefined,
+      FEEDBACK_TELEGRAM_CHAT_ID: undefined,
+      TELEGRAM_PROXY_URL: undefined,
+    });
+    await request(app)
+      .post("/api/feedback")
+      .send({
+        ...FEEDBACK_BODY,
+        playerReference: { kind: "yandex", yandexId: YANDEX_ID },
+      });
+    const info = messages("info").join("\n");
+    expect(info).toContain('"playerReference":"yandex"');
+    expect(info).not.toContain(YANDEX_ID);
+  });
+});

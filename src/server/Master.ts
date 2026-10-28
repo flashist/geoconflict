@@ -8,6 +8,10 @@ import { fileURLToPath } from "url";
 import { fetch } from "undici";
 import { z } from "zod";
 import { getServerConfigFromServer } from "../core/configuration/ConfigLoader";
+import {
+  FeedbackPlayerReference,
+  FeedbackPlayerReferenceSchema,
+} from "../core/FeedbackPlayerReference";
 import { sendTelegramMessage } from "../core/notifications/TelegramNotifier";
 import { GameID, GameInfo, ID } from "../core/Schemas";
 import { generateID } from "../core/Util";
@@ -234,6 +238,7 @@ const FeedbackSchema = z.object({
     })
     .optional(),
   recentMatchIds: z.array(z.string().max(20)).max(3).optional(),
+  playerReference: FeedbackPlayerReferenceSchema.optional(),
 });
 
 app.post(
@@ -256,6 +261,22 @@ app.post(
         .join(" | ")
         .slice(0, 500);
 
+    const describePlayerReference = (
+      ref: FeedbackPlayerReference | undefined,
+      formatYandexId: (id: string) => string,
+    ): string => {
+      switch (ref?.kind) {
+        case "yandex":
+          return `Yandex id ${formatYandexId(ref.yandexId)} (client-reported, unverified)`;
+        case "guest":
+          return "none — not logged in (guest)";
+        case "unavailable":
+          return "none — logged in, but the id could not be read";
+        default:
+          return "none — not sent (older game client)";
+      }
+    };
+
     if (FEEDBACK_WEBHOOK_URL) {
       const body = JSON.stringify({
         embeds: [
@@ -276,6 +297,11 @@ app.post(
                 name: "Username",
                 value: d.username ? esc(d.username) : "n/a",
                 inline: true,
+              },
+              {
+                name: "Player",
+                value: describePlayerReference(d.playerReference, esc),
+                inline: false,
               },
               { name: "Version", value: d.version, inline: true },
               { name: "Match ID", value: d.matchId ?? "n/a", inline: true },
@@ -320,6 +346,7 @@ app.post(
         // their length), so they are escaped like every other field (task 0307).
         `\n<b>Screen:</b> ${d.screenSource}  <b>Platform:</b> ${esc(d.platform)}`,
         `<b>Yandex:</b> ${esc(d.yandexStatus)}  <b>Username:</b> ${d.username ? esc(d.username) : "n/a"}`,
+        `<b>Player:</b> ${describePlayerReference(d.playerReference, (id) => `<code>${esc(id)}</code>`)}`,
         `<b>Version:</b> ${esc(d.version)}`,
         `<b>Match:</b> ${d.matchId ? esc(d.matchId) : "n/a"}`,
         ...(d.recentMatchIds?.length
@@ -366,7 +393,11 @@ app.post(
     }
 
     if (!FEEDBACK_WEBHOOK_URL && !FEEDBACK_TELEGRAM_TOKEN) {
-      log.info(`[feedback] ${JSON.stringify(d)}`);
+      // Telegram carries the Yandex id by owner ruling (task 0509); logs stay
+      // id-free (ADR-113 Consequences), so only the kind is written here.
+      log.info(
+        `[feedback] ${JSON.stringify({ ...d, playerReference: d.playerReference?.kind ?? "not sent" })}`,
+      );
     }
 
     res.json({ ok: true });
