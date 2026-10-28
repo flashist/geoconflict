@@ -116,3 +116,4 @@ login reply, **never from local storage**, and shows a notice only after the ser
 - [[tasks/rewarded-video-double-match-xp]] — task `0488`: the rewarded ad whose bonus the amendment records
 - [[decisions/sprint-9]] — the board on which the 2026-10-24 amendment was ruled (task `0491`)
 - [[decisions/adr-128-owner-run-profile-merge]] — 2026-10-27: merges keep this ADR's XP invariant on every record; the largest tenure row ends on the kept record, the smaller stays on the source
+- [[tasks/rewarded-video-live-check]] — task `0499` (cancelled 2026-10-28): the rewarded-ad bonus granted live once, owner-run

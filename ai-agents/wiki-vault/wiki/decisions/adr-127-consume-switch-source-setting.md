@@ -69,3 +69,4 @@
 - [[decisions/adr-128-owner-run-profile-merge]] — the merge command rides the same profile-box deploy
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]
 - [[systems/player-profile-store]]
+- [[tasks/stop-consuming-profile-box-live-check]] — task `0511` (S1v): boot line read OFF on the live box, 2026-10-27 and 2026-10-28

@@ -1,8 +1,14 @@
 # Client: Stop Consuming Permanent Purchases — Consume Only What the Server Lists, Quiet Reloads, "Held Elsewhere" Offer (task 0510, S2)
 
 **Source**: `ai-agents/tasks/done/0510-client-stop-consuming-permanent-purchases-held-elsewhere-offer-and-coordinator-end-state-s2/brief.md` (`plan.md`, `worklog.md`, `review.md` in the same folder read as evidence)
-**Status**: done (agent-closed — not owner-verified) — committed `f7ce268`, **not deployed**
+**Status**: done (agent-closed — not owner-verified) — committed `f7ce268`, **deployed 2026-10-27** (live game `0.0.167`; ~~not deployed~~)
 **Sprint/Tag**: Sprint 9 — live player incident (rank 37, append rank flagged)
+
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`** (read 2026-10-28 by `0511`; a `0.0.166`
+> bump came minutes earlier the same day). ⚠️ **The pre-release T3 gate did not run** — the owner skipped the dev deploy;
+> T3 and T1 passed **on live, after the deploy**, and the owner ruled *"Count the live checks (Recommended)"*. S2v `0512`
+> was then **cancelled** 2026-10-28 → [[tasks/stop-consuming-client-live-check]]: T2 and T4 stay unproven; the client
+> side moves to the GameAnalytics read `0516` (on or after 2026-11-03). The "not deployed" text below is history.
 
 ## Goal
 

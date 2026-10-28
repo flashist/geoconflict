@@ -88,3 +88,4 @@ restart?"*, the owner picked **"Guide: keep 'Later' (Recommended)"** — the pop
 - [[decisions/adr-116-verified-login]] — Decision 4 (paid status private), unchanged; OD-2 ruled ownership private too
 - [[decisions/sprint-9]] — the board carrying `0484`, `0495` and the live check `0498`
 - [[decisions/adr-126-permanent-purchases-not-consumed]] — 2026-10-26: permanent purchases are no longer consumed; the guest flow gains a `held_elsewhere` end that hands back to D3 like `already_owned`
+- [[tasks/guest-log-in-and-buy-live-check]] — task `0498` (cancelled 2026-10-28): after login the payment window opened with no second tap, live

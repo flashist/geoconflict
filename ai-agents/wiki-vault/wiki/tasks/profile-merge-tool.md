@@ -1,8 +1,12 @@
 # Owner-Run Manual Profile Merge Tool — SSH-Only, Dry Run First, Audited (task 0503)
 
 **Source**: `ai-agents/tasks/done/0503-build-an-owner-run-manual-profile-merge-tool-ssh-only-dry-run-first-logged/brief.md` (`plan.md`, `worklog.md`, `review.md` in the same folder read as evidence)
-**Status**: done (agent-closed — not owner-verified) — committed `962f427`, **not deployed**
+**Status**: done (agent-closed — not owner-verified) — committed `962f427`, **deployed 2026-10-27** (profile `0.0.165-profile.1`; ~~not deployed~~)
 **Sprint/Tag**: Sprint 9 — live player incident (rank 30, append rank flagged)
+
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`** (`git tag --contains
+> 962f427`); migration `012` applied 14:04:45 UTC; `player_merges` read **0** rows on 2026-10-27 (`0511` worklog). The
+> restore `0504` is still `🔲 Backlog`. The "not deployed" text below is history.
 
 ## Goal
 

@@ -86,3 +86,18 @@ on a relayed owner ruling (ADR-033 §5).
 
 **Follow-up filed:** the boot-time `player_entitlements does not exist` errors (2026-10-28 entry above) → task `0517` on
 the Backlog board (owner ruling *"Brief a task on Backlog (Recommended)"*, same session).
+
+## 2026-10-28, after the close — OWNER RULING: the close covers all 3 unproven items, not 2 (recorded by a spawned `fkit-producer`)
+
+The close question above said *"2 steps"*; this worklog's own table lists **3** unproven items (flagged by the wiki
+sync). The owner was asked again, via `AskUserQuestion` in the `fkit-lead` session on 2026-10-28, relayed to a spawned
+`fkit-producer` with no owner channel (ADR-021/037); ⛔ not producer precedent. Verbatim:
+
+- Question: *"0511 closed with 3 things unproven, not 2 (reply body, its 'consume' part, and 'stray purchase still
+  granted'). OK?"*
+- Answer: **"Yes, all 3 accepted (Recommended)"** — option text: *"Producer adds this to 0511's record; nothing else
+  changes. Knock-on: none (checked)."*
+
+So the close accepts as unproven **all three**: step 2 (the `/complete` reply body, `consume:false`), step 3 (the
+`consumeTokens` part of the quiet reconcile answer), and step 11 (reconcile still grants a stray purchase). Nothing else
+changes: status and board untouched.

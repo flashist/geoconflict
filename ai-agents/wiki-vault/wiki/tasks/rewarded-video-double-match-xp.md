@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 18 (ADR-035 append rank; placement is `fkit-lead`'s reading of the owner's "now") / task `0488` — client part (plan Part C); server part is `0491`
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`**. 🚩 **`rewarded_video` is ON in
+> production since 2026-10-27, on purpose** (owner: *"yes, and it's fine"*). Owner's live run: *"Offer showed, XP
+> doubled"* (ad played with sound off). Most other steps not reported. `0499` **cancelled** 2026-10-28 →
+> [[tasks/rewarded-video-live-check]]; metrics read `0516`. Notes below saying *not deployed* or *offer off* are history.
+
 > ✅ Closed 2026-10-25. Plan owner-approved 2026-10-24; full `npm test` 234 suites / 4859 tests green; tsc and lint
 > clean; stateful review closed (R1, R2 owner-ruled won't fix — accepted residuals).
 > 🏗️ **2026-10-26 sync (`4e9160a`): committed in `a3c32b4`; `git tag --contains` → none ⇒ NOT deployed.** The offer

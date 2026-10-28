@@ -3,6 +3,14 @@
 **Layer**: shared
 **Key files**: `src/client/PurchaseCoordinator.ts`, `src/client/PurchaseOffer.ts`, `src/client/ProductPurchase.ts`, `src/client/ProductClientConfig.ts`, `src/client/PaymentsApiClient.ts`, `src/client/PaymentsReconciliation.ts`, `src/client/CitizenshipExplainerModal.ts`, `src/client/CitizenshipCard.ts`, `src/client/CitizenshipRestartOffer.ts`, `src/client/GameRestart.ts`, `src/client/flashist/FlashistFacade.ts`, `src/core/profile/PaymentsContract.ts`, `src/core/profile/PlayerProfile.ts`, `src/profile-server/PaymentsRepository.ts`, `src/profile-server/Routes.ts`, `src/profile-server/PublicProjection.ts`, `migrations/010_player_entitlements.sql`
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: profile **`0.0.165-profile.1`** (B1/B4/S1, `0491`,
+> migrations `009`–`012`) then live game **`0.0.167`** (B2/B3/S2, `0488`). First live evidence: a guest's "Log in and buy"
+> opened the payment window with **no second tap** ([[tasks/guest-log-in-and-buy-live-check]]); a live citizenship
+> purchase was granted; held reconciles answer quietly ([[tasks/stop-consuming-profile-box-live-check]]). The four
+> hand-run checks `0493`, `0498`, `0499`, `0512` were **cancelled** 2026-10-28 for a GameAnalytics read `0516` (on or after
+> 2026-11-03); never proven live: `becamePaidCitizen` in the reply, a stray-purchase grant, T2, T4, the restart popup
+> after a guest purchase. The "committed, NOT deployed" notes below are history.
+
 > ⛔ **2026-10-27 sync (`5f93b96`) — "consume after grant" is SUPERSEDED for permanent products** by
 > [[decisions/adr-126-permanent-purchases-not-consumed]] (owner-approved 2026-10-26), after a paying player lost his
 > profile to a Yandex player-ID change ([[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]).
@@ -135,3 +143,4 @@ kill switch (`0236`) is different: off ⇒ nothing can be bought or reconciled.
 - [[decisions/adr-126-permanent-purchases-not-consumed]] · [[decisions/adr-127-consume-switch-source-setting]] — 2026-10-26
 - [[decisions/adr-128-owner-run-profile-merge]] — `transferPurchase`, the one way a purchase changes profile
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — why consuming was reversed
+- [[tasks/purchase-grant-registry-live-check]] — task `0493` (B1v, cancelled 2026-10-28)

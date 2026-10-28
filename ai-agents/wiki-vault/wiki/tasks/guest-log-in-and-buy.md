@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 24 (ADR-035 append rank; on merit directly below `0494`) / task `0495` / build B3 of the shared purchase flow
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`**. Owner's live run inside Yandex:
+> **"Payment opened by itself"** — after login the payment window opened with **no second tap** (spec §1(a)'s main
+> unknown answered; no payment made). Grant, restart popup and the measured login-to-payment time were **not tested** —
+> 15 s is still not tuned to data. B5 `0498` **cancelled** 2026-10-28 → [[tasks/guest-log-in-and-buy-live-check]];
+> metrics read `0516`. Notes below saying *not deployed* are history.
+
 > ✅ Closed 2026-10-26. Plan owner-approved 2026-10-25 (incl. 9 deviations, the copy, 15 s auto-continue, 5 s hand-off;
 > OP-1 *"Both buttons (Recommended)"*). Stateful review 3 rounds, `closed-out` (R1–R3 fixed on owner rulings, R4 an
 > accepted residual). Full `npm test` 5166/5166 on a re-run after one untraced failure (`InternalPathCase`, a supertest

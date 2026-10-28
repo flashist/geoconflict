@@ -3,6 +3,39 @@
 **Date**: 2026-10-16
 **Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-16`** — started by owner ruling *"Start it now (Recommended)"*; was ~~`🔲 Backlog — 2026-10-16` — created, NOT started~~)*
 
+> 🆕 **2026-10-28 sync (`7a2ef92`) — 42 ROWS — 28 `✅ Done` · 4 `⛔ Cancelled` · 7 `🔲 Backlog` · 3 `➡️ Moved`; 7 OPEN**
+> (`0234`, `0497`, `0504`, `0509`, `0513`, `0515`, `0516`; counted by me by each row's leading status glyph; was 40 / 11).
+> Every close and cancel is **agent-closed — not owner-verified**, by a spawned `fkit-producer` on rulings relayed by
+> `fkit-lead`. Still **no theme name and no goal**.
+>
+> | Rank | Task | Status (2026-10-28) | Vault |
+> |---|---|---|---|
+> | 8 | `0455` private-lobby funnels + dashboard in GameAnalytics | ✅ 2026-10-28 — owner: *"I looked at them, we're good here"* | [[tasks/private-lobby-gameanalytics-funnel]] |
+> | 22 | `0493` B1v verify `0492` live | ⛔ 2026-10-28 — replaced by `0516` | [[tasks/purchase-grant-registry-live-check]] |
+> | 27 | `0498` B5 verify `0495` live | ⛔ 2026-10-28 — replaced by `0516` (payment opened with no second tap) | [[tasks/guest-log-in-and-buy-live-check]] |
+> | 28 | `0499` verify `0491` + `0488` live | ⛔ 2026-10-28 — replaced by `0516` (offer showed, XP doubled) | [[tasks/rewarded-video-live-check]] |
+> | 38 | `0511` S1v verify `0506` live | ✅ 2026-10-28 — *"Close, accept 2 as unproven (Recommended)"* | [[tasks/stop-consuming-profile-box-live-check]] |
+> | 39 | `0512` S2v | ⛔ 2026-10-28 — replaced by `0516`; pre-release T3 gate skipped, T3 passed live | [[tasks/stop-consuming-client-live-check]] |
+> | 41 | `0515` disable the "Humans Vs Nations" team mode | 🔲 Backlog — 🆕 filed 2026-10-27 (owner request) | — (backlog brief, not ingested) |
+> | 42 | `0516` verify the 2026-10-27 deploys through GameAnalytics metrics | 🔲 Backlog — 🆕 filed 2026-10-28; ⏳ **not workable before 2026-11-03** | — (backlog brief, not ingested) |
+>
+> - 🚀 **Deploys 2026-10-27** (owner-run; versions read 2026-10-28 by `0511`): profile box **`0.0.165-profile.1`**, then
+>   live game **`0.0.167`** (a `0.0.166` bump came minutes before). `git tag --contains` includes `a3c32b4`, `4e9160a`,
+>   `e3950e6`, `baaf2f8`, `f7ce268`, `cc52296`, `962f427`, `5f93b96` ⇒ every "committed, **not deployed**" row in the
+>   notes below (`0470`, `0488`, `0491`, `0492`, `0494`, `0495`, `0496`, `0503`, `0506`, `0507`, `0510`) is now
+>   **deployed**; those cells are history.
+> - **Owner rulings 2026-10-28** (relayed): *"cancel the verification by hand task, brief a task to verify it by metrics
+>   after some amount of time (e.g. by checking the GameAnalytics metrics)"* → **"The 4 purchase ones (Recommended)"**
+>   (cancel `0493`, `0498`, `0499`, `0512`; their server-side read-only steps → `0511` steps 8–12), **"1 week, ~3 Nov"**,
+>   **"Sprint 9 (Recommended)"** — knock-on: **Sprint 9 cannot close until `0516`'s read date.**
+> - ⚠️ **Ranks 41 and 42 are append rank, flagged** for owner confirmation (ADR-035): on merit `0515` belongs directly below
+>   `0509`, `0516` directly below `0511`. ⚠️ `0516` carries an **open owner question**: what happens when a check has too
+>   little data.
+> - `0517` (the profile box served requests before its migrations finished) went to the **Backlog board**, not here —
+>   [[decisions/sprint-backlog]].
+> - `0515` touches open Backlog work: `0205` (its fix covers every Team config, HvN included) and `0476` (hypothesis H4 is
+>   an HvN loss) — its plan must state the effect on each.
+
 > 🚨 **2026-10-27 sync (`5f93b96`) — 40 ROWS — 26 `✅ Done` · 1 `🔄 In progress` · 10 `🔲 Backlog` · 3 `➡️ Moved`; 11
 > OPEN** (counted by me by each row's leading status glyph; was 28 / 6). Twelve rows (ranks 29–40, `0502`–`0513`) were
 > added **out of band** on 2026-10-26/27 for a **live player incident** —

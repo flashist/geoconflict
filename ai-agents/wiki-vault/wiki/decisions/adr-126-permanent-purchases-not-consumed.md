@@ -100,3 +100,5 @@ nothing here is asked of Yandex; `0508` asks only about the player, plus Q2 (pur
 - [[decisions/adr-113-internal-player-id]] · [[decisions/adr-116-verified-login]]
 - [[tasks/yandex-payments-implementation]] — the Sprint-4 build that chose to consume
 - [[systems/player-profile-store]] · [[systems/analytics]]
+- [[tasks/purchase-grant-registry-live-check]] — task `0493` (B1v, cancelled 2026-10-28)
+- [[tasks/stop-consuming-client-live-check]] — task `0512` (S2v, cancelled 2026-10-28): T3 passed on live after the deploy

@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 21 (ADR-035 append rank; on merit directly below `0484`) / task `0492` / build B1 of the shared purchase flow
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`**. A live citizenship purchase
+> (~15:03 UTC, owner-run) was granted. B1v `0493` **cancelled** 2026-10-28 → [[tasks/purchase-grant-registry-live-check]]:
+> 0 `reconcile entry failed` and no 5xx (`0511` step 8); `becamePaidCitizen` in the reply and a stray-purchase grant were
+> **never observed**. Notes below saying *not deployed* or `0493` `🔲 Backlog` are history.
+
 > ✅ Closed 2026-10-24. Plan owner-approved 2026-10-24 (**OQ-1** *"Yes, add it now (Recommended)"* → build
 > `failedCount`; **OQ-2** *"Leave it out (Recommended)"* → `becamePaidCitizen` omitted on a replay). `npm test`
 > 4885/4885, `npm run test:integration` 193/193, stateful review closed with no findings.

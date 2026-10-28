@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 25 (ADR-035 append rank; on merit directly below `0495`) / task `0496` / build B4 of the shared purchase flow
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`**; migration `010` applied
+> 14:04:45 UTC. ⚠️ At boot (14:04:36 UTC) the API logged 2 `entitlements lookup failed: relation "player_entitlements"
+> does not exist` errors ~10 s before the migrations were recorded; none since → task `0517` on the Backlog board
+> ([[tasks/stop-consuming-profile-box-live-check]]). Live check B4v `0497` is still `🔲 Backlog` on [[decisions/sprint-9]].
+
 > ✅ Closed 2026-10-26. Plan owner-approved 2026-10-24 (OP-1 *"After B2 is done"*, OP-2 *"Leave it alone"*, OP-3
 > *"Accept it"*). `npm run test:integration` 14 suites / 203 tests green (`010` applied); `npm run test:scripts:docker`
 > 55 passed (13 tables, fingerprint identical); full `npm test` 5042 green on a re-run (run 1: one untraced failure in

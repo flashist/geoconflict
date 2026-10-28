@@ -1,8 +1,12 @@
 # One-Player Message Popup at Game Start — Contact Links for a Targeted Player (task 0507)
 
 **Source**: `ai-agents/tasks/done/0507-one-player-message-popup-at-game-start-contact-links-for-a-targeted-player/brief.md` (`plan.md`, `worklog.md`, `review.md` in the same folder)
-**Status**: done (agent-closed — not owner-verified) — committed `baaf2f8`, **not deployed**
+**Status**: done (agent-closed — not owner-verified) — committed `baaf2f8`, **deployed 2026-10-27** (live game `0.0.167`; ~~not deployed~~)
 **Sprint/Tag**: Sprint 9 — live player incident (rank 34, append rank flagged)
+
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`** (`git tag --contains baaf2f8`
+> includes it; live version read 2026-10-28 by `0511`). Live check `0513` is still `🔲 Backlog`. The "not deployed" text
+> below is history.
 
 ## Goal
 

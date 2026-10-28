@@ -4,6 +4,9 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 23 (ADR-035 append rank; on merit directly below `0493`) / task `0494` / build B2 of the shared purchase flow
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`**. Its live check ran through `0498`
+> (cancelled 2026-10-28) → [[tasks/guest-log-in-and-buy-live-check]]. Notes below saying *not deployed* are history.
+
 > ✅ Closed 2026-10-25. Plan owner-approved 2026-10-24; full `npm test` 4981/4981, tsc and lint clean; a local headless
 > check showed the restart popup with both buttons; stateful review closed (R1, a stale comment, fixed).
 > 🏗️ **2026-10-26 sync (`4e9160a`): committed in `a3c32b4`; `git tag --contains` → none ⇒ NOT deployed.** No visible

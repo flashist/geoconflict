@@ -3,6 +3,13 @@
 **Date**: 2026-10-25
 **Status**: accepted *(page-type field; the incident is **not closed** — the restore `0504` waits on Yandex's answer)*
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — the fixes are LIVE.** Profile box **`0.0.165-profile.1`** and live game **`0.0.167`**
+> deployed 2026-10-27: S1 `0506`, S2 `0510`, the merge tool `0503`, the popup `0507` and the held purchase-flow code are
+> all out. **S1v `0511` ✅ closed** ([[tasks/stop-consuming-profile-box-live-check]]); **S2v `0512` ⛔ cancelled**
+> ([[tasks/stop-consuming-client-live-check]]) — the pre-release T3 gate was skipped by the owner; T3 passed on live
+> afterwards. Hand-run purchase checks replaced by the GameAnalytics read `0516` (on or after 2026-11-03). New: `0517`
+> (the profile box served requests before its migrations finished). Still open: `0504` restore, `0509`, `0513`.
+
 > Hub page for the Sprint 9 incident work, written by the 2026-10-27 sync (`5f93b96`). Sources: the briefs of `0502`,
 > `0503`, `0505`, `0506`, `0507`, `0508`, `0510` (all in `ai-agents/tasks/done/`), `0502`'s worklog (evidence and
 > check-7 counts), ADR-126, ADR-127, ADR-128, the `0505` design spec, and the Sprint 9 board's addenda.

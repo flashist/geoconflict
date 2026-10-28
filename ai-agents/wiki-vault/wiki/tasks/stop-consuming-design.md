@@ -4,6 +4,11 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9 — live player incident (rank 32, append rank flagged)
 
+> 📌 **2026-10-28 sync (`7a2ef92`) — live checks:** S1 and S2 deployed 2026-10-27. **S1v `0511` ✅ closed**
+> ([[tasks/stop-consuming-profile-box-live-check]]) — spec §14 item 2 answered: **the live payload carries `issuedAt`**.
+> **S2v `0512` ⛔ cancelled** ([[tasks/stop-consuming-client-live-check]]) — the §10.3 pre-release T3 gate never ran (the
+> owner skipped the dev deploy); T3 passed on live afterwards. Client-side proof moves to the GameAnalytics read `0516`.
+
 ## Goal
 
 The owner's words (2026-10-26, verbatim, typo kept): *"I think the main thing that we need to implement in our game as

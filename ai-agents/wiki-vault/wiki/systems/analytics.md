@@ -3,6 +3,13 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 📌 **2026-10-28 sync (`7a2ef92`):** (1) `0455` done — **11 of 16 `PrivateLobby:*` events arrive**; funnels "Private
+> lobby: host" / "Private lobby: guest" and dashboard "Private lobbies" saved ([[tasks/private-lobby-gameanalytics-funnel]]).
+> (2) The events committed 2026-10-26/27 — `Ad:Rewarded:*`, guest `Purchase:Login/Continue/Blocked:*`, `PlayerMessage:*`,
+> `Purchase:HeldOnOtherProfile` / `Blocked:OtherProfile` — shipped in game **`0.0.167`**, live 2026-10-27 (`git tag
+> --contains`); their arrival is **not recorded by any closed task** — the GameAnalytics read `0516` is due on or after 2026-11-03. (3) 🚩
+> `rewarded_video` is **ON** in production since 2026-10-27, on purpose ([[tasks/rewarded-video-live-check]]).
+
 > 🆕 **2026-10-27 sync (`5f93b96`) — six new events and two new tap ids, all COMMITTED, NOT DEPLOYED** (live player
 > incident, [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]):
 > - **Player Message Events** (`0507`, [[tasks/one-player-message-popup]]): `PlayerMessage:Shown` (at most once per page

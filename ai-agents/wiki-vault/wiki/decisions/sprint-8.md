@@ -3,6 +3,11 @@
 **Date**: 2026-09-29
 **Status**: accepted *(✅ **closed 2026-10-16** by `/fkit-sprint-done`, agent-closed — not owner-verified; ~~🔄 in progress since 2026-10-12~~ (started by owner ruling *"Mark it started (Recommended)"*); ~~`🔲 Backlog — 2026-09-29` — created, NOT started~~; was `proposed` while open)*
 
+> 📌 **2026-10-28 sync (`7a2ef92`):** the last open former Sprint 8 row, **`0455`, is closed** (✅ 2026-10-28,
+> agent-closed — not owner-verified, on Sprint 9) — [[tasks/private-lobby-gameanalytics-funnel]]. All seven Sprint 8 rows
+> that moved to Sprint 9 are now closed. This board's only change in the window: three links repointed from `backlog/` to
+> `done/` for `0455`.
+
 > 📝 **2026-10-26 sync (`4e9160a`) — a Sprint 8 retro report exists:**
 > `ai-agents/knowledge-base/reports/2026-10-16-sprint-8-retro-fkit-feedback.md` (owner-led, 2026-10-16; **proposals only
 > for the fkit framework — nothing in this project was changed because of it**). Owner's picks: board rows too long and

@@ -3,6 +3,13 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: `/health` **`0.0.165-profile.1`**; migrations **`009`–`012`
+> all applied 2026-10-27 14:04:45 UTC**; `purchase_holder_sightings` 0 and `player_merges` 0 rows; boot line
+> `payments consume-permanent: OFF`. ⚠️ **Start-order gap:** 2 `relation "player_entitlements" does not exist` errors at
+> 14:04:36, ~10 s **before** the migrations were recorded — the API served requests first. Cause unknown → task `0517`
+> (Backlog board). Source: [[tasks/stop-consuming-profile-box-live-check]]. The "COMMITTED, NOT DEPLOYED" notes below are
+> history.
+
 > 🚨 **2026-10-27 sync (`5f93b96`) — live player incident; three new profile-box pieces COMMITTED, NOT DEPLOYED.**
 > See [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]]: a paying player's Yandex player ID changed
 > twice (2026-10-22, 2026-10-25), so his logins landed on two fresh empty records while his paid citizenship and

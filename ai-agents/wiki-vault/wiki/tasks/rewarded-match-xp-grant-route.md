@@ -4,6 +4,10 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 20 (ADR-035 append rank; on merit directly above `0488`) / task `0491` — server part of `0488`
 
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`**; migration `009` applied
+> 14:04:45 UTC. The route answered live — the bonus was granted in the owner's run ([[tasks/rewarded-video-live-check]];
+> `0499` cancelled 2026-10-28). Notes below saying *not deployed* are history.
+
 > ✅ Closed 2026-10-24. `npm run test:integration` 14/14 suites, 188/188 tests (migration `009` applied by the real
 > runner); `npm run test:scripts:docker` 55 passed; review R1 (runbook) fixed, R2 resolved by the owner-ruled ADR-112
 > amendment.

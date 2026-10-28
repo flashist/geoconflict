@@ -1,8 +1,17 @@
 # Profile Box: Stop Consuming Permanent Purchases — Server-Owned Consume Policy, "Held Elsewhere" Detection, Sightings Evidence (task 0506, S1)
 
 **Source**: `ai-agents/tasks/done/0506-build-stop-consuming-permanent-purchases-citizenship-per-the-0505-design/brief.md` (`plan.md`, `worklog.md`, `review.md` in the same folder read as evidence)
-**Status**: done (agent-closed — not owner-verified) — committed `baaf2f8`, **not deployed**
+**Status**: done (agent-closed — not owner-verified) — committed `baaf2f8`, **deployed 2026-10-27** (profile `0.0.165-profile.1`; ~~not deployed~~)
 **Sprint/Tag**: Sprint 9 — live player incident (rank 33, append rank flagged)
+
+> 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** to the live profile box: `/health` reads **`0.0.165-profile.1`**
+> (read 2026-10-28 by `0511`; `git tag --contains baaf2f8` includes that tag). Migrations `009`–`012` applied 2026-10-27
+> 14:04:45 UTC. **Live check S1v `0511` ✅ closed 2026-10-28** — [[tasks/stop-consuming-profile-box-live-check]]: held
+> reconciles quiet (`held` 8, `held_no_caller` 2, `granted` 0), `issuedAt` present on every live payload, boot line OFF,
+> new log lines leak nothing. The `/complete` reply body and the `consumeTokens` half were **never seen** (accepted as
+> unproven by owner ruling). `0493` cancelled ([[tasks/purchase-grant-registry-live-check]]). ⚠️ 2 boot-time
+> `player_entitlements does not exist` errors before the migrations finished → task `0517` (Backlog board). The "not
+> deployed" text below is history.
 
 ## Goal
 

@@ -4,6 +4,12 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 8, rank 45 (ADR-035 append rank; on merit directly above `0426`) / task `0451`
 
+> ✅ **2026-10-28 sync (`7a2ef92`) — the arrival check is DONE.** `0455` closed 2026-10-28
+> ([[tasks/private-lobby-gameanalytics-funnel]]): **11 of 16** `PrivateLobby:*` events seen over 17–19 Oct; the 5 unseen
+> are all failure/fallback paths (zero is plausible, not proof). Two funnels ("Private lobby: host" / "Private lobby:
+> guest") and a "Private lobbies" dashboard saved in GameAnalytics; the owner has seen them. The "Not checked" notes below
+> are history.
+
 > 🚀 **2026-10-16 sync, third run (`29811f0`) — DEPLOYED:** `daa1bcc` is in game prod **`0.0.165`** (2026-10-16 ~12:17Z, mid-week), checked by me with
 > `git tag --contains`; the client events ship with the game image. The "NOT deployed" line below is history.
 > **Not checked:** that any `PrivateLobby:*` event has arrived in GameAnalytics — that is `0455`, now

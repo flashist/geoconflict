@@ -3,6 +3,21 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> 🆕 **2026-10-28 sync (`7a2ef92`) — newest of all.** **`backlog.md`: 185 rows — 126 `🔲 Backlog` · 44 `➡️ Moved` · 8
+> `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled`; 129 OPEN** (was 183 / 127; counted by me by each row's leading status
+> glyph). **2 rows added**, both `🔲 Backlog`, owner `fkit-coder`, depend on nothing:
+> - `0514` — stop allowing square brackets `[ ]` in name-change requests (reserved for future clan tags `[XXX]`); remove
+>   them from the name hint and the invalid-name message (en + ru). Owner request 2026-10-27, verbatim: *"we need to
+>   remove the mentions of [] brackets from the text and we need to NOT ALLOW them now for any name change requests"*.
+>   ⚠️ Open at plan approval: a shared rule vs name-change only (shared would decide `0487` before its check; name-change
+>   only departs from `0067` ruling (c), like `0360`), the in-game name box, existing bracket names and pending requests.
+>   See [[tasks/clans-talk]].
+> - `0517` — the profile box served requests before its migrations finished: find why and make the start order safe.
+>   Owner ruling 2026-10-28 **"Brief a task on Backlog (Recommended)"**. Seen on the 2026-10-27 deploy: API up 14:04:35
+>   UTC, 2 `player_entitlements does not exist` errors at 14:04:36, migrations `009`–`012` recorded 14:04:45; none since.
+>   Cause unknown — [[tasks/stop-consuming-profile-box-live-check]].
+> - `sprint-backlog.md`: not changed in this window.
+
 > 📌 **2026-10-26 sync (`4e9160a`) — newest of all.** Counted by me by each row's leading status glyph.
 > - **`backlog.md`: 183 rows — 124 `🔲 Backlog` · 44 `➡️ Moved` · 8 `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled`; 127
 >   OPEN** (was 167 / 114). **Closed here** (agent-closed — not owner-verified): `0458` (GameAnalytics spike check 1 —
