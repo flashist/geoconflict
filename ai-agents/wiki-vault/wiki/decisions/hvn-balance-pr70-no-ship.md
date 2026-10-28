@@ -28,3 +28,4 @@ The no-ship call is based on two confirmed issues:
 
 - [[decisions/sprint-4]]
 - [[decisions/cancelled-tasks]]
+- [[tasks/disable-humans-vs-nations-public]] — task `0515` (2026-10-28): the owner switched HvN off in the public rotation instead of balancing it (committed, not deployed)

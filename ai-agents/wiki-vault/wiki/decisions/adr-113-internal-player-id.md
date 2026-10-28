@@ -5,6 +5,17 @@
 
 > Project ADR-113 — see [[decisions/adr-numbering-two-series]].
 >
+> 📝 **2026-10-28 sync (`2aa3cefb`) — Consequences gain CLARIFIED for feedback messages (task `0509`).** `fkit-architect`
+> appended a 📝 pointer under *Consequences → Positive*, a *"Note, 2026-10-28 — feedback messages"* section and a Related
+> line; **no decision changes, Status stays `accepted`, no superseding ADR.** What it says:
+> - *"Yandex ids leave request URLs, logs and Telegram operator commands"* meant the channels this ADR re-keyed (operator
+>   routes, the name-change Telegram command). **The in-game feedback message was never in that scope.**
+> - By owner ruling 2026-10-28 (*"Raw Yandex id"*, relayed — the architect did not hear it first-hand), **feedback
+>   messages carry the raw Yandex id**, labelled client-reported, unverified, to the Telegram feedback chat (and the
+>   webhook, if one is ever set). **Logs stay id-free.** **Point 3 is unchanged** — no client sends the internal id.
+> - Accepted trade-off, stated in the ADR: a real platform id now sits in a third-party chat.
+> - Task: [[tasks/feedback-message-player-yandex-id]] (committed, not deployed).
+>
 > ⛔ **2026-10-27 sync (`5f93b96`) — § *Account linking* SUPERSEDED IN PART by [[decisions/adr-128-owner-run-profile-merge]]**
 > (accepted 2026-10-27; owner approved `0503`'s plan, *"Approve, all 7 as recommended (Recommended)"*).
 > `fkit-architect` added **append-only ⛔ pointers** at the Status line, in § *Account linking* (twice) and in Related;
@@ -229,3 +240,5 @@ login"* and *"why not link accounts now"* are **closeout of this ADR, not new fi
 - [[tasks/lost-citizenship-cause-checks]] — task `0502`: a paying player's Yandex id changed twice — three records under this model
 - [[tasks/profile-merge-tool]] — task `0503`: the owner-run merge command (committed, not deployed)
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — the incident behind ADR-128
+- [[tasks/feedback-message-player-yandex-id]] — task `0509`: 📝 2026-10-28 clarification — feedback messages carry the raw Yandex id (owner ruling); logs stay id-free; point 3 kept
+- [[tasks/leaderboard-core-system-definition]] — task `0234`: the planned leaderboard's read routes return no player or platform id

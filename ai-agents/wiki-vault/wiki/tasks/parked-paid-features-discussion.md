@@ -58,3 +58,4 @@ rewarded ads, and clans. Answer the cross-cutting questions, then give each item
 - [[decisions/sprint-9]] — the board (rank 7)
 - [[decisions/sprint-8]] — where the agenda sat before
 - [[decisions/sprint-backlog]] — where the talks `0478`, `0480`, `0481` ended up
+- [[tasks/leaderboard-core-system-definition]] — task `0234`, the core leaderboard item F waits on; findings FINAL 2026-10-28, nothing built

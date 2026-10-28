@@ -163,7 +163,8 @@ Reached **only** from `addPlayer()` when no team argument is passed (`GameImpl.t
 | Lobby | `disableNPCs` | Nations present? | Evidence |
 |---|---|---|---|
 | **Public Team**, ordinary | `true` | **No** | `disableNPCs: mode === GameMode.Team && playerTeams !== HumansVsNations` — `src/server/MapPlaylist.ts:165` |
-| **Public Team**, HumansVsNations | `false` | **Yes** — on `ColoredTeams.Nations` | same line; placement at `GameImpl.ts:156-162` |
+| **Public Team**, HumansVsNations | `false` | **Yes** — on `ColoredTeams.Nations` | same line; placement at `GameImpl.ts:156-162`. ⚠️ **Since task `0515` (committed `2aa3cefb`, NOT deployed as of 2026-10-28) the playlist no longer generates this lobby**: `TEAM_COUNTS` (`src/server/MapPlaylist.ts:107-114`) omits `HumansVsNations`; the `disableNPCs` special case at `:165` is kept, so the row still describes what such a lobby would get. Only the operator-only admin-token public create still accepts the mode — see [[tasks/disable-humans-vs-nations-public]] |
+| **Private Team**, HumansVsNations | forced `false` (the NPC toggle is hidden for HvN) | **Yes** — on `ColoredTeams.Nations` | `src/client/HostLobbyModal.ts:430-434` (toggle hidden), `:952-956` (`disableNPCs: false`); still offered by the host picker after `0515` — `:378`, `:389` (owner: *"Private lobbies are allowed for HvN"*); also offered in single player, `src/client/SinglePlayerModal.ts:210`, `:221` |
 | **Public FFA** | `false` | **Yes** | `MapPlaylist.ts:165` evaluates false for FFA |
 | **Private Team**, host default | `false` | **Yes** — on ordinary named teams | `src/client/HostLobbyModal.ts:42` (default `false`), `:768-771` |
 | **Tutorial** | forced `true` | **No, ever** | `src/client/LocalServer.ts:115-121` sets `config.disableNPCs = true` unconditionally for `isTutorial` — see [[tasks/tutorial-no-nations]] |
@@ -291,3 +292,5 @@ Recorded 2026-09-03. **Both kept, labelled. The code column is what ships.**
 - [[tasks/tutorial-no-nations]] — why the tutorial has no Nations
 - [[tasks/ffa-clientless-leader-fallback-award]] — task `0206`, which amended the FFA guard described in §3 and was then 🔴 **REVERTED 2026-09-04 — never deployed**; the guard is back to its `0022` shape, minus one deliberately-kept comment
 - [[tasks/credit-participation-xp-elimination-or-match-end]] — task `0211`, which closes the XP loss behind both guards **without** touching the win check
+- [[tasks/disable-humans-vs-nations-public]] — task `0515`: `HumansVsNations` left out of the public rotation (committed, not deployed); private lobbies and single player keep it
+- [[tasks/leaderboard-core-system-definition]] — task `0234`: the planned rank value counts `Human` + `AiPlayer` (the "Players only" set), not `Bot` / `FakeHuman`

@@ -25,3 +25,4 @@ Server-generated public team lobbies no longer create 5+ regular teams. The cap 
 - [[systems/game-overview]]
 - [[tasks/sprint4b-mini-mode-investigation]]
 - [[tasks/sprint4b-duos-trios-quads]]
+- [[tasks/disable-humans-vs-nations-public]] — task `0515` (2026-10-28): `HumansVsNations` removed from `TEAM_COUNTS` (committed, not deployed); "preserving Humans vs Nations in the public rotation" above is history once it deploys

@@ -47,3 +47,4 @@ question carried to the build and to `0485`.
 - [[decisions/sprint-9]] — the board (rank 16); `0234` at 19
 - [[decisions/product-strategy]] — `plan-index.md`'s Leaderboard row, now pointing to Sprint 9
 - [[decisions/sprint-backlog]] — where `0489` and `0490` were filed and from where `0234` moved
+- [[tasks/leaderboard-core-system-definition]] — task `0234`, closed 2026-10-28: **monthly reset — yes; boards — both monthly and all-time** ⇒ both badge candidates possible; the badge build waits on S5 live and used, and S6

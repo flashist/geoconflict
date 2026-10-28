@@ -41,6 +41,7 @@ The form originally had an optional email/Telegram contact field for follow-up. 
 | Timestamp | `Date.now()` |
 | Source screen | start screen or battle screen |
 | Device info | UA, screen resolution, CPU cores, RAM, GPU string (best-effort) |
+| Player (🆕 task `0509`, committed `2aa3cefb`, **not deployed** as of 2026-10-28) | The raw Yandex id, *"client-reported, unverified"*, on its own `Player:` line in Telegram (and a `Player` webhook field); guests get *"none — not logged in (guest)"*. Owner-ruled; logs and analytics stay id-free. See [[tasks/feedback-message-player-yandex-id]] |
 
 The last 3 match IDs are included silently — not shown to the player. See `ai-agents/tasks/done/0103-feedback-match-ids-simple/brief.md` for the match ID attachment implementation.
 
@@ -87,3 +88,4 @@ Submissions land in a simple list view: category, free text, attached context, t
 - [[decisions/sprint-backlog]] — backlog task `0300`: what the player should see when delivery fails
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — 2026-10-27 sync: the 2026-10-25 report that came only through this form (it carries the current display name only; `0509`, backlog, would add a stable player id)
 - [[tasks/one-player-message-popup]] — task `0507`: a way to write back to one player who reached us only through this form
+- [[tasks/feedback-message-player-yandex-id]] — task `0509` (2026-10-28): the raw Yandex id on its own labelled line in every report (committed, not deployed)

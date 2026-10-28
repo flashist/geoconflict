@@ -66,3 +66,4 @@ Source: `ai-agents/sprints/done/plan-sprint-3.md`
 - [[systems/telemetry]] — 5d-A/B OTEL instrumentation
 - [[systems/server-performance]] — 5d-B performance investigation
 - [[features/feedback-button]] — Sprint 3 extended the feedback payload with last 3 match IDs
+- [[tasks/disable-humans-vs-nations-public]] — task `0515` (2026-10-28): Humans Vs Nations, re-enabled here, taken out of the public rotation again

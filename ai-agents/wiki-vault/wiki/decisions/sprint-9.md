@@ -3,6 +3,28 @@
 **Date**: 2026-10-16
 **Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-16`** — started by owner ruling *"Start it now (Recommended)"*; was ~~`🔲 Backlog — 2026-10-16` — created, NOT started~~)*
 
+> 🆕 **2026-10-28, second sync (`2aa3cefb`) — 44 ROWS — 31 `✅ Done` · 4 `⛔ Cancelled` · 6 `🔲 Backlog` · 3 `➡️ Moved`;
+> 6 OPEN** (`0497`, `0504`, `0513`, `0516`, `0518`, `0519`; counted by me by each row's leading status glyph; was 42 / 7).
+> Every close is **agent-closed — not owner-verified**, by a spawned `fkit-producer` at the CLOSE step of
+> `/fkit-sprint-ship-loop` (driven by `fkit-lead`). Still **no theme name and no goal**.
+>
+> | Rank | Task | Status (2026-10-28) | Vault |
+> |---|---|---|---|
+> | 19 | `0234` Leaderboard Core System — definition investigation | ✅ findings FINAL; S0–S6 not briefed | [[tasks/leaderboard-core-system-definition]] |
+> | 36 | `0509` player's Yandex id in the feedback message | ✅ committed `2aa3cefb`, **not deployed** | [[tasks/feedback-message-player-yandex-id]] |
+> | 41 | `0515` Humans Vs Nations out of the public rotation | ✅ committed `2aa3cefb`, **not deployed** | [[tasks/disable-humans-vs-nations-public]] |
+> | 43 | `0518` verify `0509` live | 🔲 Backlog — 🆕 filed 2026-10-28 | — (backlog brief, not ingested) |
+> | 44 | `0519` verify `0515` live | 🔲 Backlog — 🆕 filed 2026-10-28 | — (backlog brief, not ingested) |
+>
+> - `0518`/`0519` placed on Sprint 9 by OWNER RULING **"Sprint 9, at the end (Recommended)"** (relayed; ⛔ not producer
+>   precedent) — overrides the next-sprint verify rule for them, as with `0513`. Knock-on: **Sprint 9 cannot close until
+>   the next game deploy happens or they move on.** Ranks 43/44 are append rank, flagged.
+> - ⚠️ **Stated by the producer, not resolved:** both carry a held-deploy caveat (a game deploy from `dev` also ships held
+>   `0488`/`0494`/`0495` client code). The 2026-10-27 deploys (below) already carried those, so the caveat **may be out
+>   of date** — not checked by the producer, and not re-checked by this sync beyond the 2026-10-28 tag read below.
+> - `git tag --contains 2aa3cefb` → **none** (newest tags `0.0.167`, `0.0.166`): `0509` and `0515` are committed, not
+>   deployed.
+
 > 🆕 **2026-10-28 sync (`7a2ef92`) — 42 ROWS — 28 `✅ Done` · 4 `⛔ Cancelled` · 7 `🔲 Backlog` · 3 `➡️ Moved`; 7 OPEN**
 > (`0234`, `0497`, `0504`, `0509`, `0513`, `0515`, `0516`; counted by me by each row's leading status glyph; was 40 / 11).
 > Every close and cancel is **agent-closed — not owner-verified**, by a spawned `fkit-producer` on rulings relayed by
@@ -203,3 +225,6 @@ text, verbatim: ***"Create Sprint 9 board and move the task there"*** (relayed b
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — 2026-10-27: the live player incident behind ranks 29–40
 - [[decisions/adr-126-permanent-purchases-not-consumed]] · [[decisions/adr-127-consume-switch-source-setting]] · [[decisions/adr-128-owner-run-profile-merge]] — the three ADRs recorded inside this sprint (2026-10-26/27)
 - [[tasks/lost-citizenship-cause-checks]] · [[tasks/profile-merge-tool]] · [[tasks/stop-consuming-design]] · [[tasks/stop-consuming-profile-box-s1]] · [[tasks/one-player-message-popup]] · [[tasks/yandex-player-id-change-message]] · [[tasks/stop-consuming-client-s2]] — tasks `0502`, `0503`, `0505`, `0506`, `0507`, `0508`, `0510`
+- [[tasks/leaderboard-core-system-definition]] — `0234` (rank 19), closed 2026-10-28: findings FINAL, slices S0–S6 not briefed
+- [[tasks/feedback-message-player-yandex-id]] — `0509` (rank 36), closed 2026-10-28; live check `0518` (43)
+- [[tasks/disable-humans-vs-nations-public]] — `0515` (rank 41), closed 2026-10-28; live check `0519` (44)

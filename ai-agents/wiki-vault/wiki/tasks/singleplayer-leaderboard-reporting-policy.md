@@ -194,3 +194,4 @@ wins and `0208` loses its window** — the owner accepted that trade in advance.
 - [[features/tutorial]] — where the same shape was already fixed, and the reason the tutorial's inclusion here must be a stated decision
 - [[decisions/sprint-backlog]] — the board this sits on, unscheduled
 - [[decisions/sprint-4]] — the sprint whose task `0206` spawned this brief; ⚠️ **this task is NOT on that board**, it sits unscheduled on the Backlog board
+- [[tasks/leaderboard-core-system-definition]] — task `0234` (2026-10-28): our own board **runs alongside** the Yandex board; this task stays as filed; `0210`'s Singleplayer route is closed for our board (multiplayer only)

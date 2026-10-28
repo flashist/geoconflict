@@ -56,3 +56,4 @@ statement a `SELECT` (agent SSH to the boxes is blocked by the permission classi
 - [[decisions/adr-113-internal-player-id]] — the identities model a changed Yandex id breaks
 - [[tasks/tenure-xp-grant]] — the tenure gift check 7 counts
 - [[systems/player-profile-store]] · [[decisions/sprint-9]]
+- [[tasks/feedback-message-player-yandex-id]] — task `0509`: a Yandex id in feedback reports, so the next case is not a name hunt

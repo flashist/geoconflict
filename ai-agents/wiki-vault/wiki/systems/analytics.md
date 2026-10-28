@@ -3,6 +3,14 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> 📌 **2026-10-28, second sync (`2aa3cefb`):** the reference's `NationsTeam` paragraph rewritten for task `0515` —
+> Humans Vs Nations **leaves the public rotation** from the game deploy that ships it (committed, **not deployed**);
+> private lobbies keep it, so `TeamPrivate:…:NationsTeam` keeps arriving; single player offers it but never emits the
+> event; a post-deploy `TeamPublic:…:NationsTeam` is most likely a late-delivered event; nothing filtered (collect-all-builds
+> rule). See *Win Condition* below and [[tasks/disable-humans-vs-nations-public]]. Also: the leaderboard investigation
+> `0234` plans its own board's client events as **UX only**, in a category that must not be confused with
+> `Match:Leaderboard:Award` ([[tasks/leaderboard-core-system-definition]]) — nothing built.
+
 > 📌 **2026-10-28 sync (`7a2ef92`):** (1) `0455` done — **11 of 16 `PrivateLobby:*` events arrive**; funnels "Private
 > lobby: host" / "Private lobby: guest" and dashboard "Private lobbies" saved ([[tasks/private-lobby-gameanalytics-funnel]]).
 > (2) The events committed 2026-10-26/27 — `Ad:Rewarded:*`, guest `Purchase:Login/Continue/Blocked:*`, `PlayerMessage:*`,
@@ -257,6 +265,14 @@ grammatical, minus the seven `…Public:…:Timer` ids that public lobbies can n
 **5 of 6 `Match:Leaderboard:Award` ids are reachable** — `…:PlacementLost:SoloTutorial` cannot
 currently fire. ⚠️ **Build dashboards from the reachable set** — a panel per grammatical leaf shows
 permanently-empty series, which reads as telemetry loss.
+
+> 📌 **2026-10-28 (`2aa3cefb`) — `NationsTeam` after task `0515`.** `NationsTeam` is a clientless leaf (every nation on
+> `ColoredTeams.Nations` in the Humans Vs Nations mode). From the game deploy that ships `0515` the mode is **out of the
+> public rotation** but **still offered in private lobbies** (and single player, which emits no `Match:WinCondition`).
+> Expect `TeamPublic:…:NationsTeam` to drop to about zero after that deploy; a sample after it is most likely a
+> late-delivered event from an earlier game. The operator-only admin-token public create still accepts the mode (only
+> the master calls it today, with playlist configs). **Nothing is filtered.** ⚠️ Committed, not deployed as of
+> 2026-10-28. Source: `analytics-event-reference.md` § *Win Condition Events*; [[tasks/disable-humans-vs-nations-public]].
 
 **Emitted at the DECISION POINT, above the clientless guard**, so the counter survives `0205` / `0211`
 removing that guard — it simply changes meaning. **`Match:WinCondition` carries its own denominator**
@@ -857,3 +873,5 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - [[systems/shared-purchase-flow]] — 2026-10-26: the `Purchase:Login:*` / `Continue:*` / `Blocked:*` guest-funnel events
 - [[tasks/rewarded-video-double-match-xp]] — task `0488`: the `Ad:Rewarded:*` events and the `rewarded_video` flag
 - [[tasks/guest-log-in-and-buy]] — task `0495`: the guest purchase funnel events
+- [[tasks/disable-humans-vs-nations-public]] — task `0515`: `TeamPublic:…:NationsTeam` stops after its deploy; private lobbies keep the leaf
+- [[tasks/leaderboard-core-system-definition]] — task `0234`: the planned own leaderboard's UX-only events; abuse is measured server-side, not in GameAnalytics

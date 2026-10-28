@@ -113,3 +113,4 @@ person's claim, and an automatic merge would let anyone claim someone else's pro
 - [[features/feedback-button]] — the only channel the report came through
 - [[systems/analytics]] — the incident's new events (`PlayerMessage:*`, held-on-another-profile)
 - [[decisions/incident-2026-08-22-public-lobbies-outage]] — the vault's earlier incident page
+- [[tasks/feedback-message-player-yandex-id]] — task `0509`, done 2026-10-28: the next feedback report carries the Yandex id (committed `2aa3cefb`, not deployed; live check `0518`)

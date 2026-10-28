@@ -165,3 +165,4 @@ stops a later reader filing it as a bug.
 - [[decisions/adr-110-ai-winner-allowed]] — why the declared winner may be an `AiPlayer` absent from the human ranking, which is what makes definition A's `1`-for-a-loser case accepted rather than a bug
 - [[decisions/sprint-backlog]] — the board this sits on, unscheduled
 - [[decisions/sprint-4]] — the sprint whose task `0206` spawned this brief; ⚠️ **this task is NOT on that board**, it sits unscheduled on the Backlog board
+- [[tasks/leaderboard-core-system-definition]] — task `0234` (2026-10-28): our own board runs alongside the Yandex board; this task stays as filed

@@ -712,3 +712,4 @@ was seen completing**. G8 stays LOW only while the credit ledger's idempotency k
 - [[tasks/rewarded-match-xp-grant-route]] — task `0491`: migration `009` and the rewarded-ad XP route (not deployed)
 - [[tasks/purchase-grant-registry]] — task `0492` (B1): grant registry, per-entry reconcile (not deployed)
 - [[tasks/durable-items-entitlements]] — task `0496` (B4): migration `010`, entitlements (not deployed)
+- [[tasks/leaderboard-core-system-definition]] — task `0234` (2026-10-28): proposed `player_match_results`, per-period projection and trophies tables here — a design, nothing built

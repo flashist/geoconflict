@@ -55,3 +55,4 @@ Hub: [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]].
 - [[tasks/stop-consuming-client-s2]] — task `0510`, same game deploy
 - [[tasks/lost-citizenship-cause-checks]] — task `0502`
 - [[decisions/sprint-9]]
+- [[tasks/feedback-message-player-yandex-id]] — task `0509`, done 2026-10-28 (committed, not deployed)

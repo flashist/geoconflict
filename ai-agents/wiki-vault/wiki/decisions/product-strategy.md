@@ -153,3 +153,4 @@ Mobile deep optimization remains parked — desktop is the core audience. Revisi
 - [[tasks/parked-paid-features-discussion]] — task `0343` (2026-10-24): the parked paid ideas, one outcome each
 - [[decisions/paid-items-purchase-rules]] — 2026-10-24: the rules every paid item follows
 - [[tasks/leaderboard-badges-talk]] — task `0482`: moved the leaderboard investigation `0234` to Sprint 9
+- [[tasks/leaderboard-core-system-definition]] — task `0234` closed 2026-10-28: Task 7's "1–2 weeks" does not hold (≈ 3–4 weeks [arch EST]); its `✅ Test` flag is replaced by ship-to-all + off switch

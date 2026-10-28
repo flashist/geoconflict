@@ -75,3 +75,4 @@ That flow was designed once as `0484` and built as B1–B4 — see [[systems/sha
 - [[decisions/product-strategy]] — the plan index these items came from
 - [[decisions/sprint-9]] — the board that ran the talks
 - [[systems/project-brief]] — `PROJECT.md`'s "any purchase grants citizenship", which Q2 makes *full paid*
+- [[tasks/leaderboard-core-system-definition]] — task `0234`: the leaderboard badges wait on; rank value is earned per match, citizens only

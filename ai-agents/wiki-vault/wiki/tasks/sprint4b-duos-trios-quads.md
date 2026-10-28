@@ -45,3 +45,4 @@ Public matchmaking can now generate Duos, Trios, and Quads lobbies alongside reg
 - [[tasks/teams-mode-max-teams]]
 - [[systems/clans]] — Clan-based team grouping runs through `assignTeams()`, the same function called by these modes
 - [[tasks/investigate-clans-system]] — Investigation confirming end-to-end clan grouping works in Duos/Trios/Quads and documenting the silent-kick bug
+- [[tasks/disable-humans-vs-nations-public]] — task `0515`: HvN left the same public rotation list (committed, not deployed)

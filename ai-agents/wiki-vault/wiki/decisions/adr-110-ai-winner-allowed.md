@@ -68,6 +68,14 @@
 > ⛔ **Do not read `accepted` as licence to build a winners surface assuming AI winners are fine in
 > it. They were never assessed for it.** Whoever picks up leaderboard, match-history or winner-feed
 > work owns re-opening this ADR **as part of that work, before it ships.**
+>
+> 📌 **2026-10-28 sync (`2aa3cefb`) — the leaderboard work has named this trigger.** The `0234` findings (FINAL
+> 2026-10-28; an investigation, nothing built) state that **this ADR's trigger fires** for our planned leaderboard — its
+> frozen monthly top 3 is durable — and that, with `AiPlayer` lobby fillers counted in the match ranking (owner pick
+> *"Include AI now"*), it is **a real question, not a formality**: an `AiPlayer` can take 1st place in a match, which
+> lowers the humans' rank values, though an AI never enters the board itself (only citizens accrue). **To be settled
+> inside the S0 ADR** (not written yet). ⚠️ **This ADR is NOT superseded yet** — status unchanged. See
+> [[tasks/leaderboard-core-system-definition]].
 
 ---
 
@@ -273,3 +281,4 @@ consequence.
 - [[tasks/measure-clientless-leader-and-solo-awards]] — task `0208`, whose Part A excludes AI players on this ADR's reasoning. ✅ **Closed 2026-09-11 with the re-raise trigger's measurement READ** — `AiPlayer` **89 firings in 7 days**, FFA clientless **~1.6 %** vs Team **~53.2 %**. ⛔ **An INPUT REQUIRING AN ARCHITECT'S READ, NOT a conclusion about this ADR**; ⚠️ **client-matches, lower bounds, and `0208` is not fully verified**
 - [[tasks/placement-semantics-literal-one]] — task `0209`, whose accepted `1`-for-a-loser case follows from this ADR
 - [[tasks/singleplayer-leaderboard-reporting-policy]] — task `0210`, which this ADR does **not** pre-answer (it governs who WINS, not who receives points)
+- [[tasks/leaderboard-core-system-definition]] — task `0234` (2026-10-28): this ADR's trigger fires for the planned leaderboard; to be settled in its S0 ADR

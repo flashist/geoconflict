@@ -93,3 +93,4 @@ immediately** (owner-run, reported live).
 - [[decisions/sprint-backlog]] — where the follow-up `0300` was filed
 - [[tasks/citizenship-kill-switch-launch-check]] — task `0238`, the remote `citizenship_ui` kill switch flipped off and on in production, 2026-09-26
 - [[tasks/alert-delivery-after-idle]] — task `0289`, the idle-period delivery question this task raised; closed 2026-10-01, bounded to 4 h 36 min
+- [[tasks/feedback-message-player-yandex-id]] — task `0509`: adds a `Player:` line to the same Telegram feedback message

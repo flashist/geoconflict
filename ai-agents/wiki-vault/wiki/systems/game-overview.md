@@ -27,6 +27,7 @@ Four-tier structure (the 2026-08-08 architecture survey counts a fourth):
 |---|---|
 | GameType | `Singleplayer`, `Public`, `Private` |
 | GameMode | `Free For All (FFA)`, `Team`; regular public team lobbies are capped at 2, 3, or 4 teams by [[tasks/teams-mode-max-teams]] |
+| Humans Vs Nations (`playerTeams` value) | 📌 **2026-10-28 (`0515`, committed, NOT deployed): out of the public rotation** — the server playlist no longer creates HvN lobbies; private lobbies and single player still offer it. See [[tasks/disable-humans-vs-nations-public]]. |
 | Enabled (Sprint 4b) | Duos, Trios, Quads — team-size modes where teams scale with participant count; AI Players fill public lobbies. See [[tasks/sprint4b-duos-trios-quads]]. |
 
 ## Maps
@@ -121,3 +122,4 @@ Server turn interval: ~67ms (100ms / 1.5× speed coefficient — Flashist Adapta
 - [[systems/rendering]] — client layer stack and camera/render orchestration
 - [[systems/project-brief]] — the product brief behind this game reference
 - [[decisions/adr-107-turn-interval-1-5x]] — why the turn interval is ~67 ms
+- [[tasks/disable-humans-vs-nations-public]] — task `0515`: Humans Vs Nations left out of the public rotation

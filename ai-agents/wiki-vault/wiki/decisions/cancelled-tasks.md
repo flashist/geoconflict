@@ -380,3 +380,4 @@ answered 200 HTML, so players saw the generic error. Corrected on its brief and 
 - [[tasks/sprint-7-fixes-live-checklist]] — task `0420`, which absorbed `0422` as item 8
 - [[tasks/private-lobby-wrong-code-not-found]] — task `0454`, which absorbed `0292`
 - [[decisions/adr-104-archiving-disabled]] — the switch `0292` would have extended
+- [[tasks/disable-humans-vs-nations-public]] — task `0515`: HvN out of the public rotation, the later answer to the cancelled `0119`
