@@ -3,6 +3,10 @@
 **Date**: 2026-10-16
 **Status**: proposed *(page-type field, kept while the sprint is open; the board is **`🔄 In progress — 2026-10-16`** — started by owner ruling *"Start it now (Recommended)"*; was ~~`🔲 Backlog — 2026-10-16` — created, NOT started~~)*
 
+> **2026-11-05 — 0497 telemetry filing delta:** 0497 is blocked on [[tasks/profile-privacy-grant-metrics-verification]] (0523), which waits on [[tasks/profile-privacy-grant-telemetry]] (0522) and deployed metric arrival. Both are Sprint 9 by a specific owner-approved exception; the owner also approved the replacement criteria for [[tasks/entitlements-privacy-live-check]]. 0522 is in progress, plan only; 0523 is backlog. Append ranks 46/47 await priority confirmation; no TOP NEXT follows. At least seven full UTC days after arrival/readiness are needed; thin evidence adds one seven-day window and then an owner decision. This is a targeted delta, not a board census. Source: `ai-agents/sprints/plan-sprint-9.md` — search for `tasks 0522 and 0523 added out of band`.
+
+> **2026-11-05 — 0521 closure delta only:** [[tasks/receipt-assisted-identity-recovery]] is ✅ Done (agent-closed — not owner-verified); its proof/design packet returns NO-GO for automatic linking. Its owner-confirmed top-next directive is spent; no replacement ranking is stated. P45 is append rank. The required 0504 player fresh-login and ≥24-hour follow-up remain unreported and mandatory. Source: `ai-agents/sprints/plan-sprint-9.md`, `SPENT — 2026-11-05`. Earlier snapshots below remain historical; this is not a new board census.
+
 > 🆕 **2026-10-28, second sync (`2aa3cefb`) — 44 ROWS — 31 `✅ Done` · 4 `⛔ Cancelled` · 6 `🔲 Backlog` · 3 `➡️ Moved`;
 > 6 OPEN** (`0497`, `0504`, `0513`, `0516`, `0518`, `0519`; counted by me by each row's leading status glyph; was 42 / 7).
 > Every close is **agent-closed — not owner-verified**, by a spawned `fkit-producer` at the CLOSE step of
@@ -166,6 +170,8 @@
 
 > Source: `ai-agents/sprints/plan-sprint-9.md` (and its row in `ai-agents/sprints/plan-index.md`).
 
+> **2026-11-04 correction:** The older 0504 row below is a historical snapshot. Its brief now states in progress; the owner-reported merge and immediate readback are recorded, while fresh-login confirmation and the ≥24-hour follow-up remain pending. Source: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md` and `worklog.md`. This is not a fresh board census.
+
 ## Context
 
 On 2026-10-16 `0426`'s live check, **`0469`**, was filed on the Backlog board because no Sprint 9 board existed. The
@@ -192,6 +198,9 @@ text, verbatim: ***"Create Sprint 9 board and move the task there"*** (relayed b
   the owner's ruling moved only `0469`. Whether they follow is not recorded.
 
 ## Related
+- [[tasks/profile-privacy-grant-telemetry]]
+- [[tasks/profile-privacy-grant-metrics-verification]]
+- [[tasks/entitlements-privacy-live-check]]
 
 - [[decisions/sprint-8]] — the active sprint, whose final deploy `0469` checks
 - [[decisions/sprint-backlog]] — where `0469` was filed, and where `0460`/`0461`/`0463` still wait

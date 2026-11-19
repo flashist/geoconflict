@@ -20,7 +20,18 @@ Sprint 9
 > fix for the affected player. Appended after the board's highest rank, never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+🔄 In progress
+
+> **2026-11-04 — owner ran the approved production merge; recovery verification remains open.**
+> Was 🔲 Backlog. Official support evidence supplied by the owner meets the account/purchase-link gate for this
+> case; the withdrawn wrong candidate is excluded. KEEP = old paid profile, with three approved sources.
+> Owner-reported tool result: merged, KEEP XP 173, one audit row. Immediate same-four-profile dry run and narrow
+> read-only audit reported consistent on November 4: nothing to move; paid state, original receipt/dates and
+> nickname/history retained. Audit `merged_at` = **2026-11-04T12:09:08.742023Z**; follow-up not before
+> **2026-11-05T12:09:08.742023Z** (lead recommends **12:15 UTC / 15:15 Moscow**; no reminder scheduled).
+> Player fresh-login/contact confirmation and the required ≥24-hour follow-up remain pending. Evidence is
+> owner-reported live output, not independently inspected production. **Not closed; not owner-verified.**
+> Dated evidence, exact approval and counts: [worklog](worklog.md). Earlier waiting notes below are history.
 
 ## Owner
 fkit-producer
@@ -37,7 +48,8 @@ it, once, for him (plus any re-run the steps below require).
 
 **Only if `0502` ends in outcome (A)** (two records confirmed). Any other outcome: do not run; re-plan with the owner.
 
-> 📌 **2026-10-27 — `0502` = outcome (A), and this task now waits on Yandex.** OWNER RULING via `AskUserQuestion` in the
+> 📌 **2026-10-27 — `0502` = outcome (A), and this task ~~now waits on Yandex~~ waited on Yandex.**
+> *(2026-11-04: support evidence supplied; gate met for this case — see [worklog](worklog.md).)* OWNER RULING via `AskUserQuestion` in the
 > `fkit-lead` session, relayed to a spawned `fkit-producer` (ADR-021/037; ⛔ not producer precedent). The owner picked
 > verbatim **"A now, merge after Yandex (Recommended)"** — option text: *"Call it A on our data; plan the merge tool
 > (0503) now; run the restore (0504) only after Yandex confirms. Knock-on: 0503 planning starts; 0504 still waits."*
@@ -79,7 +91,9 @@ it, once, for him (plus any re-run the steps below require).
 > - **Correction:** drafted 2026-10-27 — names the right three-profile chain and the old profile's citizenship receipt,
 >   and withdraws the wrong candidate. ~~**Send: not yet confirmed.**~~ **Sent 2026-10-27** — owner's words, typed in the
 >   `fkit-lead` session after the lead showed him the correction text: *"I've commited the files, and I already have sent the message to Yandex as soon as you sent it to me"* (relayed by `fkit-lead`;
->   recorded by a spawned `fkit-producer`). Yandex's answer is still pending.
+>   recorded by a spawned `fkit-producer`). ~~Yandex's answer is still pending.~~
+>   *(2026-11-04: owner supplied official support screenshots confirming linkage and a paid, non-refunded purchase;
+>   see [worklog](worklog.md). A current verified SDK session is not independently proven.)*
 > - **Yandex's answer** to the first message and to the correction is recorded below — date + the answer in words
 >   only (no ids, names, ticket numbers or links). **It is this task's entry gate** (step 1).
 >
@@ -87,7 +101,7 @@ it, once, for him (plus any re-run the steps below require).
 > |---|---|---|
 > | First message sent | 2026-10-27 | Sent as drafted (owner's words, `0508` worklog); named the wrong candidate. |
 > | Correction sent | 2026-10-27 | Sent to Yandex Games support right after the lead showed the text (owner's words: *"I've commited the files, and I already have sent the message to Yandex as soon as you sent it to me"*). |
-> | Yandex's answer | *pending* | — |
+> | Yandex's answer | 2026-11-04 (evidence supplied by owner; support reply time not recorded) | Official support screenshots confirm the account/profile linkage and a paid, non-refunded purchase. Wrong candidate excluded. Gate met for this case; details and limits in [worklog](worklog.md). |
 >
 > - **Check 7 (are other players hit?)** — OWNER RULING the same day, **"Run it now (Recommended)"** — option text:
 >   *"I give you the ready query; one read-only run on the profile server; counts only. Knock-on: none (checked)."*
@@ -113,7 +127,7 @@ if his ID changed again; real values stay in the owner's SSH session). Commands 
 (`profile-merge-runbook.md`, written by `0503`):
 
 1. Entry gates: `0502` outcome (A) recorded *(met 2026-10-27)*; **Yandex has confirmed** the account and purchase
-   link *(owner ruling 2026-10-27, above; tracked in the Yandex table above. Producer reading, not an owner
+   link *(met on owner-supplied support evidence 2026-11-04; tracked in the Yandex table and worklog. Owner ruling 2026-10-27, above. Producer reading, not an owner
    ruling: an answer about the first message alone cannot meet this gate, since that message named the wrong
    candidate)*; `0503` closed and its tool on the box (by the way the owner ruled in
    `0503`'s plan — ~~script over SSH, or a profile-image deploy~~ *(ruled 2026-10-27: a command inside the profile
@@ -146,7 +160,11 @@ if his ID changed again; real values stay in the owner's SSH session). Commands 
    nickname. Session tokens last up to 24 h; the check is valid after his next fresh login.
 7. **REQUIRED — 24-hour follow-up dry run** (`0503` plan Q7), at least 24 h after step 4, same `--into`/`--from`: a
    page left open on a source can still write to it for up to 24 h (a purchase, a match finishing). If the dry run
-   shows anything left on a source, **re-run** (steps 2–5, so the backup check of step 3 again) to sweep it; record the result either way.
+   shows anything left on a source, **re-run only after fresh owner approval** (steps 2–5, with a fresh preview,
+   fingerprint and step 3's backup check). The tool's sweep reminder is not standing approval for another merge.
+   Record the result either way. Owner-reported audit `merged_at` = **2026-11-04T12:09:08.742023Z**; follow-up
+   not before **2026-11-05T12:09:08.742023Z**. Lead recommends November 5 **12:15 UTC / 15:15 Moscow**, with
+   margin after transaction start. **No reminder scheduled.** Immediate November 4 dry run does not satisfy this step.
 8. **If his ID changes again** (a new, fresh profile appears for him — before the run or after it): **re-run with the
    new profile as an extra source** (`--from <SOURCE_NEWER_PLAYER_ID>`), KEEP unchanged — steps 2–5 (with step 3's backup check), then step 7 again.
    Same per-case, owner-run rule — never automatic.

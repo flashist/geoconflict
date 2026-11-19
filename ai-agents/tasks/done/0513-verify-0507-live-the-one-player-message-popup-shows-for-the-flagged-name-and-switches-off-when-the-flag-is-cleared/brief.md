@@ -25,7 +25,7 @@ Sprint 9
 > `0512` part (a) gates. Appended after the board's highest rank (39), never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer

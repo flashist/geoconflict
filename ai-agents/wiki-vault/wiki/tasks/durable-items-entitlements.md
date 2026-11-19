@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 25 (ADR-035 append rank; on merit directly below `0495`) / task `0496` / build B4 of the shared purchase flow
 
+> **2026-11-05 update:** [[tasks/entitlements-privacy-live-check]] (0497) is blocked on 0523 after 0522 build/deploy. Migration and fresh confirmed GET are owner-reported PASS; original unverified-read and test purchase checks remain NOT RUN. Older backlog references below are historical. Source: `ai-agents/tasks/backlog/0497-verify-0496-live-entitlements-migration-applied-and-ownership-stays-private-after-the-b4-deploy/brief.md` — `2026-11-05 — owner-approved acceptance and dependency amendment`.
+
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`**; migration `010` applied
 > 14:04:45 UTC. ⚠️ At boot (14:04:36 UTC) the API logged 2 `entitlements lookup failed: relation "player_entitlements"
 > does not exist` errors ~10 s before the migrations were recorded; none since → task `0517` on the Backlog board
@@ -46,6 +48,7 @@ with a test-only product string that is **not** added to `PAYMENT_PRODUCT_IDS`.
 - Blocks `0497`, and with `0495` the item builds `0486`, `0010`, `0011` (owner OD-3).
 
 ## Related
+- [[tasks/entitlements-privacy-live-check]] — 0497 amended verification
 
 - [[systems/shared-purchase-flow]] — the flow
 - [[tasks/shared-purchase-flow-design]] — task `0484`, the spec (OD-2)

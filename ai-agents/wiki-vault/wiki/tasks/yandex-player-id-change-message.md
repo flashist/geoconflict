@@ -1,7 +1,7 @@
 # Draft the Message to Yandex Games — Player-ID Changes, Purchase Scope (task 0508)
 
 **Source**: `ai-agents/tasks/done/0508-draft-the-message-to-yandex-games-player-id-changes-purchase-scope-and-unconsumed-purchases/brief.md` (`draft-message-to-yandex.md` and `worklog.md` in the same folder)
-**Status**: done (agent-closed — not owner-verified) — sent 2026-10-27; **answer pending**
+**Status**: done (agent-closed — not owner-verified) — sent 2026-10-27; case linkage evidence supplied 2026-11-04
 **Sprint/Tag**: Sprint 9 — live player incident (rank 35, append rank flagged)
 
 ## Goal
@@ -32,8 +32,7 @@ an English copy) that the **owner** sends through Yandex Games' own channel. Hub
   copy included the **wrong candidate profile** (from `0502`'s first, wrong-name search). A **correction** naming the
   right three-profile chain and the old profile's citizenship receipt was sent the same day; both are tracked on
   `0504` (owner ruling *"Note on 0504 (Recommended)"*).
-- **Answers: pending.** When they arrive they are recorded in `0502` (is the old record his), `0424` (if un-parked) and
-  `0505` (Q2). `0504`'s restore waits on the answer; **ADR-126's build waits on nothing** (D2).
+- **2026-11-04:** Owner-supplied support evidence met the `0504` case linkage gate; the owner reported a merge. Other correspondence questions are not established as answered. Recovery verification remains pending. Source: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md`, `Entry evidence and approved records`.
 
 ## Related
 

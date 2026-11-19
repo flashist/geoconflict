@@ -37,6 +37,16 @@ renewal log, **G4** nobody reading the `last-backup.json` freshness marker.
 - ⚠️ The heartbeat's 3 h grace was set by the owner and **not re-read** by an agent.
 - This closed the epic's last open item — see [[tasks/profile-clean-slate-rebuild-epic]].
 
+### Later incident — 2026-11-09
+
+The weekly `profile-daily-checks` email's **20.833% availability was maintenance-heartbeat status, not API uptime**:
+both API monitors' paths returned 200. The scheduled run reported **11 OK, 2 failed** (`reboot-required` since
+November 3; stale `name-change-digest` since November 5) and delivered its `/fail` heartbeat. Other checks passed,
+including backup freshness; green alert-path and channel-state checks did not prove Telegram delivery. This was a
+read-only investigation; no repair was made and Better Stack incident closure remains unverified. Details:
+[[systems/player-profile-store]], [[systems/alert-delivery]]. Source:
+`ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` — *Finding* / *Evidence*.
+
 ## Related
 
 - [[systems/player-profile-store]] — the box, and this task's full history

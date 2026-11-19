@@ -43,7 +43,7 @@ statement a `SELECT` (agent SSH to the boxes is blocked by the permission classi
   instruction that they may be recorded as not run — **not** an owner ruling. The folder grep for UUID / Yandex-id
   shapes was run at close: clean.
 - **`0424`: kept parked** — *"Keep parked until Yandex (Recommended)"*.
-- **Feeds:** `0503` (the chain shape), `0504` (the restore, which waits on this and on Yandex), `0508` (the evidence
+- **Feeds:** `0503` (the chain shape), `0504` (the restore; its Yandex linkage gate was met on 2026-11-04, with verification still pending; source: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md`), `0508` (the evidence
   paragraph), `0424`.
 
 ## Related

@@ -4,6 +4,8 @@
 **Status**: done (agent-closed — not owner-verified)
 **Sprint/Tag**: Sprint 9, rank 18 (ADR-035 append rank; placement is `fkit-lead`'s reading of the owner's "now") / task `0488` — client part (plan Part C); server part is `0491`
 
+> **2026-11-07:** [[tasks/purchase-rewarded-metrics-2026-11]] records aggregate gate and interstitial PASS only; payout remains FLAG / UNPROVEN, Failed unknown and Watched > Opened unexplained. Existing residuals remain in scope.
+
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`**. 🚩 **`rewarded_video` is ON in
 > production since 2026-10-27, on purpose** (owner: *"yes, and it's fine"*). Owner's live run: *"Offer showed, XP
 > doubled"* (ad played with sound off). Most other steps not reported. `0499` **cancelled** 2026-10-28 →
@@ -66,6 +68,7 @@ currency.
   is still `🔲 Backlog` (re-checked at `4e9160a`) — the brief left it as a producer follow-up.
 
 ## Related
+- [[tasks/purchase-rewarded-metrics-2026-11]] — task 0516: aggregate rewarded-ad assessment and limitations
 
 - [[tasks/rewarded-match-xp-grant-route]] — task `0491`, the server part this calls
 - [[decisions/adr-112-free-xp-grants]] — amended 2026-10-24: the ad bonus has its own ledger

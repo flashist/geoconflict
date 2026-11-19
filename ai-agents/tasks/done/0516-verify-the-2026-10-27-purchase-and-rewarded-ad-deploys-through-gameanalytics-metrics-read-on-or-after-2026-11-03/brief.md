@@ -29,7 +29,7 @@ Sprint 9
 > (ADR-035); no row renumbered.
 
 ## Status
-🔲 Backlog
+✅ Done (agent-closed — not owner-verified)
 
 ## Owner
 fkit-producer — ⚠️ **NEEDS THE OWNER'S CHROME.** GameAnalytics (game 330439) is read in the owner's Chrome with the

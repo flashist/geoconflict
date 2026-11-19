@@ -94,7 +94,7 @@ Nothing. A live check, recorded in this folder's `worklog.md`.
 > hand-run check tasks should the producer cancel?"* → **"The 4 purchase ones (Recommended)"** — option text: *"Cancel
 > 0493, 0498, 0499, 0512. Keep 0511 (server checks, no purchase); their server-side steps move into 0511. Knock-on: none
 > (checked)."* Only **server-side, read-only, no-purchase** steps came here. The client side went to
-> [`0516`](../../backlog/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/brief.md)
+> [`0516`](../../done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/brief.md)
 > (GameAnalytics read, on or after 2026-11-03). Nothing that needs a paid purchase was added. Steps already here that
 > the cancelled tasks also asked for are not repeated: server counters (`0512` step 7 = step 4 above), profile box
 > version (`0493` step 5, `0512` step 8 = step 7 above).

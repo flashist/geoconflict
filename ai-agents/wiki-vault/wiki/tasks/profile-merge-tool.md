@@ -6,7 +6,7 @@
 
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27** in profile **`0.0.165-profile.1`** (`git tag --contains
 > 962f427`); migration `012` applied 14:04:45 UTC; `player_merges` read **0** rows on 2026-10-27 (`0511` worklog). The
-> restore `0504` is still `🔲 Backlog`. The "not deployed" text below is history.
+> Historical snapshot: restore `0504` was then `🔲 Backlog`. On 2026-11-04 the owner reported the merge and immediate readback; fresh-login and ≥24-hour checks remain pending. See [[tasks/affected-player-citizenship-restoration]]. The "not deployed" text below is history.
 
 ## Goal
 
@@ -43,7 +43,7 @@ is `0504`, the affected player's restore. Hub: [[decisions/incident-2026-10-25-l
   suites, 5402/5402. Run by the coder; **not re-run by the wiki**.
 - **Not deployed.** The command reaches the box only with a profile-image deploy, which carries whatever profile code
   is committed then — the held `0491`/`0492`/`0496`, `0506` (S1), and this. Until then it does not exist on the box.
-- **Not used yet.** `0504` (`🔲 Backlog`) runs it for the affected player with KEEP = the old paid profile and both
+- **Historical, before 2026-11-04 — superseded by the update above.** `0504` (`🔲 Backlog`) runs it for the affected player with KEEP = the old paid profile and both
   newer profiles as sources — **only after Yandex confirms** the account and purchase link. No live verify task was
   split out; `0504` is the live use.
 

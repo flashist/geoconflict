@@ -3,6 +3,13 @@
 **Layer**: server
 **Key files**: `src/core/profile/PlayerProfile.ts`, `src/profile-server/`, `migrations/006_player_identity.sql`, `migrations/001_player_profiles.sql`, `deploy.sh`, `build-deploy-profile.sh`, `setup-profile.sh`, `profile-checks.sh`
 
+> **2026-11-09 incident — API healthy; maintenance heartbeat failing.** At approximately 07:58–08:02 UTC,
+> `/health` and `/ready` returned 200 on `0.0.165-profile.1`; API and Postgres containers were healthy (up 12 days).
+> The weekly email's **20.833%** belongs to `profile-daily-checks`, **not API uptime**. The scheduled 08:00 UTC
+> run reported **11 OK, 2 failed** and delivered its `/fail` heartbeat: `reboot-required` since November 3 and
+> `name-change-digest` since November 5. No repair, restart, reboot or deploy was performed.
+> Source: `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` — *Finding* / *Evidence*.
+
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: `/health` **`0.0.165-profile.1`**; migrations **`009`–`012`
 > all applied 2026-10-27 14:04:45 UTC**; `purchase_holder_sightings` 0 and `player_merges` 0 rows; boot line
 > `payments consume-permanent: OFF`. ⚠️ **Start-order gap:** 2 `relation "player_entitlements" does not exist` errors at
@@ -486,6 +493,27 @@ Sources: `ai-agents/knowledge-base/s4-preexisting-infra-impact-2026-06-24.md`, `
 - **Guest path**: the T2/T7 guest-first flow is cancelled. Profile XP is authenticated-only through the T6 server-side crediting path.
 
 ## Gotchas / Known Issues
+
+### 2026-11-09 — two maintenance failures with healthy API monitors
+
+Source: `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` — *Pending reboot*,
+*Telegram proxy failure*, *Next actions and verification* (read-only live observations, not re-run by the wiki).
+
+- `/var/run/reboot-required` dates to **2026-11-03 06:38:58 UTC**. Running kernel `7.0.0-38-generic`;
+  installed `7.0.0-42-generic`. Automatic reboot is deliberately disabled on this single-server deployment;
+  the check correctly remains failed until a maintenance reboot clears it.
+- The digest's last successful delivery was **November 4, 04:00 UTC**; its success marker was **123 hours old**,
+  beyond the 26-hour limit. Cron ran, but notification delivery failed. Container probes found the configured
+  Telegram proxy unreachable while direct HTTPS worked; details and delivery-proof limits: [[systems/alert-delivery]].
+- Other November 9 checks passed: daily backup marker and matching off-box object, weekly copy, renewal
+  attempt/errors, certificate validity, off-box configuration, disk use (22%), player growth, alert-path reachability
+  and the monitoring channel's `delivering` record. The last two **do not prove Telegram delivery**.
+- Next: inspect and restore proxy reachability; schedule a short maintenance reboot; then verify actual Telegram
+  delivery and a fresh digest marker, run the checker for a success heartbeat, and confirm Better Stack closure.
+  **Proxy-host cause and exact Better Stack incident state/closure remain unverified**; its live UI was not opened.
+  The earlier open-incident/later-failure trap recorded above remains relevant, without proving it happened this time.
+
+### Earlier findings
 
 - The Yandex ID carried through match join is still an unsigned client-provided value. Earned-XP crediting must either accept that risk for non-monetary XP or add signed identity plumbing; paid state relies on Yandex Payments HMAC verification, implemented in 0019 but not yet live-verified (no secret key until catalog approval). 📌 *2026-10-08 lint: now history — the key is on the box (owner-set, 2026-09-20), paid citizenship went live 2026-09-26, and `0297` proved real purchases (closed 2026-10-05; HMAC construction `decoded_json`, n = 1; reconciliation and catalog checks waived by the owner, not verified).*
 - `PROFILE_API_URL` has to be present in the game-server deploy environment or `/api/env.profileApiUrl` stays empty. T4h is the completed fix for that deploy gap.

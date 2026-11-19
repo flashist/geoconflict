@@ -3,6 +3,10 @@
 **Layer**: shared
 **Key files**: `src/client/PurchaseCoordinator.ts`, `src/client/PurchaseOffer.ts`, `src/client/ProductPurchase.ts`, `src/client/ProductClientConfig.ts`, `src/client/PaymentsApiClient.ts`, `src/client/PaymentsReconciliation.ts`, `src/client/CitizenshipExplainerModal.ts`, `src/client/CitizenshipCard.ts`, `src/client/CitizenshipRestartOffer.ts`, `src/client/GameRestart.ts`, `src/client/flashist/FlashistFacade.ts`, `src/core/profile/PaymentsContract.ts`, `src/core/profile/PlayerProfile.ts`, `src/profile-server/PaymentsRepository.ts`, `src/profile-server/Routes.ts`, `src/profile-server/PublicProjection.ts`, `migrations/010_player_entitlements.sql`
 
+> **2026-11-07:** [[tasks/purchase-rewarded-metrics-2026-11]] completed its aggregate read with purchase and guest-journey flags accepted as unproven; counts cannot prove billing, account binding or reconciliation.
+
+> **2026-11-05 update:** [[tasks/entitlements-privacy-live-check]] (0497) is blocked on the new server-metrics verifier; its owner-reported migration and fresh confirmed GET passed, while the original unverified read and test purchase were not run. Older 0497 backlog references below are historical. The 0522 instrumentation remains plan-only. Source: `ai-agents/tasks/backlog/0497-verify-0496-live-entitlements-migration-applied-and-ownership-stays-private-after-the-b4-deploy/brief.md` — `2026-11-05 — owner-approved acceptance and dependency amendment`.
+
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: profile **`0.0.165-profile.1`** (B1/B4/S1, `0491`,
 > migrations `009`–`012`) then live game **`0.0.167`** (B2/B3/S2, `0488`). First live evidence: a guest's "Log in and buy"
 > opened the payment window with **no second tap** ([[tasks/guest-log-in-and-buy-live-check]]); a live citizenship
@@ -117,6 +121,8 @@ kill switch (`0236`) is different: off ⇒ nothing can be bought or reconciled.
   [[systems/analytics]].
 
 ## Related
+- [[tasks/purchase-rewarded-metrics-2026-11]] — task 0516: aggregate purchase assessment and limitations
+- [[tasks/entitlements-privacy-live-check]] — 0497 amended verification
 
 - [[decisions/paid-items-purchase-rules]] — the four rules this flow enforces
 - [[decisions/adr-125-log-in-and-buy-skips-reload]] — no reload on "Log in and buy"; restart prompt after every purchase

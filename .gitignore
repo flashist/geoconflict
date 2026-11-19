@@ -35,3 +35,6 @@ karpathy-vault/.obsidian/
 
 # Project-wide jest lock fallback when there is no git dir (scripts/run-jest-with-project-lock.mjs)
 .geoconflict-jest-full-run.lock
+
+# fkit-managed Codex skills
+.agents/skills/fkit-*/

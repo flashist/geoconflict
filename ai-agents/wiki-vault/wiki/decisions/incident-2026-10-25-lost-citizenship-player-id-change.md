@@ -1,7 +1,7 @@
 # Incident 2026-10-25 — a paying player's citizenship and nickname "disappeared" (his Yandex player ID changed twice)
 
 **Date**: 2026-10-25
-**Status**: accepted *(page-type field; the incident is **not closed** — the restore `0504` waits on Yandex's answer)*
+**Status**: accepted *(page-type field; the incident remains open — `0504` recovery verification is pending)*
 
 > 🚀 **2026-10-28 sync (`7a2ef92`) — the fixes are LIVE.** Profile box **`0.0.165-profile.1`** and live game **`0.0.167`**
 > deployed 2026-10-27: S1 `0506`, S2 `0510`, the merge tool `0503`, the popup `0507` and the held purchase-flow code are
@@ -17,6 +17,8 @@
 > 🔒 **Privacy rule for this page and every page it links:** the player is **"the affected player"** only. No player
 > id, Yandex id, nickname, match id, purchase token or name appears anywhere in the vault. The real values live only
 > in the owner's own SSH session and the copy he sent to Yandex, never in git.
+
+> **2026-11-04 update:** Support evidence supplied by the owner met `0504`'s linkage gate, and the owner reported the approved merge and immediate readback. Player fresh-login confirmation and the ≥24-hour follow-up remain pending. `0520` delivered local investigation findings; SDK behavior and incident cause remain unproved. See [[tasks/affected-player-citizenship-restoration]] and [[tasks/yandex-progress-selection-investigation]]. Sources: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md` and `ai-agents/tasks/backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/findings.md`. Earlier support-wait and unused-merge statements below are historical.
 
 ## Context
 
@@ -63,11 +65,11 @@ first?"*: **"Merge tool + stop consuming"**. The work split into Sprint 9 tasks 
 |---|---|---|---|
 | `0502` | owner-run read-only checks: confirm the cause | ✅ Done — outcome (A) | [[tasks/lost-citizenship-cause-checks]] |
 | `0503` | owner-run profile merge tool (SSH-only, dry run first, audited) | ✅ Done — committed `962f427`, **not deployed** | [[tasks/profile-merge-tool]] |
-| `0504` | run the merge for the affected player | 🔲 Backlog — **waits on Yandex's answer** | — (backlog) |
+| `0504` | run the merge for the affected player | 🔄 In progress — owner-reported merge and immediate readback; fresh login and ≥24-hour follow-up pending | [[tasks/affected-player-citizenship-restoration]] |
 | `0505` | design + ADR: stop consuming permanent purchases | ✅ Done — spec + ADR-126 approved | [[tasks/stop-consuming-design]] |
 | `0506` | S1, profile box: server-owned consume policy, "held elsewhere", sightings | ✅ Done — committed `baaf2f8`, **not deployed** | [[tasks/stop-consuming-profile-box-s1]] |
 | `0507` | one-player message popup (contact links), targeted by a Yandex flag | ✅ Done — committed `baaf2f8`, **not deployed** | [[tasks/one-player-message-popup]] |
-| `0508` | draft the message to Yandex Games | ✅ Done — sent 2026-10-27; answer pending | [[tasks/yandex-player-id-change-message]] |
+| `0508` | draft the message to Yandex Games | ✅ Done — sent 2026-10-27; case linkage evidence supplied 2026-11-04 | [[tasks/yandex-player-id-change-message]] |
 | `0509` | put the player's stable id in the feedback message | 🔲 Backlog | — (backlog) |
 | `0510` | S2, client: consume only what the server lists; "held elsewhere" offer | ✅ Done — committed `f7ce268`, **not deployed** | [[tasks/stop-consuming-client-s2]] |
 | `0511` / `0512` / `0513` | live checks of `0506` / `0510` (T1–T3 pre-release) / `0507` | 🔲 Backlog | — (backlog) |
@@ -85,13 +87,14 @@ person's claim, and an automatic merge would let anyone claim someone else's pro
 
 ## Consequences
 
+- **Historical pre-2026-11-04 position — superseded by the update above.** The restore was not done.
 - **The restore is not done.** `0504` (KEEP = the old paid profile; both newer profiles as sources in one run; a
   required follow-up dry run 24 h later) runs **only after Yandex confirms** the account and purchase link, and only
   after a profile-box deploy carries migration `012`.
 - **Yandex correspondence** (tracked on `0504` by owner ruling *"Note on 0504 (Recommended)"*): first message sent
   2026-10-27 *"exactly as you showed it to me"* — it included the wrong candidate profile; the correction naming the
   right three-profile chain was sent 2026-10-27 (owner: *"I already have sent the message to Yandex as soon as you
-  sent it to me"*). **Answer pending.**
+  sent it to me"*). **Historical: answer pending at that time.** Case linkage evidence was supplied 2026-11-04; other questions are not assumed answered.
 - **Nothing is live.** `git tag --contains` → **none** for `baaf2f8`, `f7ce268`, `cc52296`, `962f427`, `5f93b96`
   (checked 2026-10-27; newest tags game `0.0.165`, profile `0.0.164-profile.2`). The held purchase-flow deploy
   (`0491`/`0492`/`0494`/`0495`/`0496`/`0488`) now ships **with** S1 and S2 (owner: *"Hold it"*).

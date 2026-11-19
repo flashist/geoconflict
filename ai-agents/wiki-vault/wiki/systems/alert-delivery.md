@@ -135,6 +135,31 @@ Never use `0` or a space as a placeholder.
 
 ## Gotchas / Known Issues
 
+### 2026-11-09 — Telegram egress proxy unreachable
+
+Source: `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` — *Telegram proxy failure*
+(read-only observations around 07:58–08:02 UTC; not re-run by the wiki).
+
+- Last successful name-change digest: **November 4, 04:00 UTC**. November 5–7 and 9 failed with
+  `network_error code=unknown`; November 8 failed with `network_error code=ECONNREFUSED`.
+  Cron ran; the stale marker reflects delivery failures, not a missing job or a post-delivery marker-write failure.
+- Inside the profile container, direct HTTPS to an unrelated public site returned 200 in 123 ms;
+  that destination through the configured proxy, proxied Telegram root and read-only bot `getMe` calls timed out
+  at 8 seconds. A separate TCP probe timed out at 6 seconds. The investigator's computer got TCP refusal in
+  0.19 seconds; a hash comparison confirmed local/live proxy settings match without exposing values.
+- Since November 5, profile API logs held **28 name-change notification network failures and 3 SSH-alert
+  delivery network failures** through the 08:00 UTC read. SSH counts include investigation logins; these totals
+  exclude the digest CLI log and **do not measure game-server feedback delivery**.
+- The evidence supports a broken notification egress path. **Proxy host, proxy process, firewall and VPN/tunnel
+  causes are unresolved**: no proxy-host service inspection was performed. The checked local configuration
+  supplied no dedicated proxy-host access; common VPN/tunnel service names checked on the profile host found none.
+- **Green alert-path freshness and channel state `delivering` did not prove Telegram delivery** during this failure.
+  The maintenance checker still delivered its `/fail` heartbeat to Better Stack; that email-only path is separate
+  ([[systems/player-profile-store]], [[tasks/profile-p4-operability]]).
+
+No Telegram message was sent and no repair was attempted. After proxy repair, verify actual Telegram delivery
+and a fresh digest marker, then a successful maintenance heartbeat and Better Stack closure; closure was not checked.
+
 ### 🚨 The trap that makes alerting die silently
 
 **A `401`, `403` or `404` reply permanently disables the notification channel.** Verified by

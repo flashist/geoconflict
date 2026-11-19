@@ -3,6 +3,8 @@
 **Layer**: client
 **Key files**: `src/client/Bootstrap.ts`, `src/client/flashist/FlashistFacade.ts`, `src/client/SignatureAgeAnalytics.ts`, `src/client/StartScreenTabs.ts`, `src/client/CitizenshipCard.ts`, `ai-agents/knowledge-base/analytics-event-reference.md`, `ai-agents/knowledge-base/mentor-monetization-analytics-spec.md`
 
+> **2026-11-07:** [[tasks/purchase-rewarded-metrics-2026-11]] is done (agent-closed — not owner-verified): checks 1–5 and 8 FLAG / UNPROVEN; 6–7 PASS only for aggregate criteria. Only two of nine named leaves observed; any-order funnels do not prove an ordered journey. Missing data is not zero.
+
 > 📌 **2026-10-28, second sync (`2aa3cefb`):** the reference's `NationsTeam` paragraph rewritten for task `0515` —
 > Humans Vs Nations **leaves the public rotation** from the game deploy that ships it (committed, **not deployed**);
 > private lobbies keep it, so `TeamPrivate:…:NationsTeam` keeps arriving; single player offers it but never emits the
@@ -15,7 +17,7 @@
 > lobby: host" / "Private lobby: guest" and dashboard "Private lobbies" saved ([[tasks/private-lobby-gameanalytics-funnel]]).
 > (2) The events committed 2026-10-26/27 — `Ad:Rewarded:*`, guest `Purchase:Login/Continue/Blocked:*`, `PlayerMessage:*`,
 > `Purchase:HeldOnOtherProfile` / `Blocked:OtherProfile` — shipped in game **`0.0.167`**, live 2026-10-27 (`git tag
-> --contains`); their arrival is **not recorded by any closed task** — the GameAnalytics read `0516` is due on or after 2026-11-03. (3) 🚩
+> --contains`); as of that sync, their arrival had not yet been assessed by closed task `0516`; see its later aggregate read above. (3) 🚩
 > `rewarded_video` is **ON** in production since 2026-10-27, on purpose ([[tasks/rewarded-video-live-check]]).
 
 > 🆕 **2026-10-27 sync (`5f93b96`) — six new events and two new tap ids, all COMMITTED, NOT DEPLOYED** (live player
@@ -780,6 +782,7 @@ The dev/prod separation for GameAnalytics rests on **one environment variable**,
 - **Monetization event naming:** The monetization spec uses product-level event names as requirements, but implementation must still conform to the established `Category:Action` analytics naming convention and the TypeScript enum source-of-truth rule.
 
 ## Related
+- [[tasks/purchase-rewarded-metrics-2026-11]] — task 0516: aggregate read, event-name and funnel limits
 
 - [[tasks/tutorial-abandonment-platform-segmentation]] — task `0212`, the filed-but-unscheduled investigation into why the tutorial's completion rate reads 9.8 %, and the six code-read corrections that say the headline is probably overstated
 - [[systems/game-overview]] — overall project context

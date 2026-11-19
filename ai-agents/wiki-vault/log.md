@@ -5100,3 +5100,51 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 - 🔒 **Secret scan on this run's vault diff: clean** — no IP address, URL, connection string, token or long hex in added lines (the watermark and this entry hold the commit SHA by design). No Yandex id, player id or name written; `0509`'s read-only lookup query not copied.
 - ⚠️ **Flagged, not fixed:** (1) **`0509` and `0515` are not deployed**; live checks `0518`/`0519` hold Sprint 9 open until the next game deploy. (2) `0518`/`0519` carry a held-deploy caveat (held `0488`/`0494`/`0495` client code) that is **probably stale** — those shipped in `0.0.167` on 2026-10-27; the producer flagged it unchecked. (3) `0234`'s accepted trust residuals: up to 10 points per forged 1-human public match; uncapped private-lobby self-play farm (not verified end to end); ≥ half-IP holders decide a witness vote. (4) **ADR-110's trigger is named as firing** — to be settled in the unwritten S0 ADR. (5) "Yandex has no server-side leaderboard write" is **[MEM]**, unconfirmed. (6) `0515` follow-ups not acted on: `0205` scope, `0476` H4, `geoconflict-producer-knowledge-base.md` §12 still says HvN is re-enabled. (7) `0515` brief says ~1 in 7 public Team lobbies was HvN; `0519` says ~1 in 17 of all public lobbies — both recorded as written, not re-derived. (8) Ranks 19, 36, 41, 43, 44 are append ranks, flagged; Sprint 9 still has no name or goal.
 - ⛔ Wrote only inside `ai-agents/wiki-vault/`. Closed nothing, moved no task file, invoked no mover, edited no brief / sprint plan / knowledge-base file. No tests run. Nothing committed or pushed.
+
+## 2026-11-04 — ingest
+- Ingested: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md` → created [[wiki/tasks/affected-player-citizenship-restoration]]; updated incident and Sprint 9 context.
+- Ingested: `ai-agents/tasks/backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md` → created [[wiki/tasks/affected-player-citizenship-restoration]]; updated incident, merge-tool, correspondence and cause-check context.
+- Ingested: `ai-agents/tasks/backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/brief.md` → created [[wiki/tasks/yandex-progress-selection-investigation]].
+- Ingested: `ai-agents/tasks/backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/findings.md` → created [[wiki/tasks/yandex-progress-selection-investigation]]; updated incident context.
+- Ingested: `ai-agents/tasks/backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/worklog.md` → created [[wiki/tasks/yandex-progress-selection-investigation]].
+
+## 2026-11-05 — ingest
+- Ingested: `ai-agents/tasks/backlog/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/brief.md` → created [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/backlog/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/findings.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/sprints/plan-sprint-9.md` (0521 placement only) → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+
+## 2026-11-05 — ingest
+- Ingested: `ai-agents/tasks/backlog/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/findings.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]; source clarification resolves the consumption wording conflict at source frame `8378e143`, deployment remains owner-reported, and previously consumed purchases cannot return.
+- Checked: `ai-agents/tasks/backlog/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/brief.md` and `ai-agents/sprints/plan-sprint-9.md` for the owner-ruling on next eligible work; P45 is append rank only. The existing Sprint 9 page is a dated historical snapshot and makes no conflicting current next-work claim.
+
+## 2026-11-05 — ingest
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/brief.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/findings.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/plan.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/plan-review.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/review.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/worklog.md` → updated [[wiki/tasks/receipt-assisted-identity-recovery]]
+- Ingested: `ai-agents/sprints/plan-sprint-9.md` (0521 closure delta only) → updated [[wiki/tasks/receipt-assisted-identity-recovery]] and [[wiki/decisions/sprint-9]]; related 0520 pointer updated.
+
+## 2026-11-05 — ingest
+- Ingested: `ai-agents/tasks/backlog/0522-measure-profile-privacy-and-committed-purchase-grants-on-the-profile-server/brief.md` → created [[wiki/tasks/profile-privacy-grant-telemetry]]
+- Ingested: `ai-agents/tasks/backlog/0523-verify-profile-privacy-and-new-citizenship-grants-through-deployed-server-metrics/brief.md` → created [[wiki/tasks/profile-privacy-grant-metrics-verification]]
+- Ingested: `ai-agents/tasks/backlog/0497-verify-0496-live-entitlements-migration-applied-and-ownership-stays-private-after-the-b4-deploy/brief.md` → created [[wiki/tasks/entitlements-privacy-live-check]]; updated [[wiki/tasks/durable-items-entitlements]] and [[wiki/systems/shared-purchase-flow]]
+- Ingested: `ai-agents/tasks/backlog/0497-verify-0496-live-entitlements-migration-applied-and-ownership-stays-private-after-the-b4-deploy/worklog.md` → updated [[wiki/tasks/entitlements-privacy-live-check]]
+- Ingested: `ai-agents/sprints/plan-sprint-9.md` (0497/0522/0523 filing, status and dependency delta only) → updated [[wiki/decisions/sprint-9]]
+
+## 2026-11-06 — ingest
+- Ingested: `ai-agents/tasks/done/0513-verify-0507-live-the-one-player-message-popup-shows-for-the-flagged-name-and-switches-off-when-the-flag-is-cleared/brief.md` → created [[wiki/tasks/one-player-message-popup-live-check]]; updated [[wiki/tasks/one-player-message-popup]]
+- Ingested: `ai-agents/tasks/done/0513-verify-0507-live-the-one-player-message-popup-shows-for-the-flagged-name-and-switches-off-when-the-flag-is-cleared/plan.md` → created [[wiki/tasks/one-player-message-popup-live-check]]; updated [[wiki/tasks/one-player-message-popup]]
+- Ingested: `ai-agents/tasks/done/0513-verify-0507-live-the-one-player-message-popup-shows-for-the-flagged-name-and-switches-off-when-the-flag-is-cleared/plan-review.md` → created [[wiki/tasks/one-player-message-popup-live-check]]; updated [[wiki/tasks/one-player-message-popup]]
+- Ingested: `ai-agents/tasks/done/0513-verify-0507-live-the-one-player-message-popup-shows-for-the-flagged-name-and-switches-off-when-the-flag-is-cleared/worklog.md` → created [[wiki/tasks/one-player-message-popup-live-check]]; updated [[wiki/tasks/one-player-message-popup]]
+
+## 2026-11-07 — ingest
+- Ingested: `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/brief.md` → updated task 0516 aggregate assessment and related analytics, purchase and rewarded-ad context.
+- Ingested: `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/plan.md` → updated task 0516 aggregate assessment and related analytics, purchase and rewarded-ad context.
+- Ingested: `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/plan-review.md` → updated task 0516 aggregate assessment and related analytics, purchase and rewarded-ad context.
+- Ingested: `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/worklog.md` → updated task 0516 aggregate assessment and related analytics, purchase and rewarded-ad context.
+- Ingested: `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/review.md` → updated task 0516 aggregate assessment and related analytics, purchase and rewarded-ad context.
+
+## 2026-11-09 — ingest
+- Ingested: `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` → updated [[wiki/systems/player-profile-store]], [[wiki/systems/alert-delivery]], [[wiki/tasks/profile-p4-operability]]; index entries annotated. API health separated from maintenance-heartbeat availability; pending reboot, unreachable Telegram proxy and delivery-proof limits recorded. No repairs performed; proxy-host cause and Better Stack incident state/closure remain unverified.

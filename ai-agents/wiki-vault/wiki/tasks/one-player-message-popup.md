@@ -5,8 +5,10 @@
 **Sprint/Tag**: Sprint 9 — live player incident (rank 34, append rank flagged)
 
 > 🚀 **2026-10-28 sync (`7a2ef92`) — DEPLOYED 2026-10-27**: live game **`0.0.167`** (`git tag --contains baaf2f8`
-> includes it; live version read 2026-10-28 by `0511`). Live check `0513` is still `🔲 Backlog`. The "not deployed" text
+> includes it; live version read 2026-10-28 by `0511`). The "not deployed" text
 > below is history.
+
+> **2026-11-06:** [[tasks/one-player-message-popup-live-check|Live check 0513]] closed done on owner acceptance, with individual live checks NOT RUN / UNPROVEN. The owner reported direct contact and a cleared flag; neither proves popup causation or client switch-off.
 
 ## Goal
 
@@ -42,12 +44,12 @@ Hub: [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]].
   client code, so it actually reaches players with the **game** deploy — which also carries `0510` and the held client
   purchase code; that deploy waits on `0512` part (a).
 - **Not deployed** (`git tag --contains baaf2f8` → none, 2026-10-27).
-- Live check `0513` (`🔲 Backlog`, Sprint 9): with the flag set to the owner's test player the popup shows to him and
-  not to a second test player; then the flag names the affected player; clearing it switches the popup off.
+- Live check `0513` is done on owner acceptance; its planned targeting, links, analytics privacy and switch-off checks remain NOT RUN / UNPROVEN. See [[tasks/one-player-message-popup-live-check]].
 - Related backlog task `0509`: put the player's stable id in the feedback message, so the next case is not a name hunt.
 
 ## Related
 
+- [[tasks/one-player-message-popup-live-check]] — task `0513`, owner-accepted completion and evidence limits
 - [[decisions/incident-2026-10-25-lost-citizenship-player-id-change]] — the incident
 - [[features/feedback-button]] — the only channel the report came through
 - [[systems/flashist-init]] — the Yandex flags fetch it reuses
