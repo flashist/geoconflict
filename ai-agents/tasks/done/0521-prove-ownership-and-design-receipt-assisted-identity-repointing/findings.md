@@ -36,7 +36,7 @@ the owner's later repoint-only direction below narrows the XP/session policy, no
 | Automatic-link proof | Still unresolved | Need backend-verifiable B→P authorization for ALL of P, beyond age, possession or entitlement. |
 | Existing policies | ADR-113/121/126/128 and D3/ADR-125 apply | Filing does not reopen manual handling or approve the client R1 restart plan + annex/HTML. |
 
-Historical [0504 worklog](../../backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
+Historical [0504 worklog](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
 remains authoritative for its own pending checks: November 5 not before **12:09:08.742023 UTC**; recommended
 **12:15 UTC / 15:15 Moscow**. No confirmation was supplied for player fresh login or that follow-up. The existing
 ADR-128 sweep obligation is unchanged; a future policy that ignores Q's ordinary progress does not waive it.
@@ -120,7 +120,7 @@ of success. This packet is currently seeded, not delivered/approved.
   no temporary-path implementation authority is carried here.
 - [0394 general switch](../../backlog/0394-re-login-when-a-player-switches-yandex-accounts/brief.md),
   [0424 ID-change cause](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md)
-  and [0504 existing recovery](../../backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md)
+  and [0504 existing recovery](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md)
   stay separate. No placement/status/dependency changes or rejected 0520 patch.
 - Read-only fkit-query consulted the wiki catalog, identity/login/purchase/manual-merge decisions, selection-investigation
   and incident context. Wiki gap: it has no established automatic-link proof/design; historical deployment/support
@@ -320,7 +320,7 @@ Coverage: local source/ADR reads only; no writes, tests, SDK execution, producti
 - Executed by fresh fkit-architect for fkit-lead / fkit-sprint-ship-loop under the relayed November 5 live `fkit_roles.fkit_ask_owner` delivery, bounded-exception and retry rulings in the caller's approved plan. Authorization: public research, read-only local inspection, append to this findings file only. No new product decision or implementation authority is inferred.
 - Local HEAD rechecked: **8378e14384e93edfdab372e81a9906845fdbcbf4**. The nine inspected verification/route/payment/schema files cited below compare equal to HEAD using `git diff --quiet HEAD -- <file>`; citations are re-read against that content. Existing working-tree edits/untracked task and wiki records were present; no clean-tree claim. Task prose/wiki are the **uncommitted working tree, 2026-11-05**. Source links below use repository-relative paths and current line anchors.
 - `fkit-query` invoked for receipt recovery, selection, identity/login/purchases/manual merge. Read catalog/schema, relevant recovery/selection pages and identity/login/manual-policy material. Watermark **2aa3cefb13caad3cd36817da4fcbff1def9b0883**; **0 committed non-wiki ai-agents changes** since sync. This excludes working-tree changes. [[tasks/receipt-assisted-identity-recovery]] labels Backlog, while the current [brief](brief.md) says In progress: stale wiki/historical seed label, preserved without a lifecycle edit. Wiki has no established authoritative automatic-link proof.
-- All three supplied source-role reports and the editorial correction above remain seed evidence, not new execution. Reports one/two declare the same HEAD; report three lacks its own frame. Their unknown model identities do not establish independent review. Their client/payment-flow reasoning is reused with attribution, not exhaustively retraced here. Related [0520 findings](../../backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/findings.md) remain static investigation, not SDK observation. Historical owner-run recovery stays labelled owner-reported in the seed and [0504 worklog](../../backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md); this unit supplies neither fresh-login confirmation nor the November 5 follow-up. No change to its manual-merge sweep obligation or timing.
+- All three supplied source-role reports and the editorial correction above remain seed evidence, not new execution. Reports one/two declare the same HEAD; report three lacks its own frame. Their unknown model identities do not establish independent review. Their client/payment-flow reasoning is reused with attribution, not exhaustively retraced here. Related [0520 findings](../../backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/findings.md) remain static investigation, not SDK observation. Historical owner-run recovery stays labelled owner-reported in the seed and [0504 worklog](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md); this unit supplies neither fresh-login confirmation nor the November 5 follow-up. No change to its manual-merge sweep obligation or timing.
 
 ### Dated official contracts and concise proof evidence
 

@@ -50,7 +50,7 @@ Not producer precedent for re-ranking. Current sprint was independently resolved
 ### Existing evidence and locked boundaries
 
 - Several external identities already map to one internal profile. Historical owner-run
-  [0504 recovery](../../backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
+  [0504 recovery](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
   kept old paid P, **4 identities, 173 XP**, original receipt/name; immediate readback and narrow audit passed
   according to owner output. **Player fresh-login confirmation and the required November 5 ≥24-hour follow-up
   remain unreported**: not before 12:09:08.742023 UTC, recommendation **12:15 UTC / 15:15 Moscow**. This task
@@ -158,7 +158,7 @@ vendor/runtime fact is an explicit unknown, not a reason to lose the automatic-r
 - **Related, not dependencies:** [0520 findings](../../backlog/0520-investigate-yandex-progress-selection-identity-and-session-behavior/findings.md)
   already provide selection/lifecycle evidence; [0394](../../backlog/0394-re-login-when-a-player-switches-yandex-accounts/brief.md)
   covers general switching; [0424](../../backlog/0424-investigate-yandex-returning-a-different-player-id-for-the-same-account-if-it-recurs/brief.md)
-  covers ID-change causes; [0504](../../backlog/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md)
+  covers ID-change causes; [0504](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/brief.md)
   covers the existing recovery. No artificial wait on unscheduled Backlog work, no 0520 move/cancel or rejected patch.
 - **Knock-on:** no existing task gains a dependency or sprint wait. Top-next pickup does not delay 0504's mandatory
   player/follow-up checks. No existing row/status/rank is changed.

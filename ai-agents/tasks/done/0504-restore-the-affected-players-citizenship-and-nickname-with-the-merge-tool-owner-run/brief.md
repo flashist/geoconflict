@@ -20,7 +20,9 @@ Sprint 9
 > fix for the affected player. Appended after the board's highest rank, never inserted (ADR-035); no row renumbered.
 
 ## Status
-🔄 In progress
+✅ Done (agent-closed — not owner-verified)
+
+> **2026-11-24 — Closure.** The player reported recovering the original account; no subsequent problems were reported. The owner waived the ≥24-hour account check for this case; it was not verified. The report does not confirm individual account fields or a verified SDK session. See the [worklog](worklog.md). Earlier status notes below are historical.
 
 > **2026-11-04 — owner ran the approved production merge; recovery verification remains open.**
 > Was 🔲 Backlog. Official support evidence supplied by the owner meets the account/purchase-link gate for this

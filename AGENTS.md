@@ -130,7 +130,7 @@ overrides a hard rule above.**
   two things they should do next, and why. After any prescribed shape, never instead of one. If nothing
   is pending, say so briefly. **Never invent a next step to fill it, and never assert repo state you did
   not check this turn** (see `ai-agents/knowledge-base/conventions/evidence-before-assertion.md`).
-- **Ask interactively.** In a session, ask the owner with `AskUserQuestion`, not prose, per
+- **Ask interactively.** In a session, ask the owner with `clarify`, not prose, per
   `ai-agents/knowledge-base/conventions/asking-the-owner.md`. In a spawned consult the tool is absent —
   return open questions in your reply instead.
 <!-- fkit:end-rules -->

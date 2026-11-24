@@ -134,3 +134,7 @@ verification after the approved merge; **no new production writes** were reporte
   approval** before a real merge; then readback and its own ≥24-hour follow-up. No standing approval from the reminder.
 - No private UUIDs, fingerprints, raw receipts or endpoints recorded. No source/wiki edit, closure, task move,
   dependency/placement change, Git commit or push.
+
+## 2026-11-24 — Closure on player report
+
+The player reported recovering the original account; no subsequent problems were reported. The owner waived the ≥24-hour account check for this case; it was not verified. The report does not confirm individual account fields or a verified SDK session. Owner ruling in the lead session: “Close on the player’s confirmation; waive the account check and note it was not verified”. No live check or repeat merge was performed for closure.

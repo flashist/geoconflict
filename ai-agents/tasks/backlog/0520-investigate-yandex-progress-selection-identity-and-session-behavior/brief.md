@@ -26,7 +26,7 @@ The owner's objective is to restore the affected player first, then prevent this
 This brief covers the Yandex progress-selection dialog only: do its choices change identity or authentication,
 reload the game iframe, or leave client, backend and session attached to different progress?
 
-**Recovery is separate.** The redacted [0504 worklog](../0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
+**Recovery is separate.** The redacted [0504 worklog](../../done/0504-restore-the-affected-players-citizenship-and-nickname-with-the-merge-tool-owner-run/worklog.md)
 records the owner-run merge and successful immediate readback on November 4. `0504` remains `🔄 In progress`:
 player fresh-login confirmation and the required ≥24-hour follow-up are pending. Follow-up not before
 **2026-11-05T12:09:08.742023Z**; recommended **12:15 UTC / 15:15 Moscow**. This investigation adds no wait to recovery.
