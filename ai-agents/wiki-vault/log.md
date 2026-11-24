@@ -5148,3 +5148,14 @@ bidirectional ([[tasks/profile-identity-s1-database-rekeying]],
 
 ## 2026-11-09 — ingest
 - Ingested: `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` → updated [[wiki/systems/player-profile-store]], [[wiki/systems/alert-delivery]], [[wiki/tasks/profile-p4-operability]]; index entries annotated. API health separated from maintenance-heartbeat availability; pending reboot, unreachable Telegram proxy and delivery-proof limits recorded. No repairs performed; proxy-host cause and Better Stack incident state/closure remain unverified.
+
+## 2026-11-24 — ingest
+- Sync window: `2aa3cefb13caad3cd36817da4fcbff1def9b0883` → `84711328161fcc2a19b0562b70ff5bd17d7d3f7e` (approved cutoff; later HEAD excluded).
+- Changed source files detected: 7 eligible of 33 candidate paths; 0 pages created, 4 updated.
+- Skipped (already covered): `ai-agents/knowledge-base/reports/2026-11-09-profile-daily-checks-incident.md` → already covered by the November 9 ingest: API health and heartbeat failure distinguished; cause and closure unverified
+- Ingested: `ai-agents/sprints/backlog.md` → updated [[wiki/decisions/sprint-backlog]]
+- Ingested: `ai-agents/sprints/plan-sprint-9.md` → updated [[wiki/decisions/sprint-9]]
+- Ingested: `ai-agents/tasks/done/0511-verify-0506-live-the-profile-box-answers-held-purchases-quietly-and-says-consume-false-for-citizenship-s1v/brief.md` → updated [[wiki/tasks/stop-consuming-profile-box-live-check]] and reciprocal link on [[wiki/tasks/purchase-rewarded-metrics-2026-11]]
+- Skipped (already covered): `ai-agents/tasks/done/0513-verify-0507-live-the-one-player-message-popup-shows-for-the-flagged-name-and-switches-off-when-the-flag-is-cleared/brief.md` → already covered by [[wiki/tasks/one-player-message-popup-live-check]]; individual checks not run or unproven
+- Skipped (already covered): `ai-agents/tasks/done/0516-verify-the-2026-10-27-purchase-and-rewarded-ad-deploys-through-gameanalytics-metrics-read-on-or-after-2026-11-03/brief.md` → already covered by [[wiki/tasks/purchase-rewarded-metrics-2026-11]]; aggregate results only
+- Skipped (already covered): `ai-agents/tasks/done/0521-prove-ownership-and-design-receipt-assisted-identity-repointing/brief.md` → already covered by [[wiki/tasks/receipt-assisted-identity-recovery]]; no trusted ownership proof

@@ -38,3 +38,4 @@ Independent reviewer and adversarial passes were usable and found no significant
 - [[systems/analytics]] — event and funnel interpretation
 - [[systems/shared-purchase-flow]] — purchase flow and live-check limits
 - [[tasks/rewarded-video-double-match-xp]] — rewarded-ad implementation and accepted residuals
+- [[tasks/stop-consuming-profile-box-live-check]] — server-side checks; separate evidence from the aggregate read.

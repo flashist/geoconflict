@@ -3,6 +3,8 @@
 **Date**: 2026-06-03
 **Status**: accepted
 
+> **Board at `84711328`** — 186 rows, 130 open. Task 0520 adds an unscheduled identity investigation; no implementation or dependency change. Source: `ai-agents/sprints/backlog.md`, row `0520-investigate-yandex-progress-selection-identity-and-session-behavior`.
+
 > 🆕 **2026-10-28 sync (`7a2ef92`) — newest of all.** **`backlog.md`: 185 rows — 126 `🔲 Backlog` · 44 `➡️ Moved` · 8
 > `✅ Done` · 3 `🚧 Blocked` · 4 `⛔ Cancelled`; 129 OPEN** (was 183 / 127; counted by me by each row's leading status
 > glyph). **2 rows added**, both `🔲 Backlog`, owner `fkit-coder`, depend on nothing:

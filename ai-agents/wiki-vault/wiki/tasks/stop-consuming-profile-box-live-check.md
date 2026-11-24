@@ -51,6 +51,8 @@ Nothing in the repo. Two reads, both read-only:
 - **For `0516`:** 61 `/intent` vs 1 `/complete` since the deploy — to compare with GameAnalytics `Purchase:Started` /
   `Abandoned` at its read.
 
+The brief now points to the completed client-side aggregate read, [[tasks/purchase-rewarded-metrics-2026-11]]. This is a reference update, not new server evidence; the three accepted unknowns above remain unproven.
+
 ## Related
 
 - [[tasks/stop-consuming-profile-box-s1]] — task `0506`, the build this checks
